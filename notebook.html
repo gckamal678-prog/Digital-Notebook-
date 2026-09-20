@@ -34,40 +34,9 @@ tailwind.config = {
         pointer-events: none;
         display: block;
     }
-    /* Custom Toast Notification */
-    #toast-container {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        z-index: 9999;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-    .custom-toast {
-        background: #0f172a;
-        color: #f8fafc;
-        border: 1px: solid #334155;
-        padding: 10px 16px;
-        border-radius: 12px;
-        font-size: 11px;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        animation: fadeInOut 2.5s ease forwards;
-    }
-    @keyframes fadeInOut {
-        0% { opacity: 0; transform: translateY(20px); }
-        15% { opacity: 1; transform: translateY(0); }
-        85% { opacity: 1; transform: translateY(0); }
-        100% { opacity: 0; transform: translateY(-20px); }
-    }
 </style>
 </head>
 <body class="bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 text-xs flex flex-col h-screen overflow-hidden select-none">
-
-<div id="toast-container"></div>
 
 <div class="flex min-h-screen w-full">
     
@@ -205,7 +174,7 @@ tailwind.config = {
     </div>
 </div>
 
-<!-- SECURE VAULT MODAL (PIN, Biometric, Real Camera Capture, Confirm Delete & Settings) -->
+<!-- SECURE VAULT MODAL (PIN, WebAuthn Biometric API, Real Camera Capture, Confirm Delete & Settings) -->
 <div id="secure-vault-modal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-slate-900 p-5 rounded-3xl shadow-2xl w-full max-w-md space-y-4 border border-slate-800 text-white">
         <div class="flex justify-between items-center border-b border-slate-800 pb-3">
@@ -267,15 +236,6 @@ tailwind.config = {
     let currentLang = localStorage.getItem('lang') || 'EN';
     let mediaStream = null;
     let capturedImageData = null;
-
-    function showToast(message) {
-        const container = document.getElementById('toast-container');
-        const toast = document.createElement('div');
-        toast.className = 'custom-toast';
-        toast.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> <span>${message}</span>`;
-        container.appendChild(toast);
-        setTimeout(() => toast.remove(), 2500);
-    }
 
     function toggleSidebar() {
         const sidebar = document.getElementById('sidebar');
@@ -340,7 +300,6 @@ tailwind.config = {
         localStorage.setItem('profile_mobile', mobile);
 
         loadUserData();
-        showToast(currentLang === 'NEP' ? 'विवरण सेभ भयो!' : 'Details saved successfully!');
     }
 
     function loadUserData() {
@@ -397,27 +356,44 @@ tailwind.config = {
             document.getElementById('vault-main-content').classList.remove('hidden');
             switchVaultTab('notes');
         } else {
-            showToast('Invalid PIN! Try again.');
+            alert('Invalid PIN!');
         }
     }
 
+    // Real WebAuthn Biometric API integration
     async function unlockBiometric() {
         if (!window.PublicKeyCredential) {
-            showToast('Biometric authentication not supported.');
+            alert('WebAuthn Biometric authentication is not supported on this browser/device.');
             return;
         }
         try {
             const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-            if (available) {
+            if (!available) {
+                alert('No platform biometric authenticator (Fingerprint/FaceID) found.');
+                return;
+            }
+
+            const challenge = new Uint8Array(32);
+            window.crypto.getRandomValues(challenge);
+
+            const publicKeyCredentialRequestOptions = {
+                challenge: challenge,
+                timeout: 60000,
+                userVerification: "required"
+            };
+
+            const credential = await navigator.credentials.get({
+                publicKey: publicKeyCredentialRequestOptions
+            });
+
+            if (credential) {
                 document.getElementById('vault-lock-box').classList.add('hidden');
                 document.getElementById('vault-main-content').classList.remove('hidden');
                 switchVaultTab('notes');
-                showToast('Biometric unlocked successfully.');
-            } else {
-                showToast('No biometric authenticator found.');
             }
         } catch (err) {
-            showToast('Biometric authentication failed.');
+            console.error(err);
+            alert('Biometric authentication cancelled or failed.');
         }
     }
 
@@ -488,7 +464,6 @@ tailwind.config = {
         }
     }
 
-    // Real Camera Handlers
     async function openCameraModal() {
         document.getElementById('camera-modal').classList.remove('hidden');
         document.getElementById('captured-doc-title').value = '';
@@ -496,7 +471,7 @@ tailwind.config = {
             mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
             document.getElementById('camera-stream').srcObject = mediaStream;
         } catch (err) {
-            showToast('Camera access denied or unavailable.');
+            alert('Camera access denied or unavailable.');
             closeCameraModal();
         }
     }
@@ -523,7 +498,6 @@ tailwind.config = {
         localStorage.setItem('digital_notebook_secure_docs', JSON.stringify(secureDocs));
         closeCameraModal();
         switchVaultTab('docs');
-        showToast('Document saved successfully.');
     }
 
     function changeVaultPin() {
@@ -532,16 +506,16 @@ tailwind.config = {
         const currentSavedPin = localStorage.getItem('vault_pin') || '1234';
 
         if(oldPin !== currentSavedPin) {
-            showToast('Incorrect old PIN!');
+            alert('Incorrect old PIN!');
             return;
         }
         if(newPin.length !== 4) {
-            showToast('New PIN must be exactly 4 digits!');
+            alert('New PIN must be exactly 4 digits!');
             return;
         }
 
         localStorage.setItem('vault_pin', newPin);
-        showToast('PIN changed successfully.');
+        alert('PIN changed successfully.');
         switchVaultTab('notes');
     }
 
@@ -553,7 +527,6 @@ tailwind.config = {
         secureNotes.unshift({id: Date.now(), title: title || 'Untitled', content});
         localStorage.setItem('digital_notebook_secure_notes', JSON.stringify(secureNotes));
         switchVaultTab('notes');
-        showToast('Secure note saved.');
     }
 
     function confirmDeleteSecureNote(id) {
@@ -561,7 +534,6 @@ tailwind.config = {
             secureNotes = secureNotes.filter(n => n.id !== id);
             localStorage.setItem('digital_notebook_secure_notes', JSON.stringify(secureNotes));
             switchVaultTab('notes');
-            showToast('Secure note deleted.');
         }
     }
 
@@ -570,7 +542,6 @@ tailwind.config = {
             secureDocs = secureDocs.filter(d => d.id !== id);
             localStorage.setItem('digital_notebook_secure_docs', JSON.stringify(secureDocs));
             switchVaultTab('docs');
-            showToast('Document deleted.');
         }
     }
 
@@ -610,7 +581,6 @@ tailwind.config = {
         localStorage.setItem('digital_notebook_notes', JSON.stringify(notes));
         closeNoteModal();
         renderNotes();
-        showToast('Note saved.');
     }
 
     function deleteNote(id) {
@@ -618,7 +588,6 @@ tailwind.config = {
             notes = notes.filter(n => n.id !== id);
             localStorage.setItem('digital_notebook_notes', JSON.stringify(notes));
             renderNotes();
-            showToast('Note deleted.');
         }
     }
 
