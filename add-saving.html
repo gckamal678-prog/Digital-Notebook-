@@ -129,7 +129,7 @@ tailwind.config = {
 
     <div class="flex-1 flex flex-col w-full">
         
-        <!-- HEADER SECTION -->
+        <!-- HEADER SECTION WITH EYE TOGGLE & TARGET -->
         <header class="sticky top-0 z-40 flex items-center justify-between px-3 md:px-5 py-3.5 bg-slate-900/95 backdrop-blur border-b border-emerald-500/20 shadow-md">
             <div class="flex items-center space-x-2.5">
                 <button onclick="toggleSidebar()" class="text-white text-xl focus:outline-none hover:text-emerald-400 transition">☰</button>
@@ -144,10 +144,17 @@ tailwind.config = {
             </div>
 
             <div class="flex items-center space-x-2">
-                <div class="px-2.5 py-1 bg-slate-800 border border-slate-700 rounded-md flex items-center gap-1.5 text-xs font-bold text-emerald-400 shadow-sm">
-                    <i class="fa-solid fa-piggy-bank"></i>
-                    <span id="header-total-savings">Rs 0.00</span>
+                <!-- TOTAL SAVINGS WITH EYE TOGGLE AND TARGET TRIGGER -->
+                <div class="px-2.5 py-1 bg-slate-800 border border-slate-700 rounded-md flex items-center gap-2 text-xs font-bold text-emerald-400 shadow-sm">
+                    <button onclick="toggleSavingsVisibility()" class="text-slate-400 hover:text-emerald-400 transition focus:outline-none">
+                        <i id="eye-icon" class="fa-solid fa-eye"></i>
+                    </button>
+                    <div class="cursor-pointer flex items-center gap-1" onclick="openTargetModal()" title="Click to set target goal">
+                        <i class="fa-solid fa-piggy-bank"></i>
+                        <span id="header-total-savings">Rs 0.00</span>
+                    </div>
                 </div>
+
                 <button onclick="toggleLanguage()" id="lang-toggle-btn" class="px-2 py-1 rounded-md bg-slate-800 border border-slate-700 text-[10px] font-bold text-slate-200 hover:bg-slate-700 transition">ENG</button>
                 <button onclick="toggleTheme()" id="theme-toggle-btn" class="w-7 h-7 rounded-md bg-slate-800 border border-slate-700 flex items-center justify-center text-sm hover:bg-slate-700 transition">🌛</button>
                 <div class="relative cursor-pointer" onclick="toggleSidebar()">
@@ -166,6 +173,25 @@ tailwind.config = {
                     <h2 class="text-base md:text-lg font-bold text-slate-800 dark:text-white tracking-tight flex items-center gap-2">
                         <i class="fa-solid fa-piggy-bank text-emerald-500"></i> <span class="lang-text" data-en="Add Savings" data-np="बचत थप्नुहोस्">Add Savings</span>
                     </h2>
+                </div>
+            </div>
+
+            <!-- SAVINGS TARGET PROGRESS CARD -->
+            <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-sm border border-slate-200 dark:border-slate-800">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-bullseye text-emerald-500"></i> Savings Target
+                    </span>
+                    <button onclick="openTargetModal()" class="text-[10px] bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-lg text-emerald-500 font-semibold hover:underline">
+                        Set Target
+                    </button>
+                </div>
+                <div class="flex justify-between items-center text-xs mb-1 font-semibold">
+                    <span id="target-progress-text" class="text-slate-500 dark:text-slate-400">Rs 0 / Rs 0</span>
+                    <span id="target-percentage" class="text-emerald-500">0%</span>
+                </div>
+                <div class="w-full bg-slate-200 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                    <div id="target-progress-bar" class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
                 </div>
             </div>
 
@@ -252,6 +278,25 @@ tailwind.config = {
     </div>
 </div>
 
+<!-- TARGET GOAL MODAL -->
+<div id="target-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-3">
+    <div class="bg-white dark:bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-xs p-4 flex flex-col space-y-3 shadow-2xl">
+        <div class="flex justify-between items-center">
+            <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                <i class="fa-solid fa-bullseye text-emerald-500"></i> Set Savings Goal
+            </h3>
+            <button onclick="closeTargetModal()" class="text-slate-400 hover:text-white text-base font-bold">✕</button>
+        </div>
+        <div>
+            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Target Amount (NPR)</label>
+            <input type="number" id="input-target-amount" placeholder="e.g. 100000" class="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 rounded-xl text-xs outline-none">
+        </div>
+        <button onclick="saveTargetAmount()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition">
+            Save Target
+        </button>
+    </div>
+</div>
+
 <!-- PDF PREVIEW / ACTION MODAL -->
 <div id="pdf-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-3">
     <div class="bg-white dark:bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
@@ -295,6 +340,7 @@ tailwind.config = {
         try {
             const localData = {
                 savings: JSON.parse(localStorage.getItem('digital_notebook_savings') || '[]'),
+                target: localStorage.getItem('savings_target_amount') || '0',
                 theme: localStorage.getItem('theme') || 'dark',
                 language: localStorage.getItem('lang') || 'EN',
                 updatedAt: new Date().toISOString()
@@ -312,6 +358,7 @@ tailwind.config = {
             if (snapshot.exists()) {
                 const data = snapshot.val();
                 if (data.savings) localStorage.setItem('digital_notebook_savings', JSON.stringify(data.savings));
+                if (data.target) localStorage.setItem('savings_target_amount', data.target);
                 if (data.theme) localStorage.setItem('theme', data.theme);
                 if (data.language) localStorage.setItem('lang', data.language);
                 
@@ -327,6 +374,8 @@ tailwind.config = {
 </script>
 
 <script>
+    let isSavingsHidden = localStorage.getItem('savings_hidden') === 'true';
+
     function toggleSidebar() {
         const sidebar = document.getElementById('sidebar');
         if (sidebar) sidebar.classList.toggle('-translate-x-full');
@@ -432,10 +481,36 @@ tailwind.config = {
         calculateSavingsTotal();
     }
 
+    // EYE VISIBILITY FUNCTIONS
+    function toggleSavingsVisibility() {
+        isSavingsHidden = !isSavingsHidden;
+        localStorage.setItem('savings_hidden', isSavingsHidden);
+        renderSavings();
+    }
+
+    // TARGET MODAL FUNCTIONS
+    function openTargetModal() {
+        const currentTarget = localStorage.getItem('savings_target_amount') || '0';
+        document.getElementById('input-target-amount').value = currentTarget;
+        document.getElementById('target-modal').classList.remove('hidden');
+    }
+
+    function closeTargetModal() {
+        document.getElementById('target-modal').classList.add('hidden');
+    }
+
+    function saveTargetAmount() {
+        const val = parseFloat(document.getElementById('input-target-amount').value) || 0;
+        localStorage.setItem('savings_target_amount', val);
+        closeTargetModal();
+        renderSavings();
+    }
+
     function renderSavings() {
         const container = document.getElementById('savings-list-container');
         const totalTableEl = document.getElementById('savings-table-total');
         const headerTotalEl = document.getElementById('header-total-savings');
+        const eyeIcon = document.getElementById('eye-icon');
         const searchQuery = document.getElementById('search-savings').value.toLowerCase();
         const sortOption = document.getElementById('sort-savings').value;
         if(!container) return;
@@ -443,10 +518,15 @@ tailwind.config = {
         let savings = JSON.parse(localStorage.getItem('digital_notebook_savings') || '[]');
         container.innerHTML = '';
 
+        if (eyeIcon) {
+            eyeIcon.className = isSavingsHidden ? "fa-solid fa-eye-slash text-rose-400" : "fa-solid fa-eye text-slate-400";
+        }
+
         if (savings.length === 0) {
             container.innerHTML = `<p class="text-slate-400 text-center py-3">${currentLang === 'NEP' ? 'कुनै रेकर्ड फेला परेन।' : 'No savings records found.'}</p>`;
-            if(totalTableEl) totalTableEl.innerText = 'Rs 0.00';
-            if(headerTotalEl) headerTotalEl.innerText = 'Rs 0.00';
+            if(totalTableEl) totalTableEl.innerText = isSavingsHidden ? 'Rs ••••••' : 'Rs 0.00';
+            if(headerTotalEl) headerTotalEl.innerText = isSavingsHidden ? 'Rs ••••••' : 'Rs 0.00';
+            updateTargetUI(0);
             return;
         }
 
@@ -492,6 +572,8 @@ tailwind.config = {
             const groupDiv = document.createElement('div');
             groupDiv.className = "bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/60 rounded-xl overflow-hidden mb-2";
 
+            const displayedGroupTotal = isSavingsHidden ? 'Rs ••••••' : `Rs ${group.total.toFixed(2)}`;
+
             let headerHtml = `
                 <div class="flex justify-between items-center p-3 cursor-pointer select-none hover:bg-slate-100 dark:hover:bg-slate-800/80 transition" onclick="toggleGroupLedger('${gIdx}')">
                     <div class="flex items-center gap-2">
@@ -501,7 +583,7 @@ tailwind.config = {
                             <p class="text-[10px] text-slate-500 dark:text-slate-400">${group.items.length} records</p>
                         </div>
                     </div>
-                    <span class="font-bold text-emerald-500 text-xs">Rs ${group.total.toFixed(2)}</span>
+                    <span class="font-bold text-emerald-500 text-xs">${displayedGroupTotal}</span>
                 </div>
             `;
 
@@ -510,14 +592,17 @@ tailwind.config = {
             group.items.sort((a, b) => new Date(b.date) - new Date(a.date));
 
             group.items.forEach(item => {
+                const displayedItemTotal = isSavingsHidden ? 'Rs ••••••' : `Rs ${item.total.toFixed(2)}`;
+                const displayedBreakdown = isSavingsHidden ? 'NPR: ••• | INR: •••' : `NPR: ${item.npr} | INR: ${item.inr}`;
+
                 detailsHtml += `
                     <div class="flex justify-between items-center py-1.5 px-2 text-[11px]">
                         <div>
                             <span class="font-semibold text-slate-700 dark:text-slate-300">${item.date}</span>
-                            <span class="text-slate-400 text-[10px] ml-2">(${item.category}) NPR: ${item.npr} | INR: ${item.inr}</span>
+                            <span class="text-slate-400 text-[10px] ml-2">(${item.category}) ${displayedBreakdown}</span>
                         </div>
                         <div class="flex items-center gap-3">
-                            <span class="font-bold text-emerald-500">Rs ${item.total.toFixed(2)}</span>
+                            <span class="font-bold text-emerald-500">${displayedItemTotal}</span>
                             <button onclick="event.stopPropagation(); editSavings(${item.originalIdx})" class="text-blue-500 hover:text-blue-600"><i class="fa-solid fa-pen-to-square"></i></button>
                             <button onclick="event.stopPropagation(); deleteSavings(${item.originalIdx})" class="text-rose-500 hover:text-rose-600"><i class="fa-solid fa-trash"></i></button>
                         </div>
@@ -530,8 +615,36 @@ tailwind.config = {
             container.appendChild(groupDiv);
         });
 
-        if(totalTableEl) totalTableEl.innerText = `Rs ${grandTotal.toFixed(2)}`;
-        if(headerTotalEl) headerTotalEl.innerText = `Rs ${grandTotal.toFixed(2)}`;
+        const formattedGrandTotal = isSavingsHidden ? 'Rs ••••••' : `Rs ${grandTotal.toFixed(2)}`;
+        if(totalTableEl) totalTableEl.innerText = formattedGrandTotal;
+        if(headerTotalEl) headerTotalEl.innerText = formattedGrandTotal;
+
+        updateTargetUI(grandTotal);
+    }
+
+    function updateTargetUI(currentTotal) {
+        const targetAmount = parseFloat(localStorage.getItem('savings_target_amount')) || 0;
+        const progressText = document.getElementById('target-progress-text');
+        const percentageText = document.getElementById('target-percentage');
+        const progressBar = document.getElementById('target-progress-bar');
+
+        if (!progressText || !percentageText || !progressBar) return;
+
+        if (targetAmount <= 0) {
+            progressText.innerText = isSavingsHidden ? "Rs •••••• / Goal Not Set" : `Rs ${currentTotal.toFixed(2)} / Goal Not Set`;
+            percentageText.innerText = "0%";
+            progressBar.style.width = "0%";
+            return;
+        }
+
+        const percentage = Math.min(100, Math.round((currentTotal / targetAmount) * 100));
+        
+        progressText.innerText = isSavingsHidden ? 
+            `Rs •••••• / Rs ••••••` : 
+            `Rs ${currentTotal.toFixed(2)} / Rs ${targetAmount.toFixed(2)}`;
+        
+        percentageText.innerText = `${percentage}%`;
+        progressBar.style.width = `${percentage}%`;
     }
 
     function toggleGroupLedger(gIdx) {
