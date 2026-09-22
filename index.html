@@ -294,6 +294,9 @@ tailwind.config = {
             </div>
 
             <div class="flex items-center space-x-2">
+                <button onclick="toggleBalancePrivacy()" id="privacy-toggle-btn" class="w-7 h-7 rounded-md bg-slate-800 border border-slate-700 flex items-center justify-center text-sm text-slate-300 hover:text-white hover:bg-slate-700 transition" title="Toggle Amount Privacy">
+                    <i id="privacy-eye-icon" class="fa-solid fa-eye"></i>
+                </button>
                 <button onclick="toggleLanguage()" id="lang-toggle-btn" class="px-2 py-1 rounded-md bg-slate-800 border border-slate-700 text-[10px] font-bold text-slate-200 hover:bg-slate-700 transition">ENG</button>
                 <button onclick="toggleTheme()" id="theme-toggle-btn" class="w-7 h-7 rounded-md bg-slate-800 border border-slate-700 flex items-center justify-center text-sm hover:bg-slate-700 transition">🌛</button>
                 <div class="relative cursor-pointer" onclick="toggleSidebar()">
@@ -583,6 +586,7 @@ tailwind.config = {
 
 <script>
     let currentEnteredPin = "";
+    let isPrivacyHidden = localStorage.getItem('balance_privacy') === 'hidden';
     
     function checkSecurityLock() {
         const savedPin = localStorage.getItem('app_mpin');
@@ -713,6 +717,33 @@ tailwind.config = {
         updateThemeUI();
     }
 
+    function toggleBalancePrivacy() {
+        isPrivacyHidden = !isPrivacyHidden;
+        localStorage.setItem('balance_privacy', isPrivacyHidden ? 'hidden' : 'visible');
+        updatePrivacyIcon();
+        updateSummaryCards();
+    }
+
+    function updatePrivacyIcon() {
+        const icon = document.getElementById('privacy-eye-icon');
+        if (icon) {
+            if (isPrivacyHidden) {
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    }
+
+    function formatAmount(amount) {
+        if (isPrivacyHidden) {
+            return '••••••';
+        }
+        return `Rs ${amount.toLocaleString()}`;
+    }
+
     function updateDynamicHeader() {
         const now = new Date();
         const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
@@ -754,7 +785,7 @@ tailwind.config = {
             }
         }
         const totalIncome = incomes.reduce((sum, item) => sum + Number(item.amount || item.incomeAmount || item.val || item.total || item.price || 0), 0);
-        if(document.getElementById('summary-income')) document.getElementById('summary-income').innerText = `Rs ${totalIncome.toLocaleString()}`;
+        if(document.getElementById('summary-income')) document.getElementById('summary-income').innerText = formatAmount(totalIncome);
 
         const savingKeys = ['digital_notebook_savings', 'savings', 'saving_data', 'add_saving_list'];
         let savings = [];
@@ -768,7 +799,7 @@ tailwind.config = {
             }
         }
         const totalSaving = savings.reduce((sum, item) => sum + Number(item.amount || item.savingAmount || item.val || item.total || item.price || 0), 0);
-        if(document.getElementById('summary-saving')) document.getElementById('summary-saving').innerText = `Rs ${totalSaving.toLocaleString()}`;
+        if(document.getElementById('summary-saving')) document.getElementById('summary-saving').innerText = formatAmount(totalSaving);
 
         const txKeys = ['digital_notebook_transactions', 'transactions', 'advanced_notebook_notes', 'notes', 'transaction_list'];
         let transactions = [];
@@ -800,10 +831,10 @@ tailwind.config = {
 
         const netBalance = (totalIncome + totalReceivable) - (totalExpense + totalPayable);
 
-        if(document.getElementById('summary-expenses')) document.getElementById('summary-expenses').innerText = `Rs ${totalExpense.toLocaleString()}`;
-        if(document.getElementById('summary-receivable')) document.getElementById('summary-receivable').innerText = `Rs ${totalReceivable.toLocaleString()}`;
-        if(document.getElementById('summary-payable')) document.getElementById('summary-payable').innerText = `Rs ${totalPayable.toLocaleString()}`;
-        if(document.getElementById('summary-net-balance')) document.getElementById('summary-net-balance').innerText = `Rs ${netBalance.toLocaleString()}`;
+        if(document.getElementById('summary-expenses')) document.getElementById('summary-expenses').innerText = formatAmount(totalExpense);
+        if(document.getElementById('summary-receivable')) document.getElementById('summary-receivable').innerText = formatAmount(totalReceivable);
+        if(document.getElementById('summary-payable')) document.getElementById('summary-payable').innerText = formatAmount(totalPayable);
+        if(document.getElementById('summary-net-balance')) document.getElementById('summary-net-balance').innerText = formatAmount(netBalance);
     }
 
     window.addEventListener('pageshow', (event) => { updateSummaryCards(); });
@@ -869,6 +900,7 @@ tailwind.config = {
     document.addEventListener("DOMContentLoaded", () => {
         updateLanguageUI();
         updateThemeUI();
+        updatePrivacyIcon();
         updateDynamicHeader();
         loadUserData();
         loadAvatar();
@@ -890,8 +922,9 @@ tailwind.config = {
         }
 
         let progress = 0;
+        // Total duration target: ~3000ms (3 seconds)
         const loadingInterval = setInterval(() => {
-            progress += 2;
+            progress += 1;
             if (progress >= 100) {
                 progress = 100;
                 clearInterval(loadingInterval);
@@ -901,11 +934,11 @@ tailwind.config = {
                         splash.style.opacity = '0';
                         setTimeout(() => splash.remove(), 700);
                     }
-                }, 400);
+                }, 200);
             }
             progressBar.style.width = progress + '%';
             loadPercent.textContent = progress + '%';
-        }, 100);
+        }, 28);
 
         setTimeout(typeWriter, 200);
     });
