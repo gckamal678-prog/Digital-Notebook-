@@ -46,10 +46,10 @@ tailwind.config = {
 <!-- LOGOUT CONFIRMATION MODAL -->
 <div id="logout-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 w-full max-w-sm shadow-2xl space-y-4 text-center">
-        <h3 class="text-sm font-bold text-slate-900 dark:text-white" data-i18n="logout_confirm_title">Are you sure you want to log out?</h3>
+        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Are you sure you want to log out?</h3>
         <div class="flex gap-2 justify-center pt-2">
-            <button onclick="closeLogoutModal()" class="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-xs font-semibold rounded-xl hover:bg-slate-300" data-i18n="btn_no">No</button>
-            <button onclick="executeLogout()" class="px-4 py-2 bg-rose-600 text-white text-xs font-semibold rounded-xl hover:bg-rose-700" data-i18n="btn_yes">Yes</button>
+            <button onclick="closeLogoutModal()" class="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-xs font-semibold rounded-xl hover:bg-slate-300">No</button>
+            <button onclick="executeLogout()" class="px-4 py-2 bg-rose-600 text-white text-xs font-semibold rounded-xl hover:bg-rose-700">Yes</button>
         </div>
     </div>
 </div>
@@ -58,9 +58,9 @@ tailwind.config = {
 <div id="reset-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 w-full max-w-md shadow-2xl space-y-4">
         <h3 class="text-base font-bold text-red-600 dark:text-red-500 flex items-center gap-2">
-            <i class="fa-solid fa-triangle-exclamation"></i> <span data-i18n="reset_title">Master Reset Confirm</span>
+            <i class="fa-solid fa-triangle-exclamation"></i> <span>Master Reset Confirm</span>
         </h3>
-        <p class="text-xs text-slate-600 dark:text-slate-400" data-i18n="reset_desc">
+        <p class="text-xs text-slate-600 dark:text-slate-400">
             All your data will be deleted. Type 'RESET' and enter MPIN to confirm:
         </p>
         <div class="space-y-3">
@@ -68,8 +68,8 @@ tailwind.config = {
             <input type="password" id="reset-pin" placeholder="Enter 4-digit MPIN" maxlength="4" class="w-full p-2.5 text-xs bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl outline-none text-slate-900 dark:text-white">
         </div>
         <div class="flex gap-2 justify-end pt-2">
-            <button onclick="closeResetModal()" class="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-xs font-semibold rounded-xl hover:bg-slate-300" data-i18n="btn_cancel">Cancel</button>
-            <button onclick="confirmMasterReset()" class="px-4 py-2 bg-red-600 text-white text-xs font-semibold rounded-xl hover:bg-red-700" data-i18n="btn_reset_system">Reset System</button>
+            <button onclick="closeResetModal()" class="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-xs font-semibold rounded-xl hover:bg-slate-300">Cancel</button>
+            <button onclick="confirmMasterReset()" class="px-4 py-2 bg-red-600 text-white text-xs font-semibold rounded-xl hover:bg-red-700">Reset System</button>
         </div>
     </div>
 </div>
@@ -105,8 +105,8 @@ tailwind.config = {
             </div>
 
             <nav class="space-y-1 font-medium">
-                <a href="index.html" class="flex items-center gap-2.5 py-2.5 px-3 rounded-xl hover:bg-slate-800 text-slate-300 transition"><span>📊</span> <span class="lang-text" data-en="Overview" data-np="अवलोकन">Overview</span></a>
-                <a href="account.html" class="flex items-center gap-2.5 py-2.5 px-3 rounded-xl bg-emerald-600 text-white shadow-md shadow-emerald-600/20 transition"><span>⚙️</span> <span class="lang-text" data-en="Account & Backup" data-np="खाता र ब्याकअप">Account & Backup</span></a>
+                <a href="index.html" class="flex items-center gap-2.5 py-2.5 px-3 rounded-xl hover:bg-slate-800 text-slate-300 transition"><span>📊</span> <span>Overview</span></a>
+                <a href="account.html" class="flex items-center gap-2.5 py-2.5 px-3 rounded-xl bg-emerald-600 text-white shadow-md shadow-emerald-600/20 transition"><span>⚙️</span> <span>Account & Backup</span></a>
             </nav>
         </div>
     </div>
@@ -128,7 +128,6 @@ tailwind.config = {
             </div>
 
             <div class="flex items-center space-x-2">
-                <button onclick="toggleLanguage()" id="lang-toggle-btn" class="px-2 py-1 rounded-md bg-slate-800 border border-slate-700 text-[10px] font-bold text-slate-200 hover:bg-slate-700 transition">ENG</button>
                 <button onclick="toggleTheme()" id="theme-toggle-btn" class="w-7 h-7 rounded-md bg-slate-800 border border-slate-700 flex items-center justify-center text-sm hover:bg-slate-700 transition">🌛</button>
                 <div class="relative cursor-pointer" onclick="toggleSidebar()">
                     <div class="w-8 h-8 rounded-full bg-emerald-600 border border-emerald-500 flex items-center justify-center overflow-hidden shadow-sm">
@@ -143,36 +142,36 @@ tailwind.config = {
             
             <!-- Header & Back Button -->
             <div class="flex items-center justify-between bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
-                <h1 class="text-base font-bold text-emerald-600 dark:text-emerald-400" data-translate="accountSettingsTitle">Account Management</h1>
-                <a href="index.html" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs rounded-xl font-medium transition text-slate-800 dark:text-white" data-translate="backToDashboard">Back to Dashboard</a>
+                <h1 class="text-base font-bold text-emerald-600 dark:text-emerald-400">Account Management</h1>
+                <a href="index.html" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs rounded-xl font-medium transition text-slate-800 dark:text-white">Back to Dashboard</a>
             </div>
 
             <!-- 1. BACKUP & DATA MANAGEMENT SECTION -->
             <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm space-y-3 border border-slate-200 dark:border-slate-800">
                 <h3 class="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                    <i class="fa-solid fa-database text-emerald-500"></i> <span data-i18n="data_management">Data Management & Backup</span>
+                    <i class="fa-solid fa-database text-emerald-500"></i> <span>Data Management & Backup</span>
                 </h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                     <button onclick="backupData()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium p-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2 shadow-md">
-                        <i class="fa-solid fa-download"></i> <span data-i18n="btn_backup">Backup JSON</span>
+                        <i class="fa-solid fa-download"></i> <span>Backup JSON</span>
                     </button>
                     <label class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium p-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer shadow-md">
-                        <i class="fa-solid fa-upload"></i> <span data-i18n="btn_restore">Restore JSON</span>
+                        <i class="fa-solid fa-upload"></i> <span>Restore JSON</span>
                         <input type="file" id="restore-file" onchange="restoreData(event)" class="hidden" accept=".json">
                     </label>
                 </div>
             </div>
 
-            <!-- 2. SECURITY & LOCK SETTINGS (4-Digit MPIN) -->
+            <!-- 2. SECURITY & LOCK SETTINGS (4-Digit MPIN & Biometric) -->
             <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 space-y-4">
                 <h3 class="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                    <i class="fa-solid fa-shield-halved text-emerald-500"></i> <span data-i18n="security_title">Security & Lock Settings</span>
+                    <i class="fa-solid fa-shield-halved text-emerald-500"></i> <span>Security & Lock Settings</span>
                 </h3>
                 <div class="space-y-3">
                     <!-- MPIN Lock -->
                     <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
                         <div>
-                            <h4 class="font-bold text-xs text-slate-800 dark:text-white" data-i18n="pin_lock_label">App 4-Digit MPIN Lock</h4>
+                            <h4 class="font-bold text-xs text-slate-800 dark:text-white">App 4-Digit MPIN Lock</h4>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" id="pin-lock-toggle" onchange="togglePinLockSetting(this)" class="sr-only peer">
@@ -186,17 +185,32 @@ tailwind.config = {
                                 <i id="pin-eye-icon" class="fa-solid fa-eye"></i>
                             </button>
                         </div>
-                        <button onclick="saveAppPin()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold" data-i18n="btn_save_pin">Save MPIN</button>
+                        <button onclick="saveAppPin()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold">Save MPIN</button>
+                    </div>
+
+                    <!-- Biometric Setting Toggle Section -->
+                    <div class="bg-slate-800/50 p-3 rounded-xl border border-slate-700/60 flex items-center justify-between mt-3">
+                        <div>
+                            <h4 class="text-xs font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-fingerprint text-emerald-400"></i>
+                                <span>Biometric Unlock</span>
+                            </h4>
+                            <p class="text-[10px] text-slate-400">Unlock app using Fingerprint / FaceID</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="biometric-toggle" onchange="toggleBiometricSetting(this)" class="sr-only peer">
+                            <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                        </label>
                     </div>
                 </div>
             </div>
 
             <!-- 3. EMAIL & CHANGE PASSWORD -->
             <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm space-y-4">
-                <h2 class="text-sm font-bold text-slate-800 dark:text-slate-300 border-b border-slate-200 dark:border-slate-800 pb-2" data-i18n="email_password_title">Email & Change Password</h2>
+                <h2 class="text-sm font-bold text-slate-800 dark:text-slate-300 border-b border-slate-200 dark:border-slate-800 pb-2">Email & Change Password</h2>
                 <div class="space-y-3">
                     <div>
-                        <label class="block text-[11px] font-semibold text-slate-400 mb-1" data-i18n="current_email_label">Current Email</label>
+                        <label class="block text-[11px] font-semibold text-slate-400 mb-1">Current Email</label>
                         <input type="email" id="user-email-display" readonly class="w-full p-2.5 bg-slate-100 dark:bg-slate-800/60 border border-slate-300 dark:border-slate-700 rounded-xl text-xs text-slate-500 dark:text-slate-400 cursor-not-allowed">
                     </div>
                     <div class="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
@@ -218,7 +232,7 @@ tailwind.config = {
                                 <i id="conf-pass-eye" class="fa-solid fa-eye"></i>
                             </button>
                         </div>
-                        <button onclick="handleChangePassword()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs transition" data-i18n="updatePasswordBtn">
+                        <button onclick="handleChangePassword()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs transition">
                             Update Password
                         </button>
                     </div>
@@ -227,10 +241,10 @@ tailwind.config = {
 
             <!-- 4. DEVICE INFO -->
             <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm space-y-3">
-                <h2 class="text-sm font-bold text-slate-800 dark:text-slate-300 border-b border-slate-200 dark:border-slate-800 pb-2" data-i18n="device_info_title">Device Info</h2>
+                <h2 class="text-sm font-bold text-slate-800 dark:text-slate-300 border-b border-slate-200 dark:border-slate-800 pb-2">Device Info</h2>
                 <div class="flex items-center justify-between text-xs py-1">
                     <span id="device-short-display" class="font-medium text-slate-900 dark:text-white">Chrome on Android</span>
-                    <button onclick="toggleDeviceDetails()" class="text-emerald-500 font-semibold hover:underline" id="device-toggle-btn" data-i18n="view_full_details">View Full Details</button>
+                    <button onclick="toggleDeviceDetails()" class="text-emerald-500 font-semibold hover:underline" id="device-toggle-btn">View Full Details</button>
                 </div>
                 <div id="device-full-details" class="hidden pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 break-all">
                     <span id="device-info-display">Loading...</span>
@@ -239,14 +253,14 @@ tailwind.config = {
 
             <!-- 5. DANGER ZONE (LOG OUT & MASTER RESET) -->
             <div class="bg-white dark:bg-slate-900 border border-rose-900/40 p-5 rounded-2xl shadow-sm space-y-4">
-                <h2 class="text-sm font-bold text-rose-600 dark:text-rose-400 border-b border-rose-900/30 pb-2" data-i18n="dangerZoneTitle">Danger Zone</h2>
+                <h2 class="text-sm font-bold text-rose-600 dark:text-rose-400 border-b border-rose-900/30 pb-2">Danger Zone</h2>
                 
                 <div class="space-y-3">
-                    <button onclick="openLogoutModal()" class="w-full py-2.5 bg-rose-600/20 hover:bg-rose-600 text-rose-600 hover:text-white border border-rose-600/30 rounded-xl font-bold text-xs transition" data-i18n="logoutBtn">
+                    <button onclick="openLogoutModal()" class="w-full py-2.5 bg-rose-600/20 hover:bg-rose-600 text-rose-600 hover:text-white border border-rose-600/30 rounded-xl font-bold text-xs transition">
                         Log Out
                     </button>
                     <button onclick="openResetModal()" class="w-full bg-red-600 hover:bg-red-700 text-white font-medium p-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2 shadow-md">
-                        <i class="fa-solid fa-triangle-exclamation"></i> <span data-i18n="btn_reset">Master Reset</span>
+                        <i class="fa-solid fa-triangle-exclamation"></i> <span>Master Reset</span>
                     </button>
                 </div>
             </div>
@@ -273,88 +287,6 @@ tailwind.config = {
     function toggleSidebar() {
         const sidebar = document.getElementById('sidebar');
         if (sidebar) sidebar.classList.toggle('-translate-x-full');
-    }
-
-    let currentLang = localStorage.getItem('lang') || 'EN';
-
-    const translations = {
-        EN: {
-            reset_title: "Master Reset Confirm",
-            reset_desc: "All your data will be deleted. Type 'RESET' and enter 4-digit MPIN to confirm:",
-            btn_cancel: "Cancel",
-            btn_reset_system: "Reset System",
-            data_management: "Data Management & Backup",
-            btn_backup: "Backup JSON",
-            btn_restore: "Restore JSON",
-            btn_reset: "Master Reset",
-            accountSettingsTitle: "Account Management",
-            backToDashboard: "Back to Dashboard",
-            logoutBtn: "Log Out",
-            updatePasswordBtn: "Update Password",
-            dangerZoneTitle: "Danger Zone",
-            security_title: "Security & Lock Settings",
-            pin_lock_label: "App 4-Digit MPIN Lock",
-            btn_save_pin: "Save MPIN",
-            email_password_title: "Email & Change Password",
-            current_email_label: "Current Email",
-            device_info_title: "Device Info",
-            view_full_details: "View Full Details",
-            hide_full_details: "Hide Details",
-            logout_confirm_title: "Are you sure you want to log out?",
-            btn_yes: "Yes",
-            btn_no: "No"
-        },
-        NEP: {
-            reset_title: "मास्टर रिसेट पुष्टि",
-            reset_desc: "तपाईंको सम्पूर्ण डाटा मेटिनेछ। पुष्टि गर्न 'RESET' टाइप गर्नुहोस् र ४-अंकको MPIN प्रविष्ट गर्नुहोस्:",
-            btn_cancel: "रद्द गर्नुहोस्",
-            btn_reset_system: "सिस्टम रिसेट गर्नुहोस्",
-            data_management: "डाटा व्यवस्थापन र ब्याकअप",
-            btn_backup: "ब्याकअप JSON",
-            btn_restore: "पुनः भण्डारण JSON",
-            btn_reset: "मास्टर रिसेट",
-            accountSettingsTitle: "अकाउन्ट व्यवस्थापन",
-            backToDashboard: "ड्यासबोर्डमा फर्कनुहोस्",
-            logoutBtn: "लग आउट गर्नुहोस्",
-            updatePasswordBtn: "पासवर्ड अपडेट गर्नुहोस्",
-            dangerZoneTitle: "खतरा क्षेत्र",
-            security_title: "सुरक्षा र लक सेटिंग्स",
-            pin_lock_label: "एप ४-अंकको MPIN लक",
-            btn_save_pin: "MPIN सेभ गर्नुहोस्",
-            email_password_title: "इमेल र पासवर्ड परिवर्तन",
-            current_email_label: "हालको इमेल",
-            device_info_title: "डिभाइस जानकारी",
-            view_full_details: "पुरा विवरण हेर्नुहोस्",
-            hide_full_details: "विवरण लुकाउनुहोस्",
-            logout_confirm_title: "के तपाईं लग आउट गर्न निश्चित हुनुहुन्छ?",
-            btn_yes: "हो",
-            btn_no: "होइन"
-        }
-    };
-
-    function updateLanguageUI() {
-        const btn = document.getElementById('lang-toggle-btn');
-        if(btn) btn.innerText = currentLang;
-
-        document.querySelectorAll('[data-i18n]').forEach(el => {
-            const key = el.getAttribute('data-i18n');
-            if (translations[currentLang] && translations[currentLang][key]) {
-                el.innerText = translations[currentLang][key];
-            }
-        });
-
-        document.querySelectorAll('[data-translate]').forEach(el => {
-            const key = el.getAttribute('data-translate');
-            if (translations[currentLang] && translations[currentLang][key]) {
-                el.innerText = translations[currentLang][key];
-            }
-        });
-    }
-
-    function toggleLanguage() {
-        currentLang = currentLang === 'EN' ? 'NEP' : 'EN';
-        localStorage.setItem('lang', currentLang);
-        updateLanguageUI();
     }
 
     function updateThemeUI() {
@@ -409,10 +341,10 @@ tailwind.config = {
         const btn = document.getElementById('device-toggle-btn');
         if (details.classList.contains('hidden')) {
             details.classList.remove('hidden');
-            btn.innerText = currentLang === 'NEP' ? translations.NEP.hide_full_details : translations.EN.hide_full_details;
+            btn.innerText = "Hide Details";
         } else {
             details.classList.add('hidden');
-            btn.innerText = currentLang === 'NEP' ? translations.NEP.view_full_details : translations.EN.view_full_details;
+            btn.innerText = "View Full Details";
         }
     }
 
@@ -456,24 +388,24 @@ tailwind.config = {
         const user = auth.currentUser;
 
         if (!currentPassword || !newPassword || !confirmPassword) {
-            showToast(currentLang === 'NEP' ? 'कृपया सबै फिल्डहरू भर्नुहोस्!' : 'Please fill all password fields!', 'error');
+            showToast('Please fill all password fields!', 'error');
             return;
         }
 
         if (newPassword !== confirmPassword) {
-            showToast(currentLang === 'NEP' ? 'नयाँ पासवर्ड मिलेन!' : 'New passwords do not match!', 'error');
+            showToast('New passwords do not match!', 'error');
             return;
         }
 
         if (newPassword.length < 6) {
-            showToast(currentLang === 'NEP' ? 'पासवर्ड कम्तिमा ६ अक्षरको हुनुपर्छ!' : 'Password must be at least 6 characters long.', 'error');
+            showToast('Password must be at least 6 characters long.', 'error');
             return;
         }
 
         const credential = firebase.auth.EmailAuthProvider.credential(user.email, currentPassword);
         user.reauthenticateWithCredential(credential).then(() => {
             user.updatePassword(newPassword).then(() => {
-                showToast(currentLang === 'NEP' ? 'पासवर्ड सफलतापूर्वक परिवर्तन भयो!' : 'Password successfully updated.');
+                showToast('Password successfully updated.');
                 document.getElementById('current-password').value = '';
                 document.getElementById('new-password').value = '';
                 document.getElementById('confirm-password').value = '';
@@ -481,7 +413,7 @@ tailwind.config = {
                 showToast("Error: " + error.message, 'error');
             });
         }).catch((error) => {
-            showToast(currentLang === 'NEP' ? 'हालको पासवर्ड मिलेन!' : 'Incorrect current password!', 'error');
+            showToast('Incorrect current password!', 'error');
         });
     }
 
@@ -492,18 +424,35 @@ tailwind.config = {
         } else {
             box.classList.add('hidden');
             localStorage.removeItem('app_mpin');
-            showToast(currentLang === 'NEP' ? 'MPIN लक बन्द भयो!' : 'MPIN Lock disabled!', 'success');
+            showToast('MPIN Lock disabled!', 'success');
         }
     }
 
     function saveAppPin() {
         const pin = document.getElementById('new-app-pin').value.trim();
         if (pin.length !== 4) {
-            showToast(currentLang === 'NEP' ? 'कृपया ठ्याक्कै ४ अंकको MPIN राख्नुहोस्!' : 'Please enter a 4-digit MPIN!', 'error');
+            showToast('Please enter a 4-digit MPIN!', 'error');
             return;
         }
         localStorage.setItem('app_mpin', pin);
-        showToast(currentLang === 'NEP' ? 'MPIN सफलतापूर्वक सेभ भयो!' : 'MPIN saved successfully!', 'success');
+        showToast('MPIN saved successfully!', 'success');
+    }
+
+    // Function to save Biometric state in LocalStorage on toggle
+    async function toggleBiometricSetting(element) {
+        if (element.checked) {
+            if (window.PublicKeyCredential && await PublicKeyCredential.isUserVerifiableNativeAuthAvailable()) {
+                localStorage.setItem('app_biometric', 'enabled');
+                showToast('Biometric authentication enabled successfully!', 'success');
+            } else {
+                showToast('Biometric authentication is not supported or available on this device.', 'error');
+                element.checked = false;
+                localStorage.setItem('app_biometric', 'disabled');
+            }
+        } else {
+            localStorage.setItem('app_biometric', 'disabled');
+            showToast('Biometric authentication disabled.', 'success');
+        }
     }
 
     function backupData() {
@@ -519,7 +468,7 @@ tailwind.config = {
         document.body.appendChild(downloadAnchor);
         downloadAnchor.click();
         downloadAnchor.remove();
-        showToast(currentLang === 'NEP' ? 'ब्याकअप फाइल डाउनलोड भयो!' : 'Backup file downloaded!', 'success');
+        showToast('Backup file downloaded!', 'success');
     }
 
     function restoreData(event) {
@@ -532,10 +481,10 @@ tailwind.config = {
                 for (const key in data) {
                     localStorage.setItem(key, data[key]);
                 }
-                showToast(currentLang === 'NEP' ? 'डाटा सफलतापूर्वक पुनर्स्थापना भयो!' : 'Data successfully restored!', 'success');
+                showToast('Data successfully restored!', 'success');
                 setTimeout(() => location.reload(), 1000);
             } catch (err) {
-                showToast(currentLang === 'NEP' ? 'अमान्य ब्याकअप फाइल!' : 'Invalid backup file!', 'error');
+                showToast('Invalid backup file!', 'error');
             }
         };
         reader.readAsText(file);
@@ -555,28 +504,36 @@ tailwind.config = {
         const savedPin = localStorage.getItem('app_mpin') || '1234';
 
         if (textVal !== 'RESET') {
-            showToast(currentLang === 'NEP' ? "कृपया 'RESET' टाइप गर्नुहोस्!" : "Please type 'RESET'!", 'error');
+            showToast("Please type 'RESET'!", 'error');
             return;
         }
 
         if (pinVal !== savedPin && pinVal !== '') {
-            showToast(currentLang === 'NEP' ? "गलत MPIN!" : "Incorrect MPIN!", 'error');
+            showToast("Incorrect MPIN!", 'error');
             return;
         }
 
         localStorage.clear();
-        showToast(currentLang === 'NEP' ? 'सिस्टम सफलतापूर्वक रिसेट भयो!' : 'System successfully reset!', 'success');
+        showToast('System successfully reset!', 'success');
         setTimeout(() => location.reload(), 1000);
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-        updateLanguageUI();
         updateThemeUI();
+        
+        // MPIN State Check
         const savedPin = localStorage.getItem('app_mpin');
         if (savedPin) {
             document.getElementById('pin-lock-toggle').checked = true;
             document.getElementById('pin-setup-box').classList.remove('hidden');
             document.getElementById('new-app-pin').value = savedPin;
+        }
+
+        // Biometric State Check
+        const isBiometricEnabled = localStorage.getItem('app_biometric') === 'enabled';
+        const biometricToggle = document.getElementById('biometric-toggle');
+        if (biometricToggle) {
+            biometricToggle.checked = isBiometricEnabled;
         }
     });
 </script>
