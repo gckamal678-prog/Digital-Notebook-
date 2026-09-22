@@ -116,6 +116,10 @@ tailwind.config = {
             </div>
 
             <div class="flex items-center space-x-2">
+                <!-- Eye Toggle (Privacy Feature) Button -->
+                <button onclick="togglePrivacy()" id="privacy-toggle-btn" title="Toggle Amount Visibility" class="w-7 h-7 rounded-md bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-200 hover:bg-slate-700 transition">
+                    <i id="privacy-icon" class="fa-solid fa-eye text-xs"></i>
+                </button>
                 <button onclick="toggleLanguage()" id="lang-toggle-btn" class="px-2 py-1 rounded-md bg-slate-800 border border-slate-700 text-[10px] font-bold text-slate-200 hover:bg-slate-700 transition">ENG</button>
                 <button onclick="toggleTheme()" id="theme-toggle-btn" class="w-7 h-7 rounded-md bg-slate-800 border border-slate-700 flex items-center justify-center text-sm hover:bg-slate-700 transition">🌛</button>
                 <div class="relative cursor-pointer" onclick="toggleSidebar()">
@@ -313,6 +317,33 @@ tailwind.config = {
     }
 
     let currentLang = localStorage.getItem('lang') || 'EN';
+    let isPrivate = localStorage.getItem('isPrivate') === 'true';
+
+    function updatePrivacyUI() {
+        const icon = document.getElementById('privacy-icon');
+        if (icon) {
+            if (isPrivate) {
+                icon.className = 'fa-solid fa-eye-slash text-xs text-rose-400';
+            } else {
+                icon.className = 'fa-solid fa-eye text-xs';
+            }
+        }
+    }
+
+    function togglePrivacy() {
+        isPrivate = !isPrivate;
+        localStorage.setItem('isPrivate', isPrivate);
+        updatePrivacyUI();
+        calculateTotalAmount();
+        renderPartyAccounts();
+    }
+
+    function formatAmount(amount) {
+        if (isPrivate) {
+            return '••••••';
+        }
+        return `Rs ${parseFloat(amount).toFixed(2)}`;
+    }
 
     function updateLanguageUI() {
         const btn = document.getElementById('lang-toggle-btn');
@@ -408,7 +439,12 @@ tailwind.config = {
             principal += interest;
         }
 
-        document.getElementById('txn-total-calc').value = principal.toFixed(2);
+        const totalCalcEl = document.getElementById('txn-total-calc');
+        if (isPrivate) {
+            totalCalcEl.value = '••••••';
+        } else {
+            totalCalcEl.value = principal.toFixed(2);
+        }
     }
 
     function saveTransaction(event) {
@@ -422,10 +458,12 @@ tailwind.config = {
         const npr = parseFloat(document.getElementById('txn-amount-npr').value) || 0;
         const inr = parseFloat(document.getElementById('txn-amount-inr').value) || 0;
         
-        let total = parseFloat(document.getElementById('txn-total-calc').value) || 0;
-        if (total === 0) {
-            total = npr + (inr * INR_RATE);
+        let principal = npr + (inr * INR_RATE);
+        if (type !== 'Expense') {
+            const interest = (principal * rate * period) / 100;
+            principal += interest;
         }
+        const total = principal;
 
         const note = document.getElementById('txn-note').value.trim();
 
@@ -528,7 +566,7 @@ tailwind.config = {
                         </div>
                     </div>
                     <div class="flex items-center gap-3">
-                        <span class="font-bold text-xs ${partyData.balance >= 0 ? 'text-emerald-500' : 'text-rose-500'}">Net: Rs ${partyData.balance.toFixed(2)}</span>
+                        <span class="font-bold text-xs ${partyData.balance >= 0 ? 'text-emerald-500' : 'text-rose-500'}">Net: ${formatAmount(partyData.balance)}</span>
                     </div>
                 </div>
             `;
@@ -558,14 +596,15 @@ tailwind.config = {
             partyData.items.sort((a, b) => new Date(b.date) - new Date(a.date));
 
             partyData.items.forEach(tx => {
+                const displayNprInr = isPrivate ? 'NPR: •••• | INR: ••••' : `NPR: ${tx.npr} | INR: ${tx.inr}`;
                 detailsHtml += `
                     <tr class="border-b border-slate-100 dark:border-slate-800 text-[11px]">
                         <td class="py-1.5 px-2 font-semibold text-slate-800 dark:text-slate-200">${tx.date}</td>
                         <td class="py-1.5 px-2">
                             <span class="px-1.5 py-0.5 rounded text-[9px] font-bold ${tx.type === 'Receivable' ? 'bg-emerald-500/10 text-emerald-500' : tx.type === 'Payable' ? 'bg-amber-500/10 text-amber-500' : 'bg-rose-500/10 text-rose-500'}">${tx.type}</span>
                         </td>
-                        <td class="py-1.5 px-2 text-slate-500">NPR: ${tx.npr} | INR: ${tx.inr}</td>
-                        <td class="py-1.5 px-2 font-bold text-emerald-500">Rs ${tx.total.toFixed(2)}</td>
+                        <td class="py-1.5 px-2 text-slate-500">${displayNprInr}</td>
+                        <td class="py-1.5 px-2 font-bold text-emerald-500">${formatAmount(tx.total)}</td>
                         <td class="py-1.5 px-2 text-right space-x-2">
                             <button onclick="event.stopPropagation(); editTransaction(${tx.originalIndex})" class="text-blue-500 hover:text-blue-600"><i class="fa-solid fa-pen-to-square"></i></button>
                             <button onclick="event.stopPropagation(); deleteTransaction(${tx.originalIndex})" class="text-rose-500 hover:text-rose-600"><i class="fa-solid fa-trash"></i></button>
@@ -658,12 +697,14 @@ tailwind.config = {
                 netBalance -= item.total;
             }
 
+            const pdfNprInr = isPrivate ? 'NPR: •••• | INR: ••••' : `NPR: ${item.npr} | INR: ${item.inr}`;
+
             html += `
                 <tr style="border-bottom: 1px solid #e5e7eb;">
                     <td style="padding: 9px;">${item.date}</td>
                     <td style="padding: 9px; font-weight: bold; color: ${item.type === 'Receivable' ? '#16a34a' : '#e11d48'};">${item.type}</td>
-                    <td style="padding: 9px;">NPR: ${item.npr} | INR: ${item.inr}</td>
-                    <td style="padding: 9px; font-weight: bold; color: #16a34a;">Rs ${item.total.toFixed(2)}</td>
+                    <td style="padding: 9px;">${pdfNprInr}</td>
+                    <td style="padding: 9px; font-weight: bold; color: #16a34a;">${formatAmount(item.total)}</td>
                     <td style="padding: 9px; color: #6b7280;">${item.note || '-'}</td>
                 </tr>`;
         });
@@ -673,7 +714,7 @@ tailwind.config = {
             </table>
 
             <div style="margin-top: 20px; text-align: right; font-size: 14px; font-weight: bold; color: ${netBalance >= 0 ? '#16a34a' : '#e11d48'}; border-top: 2px solid #16a34a; padding-top: 15px;">
-                Net Balance: Rs ${netBalance.toFixed(2)}
+                Net Balance: ${formatAmount(netBalance)}
             </div>
             
             <div style="text-align: center; font-size: 10px; color: #9ca3af; margin-top: 30px; border-top: 1px solid #e5e7eb; padding-top: 10px;">
@@ -714,7 +755,6 @@ tailwind.config = {
         document.getElementById('txn-period').value = tx.period;
         document.getElementById('txn-amount-npr').value = tx.npr;
         document.getElementById('txn-amount-inr').value = tx.inr;
-        document.getElementById('txn-total-calc').value = tx.total;
         document.getElementById('txn-note').value = tx.note;
 
         handleTypeChange();
@@ -791,6 +831,7 @@ tailwind.config = {
     }
 
     document.addEventListener("DOMContentLoaded", () => {
+        updatePrivacyUI();
         updateLanguageUI();
         updateThemeUI();
         updateDynamicHeader();
