@@ -114,6 +114,8 @@ tailwind.config = {
             </div>
 
             <div class="flex items-center space-x-2">
+                <!-- PRIVACY TOGGLE BUTTON (Eye Toggle) -->
+                <button onclick="togglePrivacy()" id="privacy-toggle-btn" title="Toggle Amount Visibility" class="w-7 h-7 rounded-md bg-slate-800 border border-slate-700 flex items-center justify-center text-sm hover:bg-slate-700 transition">👁️</button>
                 <button onclick="toggleLanguage()" id="lang-toggle-btn" class="px-2 py-1 rounded-md bg-slate-800 border border-slate-700 text-[10px] font-bold text-slate-200 hover:bg-slate-700 transition">ENG</button>
                 <button onclick="toggleTheme()" id="theme-toggle-btn" class="w-7 h-7 rounded-md bg-slate-800 border border-slate-700 flex items-center justify-center text-sm hover:bg-slate-700 transition">🌛</button>
                 <div class="relative cursor-pointer" onclick="toggleSidebar()">
@@ -221,7 +223,6 @@ tailwind.config = {
         
         <div id="pdf-preview-container" class="p-4 overflow-y-auto flex-1 bg-slate-100 dark:bg-slate-950 flex justify-center"></div>
 
-        <!-- Print बटन मात्र राखिएको छ, Share / Download बटन हटाइएको छ -->
         <div class="p-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex justify-end gap-2">
             <button onclick="printFromModal()" class="bg-slate-700 hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm">
                 <i class="fa-solid fa-print"></i> Print
@@ -237,6 +238,35 @@ tailwind.config = {
     }
 
     let currentLang = localStorage.getItem('lang') || 'EN';
+    let isPrivacyMode = localStorage.getItem('privacy_mode') === 'true';
+
+    function updatePrivacyUI() {
+        const btn = document.getElementById('privacy-toggle-btn');
+        if (btn) btn.innerText = isPrivacyMode ? '🙈' : '👁️';
+
+        document.querySelectorAll('.privacy-amount').forEach(el => {
+            const rawVal = el.getAttribute('data-value');
+            if (isPrivacyMode) {
+                if (el.tagName === 'INPUT') {
+                    el.value = '••••••';
+                } else {
+                    el.innerText = '••••••';
+                }
+            } else {
+                if (el.tagName === 'INPUT') {
+                    el.value = rawVal;
+                } else {
+                    el.innerText = rawVal;
+                }
+            }
+        });
+    }
+
+    function togglePrivacy() {
+        isPrivacyMode = !isPrivacyMode;
+        localStorage.setItem('privacy_mode', isPrivacyMode);
+        updatePrivacyUI();
+    }
 
     function updateLanguageUI() {
         const btn = document.getElementById('lang-toggle-btn');
@@ -355,7 +385,15 @@ tailwind.config = {
         const npr = parseFloat(document.getElementById('income-amount-npr').value) || 0;
         const inr = parseFloat(document.getElementById('income-amount-inr').value) || 0;
         const total = npr + (inr * INR_RATE);
-        document.getElementById('income-total-calc').value = total.toFixed(2);
+        const calcEl = document.getElementById('income-total-calc');
+        const formattedTotal = total.toFixed(2);
+        calcEl.setAttribute('data-value', formattedTotal);
+        
+        if (isPrivacyMode) {
+            calcEl.value = '••••••';
+        } else {
+            calcEl.value = formattedTotal;
+        }
     }
 
     function saveIncome(event) {
@@ -365,7 +403,8 @@ tailwind.config = {
         const date = document.getElementById('income-date').value;
         const npr = parseFloat(document.getElementById('income-amount-npr').value) || 0;
         const inr = parseFloat(document.getElementById('income-amount-inr').value) || 0;
-        const total = parseFloat(document.getElementById('income-total-calc').value) || 0;
+        const totalVal = document.getElementById('income-total-calc').getAttribute('data-value');
+        const total = parseFloat(totalVal) || (npr + (inr * INR_RATE));
 
         let incomes = JSON.parse(localStorage.getItem('digital_notebook_incomes') || '[]');
         const item = { sourceName, date, npr, inr, total };
@@ -404,7 +443,10 @@ tailwind.config = {
 
         if (incomes.length === 0) {
             container.innerHTML = `<p class="text-slate-400 text-center py-3">कुनै आम्दानी रेकर्ड फेला परेन।</p>`;
-            if(totalContainer) totalContainer.innerText = 'Rs 0.00';
+            if(totalContainer) {
+                totalContainer.innerText = 'Rs 0.00';
+                totalContainer.setAttribute('data-value', 'Rs 0.00');
+            }
             return;
         }
 
@@ -453,7 +495,7 @@ tailwind.config = {
                             <p class="text-[10px] text-slate-500 dark:text-slate-400">${group.items.length} records</p>
                         </div>
                     </div>
-                    <span class="font-bold text-emerald-500 text-xs">Rs ${group.total.toFixed(2)}</span>
+                    <span class="font-bold text-emerald-500 text-xs privacy-amount" data-value="Rs ${group.total.toFixed(2)}">Rs ${group.total.toFixed(2)}</span>
                 </div>
             `;
 
@@ -466,10 +508,10 @@ tailwind.config = {
                     <div class="flex justify-between items-center py-1.5 px-2 text-[11px]">
                         <div>
                             <span class="font-semibold text-slate-700 dark:text-slate-300">${item.date}</span>
-                            <span class="text-slate-400 text-[10px] ml-2">NPR: ${item.npr} | INR: ${item.inr}</span>
+                            <span class="text-slate-400 text-[10px] ml-2">NPR: <span class="privacy-amount" data-value="${item.npr}">${item.npr}</span> | INR: <span class="privacy-amount" data-value="${item.inr}">${item.inr}</span></span>
                         </div>
                         <div class="flex items-center gap-3">
-                            <span class="font-bold text-emerald-500">Rs ${item.total.toFixed(2)}</span>
+                            <span class="font-bold text-emerald-500 privacy-amount" data-value="Rs ${item.total.toFixed(2)}">Rs ${item.total.toFixed(2)}</span>
                             <button onclick="event.stopPropagation(); editIncome(${item.originalIdx})" class="text-blue-500 hover:text-blue-600"><i class="fa-solid fa-pen-to-square"></i></button>
                             <button onclick="event.stopPropagation(); deleteIncome(${item.originalIdx})" class="text-rose-500 hover:text-rose-600"><i class="fa-solid fa-trash"></i></button>
                         </div>
@@ -482,7 +524,14 @@ tailwind.config = {
             container.appendChild(groupDiv);
         });
 
-        if(totalContainer) totalContainer.innerText = `Rs ${grandTotal.toFixed(2)}`;
+        if(totalContainer) {
+            const formattedGrandTotal = `Rs ${grandTotal.toFixed(2)}`;
+            totalContainer.setAttribute('data-value', formattedGrandTotal);
+            totalContainer.innerText = formattedGrandTotal;
+            totalContainer.classList.add('privacy-amount');
+        }
+
+        updatePrivacyUI();
     }
 
     function toggleGroupLedger(gIdx) {
@@ -507,7 +556,10 @@ tailwind.config = {
         document.getElementById('income-date').value = inc.date;
         document.getElementById('income-amount-npr').value = inc.npr;
         document.getElementById('income-amount-inr').value = inc.inr;
-        document.getElementById('income-total-calc').value = inc.total;
+        
+        const calcEl = document.getElementById('income-total-calc');
+        calcEl.setAttribute('data-value', inc.total.toFixed(2));
+        calcEl.value = isPrivacyMode ? '••••••' : inc.total.toFixed(2);
 
         document.getElementById('income-submit-btn').innerText = currentLang === 'NEP' ? 'अपडेट गर्नुहोस्' : 'Update Income';
         document.getElementById('income-cancel-btn').classList.remove('hidden');
@@ -524,7 +576,6 @@ tailwind.config = {
         }
     }
 
-    // PDF प्रिभ्यू र फिक्स गरिएको लेआउट (20% प्रोफाइल, 55% लोगो, 25% ठेगाना)
     function generateAndShareIncomePDF() {
         let incomes = JSON.parse(localStorage.getItem('digital_notebook_incomes') || '[]');
         if(incomes.length === 0) {
@@ -545,7 +596,6 @@ tailwind.config = {
             
             <table style="width: 100%; border-bottom: 2px solid #16a34a; padding-bottom: 15px; margin-bottom: 20px; border-collapse: collapse;">
                 <tr>
-                    <!-- बायाँतर्फ प्रोफाइल फोटो नामको ठीक माथि (20%) -->
                     <td style="vertical-align: middle; width: 20%; text-align: center;">
                         <div style="display: inline-block; text-align: center;">
                             <div style="width: 55px; height: 55px; border-radius: 50%; overflow: hidden; border: 2px solid #16a34a; margin: 0 auto 4px auto;">
@@ -555,12 +605,10 @@ tailwind.config = {
                         </div>
                     </td>
 
-                    <!-- बीचमा bannerlogo.png (55%) -->
                     <td style="vertical-align: middle; text-align: center; width: 55%; padding: 0 10px;">
                         <img src="bannerlogo.png" style="width: 100%; max-width: 100%; height: auto; object-fit: contain; display: inline-block;">
                     </td>
 
-                    <!-- दायाँतर्फ ठेगाना र विवरण व्यवस्थित रूपमा (25%) -->
                     <td style="vertical-align: middle; text-align: left; font-size: 10px; color: #555; line-height: 1.4; width: 25%; padding-left: 10px;">
                         <div>📍 Address: ${profileAddress}</div>
                         <div>📞 Contact: ${profileMobile}</div>
@@ -642,6 +690,7 @@ tailwind.config = {
         if(dateInput && !dateInput.value) {
             dateInput.valueAsDate = new Date();
         }
+        document.getElementById('income-total-calc').classList.add('privacy-amount');
     });
 </script>
 </body>
