@@ -588,26 +588,29 @@ tailwind.config = {
     let currentEnteredPin = "";
     let isPrivacyHidden = localStorage.getItem('balance_privacy') === 'hidden';
     
-    function checkSecurityLock() {
-        const savedPin = localStorage.getItem('app_mpin');
-        const savedBiometric = localStorage.getItem('app_biometric');
-        const lockScreen = document.getElementById('security-lock-screen');
-        
-        if ((savedPin && savedPin.length === 4) || savedBiometric === 'enabled') {
-            lockScreen.classList.remove('hidden');
+    async function checkSecurityLock() {
+    const savedPin = localStorage.getItem('app_mpin');
+    const savedBiometric = localStorage.getItem('app_biometric');
+    const lockScreen = document.getElementById('security-lock-screen');
+    const biometricContainer = document.getElementById('biometric-container');
+
+    if ((savedPin && savedPin.length === 4) || savedBiometric === 'enabled') {
+        lockScreen.classList.remove('hidden');
+
+        if (savedBiometric === 'enabled' && window.PublicKeyCredential) {
+            if (biometricContainer) biometricContainer.classList.remove('hidden');
             
-            if (savedBiometric === 'enabled' && window.PublicKeyCredential) {
-                document.getElementById('biometric-container').classList.remove('hidden');
-                setTimeout(() => {
-                    triggerBiometricAuth();
-                }, 300);
-            } else {
-                document.getElementById('biometric-container').classList.add('hidden');
-            }
+            setTimeout(() => {
+                triggerBiometricAuth();
+            }, 500);
         } else {
-            lockScreen.classList.add('hidden');
+            if (biometricContainer) biometricContainer.classList.add('hidden');
         }
+    } else {
+        lockScreen.classList.add('hidden');
     }
+}
+
 
     window.pressPinKey = function(digit) {
         if (currentEnteredPin.length < 4) {
