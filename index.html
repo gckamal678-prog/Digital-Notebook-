@@ -424,7 +424,7 @@ tailwind.config = {
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, set, get, child, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDDY_v7RHnkCTI6uyV4DNDjqoaIBGweg8c",
@@ -444,10 +444,30 @@ tailwind.config = {
         const loginOverlay = document.getElementById('login-overlay');
         if (user) {
             if (loginOverlay) loginOverlay.classList.add('hidden');
+            listenToCloudChanges(user.uid);
         } else {
             if (loginOverlay) loginOverlay.classList.remove('hidden');
         }
     });
+
+    function listenToCloudChanges(userId) {
+        const userRef = ref(db, 'users/' + userId);
+        onValue(userRef, (snapshot) => {
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                let hasNewData = false;
+
+                if (data.notes) { localStorage.setItem('advanced_notebook_notes', JSON.stringify(data.notes)); hasNewData = true; }
+                if (data.incomes) { localStorage.setItem('digital_notebook_incomes', JSON.stringify(data.incomes)); hasNewData = true; }
+                if (data.savings) { localStorage.setItem('digital_notebook_savings', JSON.stringify(data.savings)); hasNewData = true; }
+                if (data.transactions) { localStorage.setItem('digital_notebook_transactions', JSON.stringify(data.transactions)); hasNewData = true; }
+
+                if (hasNewData && typeof updateSummaryCards === 'function') {
+                    updateSummaryCards();
+                }
+            }
+        });
+    }
 
     let isLoginMode = false;
 
@@ -925,7 +945,6 @@ tailwind.config = {
         }
 
         let progress = 0;
-        // Total duration target: ~3000ms (3 seconds)
         const loadingInterval = setInterval(() => {
             progress += 1;
             if (progress >= 100) {
