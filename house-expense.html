@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="ne">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>house-expense</title>
+<title>house-expense - Firebase</title>
 <style>
 :root {
   --green: #176b52;
@@ -30,6 +29,14 @@ header {
 }
 header h1 { margin: 0; }
 header p { margin-bottom: 0; color: #e0f3e9; }
+.auth-box {
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+  max-width: 400px;
+  margin: 40px auto;
+  border: 1px solid var(--border);
+}
 .stats {
   display: grid;
   grid-template-columns: repeat(3,1fr);
@@ -145,21 +152,38 @@ button {
   .app { padding: 10px; }
   .card { padding: 14px; }
 }
-@media(max-width:370px) {
-  .stats { grid-template-columns: 1fr 1fr; }
-  .stats .stat:last-child { grid-column: 1/-1; }
-  .formgrid, .filters { grid-template-columns: 1fr; }
-  .full { grid-column: auto; }
-}
 </style>
 </head>
 <body>
-<div class="app">
 
+<!-- लगइन नभएका बेला देखाउने खण्ड -->
+<div id="authScreen" class="app" style="display:none;">
+  <div class="auth-box">
+    <h2>🔐 मेरो घरखर्च - लगइन</h2>
+    <div class="field" style="margin-bottom:12px;">
+      <label>इमेल (Email)</label>
+      <input type="email" id="authEmail" placeholder="example@gmail.com">
+    </div>
+    <div class="field" style="margin-bottom:16px;">
+      <label>पासवर्ड (Password)</label>
+      <input type="password" id="authPass" placeholder="******">
+    </div>
+    <button class="primary fullbtn" id="loginBtn">लगइन गर्नुहोस्</button>
+    <button class="secondary fullbtn" id="signupBtn" style="margin-top:8px;">नयाँ खाता खोल्नुहोस्</button>
+  </div>
+</div>
+
+<!-- लगइन भएपछि देखिने मुख्य एप -->
+<div id="mainApp" class="app" style="display:none;">
 <header>
-  <h1>🏡 मेरो घरखर्च</h1>
-  <p>दैनिक किनमेल र खर्चको सजिलो हिसाब</p>
-  <p id="today"></p>
+  <div class="row">
+    <div>
+      <h1>🏡 मेरो घरखर्च</h1>
+      <p>दैनिक किनमेल र खर्चको सजिलो हिसाब</p>
+    </div>
+    <button class="secondary" id="logoutBtn">लगआउट</button>
+  </div>
+  <p id="today" style="margin-top:10px;"></p>
   <div class="stats">
     <div class="stat"><span>आजको खर्च</span><strong id="todayTotal">रु. ०</strong></div>
     <div class="stat"><span>यो महिनाको खर्च</span><strong id="monthTotal">रु. ०</strong></div>
@@ -198,7 +222,7 @@ button {
     <button class="primary fullbtn" id="saveBtn">खर्च सेभ गर्नुहोस्</button>
     <button class="secondary fullbtn" id="cancelBtn" type="button" hidden>रद्द गर्नुहोस्</button>
   </form>
-  <p class="note">तपाईंको हिसाब यही ब्राउजरमा सेभ हुन्छ। बेला-बेला ब्याकअप डाउनलोड गर्नुहोस्।</p>
+  <p class="note">तपाईंको हिसाब Firebase Database मा सुरक्षित रूपमा सेभ भइरहेको छ।</p>
 </section>
 
 <section class="card">
@@ -235,320 +259,269 @@ button {
   </div>
   <div class="records" id="records"></div>
 </section>
-
-<section class="card">
-  <h2>📦 डाटा व्यवस्थापन</h2>
-  <button class="secondary" id="importBtn">ब्याकअप आयात गर्नुहोस्</button>
-  <input type="file" id="importFile" accept=".json" hidden>
-  <button class="danger" id="deleteAllBtn">सबै रेकर्ड हटाउनुहोस्</button>
-  <p class="note">ब्याकअप फाइल अर्को ब्राउजरमा पनि आयात गर्न सकिन्छ।</p>
-</section>
 </div>
 </div>
 </div>
 
-<script>
-'use strict';
+<!-- Firebase Scripts -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+  import { getDatabase, ref, set, get, child, remove, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-const KEY = 'mero_ghar_kharcha_v1';
-const $ = id => document.getElementById(id);
+  const firebaseConfig = {
+    apiKey: "AIzaSyDDY_v7RHnkCTI6uyV4DNDjqoaIBGweg8c",
+    authDomain: "digital-a2552.firebaseapp.com",
+    projectId: "digital-a2552",
+    databaseURL: "https://digital-a2552-default-rtdb.asia-southeast1.firebasedatabase.app",
+    storageBucket: "digital-a2552.firebasestorage.app",
+    messagingSenderId: "218135618179",
+    appId: "1:218135618179:web:821b76920d3e5669ac31b6"
+  };
 
-function todayISO() {
-  const d = new Date();
-  return d.getFullYear() + '-' +
-    String(d.getMonth()+1).padStart(2,'0') + '-' +
-    String(d.getDate()).padStart(2,'0');
-}
-function money(n) {
-  return 'रु. ' + Number(n || 0).toLocaleString('ne-NP',{
-    maximumFractionDigits:2
-  });
-}
-function formatDate(s) {
-  if (!s) return '';
-  const [y,m,d] = s.split('-');
-  return d + '/' + m + '/' + y;
-}
-function escapeHTML(s) {
-  return String(s ?? '').replace(/[&<>"']/g, c => ({
-    '&':'&amp;','<':'&lt;','>':'&gt;',
-    '"':'&quot;',"'":'&#39;'
-  })[c]);
-}
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getDatabase(app);
 
-let expenses = [];
-let editingId = null;
-let quickPeriod = 'month';
+  const $ = id => document.getElementById(id);
+  let currentUser = null;
+  let expenses = [];
+  let editingId = null;
+  let quickPeriod = 'month';
 
-try {
-  const saved = JSON.parse(localStorage.getItem(KEY) || '[]');
-  if (Array.isArray(saved)) expenses = saved.filter(x =>
-    x && x.id && x.date && x.item &&
-    Number.isFinite(Number(x.amount))
-  );
-} catch (e) {
-  expenses = [];
-}
-
-function saveData() {
-  try {
-    localStorage.setItem(KEY, JSON.stringify(expenses));
-    return true;
-  } catch (e) {
-    alert('डाटा सेभ भएन। ब्याकअप लिनुहोस् र ब्राउजर स्टोरेज जाँच्नुहोस्।');
-    return false;
+  function todayISO() {
+    const d = new Date();
+    return d.getFullYear() + '-' +
+      String(d.getMonth()+1).padStart(2,'0') + '-' +
+      String(d.getDate()).padStart(2,'0');
   }
-}
-function total(rows) {
-  return rows.reduce((s,x) => s + Number(x.amount), 0);
-}
-function render() {
-  const today = todayISO();
-  const month = today.slice(0,7);
-
-  $('today').textContent = 'आज: ' + formatDate(today);
-  $('todayTotal').textContent = money(total(
-    expenses.filter(x => x.date === today)
-  ));
-  $('monthTotal').textContent = money(total(
-    expenses.filter(x => x.date.startsWith(month))
-  ));
-  $('allTotal').textContent = money(total(expenses));
-
-  const names = [...new Set(expenses.map(x => x.item.trim()))];
-  $('suggestions').innerHTML = names.map(x =>
-    '<option value="' + escapeHTML(x) + '"></option>'
-  ).join('');
-
-  renderQuick();
-  renderRecords();
-}
-
-function renderQuick() {
-  const today = todayISO();
-  const month = today.slice(0,7);
-
-  const rows = expenses.filter(x => {
-    if (quickPeriod === 'today') return x.date === today;
-    if (quickPeriod === 'month') return x.date.startsWith(month);
-    return true;
-  });
-
-  const groups = {};
-  rows.forEach(x => {
-    const key = x.item.trim().toLocaleLowerCase();
-    if (!groups[key]) groups[key] = {
-      name:x.item.trim(), count:0, amount:0
-    };
-    groups[key].count++;
-    groups[key].amount += Number(x.amount);
-  });
-
-  const list = Object.values(groups).sort((a,b) =>
-    b.count-a.count || b.amount-a.amount
-  ).slice(0,10);
-
-  $('quickCaption').textContent = {
-    today:'आज धेरै पटक किनिएका सामान',
-    month:'यो महिना धेरै पटक किनिएका सामान',
-    all:'सबै समय धेरै पटक किनिएका सामान'
-  }[quickPeriod];
-
-  $('quickList').innerHTML = list.length ? list.map((x,i) =>
-    '<div class="quickitem">' +
-      '<div class="rank">' + (i+1) + '</div>' +
-      '<div><b>' + escapeHTML(x.name) + '</b>' +
-      '<div class="muted">' + x.count + ' पटक · ' +
-      money(x.amount) + '</div>' +
-      '<div class="bar"><span style="width:' +
-      Math.max(4,x.count/list[0].count*100) + '%"></span></div></div>' +
-      '<b>' + x.count + ' पटक</b>' +
-    '</div>'
-  ).join('') : '<div class="empty">अहिलेसम्म खर्च लेखिएको छैन।</div>';
-}
-
-function renderRecords() {
-  const date = $('filterDate').value;
-  const q = $('search').value.trim().toLocaleLowerCase();
-
-  const rows = [...expenses].filter(x =>
-    (!date || x.date === date) &&
-    (!q || [x.item,x.qty,x.note].some(v =>
-      String(v || '').toLocaleLowerCase().includes(q)
-    ))
-  ).sort((a,b) => b.date.localeCompare(a.date));
-
-  $('recordCount').textContent =
-    rows.length + ' रेकर्ड · ' + money(total(rows));
-
-  $('records').innerHTML = rows.length ? rows.map(x =>
-    '<div class="record"><div>' +
-      '<div class="recordtitle">' + escapeHTML(x.item) + '</div>' +
-      '<div class="muted">' + formatDate(x.date) +
-      (x.qty ? ' · ' + escapeHTML(x.qty) : '') +
-      (x.note ? ' · ' + escapeHTML(x.note) : '') +
-      '</div></div><div class="recordright"><b>' +
-      money(x.amount) + '</b><br>' +
-      '<button class="secondary" data-edit="' + escapeHTML(x.id) +
-      '">सच्याउनुहोस्</button> ' +
-      '<button class="danger" data-delete="' + escapeHTML(x.id) +
-      '">हटाउनुहोस्</button></div></div>'
-  ).join('') : '<div class="empty">रेकर्ड भेटिएन।</div>';
-}
-
-function resetForm() {
-  $('expenseForm').reset();
-  $('date').value = todayISO();
-  editingId = null;
-  $('formTitle').textContent = '➕ नयाँ खर्च लेख्नुहोस्';
-  $('saveBtn').textContent = 'खर्च सेभ गर्नुहोस्';
-  $('cancelBtn').hidden = true;
-}
-
-$('date').value = todayISO();
-
-$('expenseForm').addEventListener('submit', e => {
-  e.preventDefault();
-
-  const item = $('item').value.trim();
-  const date = $('date').value;
-  const amount = Number($('amount').value);
-
-  if (!item || !date || !Number.isFinite(amount) || amount <= 0) {
-    alert('सामान, मिति र सही रकम भर्नुहोस्।');
-    return;
+  function money(n) {
+    return 'रु. ' + Number(n || 0).toLocaleString('ne-NP',{ maximumFractionDigits:2 });
+  }
+  function formatDate(s) {
+    if (!s) return '';
+    const [y,m,d] = s.split('-');
+    return d + '/' + m + '/' + y;
+  }
+  function escapeHTML(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    })[c]);
   }
 
-  if (editingId) {
-    expenses = expenses.map(x => x.id === editingId ? {
-      ...x, date, item,
-      qty:$('qty').value.trim(),
-      amount,
-      note:$('note').value.trim()
-    } : x);
-  } else {
-    expenses.push({
-      id:Date.now().toString(36) + Math.random().toString(36).slice(2,7),
-      date, item,
-      qty:$('qty').value.trim(),
-      amount,
-      note:$('note').value.trim()
-    });
-  }
-
-  saveData();
-  resetForm();
-  render();
-});
-
-$('cancelBtn').addEventListener('click', resetForm);
-
-$('records').addEventListener('click', e => {
-  const edit = e.target.closest('[data-edit]');
-  const del = e.target.closest('[data-delete]');
-
-  if (edit) {
-    const x = expenses.find(a => a.id === edit.dataset.edit);
-    if (!x) return;
-    editingId = x.id;
-    $('date').value = x.date;
-    $('item').value = x.item;
-    $('qty').value = x.qty || '';
-    $('amount').value = x.amount;
-    $('note').value = x.note || '';
-    $('formTitle').textContent = '✏️ खर्च सच्याउनुहोस्';
-    $('saveBtn').textContent = 'परिवर्तन सेभ गर्नुहोस्';
-    $('cancelBtn').hidden = false;
-    window.scrollTo({top:0,behavior:'smooth'});
-  }
-
-  if (del) {
-    const x = expenses.find(a => a.id === del.dataset.delete);
-    if (x && confirm(x.item + ' को रेकर्ड हटाउने?')) {
-      expenses = expenses.filter(a => a.id !== x.id);
-      saveData();
-      render();
-      if (editingId === x.id) resetForm();
+  // Authentication States
+  onAuthStateChanged(auth, user => {
+    if (user) {
+      currentUser = user;
+      $('authScreen').style.display = 'none';$('mainApp').style.display = 'block';
+      fetchData();
+    } else {
+      currentUser = null;
+      $('mainApp').style.display = 'none';$('authScreen').style.display = 'block';
     }
-  }
-});
-
-document.querySelectorAll('[data-period]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    quickPeriod = btn.dataset.period;
-    document.querySelectorAll('[data-period]').forEach(b =>
-      b.classList.toggle('active', b === btn)
-    );
-    renderQuick();
   });
-});
 
-$('filterDate').addEventListener('change',renderRecords);
-$('search').addEventListener('input',renderRecords);
-$('clearBtn').addEventListener('click',() => {
-  $('filterDate').value = '';
-  $('search').value = '';
-  renderRecords();
-});
+  $('loginBtn').addEventListener('click', () => {
+    const email = $('authEmail').value;
+    const pass = $('authPass').value;
+    signInWithEmailAndPassword(auth, email, pass).catch(err => alert('लगइन असफल: ' + err.message));
+  });
 
-$('exportBtn').addEventListener('click',() => {
-  const blob = new Blob(
-    [JSON.stringify({version:1,expenses},null,2)],
-    {type:'application/json'}
-  );
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'ghar-kharcha-backup-' + todayISO() + '.json';
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url),1000);
-});
+  $('signupBtn').addEventListener('click', () => {
+    const email = $('authEmail').value;
+    const pass = $('authPass').value;
+    createUserWithEmailAndPassword(auth, email, pass).catch(err => alert('साइनअप असफल: ' + err.message));
+  });
 
-$('importBtn').addEventListener('click',() => $('importFile').click());
-$('importFile').addEventListener('change',async e => {
-  const file = e.target.files[0];
-  if (!file) return;
+  $('logoutBtn').addEventListener('click', () => signOut(auth));
 
-  try {
-    const obj = JSON.parse(await file.text());
-    const rows = Array.isArray(obj) ? obj : obj.expenses;
-    if (!Array.isArray(rows)) throw Error('invalid');
+  // Database Fetch & Save
+  function fetchData() {
+    if (!currentUser) return;
+    const dbRef = ref(db, 'users/' + currentUser.uid + '/expenses');
+    get(dbRef).then(snapshot => {
+      expenses = [];
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        Object.keys(data).forEach(key => {
+          expenses.push({ id: key, ...data[key] });
+        });
+      }
+      render();
+    });
+  }
 
-    let added = 0;
-    rows.forEach(x => {
-      if (!x || !x.date || !String(x.item || '').trim() ||
-          !Number.isFinite(Number(x.amount)) || Number(x.amount) <= 0) return;
+  function total(rows) {
+    return rows.reduce((s,x) => s + Number(x.amount), 0);
+  }
 
-      expenses.push({
-        id:Date.now().toString(36) + Math.random().toString(36).slice(2,9),
-        date:String(x.date),
-        item:String(x.item).trim(),
-        qty:String(x.qty || ''),
-        amount:Number(x.amount),
-        note:String(x.note || '')
-      });
-      added++;
+  function render() {
+    const today = todayISO();
+    const month = today.slice(0,7);
+
+    $('today').textContent = 'आज: ' + formatDate(today);
+    $('todayTotal').textContent = money(total(expenses.filter(x => x.date === today)));
+    $('monthTotal').textContent = money(total(expenses.filter(x => x.date.startsWith(month))));$('allTotal').textContent = money(total(expenses));
+
+    const names = [...new Set(expenses.map(x => x.item.trim()))];
+    $('suggestions').innerHTML = names.map(x => '<option value="' + escapeHTML(x) + '"></option>').join('');
+
+    renderQuick();
+    renderRecords();
+  }
+
+  function renderQuick() {
+    const today = todayISO();
+    const month = today.slice(0,7);
+    const rows = expenses.filter(x => {
+      if (quickPeriod === 'today') return x.date === today;
+      if (quickPeriod === 'month') return x.date.startsWith(month);
+      return true;
     });
 
-    saveData();
-    render();
-    alert(added + ' वटा रेकर्ड आयात गरियो।');
-  } catch (err) {
-    alert('ब्याकअप फाइल पढ्न सकिएन।');
-  }
-  e.target.value = '';
-});
+    const groups = {};
+    rows.forEach(x => {
+      const key = x.item.trim().toLocaleLowerCase();
+      if (!groups[key]) groups[key] = { name:x.item.trim(), count:0, amount:0 };
+      groups[key].count++;
+      groups[key].amount += Number(x.amount);
+    });
 
-$('deleteAllBtn').addEventListener('click',() => {
-  if (expenses.length && confirm('सबै रेकर्ड हटाउने? पहिले ब्याकअप लिनुहोस्।')) {
-    expenses = [];
-    saveData();
+    const list = Object.values(groups).sort((a,b) => b.count-a.count || b.amount-a.amount).slice(0,10);
+    $('quickCaption').textContent = {
+      today:'आज धेरै पटक किनिएका सामान',
+      month:'यो महिना धेरै पटक किनिएका सामान',
+      all:'सबै समय धेरै पटक किनिएका सामान'
+    }[quickPeriod];
+
+    $('quickList').innerHTML = list.length ? list.map((x,i) =>
+      '<div class="quickitem">' +
+        '<div class="rank">' + (i+1) + '</div>' +
+        '<div><b>' + escapeHTML(x.name) + '</b>' +
+        '<div class="muted">' + x.count + ' पटक · ' + money(x.amount) + '</div>' +
+        '<div class="bar"><span style="width:' + Math.max(4,x.count/list[0].count*100) + '%"></span></div></div>' +
+        '<b>' + x.count + ' पटक</b>' +
+      '</div>'
+    ).join('') : '<div class="empty">अहिलेसम्म खर्च लेखिएको छैन।</div>';
+  }
+
+  function renderRecords() {
+    const date = $('filterDate').value;
+    const q = $('search').value.trim().toLocaleLowerCase();
+
+    const rows = [...expenses].filter(x =>
+      (!date || x.date === date) &&
+      (!q || [x.item,x.qty,x.note].some(v => String(v || '').toLocaleLowerCase().includes(q)))
+    ).sort((a,b) => b.date.localeCompare(a.date));
+
+    $('recordCount').textContent = rows.length + ' रेकर्ड · ' + money(total(rows));
+
+    $('records').innerHTML = rows.length ? rows.map(x =>
+      '<div class="record"><div>' +
+        '<div class="recordtitle">' + escapeHTML(x.item) + '</div>' +
+        '<div class="muted">' + formatDate(x.date) + (x.qty ? ' · ' + escapeHTML(x.qty) : '') + (x.note ? ' · ' + escapeHTML(x.note) : '') + '</div>' +
+      '</div><div class="recordright"><b>' + money(x.amount) + '</b><br>' +
+      '<button class="secondary" data-edit="' + escapeHTML(x.id) + '">सच्याउनुहोस्</button> ' +
+      '<button class="danger" data-delete="' + escapeHTML(x.id) + '">हटाउनुहोस्</button></div></div>'
+    ).join('') : '<div class="empty">रेकर्ड भेटिएन।</div>';
+  }
+
+  function resetForm() {
+    $('expenseForm').reset();$('date').value = todayISO();
+    editingId = null;
+    $('formTitle').textContent = '➕ नयाँ खर्च लेख्नुहोस्';
+    $('saveBtn').textContent = 'खर्च सेभ गर्नुहोस्';
+    $('cancelBtn').hidden = true;
+  }
+
+  $('date').value = todayISO();
+
+  $('expenseForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    if (!currentUser) return;
+
+    const item = $('item').value.trim();
+    const date = $('date').value;
+    const amount = Number($('amount').value);
+    const qty = $('qty').value.trim();
+    const note = $('note').value.trim();
+
+    if (!item || !date || !Number.isFinite(amount) || amount <= 0) {
+      alert('सामान, मिति र सही रकम भर्नुहोस्।');
+      return;
+    }
+
+    const expenseData = { date, item, qty, amount, note };
+
+    if (editingId) {
+      await update(ref(db, `users/${currentUser.uid}/expenses/${editingId}`), expenseData);
+      expenses = expenses.map(x => x.id === editingId ? { id: editingId, ...expenseData } : x);
+    } else {
+      const newRef = ref(db, `users/${currentUser.uid}/expenses`);
+      const newItemRef = push(ref(db, `users/${currentUser.uid}/expenses`)); // or use set with random id
+      const newId = Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+      await set(ref(db, `users/${currentUser.uid}/expenses/${newId}`), expenseData);
+      expenses.push({ id: newId, ...expenseData });
+    }
+
     resetForm();
     render();
-  }
-});
+  });
 
-render();
+  $('cancelBtn').addEventListener('click', resetForm);
+
+  $('records').addEventListener('click', async e => {
+    const edit = e.target.closest('[data-edit]');
+    const del = e.target.closest('[data-delete]');
+
+    if (edit) {
+      const x = expenses.find(a => a.id === edit.dataset.edit);
+      if (!x) return;
+      editingId = x.id;
+      $('date').value = x.date;
+      $('item').value = x.item;
+      $('qty').value = x.qty \vert{}\vert{} '';$('amount').value = x.amount;
+      $('note').value = x.note \vert{}\vert{} '';$('formTitle').textContent = '✏️ खर्च सच्याउनुहोस्';
+      $('saveBtn').textContent = 'परिवर्तन सेभ गर्नुहोस्';
+      $('cancelBtn').hidden = false;
+      window.scrollTo({top:0,behavior:'smooth'});
+    }
+
+    if (del) {
+      const id = del.dataset.delete;
+      const x = expenses.find(a => a.id === id);
+      if (x && confirm(x.item + ' को रेकर्ड हटाउने?')) {
+        await remove(ref(db, `users/${currentUser.uid}/expenses/${id}`));
+        expenses = expenses.filter(a => a.id !== id);
+        render();
+        if (editingId === id) resetForm();
+      }
+    }
+  });
+
+  document.querySelectorAll('[data-period]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      quickPeriod = btn.dataset.period;
+      document.querySelectorAll('[data-period]').forEach(b => b.classList.toggle('active', b === btn));
+      renderQuick();
+    });
+  });
+
+  $('filterDate').addEventListener('change', renderRecords);
+  $('search').addEventListener('input', renderRecords);$('clearBtn').addEventListener('click', () => {
+    $('filterDate').value = '';$('search').value = '';
+    renderRecords();
+  });
+
+  $('exportBtn').addEventListener('click', () => {
+    const blob = new Blob([JSON.stringify({version:1,expenses},null,2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'ghar-kharcha-backup-' + todayISO() + '.json';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
 </script>
 </body>
 </html>
