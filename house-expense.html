@@ -181,7 +181,10 @@ button {
       <h1>🏡 मेरो घरखर्च</h1>
       <p>दैनिक किनमेल र खर्चको सजिलो हिसाब</p>
     </div>
-    <button class="secondary" id="logoutBtn">लगआउट</button>
+    <div style="display: flex; gap: 8px;">
+      <a href="index.html" class="secondary" style="padding: 10px 13px; border-radius: 10px; text-decoration: none; font-weight: 650; display: inline-block;">ड्यासबोर्ड</a>
+      <button class="secondary" id="logoutBtn">लगआउट</button>
+    </div>
   </div>
   <p id="today" style="margin-top:10px;"></p>
   <div class="stats">
@@ -457,8 +460,6 @@ button {
       await update(ref(db, `users/${currentUser.uid}/expenses/${editingId}`), expenseData);
       expenses = expenses.map(x => x.id === editingId ? { id: editingId, ...expenseData } : x);
     } else {
-      const newRef = ref(db, `users/${currentUser.uid}/expenses`);
-      const newItemRef = push(ref(db, `users/${currentUser.uid}/expenses`)); // or use set with random id
       const newId = Date.now().toString(36) + Math.random().toString(36).slice(2,7);
       await set(ref(db, `users/${currentUser.uid}/expenses/${newId}`), expenseData);
       expenses.push({ id: newId, ...expenseData });
