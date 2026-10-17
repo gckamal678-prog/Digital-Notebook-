@@ -1,0 +1,554 @@
+
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>house-expense</title>
+<style>
+:root {
+  --green: #176b52;
+  --bg: #f3f7f5;
+  --text: #20352b;
+  --muted: #708078;
+  --border: #e1eae4;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, sans-serif;
+}
+.app { max-width: 1000px; margin: auto; padding: 16px; }
+header {
+  background: linear-gradient(135deg,#125b46,#278666);
+  color: white;
+  padding: 22px;
+  border-radius: 20px;
+  margin-bottom: 16px;
+}
+header h1 { margin: 0; }
+header p { margin-bottom: 0; color: #e0f3e9; }
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 10px;
+  margin-top: 20px;
+}
+.stat {
+  background: #ffffff1c;
+  padding: 12px;
+  border-radius: 12px;
+  overflow-wrap: anywhere;
+}
+.stat span { font-size: 12px; }
+.stat strong { display: block; font-size: 20px; margin-top: 5px; }
+.layout {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 16px;
+}
+.card {
+  background: white;
+  padding: 18px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+h2 { font-size: 18px; margin: 0 0 15px; }
+.formgrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.field { display: flex; flex-direction: column; gap: 6px; }
+.full { grid-column: 1/-1; }
+label { font-size: 13px; font-weight: 650; }
+input {
+  width: 100%;
+  min-width: 0;
+  padding: 11px;
+  border: 1px solid #d8e3dc;
+  border-radius: 10px;
+  background: white;
+  font: inherit;
+}
+button {
+  padding: 10px 13px;
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 650;
+}
+.primary { background: var(--green); color: white; }
+.secondary { background: #e7f3ec; color: var(--green); }
+.danger { background: #fff0f0; color: #b52e35; }
+.fullbtn { width: 100%; margin-top: 14px; }
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.chips { display: flex; gap: 7px; margin-bottom: 15px; }
+.chip { background: #f0f4f1; color: #526158; }
+.chip.active { background: #dcefe4; color: var(--green); }
+.muted { font-size: 12px; color: var(--muted); }
+.quick, .records { display: grid; gap: 10px; }
+.quickitem, .record {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.quickitem {
+  display: grid;
+  grid-template-columns: 30px 1fr auto;
+  gap: 9px;
+  align-items: center;
+}
+.rank {
+  background: #e7f3ec;
+  color: var(--green);
+  padding: 7px;
+  text-align: center;
+  border-radius: 9px;
+}
+.bar {
+  height: 5px;
+  background: #edf2ee;
+  margin-top: 6px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.bar span {
+  display: block;
+  height: 100%;
+  background: #278666;
+}
+.record {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  overflow-wrap: anywhere;
+}
+.recordright { text-align: right; flex-shrink: 0; }
+.recordright button { margin-top: 6px; font-size: 12px; padding: 6px; }
+.recordtitle { font-weight: 750; }
+.empty { padding: 20px; text-align: center; color: var(--muted); }
+.filters { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.note { color: var(--muted); font-size: 12px; line-height: 1.6; }
+@media(max-width:700px) {
+  .layout { grid-template-columns: 1fr; }
+  .app { padding: 10px; }
+  .card { padding: 14px; }
+}
+@media(max-width:370px) {
+  .stats { grid-template-columns: 1fr 1fr; }
+  .stats .stat:last-child { grid-column: 1/-1; }
+  .formgrid, .filters { grid-template-columns: 1fr; }
+  .full { grid-column: auto; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<header>
+  <h1>🏡 मेरो घरखर्च</h1>
+  <p>दैनिक किनमेल र खर्चको सजिलो हिसाब</p>
+  <p id="today"></p>
+  <div class="stats">
+    <div class="stat"><span>आजको खर्च</span><strong id="todayTotal">रु. ०</strong></div>
+    <div class="stat"><span>यो महिनाको खर्च</span><strong id="monthTotal">रु. ०</strong></div>
+    <div class="stat"><span>जम्मा खर्च</span><strong id="allTotal">रु. ०</strong></div>
+  </div>
+</header>
+
+<div class="layout">
+<div>
+<section class="card">
+  <h2 id="formTitle">➕ नयाँ खर्च लेख्नुहोस्</h2>
+  <form id="expenseForm">
+    <div class="formgrid">
+      <div class="field">
+        <label for="date">किनेको मिति</label>
+        <input id="date" type="date" required>
+      </div>
+      <div class="field">
+        <label for="item">सामानको नाम</label>
+        <input id="item" list="suggestions" placeholder="चामल, तेल..." required>
+        <datalist id="suggestions"></datalist>
+      </div>
+      <div class="field">
+        <label for="qty">परिमाण</label>
+        <input id="qty" placeholder="२ केजी, १ प्याकेट">
+      </div>
+      <div class="field">
+        <label for="amount">जम्मा मूल्य (रु.)</label>
+        <input id="amount" type="number" min="0.01" step="0.01" placeholder="250" required>
+      </div>
+      <div class="field full">
+        <label for="note">थप विवरण (ऐच्छिक)</label>
+        <input id="note" placeholder="थप जानकारी">
+      </div>
+    </div>
+    <button class="primary fullbtn" id="saveBtn">खर्च सेभ गर्नुहोस्</button>
+    <button class="secondary fullbtn" id="cancelBtn" type="button" hidden>रद्द गर्नुहोस्</button>
+  </form>
+  <p class="note">तपाईंको हिसाब यही ब्राउजरमा सेभ हुन्छ। बेला-बेला ब्याकअप डाउनलोड गर्नुहोस्।</p>
+</section>
+
+<section class="card">
+  <h2>⚡ Quick Summary</h2>
+  <div class="chips">
+    <button class="chip active" data-period="month">यो महिना</button>
+    <button class="chip" data-period="today">आज</button>
+    <button class="chip" data-period="all">सबै समय</button>
+  </div>
+  <p class="muted" id="quickCaption">धेरै पटक किनिएका सामान</p>
+  <div class="quick" id="quickList"></div>
+</section>
+</div>
+
+<div>
+<section class="card">
+  <div class="row">
+    <h2>🧾 खर्चको रेकर्ड</h2>
+    <button class="secondary" id="exportBtn">⬇ ब्याकअप</button>
+  </div>
+  <div class="filters">
+    <div class="field">
+      <label for="filterDate">मिति छान्नुहोस्</label>
+      <input id="filterDate" type="date">
+    </div>
+    <div class="field">
+      <label for="search">सामान खोज्नुहोस्</label>
+      <input id="search" placeholder="चामल, तेल...">
+    </div>
+  </div>
+  <div class="row">
+    <p class="muted" id="recordCount"></p>
+    <button class="secondary" id="clearBtn">फिल्टर हटाउनुहोस्</button>
+  </div>
+  <div class="records" id="records"></div>
+</section>
+
+<section class="card">
+  <h2>📦 डाटा व्यवस्थापन</h2>
+  <button class="secondary" id="importBtn">ब्याकअप आयात गर्नुहोस्</button>
+  <input type="file" id="importFile" accept=".json" hidden>
+  <button class="danger" id="deleteAllBtn">सबै रेकर्ड हटाउनुहोस्</button>
+  <p class="note">ब्याकअप फाइल अर्को ब्राउजरमा पनि आयात गर्न सकिन्छ।</p>
+</section>
+</div>
+</div>
+</div>
+
+<script>
+'use strict';
+
+const KEY = 'mero_ghar_kharcha_v1';
+const $ = id => document.getElementById(id);
+
+function todayISO() {
+  const d = new Date();
+  return d.getFullYear() + '-' +
+    String(d.getMonth()+1).padStart(2,'0') + '-' +
+    String(d.getDate()).padStart(2,'0');
+}
+function money(n) {
+  return 'रु. ' + Number(n || 0).toLocaleString('ne-NP',{
+    maximumFractionDigits:2
+  });
+}
+function formatDate(s) {
+  if (!s) return '';
+  const [y,m,d] = s.split('-');
+  return d + '/' + m + '/' + y;
+}
+function escapeHTML(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;',
+    '"':'&quot;',"'":'&#39;'
+  })[c]);
+}
+
+let expenses = [];
+let editingId = null;
+let quickPeriod = 'month';
+
+try {
+  const saved = JSON.parse(localStorage.getItem(KEY) || '[]');
+  if (Array.isArray(saved)) expenses = saved.filter(x =>
+    x && x.id && x.date && x.item &&
+    Number.isFinite(Number(x.amount))
+  );
+} catch (e) {
+  expenses = [];
+}
+
+function saveData() {
+  try {
+    localStorage.setItem(KEY, JSON.stringify(expenses));
+    return true;
+  } catch (e) {
+    alert('डाटा सेभ भएन। ब्याकअप लिनुहोस् र ब्राउजर स्टोरेज जाँच्नुहोस्।');
+    return false;
+  }
+}
+function total(rows) {
+  return rows.reduce((s,x) => s + Number(x.amount), 0);
+}
+function render() {
+  const today = todayISO();
+  const month = today.slice(0,7);
+
+  $('today').textContent = 'आज: ' + formatDate(today);
+  $('todayTotal').textContent = money(total(
+    expenses.filter(x => x.date === today)
+  ));
+  $('monthTotal').textContent = money(total(
+    expenses.filter(x => x.date.startsWith(month))
+  ));
+  $('allTotal').textContent = money(total(expenses));
+
+  const names = [...new Set(expenses.map(x => x.item.trim()))];
+  $('suggestions').innerHTML = names.map(x =>
+    '<option value="' + escapeHTML(x) + '"></option>'
+  ).join('');
+
+  renderQuick();
+  renderRecords();
+}
+
+function renderQuick() {
+  const today = todayISO();
+  const month = today.slice(0,7);
+
+  const rows = expenses.filter(x => {
+    if (quickPeriod === 'today') return x.date === today;
+    if (quickPeriod === 'month') return x.date.startsWith(month);
+    return true;
+  });
+
+  const groups = {};
+  rows.forEach(x => {
+    const key = x.item.trim().toLocaleLowerCase();
+    if (!groups[key]) groups[key] = {
+      name:x.item.trim(), count:0, amount:0
+    };
+    groups[key].count++;
+    groups[key].amount += Number(x.amount);
+  });
+
+  const list = Object.values(groups).sort((a,b) =>
+    b.count-a.count || b.amount-a.amount
+  ).slice(0,10);
+
+  $('quickCaption').textContent = {
+    today:'आज धेरै पटक किनिएका सामान',
+    month:'यो महिना धेरै पटक किनिएका सामान',
+    all:'सबै समय धेरै पटक किनिएका सामान'
+  }[quickPeriod];
+
+  $('quickList').innerHTML = list.length ? list.map((x,i) =>
+    '<div class="quickitem">' +
+      '<div class="rank">' + (i+1) + '</div>' +
+      '<div><b>' + escapeHTML(x.name) + '</b>' +
+      '<div class="muted">' + x.count + ' पटक · ' +
+      money(x.amount) + '</div>' +
+      '<div class="bar"><span style="width:' +
+      Math.max(4,x.count/list[0].count*100) + '%"></span></div></div>' +
+      '<b>' + x.count + ' पटक</b>' +
+    '</div>'
+  ).join('') : '<div class="empty">अहिलेसम्म खर्च लेखिएको छैन।</div>';
+}
+
+function renderRecords() {
+  const date = $('filterDate').value;
+  const q = $('search').value.trim().toLocaleLowerCase();
+
+  const rows = [...expenses].filter(x =>
+    (!date || x.date === date) &&
+    (!q || [x.item,x.qty,x.note].some(v =>
+      String(v || '').toLocaleLowerCase().includes(q)
+    ))
+  ).sort((a,b) => b.date.localeCompare(a.date));
+
+  $('recordCount').textContent =
+    rows.length + ' रेकर्ड · ' + money(total(rows));
+
+  $('records').innerHTML = rows.length ? rows.map(x =>
+    '<div class="record"><div>' +
+      '<div class="recordtitle">' + escapeHTML(x.item) + '</div>' +
+      '<div class="muted">' + formatDate(x.date) +
+      (x.qty ? ' · ' + escapeHTML(x.qty) : '') +
+      (x.note ? ' · ' + escapeHTML(x.note) : '') +
+      '</div></div><div class="recordright"><b>' +
+      money(x.amount) + '</b><br>' +
+      '<button class="secondary" data-edit="' + escapeHTML(x.id) +
+      '">सच्याउनुहोस्</button> ' +
+      '<button class="danger" data-delete="' + escapeHTML(x.id) +
+      '">हटाउनुहोस्</button></div></div>'
+  ).join('') : '<div class="empty">रेकर्ड भेटिएन।</div>';
+}
+
+function resetForm() {
+  $('expenseForm').reset();
+  $('date').value = todayISO();
+  editingId = null;
+  $('formTitle').textContent = '➕ नयाँ खर्च लेख्नुहोस्';
+  $('saveBtn').textContent = 'खर्च सेभ गर्नुहोस्';
+  $('cancelBtn').hidden = true;
+}
+
+$('date').value = todayISO();
+
+$('expenseForm').addEventListener('submit', e => {
+  e.preventDefault();
+
+  const item = $('item').value.trim();
+  const date = $('date').value;
+  const amount = Number($('amount').value);
+
+  if (!item || !date || !Number.isFinite(amount) || amount <= 0) {
+    alert('सामान, मिति र सही रकम भर्नुहोस्।');
+    return;
+  }
+
+  if (editingId) {
+    expenses = expenses.map(x => x.id === editingId ? {
+      ...x, date, item,
+      qty:$('qty').value.trim(),
+      amount,
+      note:$('note').value.trim()
+    } : x);
+  } else {
+    expenses.push({
+      id:Date.now().toString(36) + Math.random().toString(36).slice(2,7),
+      date, item,
+      qty:$('qty').value.trim(),
+      amount,
+      note:$('note').value.trim()
+    });
+  }
+
+  saveData();
+  resetForm();
+  render();
+});
+
+$('cancelBtn').addEventListener('click', resetForm);
+
+$('records').addEventListener('click', e => {
+  const edit = e.target.closest('[data-edit]');
+  const del = e.target.closest('[data-delete]');
+
+  if (edit) {
+    const x = expenses.find(a => a.id === edit.dataset.edit);
+    if (!x) return;
+    editingId = x.id;
+    $('date').value = x.date;
+    $('item').value = x.item;
+    $('qty').value = x.qty || '';
+    $('amount').value = x.amount;
+    $('note').value = x.note || '';
+    $('formTitle').textContent = '✏️ खर्च सच्याउनुहोस्';
+    $('saveBtn').textContent = 'परिवर्तन सेभ गर्नुहोस्';
+    $('cancelBtn').hidden = false;
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  if (del) {
+    const x = expenses.find(a => a.id === del.dataset.delete);
+    if (x && confirm(x.item + ' को रेकर्ड हटाउने?')) {
+      expenses = expenses.filter(a => a.id !== x.id);
+      saveData();
+      render();
+      if (editingId === x.id) resetForm();
+    }
+  }
+});
+
+document.querySelectorAll('[data-period]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    quickPeriod = btn.dataset.period;
+    document.querySelectorAll('[data-period]').forEach(b =>
+      b.classList.toggle('active', b === btn)
+    );
+    renderQuick();
+  });
+});
+
+$('filterDate').addEventListener('change',renderRecords);
+$('search').addEventListener('input',renderRecords);
+$('clearBtn').addEventListener('click',() => {
+  $('filterDate').value = '';
+  $('search').value = '';
+  renderRecords();
+});
+
+$('exportBtn').addEventListener('click',() => {
+  const blob = new Blob(
+    [JSON.stringify({version:1,expenses},null,2)],
+    {type:'application/json'}
+  );
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'ghar-kharcha-backup-' + todayISO() + '.json';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url),1000);
+});
+
+$('importBtn').addEventListener('click',() => $('importFile').click());
+$('importFile').addEventListener('change',async e => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  try {
+    const obj = JSON.parse(await file.text());
+    const rows = Array.isArray(obj) ? obj : obj.expenses;
+    if (!Array.isArray(rows)) throw Error('invalid');
+
+    let added = 0;
+    rows.forEach(x => {
+      if (!x || !x.date || !String(x.item || '').trim() ||
+          !Number.isFinite(Number(x.amount)) || Number(x.amount) <= 0) return;
+
+      expenses.push({
+        id:Date.now().toString(36) + Math.random().toString(36).slice(2,9),
+        date:String(x.date),
+        item:String(x.item).trim(),
+        qty:String(x.qty || ''),
+        amount:Number(x.amount),
+        note:String(x.note || '')
+      });
+      added++;
+    });
+
+    saveData();
+    render();
+    alert(added + ' वटा रेकर्ड आयात गरियो।');
+  } catch (err) {
+    alert('ब्याकअप फाइल पढ्न सकिएन।');
+  }
+  e.target.value = '';
+});
+
+$('deleteAllBtn').addEventListener('click',() => {
+  if (expenses.length && confirm('सबै रेकर्ड हटाउने? पहिले ब्याकअप लिनुहोस्।')) {
+    expenses = [];
+    saveData();
+    resetForm();
+    render();
+  }
+});
+
+render();
+</script>
+</body>
+</html>
