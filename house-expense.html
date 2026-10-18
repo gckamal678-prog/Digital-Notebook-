@@ -6,8 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#166534">
   <title>घर खर्च | Digital Notebook</title>
-  <link rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
     * { box-sizing: border-box; }
@@ -136,20 +135,13 @@
       background: #dc2626;
     }
 
-    #status {
-      font-size: 13px;
-      margin-top: 10px;
+    #status, #connectionInfo {
       overflow-wrap: anywhere;
       line-height: 1.6;
     }
 
-    #connectionInfo {
-      margin-top: 8px;
-      font-size: 12px;
-      overflow-wrap: anywhere;
-      line-height: 1.6;
-      opacity: .9;
-    }
+    #status { font-size: 13px; margin-top: 10px; }
+    #connectionInfo { margin-top: 8px; font-size: 12px; }
 
     .empty {
       text-align: center;
@@ -186,6 +178,13 @@
       margin-top: 12px;
     }
 
+    .diagnostic {
+      font-size: 12px;
+      line-height: 1.7;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
+
     @media (max-width: 380px) {
       body { padding: 10px; }
       .summary { grid-template-columns: 1fr; }
@@ -197,9 +196,7 @@
 <body>
 <div class="container">
 
-  <a class="back-btn" href="index.html">
-    ← Dashboard मा फर्कनुहोस्
-  </a>
+  <a class="back-btn" href="index.html">← Dashboard मा फर्कनुहोस्</a>
 
   <div class="header">
     <h2>🏠 घर खर्च</h2>
@@ -207,7 +204,7 @@
     <div id="status" role="status" aria-live="polite">
       Firebase सँग जडान हुँदैछ...
     </div>
-    <div id="connectionInfo"></div>
+    <div id="connectionInfo" class="diagnostic"></div>
   </div>
 
   <div class="summary">
@@ -268,9 +265,10 @@
     </form>
 
     <div class="notice">
-      <strong>सुरक्षा:</strong> Firebase बाट डेटा सफलतापूर्वक लोड
-      नभएसम्म सेभ गर्न दिइँदैन। यसले गल्तीले खाली सूचीबाट
-      डेटा प्रतिस्थापन हुने जोखिम कम गर्छ।
+      <strong>सुरक्षा:</strong>
+      Firebase बाट डेटा लोड नभएसम्म सेभ गर्न दिइँदैन।
+      सेभ गरेपछि रेकर्ड पुनः पढेर पुष्टि गरिन्छ।
+      पुष्टि असफल भएमा स्पष्ट सन्देश देखाइन्छ।
     </div>
   </div>
 
@@ -278,8 +276,7 @@
     <h3>📋 खर्चको विवरण</h3>
 
     <label for="search">खर्च खोज्नुहोस्</label>
-    <input id="search" type="search"
-      placeholder="नाम वा प्रकारबाट खोज्नुहोस्">
+    <input id="search" type="search" placeholder="नाम वा प्रकारबाट खोज्नुहोस्">
 
     <label for="monthFilter">महिना छान्नुहोस्</label>
     <input id="monthFilter" type="month">
@@ -288,8 +285,7 @@
       <div class="empty">Firebase बाट खर्च लोड हुँदैछ...</div>
     </div>
 
-    <button id="exportBtn" type="button"
-      style="background:#0284c7">
+    <button id="exportBtn" type="button" style="background:#0284c7">
       ⬇️ खर्च JSON डाउनलोड
     </button>
   </div>
@@ -298,7 +294,7 @@
 <script type="module">
   import {
     initializeApp,
-    getApp
+    getApps
   } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 
   import {
@@ -317,8 +313,9 @@
     onValue
   } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
+  // आफ्नो काम गरिरहेको Firebase config जस्ताको तस्तै राख्नुहोस्।
   const firebaseConfig = {
-    apiKey: "AIzaSyDDY_v7RHnkCTI6uyV4DNDjqoaIBGweg8c",
+    apiKey: "AIzaSyDDyV7RHnkCTI6uyV4DNDjqoaIBGweg8c",
     authDomain: "digital-a2552.firebaseapp.com",
     databaseURL: "https://digital-a2552-default-rtdb.asia-southeast1.firebasedatabase.app",
     projectId: "digital-a2552",
@@ -337,8 +334,9 @@
   let dataLoaded = false;
   let stopExpenseListener = null;
   let authGeneration = 0;
+  let saving = false;
 
-  function setStatus(message, color = "#166534") {
+  function setStatus(message, color = "#ffffff") {
     $("status").textContent = message;
     $("status").style.color = color;
   }
@@ -355,9 +353,7 @@
 
   function localDate() {
     const d = new Date();
-    const local = new Date(
-      d.getTime() - d.getTimezoneOffset() * 60000
-    );
+    const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
     return local.toISOString().slice(0, 10);
   }
 
@@ -388,10 +384,8 @@
     }
   }
 
-  $("date").value = localDate();
-
   function updateSaveButton() {
-    $("saveBtn").disabled = !currentUser || !dataLoaded;
+    $("saveBtn").disabled = !currentUser || !dataLoaded || saving;
   }
 
   function expenseRef(uid) {
@@ -405,7 +399,9 @@
     }
   }
 
-  function showLoadError(error, uid) {
+  function showLoadError(error, uid, generation) {
+    if (generation !== authGeneration) return;
+
     dataLoaded = false;
     updateSaveButton();
 
@@ -415,16 +411,14 @@
       expensesData = backup;
       renderExpenses();
       setStatus(
-        "⚠️ Firebase डेटा लोड हुन सकेन। स्थानीय ब्याकअप मात्र देखाइएको छ।",
-        "#b45309"
+        "⚠️ Firebase पढ्न असफल। स्थानीय ब्याकअप मात्र देखाइएको छ: " +
+        error.message,
+        "#fde68a"
       );
     } else {
       expensesData = {};
       renderExpenses();
-      setStatus(
-        "❌ Firebase डेटा लोड भएन: " + error.message,
-        "#dc2626"
-      );
+      setStatus("❌ Firebase डेटा लोड भएन: " + error.message, "#fecaca");
     }
 
     console.error("Firebase expense read error:", error);
@@ -432,40 +426,36 @@
 
   function startExpenseListener(user, generation) {
     stopListening();
+
     dataLoaded = false;
     expensesData = {};
     renderExpenses();
     updateSaveButton();
 
-    const userExpenseRef = expenseRef(user.uid);
     const path = `users/${user.uid}/expenses`;
+    const userExpenseRef = expenseRef(user.uid);
 
     setConnectionInfo(
-      "Database: " + firebaseConfig.databaseURL +
-      " | Path: " + path +
-      " | UID: " + user.uid
+      "Database URL: " + firebaseConfig.databaseURL +
+      "\nUID: " + user.uid +
+      "\nRead/Write path: " + path
     );
 
     setStatus("Firebase बाट खर्च लोड हुँदैछ...");
 
     stopExpenseListener = onValue(
       userExpenseRef,
-
       snapshot => {
         if (
           generation !== authGeneration ||
           !currentUser ||
           currentUser.uid !== user.uid
-        ) {
-          return;
-        }
+        ) return;
 
         const value = snapshot.val();
-
-        expensesData =
-          value && typeof value === "object" ? value : {};
-
+        expensesData = value && typeof value === "object" ? value : {};
         dataLoaded = true;
+
         saveLocalBackup(user.uid, expensesData);
         renderExpenses();
         updateSaveButton();
@@ -474,35 +464,31 @@
 
         if (count === 0) {
           setStatus(
-            "☁️ Firebase जडान भयो। यस UID को expenses path खाली छ (० रेकर्ड)।",
-            "#b45309"
+            "Firebase जडान भयो। यस UID को expenses path खाली छ (० रेकर्ड)।",
+            "#fde68a"
           );
         } else {
           setStatus(
-            `✅ Firebase डेटा लोड भयो। कुल ${count} खर्च रेकर्ड।`
+            `✅ Firebase बाट ${count} खर्च रेकर्ड लोड भयो।`
           );
         }
 
-        console.log("Firebase database URL:", firebaseConfig.databaseURL);
-        console.log("Firebase expense path:", path);
+        console.log("Firebase URL:", firebaseConfig.databaseURL);
         console.log("Firebase UID:", user.uid);
-        console.log("Firebase record count:", count);
+        console.log("Firebase path:", path);
         console.log("Firebase records:", expensesData);
       },
-
-      error => {
-        if (generation !== authGeneration) return;
-        showLoadError(error, user.uid);
-      }
+      error => showLoadError(error, user.uid, generation)
     );
   }
 
+  $("date").value = localDate();
+
   try {
-    try {
-      app = getApp();
-    } catch {
-      app = initializeApp(firebaseConfig);
-    }
+    const existingApps = getApps();
+    app = existingApps.find(item =>
+      item.options.projectId === firebaseConfig.projectId
+    ) || initializeApp(firebaseConfig, "house-expense-app");
 
     auth = getAuth(app);
     db = getDatabase(app);
@@ -515,6 +501,7 @@
       currentUser = user;
       dataLoaded = false;
       expensesData = {};
+
       renderExpenses();
       updateSaveButton();
 
@@ -522,7 +509,7 @@
         setConnectionInfo("");
         setStatus(
           "लगइन गरिएको छैन। Dashboard बाट सही खातामा लगइन गर्नुहोस्।",
-          "#dc2626"
+          "#fecaca"
         );
         return;
       }
@@ -531,10 +518,7 @@
     });
   } catch (error) {
     console.error("Firebase initialization error:", error);
-    setStatus(
-      "❌ Firebase जडान त्रुटि: " + error.message,
-      "#dc2626"
-    );
+    setStatus("❌ Firebase जडान त्रुटि: " + error.message, "#fecaca");
   }
 
   $("expenseForm").addEventListener("submit", saveExpenseData);
@@ -542,16 +526,15 @@
   async function saveExpenseData(event) {
     event.preventDefault();
 
+    if (saving) return;
+
     if (!currentUser) {
       alert("कृपया पहिले Dashboard बाट लगइन गर्नुहोस्।");
       return;
     }
 
     if (!dataLoaded) {
-      alert(
-        "Firebase बाट पुरानो डेटा लोड भएको छैन। " +
-        "डेटा सुरक्षित गर्न पहिले जडान समस्या समाधान गर्नुहोस्।"
-      );
+      alert("Firebase बाट डेटा सफलतापूर्वक लोड भएको छैन। अहिले सेभ गर्न मिल्दैन।");
       return;
     }
 
@@ -562,41 +545,31 @@
     const date = $("date").value;
     const note = $("note").value.trim();
 
-    if (
-      !title ||
-      !Number.isFinite(amount) ||
-      amount <= 0 ||
-      !date
-    ) {
+    if (!title || !Number.isFinite(amount) || amount <= 0 || !date) {
       alert("खर्चको नाम, सही रकम र मिति भर्नुहोस्।");
       return;
     }
 
     const user = currentUser;
     const uid = user.uid;
+    const generation = authGeneration;
 
-    $("saveBtn").disabled = true;
+    saving = true;
+    updateSaveButton();
     setStatus("Firebase मा सेभ हुँदैछ...");
 
-    const record = {
-      title,
-      amount,
-      category,
-      date,
-      note
-    };
+    const record = { title, amount, category, date, note };
+
+    let savedRef = null;
+    let writeCompleted = false;
 
     try {
-      let savedRef;
-
       if (editId) {
         savedRef = ref(db, `users/${uid}/expenses/${editId}`);
 
         const oldItem = expensesData[editId];
         if (!oldItem) {
-          throw new Error(
-            "सम्पादन गर्न खोजिएको रेकर्ड हालको डेटामा भेटिएन।"
-          );
+          throw new Error("सम्पादन गर्न खोजिएको रेकर्ड भेटिएन।");
         }
 
         await update(savedRef, {
@@ -613,30 +586,34 @@
         });
       }
 
-      // Firebase बाट लेखिएको रेकर्ड फेरि पढेर पुष्टि गर्ने।
+      writeCompleted = true;
+
+      console.log("Write completed:", true);
+      console.log("Write UID:", uid);
+      console.log("Write path:", savedRef.toString());
+
+      if (!currentUser || currentUser.uid !== uid ||
+          generation !== authGeneration) {
+        throw new Error("सेभ गर्दा लगइन खाता परिवर्तन भयो। पुनः जाँच गर्नुहोस्।");
+      }
+
+      setStatus("लेख्ने अनुरोध पूरा भयो। अब Firebase बाट पुष्टि हुँदैछ...");
+
+      // सोही रेकर्ड Firebase बाट फेरि पढ्ने।
       const verification = await get(savedRef);
 
       if (!verification.exists()) {
         throw new Error(
-          "लेख्ने अनुरोधपछि रेकर्ड भेटिएन। " +
-          "Database URL र path जाँच्नुहोस्।"
+          "सेभ अनुरोध पूरा भयो, तर सोही path बाट पुनः पढ्दा रेकर्ड भेटिएन। " +
+          "Database URL, UID र Firebase Rules जाँच्नुहोस्।"
         );
       }
 
-      if (!currentUser || currentUser.uid !== uid) {
-        throw new Error(
-          "सेभ गर्दा लगइन खाता परिवर्तन भयो। फेरि जाँच्नुहोस्।"
-        );
-      }
-
-      // पुष्टि भएको रेकर्डको मात्र स्थानीय ब्याकअप बनाउने।
       const verifiedValue = verification.val();
 
+      // सफलतापूर्वक पुष्टि भएपछि मात्र UI र स्थानीय ब्याकअप अपडेट गर्ने।
       if (editId) {
-        expensesData = {
-          ...expensesData,
-          [editId]: verifiedValue
-        };
+        expensesData = { ...expensesData, [editId]: verifiedValue };
       } else {
         expensesData = {
           ...expensesData,
@@ -648,9 +625,15 @@
       renderExpenses();
       resetExpenseForm();
 
+      setConnectionInfo(
+        "Database URL: " + firebaseConfig.databaseURL +
+        "\nUID: " + uid +
+        "\nVerified path: " + savedRef.toString() +
+        "\nRecord ID: " + savedRef.key
+      );
+
       setStatus(
-        `✅ Firebase मा रेकर्ड पुष्टि भयो। ` +
-        `ID: ${savedRef.key}`
+        `✅ Firebase मा सेभ भयो र पुनः पढेर पुष्टि भयो। ID: ${savedRef.key}`
       );
 
       console.log("Verified Firebase URL:", firebaseConfig.databaseURL);
@@ -661,17 +644,22 @@
     } catch (error) {
       console.error("Firebase save/verification error:", error);
 
+      const detail = writeCompleted
+        ? "लेख्ने अनुरोध पूरा भयो, तर पुष्टि असफल भयो।"
+        : "लेख्ने अनुरोध असफल भयो।";
+
       setStatus(
-        "❌ सेभ वा पुष्टि असफल: " + error.message,
-        "#dc2626"
+        "❌ " + detail + " " + error.message,
+        "#fecaca"
       );
 
       alert(
-        "Firebase मा खर्च सेभ/पुष्टि गर्न समस्या भयो।\n\n" +
+        detail + "\n\n" +
         error.message +
-        "\n\nFirebase Console मा Database URL र UID जाँच्नुहोस्।"
+        (savedRef ? "\n\nPath: " + savedRef.toString() : "")
       );
     } finally {
+      saving = false;
       updateSaveButton();
     }
   }
@@ -712,7 +700,7 @@
   };
 
   window.deleteExpense = async function(id) {
-    if (!currentUser || !dataLoaded) {
+    if (!currentUser || !dataLoaded || saving) {
       alert("Firebase डेटा लोड नभएसम्म मेटाउन सकिँदैन।");
       return;
     }
@@ -723,26 +711,31 @@
       return;
     }
 
-    if (!confirm(
-      `के तपाईं "${item.title || "यो खर्च"}" मेटाउन चाहनुहुन्छ?`
-    )) {
+    if (!confirm(`के तपाईं "${item.title || "यो खर्च"}" मेटाउन चाहनुहुन्छ?`)) {
       return;
     }
 
     const uid = currentUser.uid;
+    const generation = authGeneration;
+
+    saving = true;
+    updateSaveButton();
 
     try {
       setStatus("Firebase बाट खर्च मेटाउँदै...");
 
-      await remove(ref(db, `users/${uid}/expenses/${id}`));
+      const itemRef = ref(db, `users/${uid}/expenses/${id}`);
+      await remove(itemRef);
 
-      // मेटिएको कुरा Firebase बाट पुष्टि गर्ने।
-      const check = await get(
-        ref(db, `users/${uid}/expenses/${id}`)
-      );
+      const check = await get(itemRef);
 
       if (check.exists()) {
         throw new Error("मेटाएको रेकर्ड अझै Firebase मा भेटियो।");
+      }
+
+      if (!currentUser || currentUser.uid !== uid ||
+          generation !== authGeneration) {
+        throw new Error("खाता परिवर्तन भयो। फेरि जाँच गर्नुहोस्।");
       }
 
       delete expensesData[id];
@@ -752,10 +745,11 @@
       setStatus("✅ Firebase बाट खर्च मेटाइएको पुष्टि भयो।");
     } catch (error) {
       console.error("Delete error:", error);
-      setStatus(
-        "❌ खर्च मेटाउन/पुष्टि गर्न समस्या: " + error.message,
-        "#dc2626"
-      );
+      setStatus("❌ खर्च मेटाउन/पुष्टि गर्न समस्या: " + error.message, "#fecaca");
+      alert("खर्च मेटाउन समस्या भयो:\n\n" + error.message);
+    } finally {
+      saving = false;
+      updateSaveButton();
     }
   };
 
@@ -796,20 +790,18 @@
     const list = $("expenseList");
     list.replaceChildren();
 
-    if (!dataLoaded && currentUser) {
+    if (!currentUser) {
       const message = document.createElement("div");
       message.className = "empty";
-      message.textContent =
-        "Firebase डेटा लोड/पुष्टि हुँदैछ। कृपया पर्खनुहोस्।";
+      message.textContent = "खर्च हेर्न Dashboard बाट लगइन गर्नुहोस्।";
       list.appendChild(message);
       return;
     }
 
-    if (!currentUser) {
+    if (!dataLoaded) {
       const message = document.createElement("div");
       message.className = "empty";
-      message.textContent =
-        "खर्च हेर्न Dashboard बाट लगइन गर्नुहोस्।";
+      message.textContent = "Firebase डेटा लोड/पुष्टि हुँदैछ। कृपया पर्खनुहोस्।";
       list.appendChild(message);
       return;
     }
@@ -914,7 +906,7 @@
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   });
 
-  window.addEventListener("pagehide", stopListening);
+  // पेज लुक्दा listener बन्द नगर्ने; फर्कँदा Firebase listener सक्रिय रहन्छ।
 </script>
 </body>
 </html>
