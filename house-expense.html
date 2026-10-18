@@ -219,7 +219,7 @@ button:disabled { opacity: .45; cursor: not-allowed; }
     </form>
 
     <div class="notice">
-      डेटा लोकल स्टोरेजमा सेभ हुन्छ र अनलाइन हुँदा Firebase (`users/default_user/transactions`) मा ब्याकअप हुन्छ।
+      डेटा लोकल स्टोरेजमा सेभ हुन्छ र अनलाइन हुँदा Firebase (`users/default_user/house-expense`) मा ब्याकअप हुन्छ।
     </div>
   </section>
 
@@ -295,11 +295,11 @@ function saveExpensesToStorage() {
   localStorage.setItem("local_house_expenses", JSON.stringify(expenses));
 }
 
-// Firebase मा ब्याकअप पठाउने function (users/default_user/transactions path मा)
+// Firebase मा ब्याकअप पठाउने function (users/default_user/house-expense path मा)
 async function backupToFirebase() {
   if (!db) return;
   try {
-    const dbRef = ref(db, 'users/default_user/transactions');
+    const dbRef = ref(db, 'users/default_user/house-expense');
     const dataObj = {};
     expenses.forEach(item => {
       dataObj[item.id] = {
@@ -313,17 +313,17 @@ async function backupToFirebase() {
       };
     });
     await set(dbRef, dataObj);
-    setStatus("✅ लोकल डेटा सेभ भयो र Firebase (`users/default_user/transactions`) मा ब्याकअप सफल भयो।");
+    setStatus("✅ लोकल डेटा सेभ भयो र Firebase (`users/default_user/house-expense`) मा ब्याकअप सफल भयो।");
   } catch (err) {
     console.error("Firebase backup error:", err);
-    setStatus("⚠️ लोकलमा सेभ भयो, तर इन्टरनेट वा Firebase समस्याका कारण ब्याकअप हुन सकेन।", true);
+    setStatus("⚠️ लोकलमा सेभ भयो, तर इन्टरनेट या Firebase समस्याका कारण ब्याकअप हुन सकेन।", true);
   }
 }
 
 // Firebase बाट डेटा सिङ्क गर्ने (पहिलो पटक वा अनलाइन हुँदा)
 async function syncFromFirebase() {
   try {
-    const dbRef = ref(db, 'users/default_user/transactions');
+    const dbRef = ref(db, 'users/default_user/house-expense');
     const snapshot = await get(dbRef);
     if (snapshot.exists()) {
       const fbData = snapshot.val();
@@ -458,7 +458,7 @@ window.deleteExpense = async function(id) {
   // Firebase बाट पनि हटाउने
   if (db) {
     try {
-      const itemRef = ref(db, `users/default_user/transactions/${id}`);
+      const itemRef = ref(db, `users/default_user/house-expense/${id}`);
       await remove(itemRef);
       setStatus("✅ खर्च मेटाइयो र Firebase बाट पनि हटाइयो।");
     } catch (e) {
@@ -563,7 +563,7 @@ $("exportBtn").addEventListener("click", () => {
   const blob = new Blob([
     JSON.stringify({
       exportedAt: new Date().toISOString(),
-      path: "users/default_user/transactions",
+      path: "users/default_user/house-expense",
       expenses: expenses
     }, null, 2)
   ], { type: "application/json;charset=utf-8" });
