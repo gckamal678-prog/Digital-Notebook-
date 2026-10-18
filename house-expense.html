@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ne">
 <head>
@@ -5,11 +6,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#166534">
   <title>घर खर्च | Digital Notebook</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -19,10 +20,7 @@
       color: #172b1b;
     }
 
-    .container {
-      max-width: 650px;
-      margin: auto;
-    }
+    .container { max-width: 650px; margin: auto; }
 
     .header {
       background: #166534;
@@ -32,14 +30,8 @@
       margin-bottom: 16px;
     }
 
-    .header h2 {
-      margin: 0 0 8px;
-    }
-
-    .header p {
-      margin: 0;
-      opacity: 0.9;
-    }
+    .header h2 { margin: 0 0 8px; }
+    .header p { margin: 0; opacity: .9; }
 
     .card {
       background: white;
@@ -69,9 +61,7 @@
       color: #172b1b;
     }
 
-    textarea {
-      resize: vertical;
-    }
+    textarea { resize: vertical; }
 
     button {
       border: none;
@@ -83,7 +73,7 @@
     }
 
     button:disabled {
-      opacity: 0.6;
+      opacity: .55;
       cursor: not-allowed;
     }
 
@@ -91,11 +81,10 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 12px;
+      margin-bottom: 16px;
     }
 
-    .summary .card {
-      margin: 0;
-    }
+    .summary .card { margin: 0; }
 
     .amount {
       font-size: 21px;
@@ -104,13 +93,8 @@
       overflow-wrap: anywhere;
     }
 
-    .green {
-      color: #15803d;
-    }
-
-    .red {
-      color: #dc2626;
-    }
+    .green { color: #15803d; }
+    .red { color: #dc2626; }
 
     .expense {
       border: 1px solid #e5e7eb;
@@ -135,11 +119,18 @@
       color: #6b7280;
       font-size: 13px;
       margin-top: 5px;
+      overflow-wrap: anywhere;
+    }
+
+    .actions {
+      display: flex;
+      gap: 5px;
+      flex-shrink: 0;
     }
 
     .delete-btn {
       width: auto;
-      min-width: 65px;
+      min-width: 42px;
       margin: 0;
       padding: 8px 10px;
       background: #dc2626;
@@ -149,6 +140,15 @@
       font-size: 13px;
       margin-top: 10px;
       overflow-wrap: anywhere;
+      line-height: 1.6;
+    }
+
+    #connectionInfo {
+      margin-top: 8px;
+      font-size: 12px;
+      overflow-wrap: anywhere;
+      line-height: 1.6;
+      opacity: .9;
     }
 
     .empty {
@@ -168,368 +168,753 @@
       margin-bottom: 16px;
     }
 
-    @media (max-width: 380px) {
-      body {
-        padding: 10px;
-      }
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+    }
 
-      .summary {
-        grid-template-columns: 1fr;
-      }
+    .form-actions button { margin-top: 0; }
+
+    .notice {
+      background: #fffbeb;
+      border: 1px solid #f59e0b;
+      border-radius: 9px;
+      padding: 10px;
+      font-size: 13px;
+      line-height: 1.6;
+      margin-top: 12px;
+    }
+
+    @media (max-width: 380px) {
+      body { padding: 10px; }
+      .summary { grid-template-columns: 1fr; }
+      .card { padding: 14px; }
     }
   </style>
 </head>
 
 <body>
-  <div class="container">
+<div class="container">
 
-    <a class="back-btn" href="index.html">← Dashboard मा फर्कनुहोस्</a>
+  <a class="back-btn" href="index.html">
+    ← Dashboard मा फर्कनुहोस्
+  </a>
 
-    <div class="header">
-      <h2>🏠 घर खर्च</h2>
-      <p>आफ्नो दैनिक खर्च लेख्नुहोस् — Firebase मा Real-time Backup</p>
-      <div id="status">Firebase सँग जडान हुँदैछ...</div>
+  <div class="header">
+    <h2>🏠 घर खर्च</h2>
+    <p>दैनिक खर्च — Firebase Real-time Backup</p>
+    <div id="status" role="status" aria-live="polite">
+      Firebase सँग जडान हुँदैछ...
     </div>
-
-    <div class="summary">
-      <div class="card">
-        <div>आजको खर्च</div>
-        <div class="amount red" id="todayTotal">रु. ०</div>
-      </div>
-
-      <div class="card">
-        <div>जम्मा खर्च</div>
-        <div class="amount green" id="allTotal">रु. ०</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3 id="form-heading">➕ नयाँ खर्च लेख्नुहोस्</h3>
-
-      <form id="expenseForm" onsubmit="saveExpenseData(event)">
-        <input type="hidden" id="edit-expense-id" value="">
-        
-        <label for="title">खर्चको नाम</label>
-        <input id="title" type="text" placeholder="जस्तै: तरकारी, चामल, दूध" required>
-
-        <label for="amount">रकम (रु.)</label>
-        <input id="amount" type="number" min="0.01" step="0.01" placeholder="जस्तै: 250" required>
-
-        <label for="category">खर्चको प्रकार</label>
-        <select id="category">
-          <option value="खाना तथा किराना">खाना तथा किराना</option>
-          <option value="तरकारी">तरकारी</option>
-          <option value="बिजुली तथा पानी">बिजुली तथा पानी</option>
-          <option value="यातायात">यातायात</option>
-          <option value="स्वास्थ्य">स्वास्थ्य</option>
-          <option value="शिक्षा">शिक्षा</option>
-          <option value="घरायसी सामान">घरायसी सामान</option>
-          <option value="अन्य">अन्य</option>
-        </select>
-
-        <label for="date">मिति</label>
-        <input id="date" type="date" required>
-
-        <label for="note">कैफियत (ऐच्छिक)</label>
-        <textarea id="note" rows="2" placeholder="थप जानकारी..."></textarea>
-
-        <div style="display: flex; gap: 10px; margin-top: 12px;">
-          <button type="button" id="cancel-btn" onclick="resetExpenseForm()" style="background: #6b7280; display: none;">रद्द गर्नुहोस्</button>
-          <button id="saveBtn" type="submit">💾 खर्च सेभ गर्नुहोस्</button>
-        </div>
-      </form>
-    </div>
-
-    <div class="card">
-      <h3>📋 खर्चको विवरण</h3>
-
-      <label for="search">खर्च खोज्नुहोस्</label>
-      <input id="search" type="search" placeholder="नाम वा प्रकारबाट खोज्नुहोस्">
-
-      <label for="monthFilter">महिना छान्नुहोस्</label>
-      <input id="monthFilter" type="month">
-
-      <div id="expenseList">
-        <div class="empty">खर्च लोड हुँदैछ...</div>
-      </div>
-
-      <button id="exportBtn" type="button" style="background: #0284c7;">⬇️ खर्च JSON डाउनलोड</button>
-    </div>
-
+    <div id="connectionInfo"></div>
   </div>
 
-  <!-- Firebase SDK Modules Import -->
-  <script type="module">
-    import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getDatabase, ref, push, set, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+  <div class="summary">
+    <div class="card">
+      <div>आजको खर्च</div>
+      <div class="amount red" id="todayTotal">रु. ०</div>
+    </div>
+    <div class="card">
+      <div>जम्मा खर्च</div>
+      <div class="amount green" id="allTotal">रु. ०</div>
+    </div>
+  </div>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDDY_v7RHnkCTI6uyV4DNDjqoaIBGweg8c",
-      authDomain: "digital-a2552.firebaseapp.com",
-      databaseURL: "https://digital-a2552-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "digital-a2552",
-      storageBucket: "digital-a2552.firebasestorage.app",
-      messagingSenderId: "218135618179",
-      appId: "1:218135618179:web:821b76920d3e5669ac31b6"
-    };
+  <div class="card">
+    <h3 id="form-heading">➕ नयाँ खर्च लेख्नुहोस्</h3>
 
-    const $ = id => document.getElementById(id);
+    <form id="expenseForm">
+      <input type="hidden" id="edit-expense-id">
 
-    let app, auth, db;
-    let currentUser = null;
-    let expensesData = {};
+      <label for="title">खर्चको नाम</label>
+      <input id="title" type="text"
+        placeholder="जस्तै: तरकारी, चामल, दूध"
+        maxlength="200" required>
 
-    function setStatus(message, color = "#166534") {
-      $("status").textContent = message;
-      $("status").style.color = color;
-    }
+      <label for="amount">रकम (रु.)</label>
+      <input id="amount" type="number" min="0.01"
+        step="0.01" placeholder="जस्तै: 250" required>
 
-    function money(value) {
-      return "रु. " + Number(value || 0).toLocaleString("en-IN", {
-        maximumFractionDigits: 2
-      });
-    }
+      <label for="category">खर्चको प्रकार</label>
+      <select id="category">
+        <option value="खाना तथा किराना">खाना तथा किराना</option>
+        <option value="तरकारी">तरकारी</option>
+        <option value="बिजुली तथा पानी">बिजुली तथा पानी</option>
+        <option value="यातायात">यातायात</option>
+        <option value="स्वास्थ्य">स्वास्थ्य</option>
+        <option value="शिक्षा">शिक्षा</option>
+        <option value="घरायसी सामान">घरायसी सामान</option>
+        <option value="अन्य">अन्य</option>
+      </select>
 
-    function localDate() {
-      const d = new Date();
-      const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
-      return local.toISOString().slice(0, 10);
-    }
+      <label for="date">मिति</label>
+      <input id="date" type="date" required>
 
-    $("date").value = localDate();
+      <label for="note">कैफियत (ऐच्छिक)</label>
+      <textarea id="note" rows="2"
+        maxlength="2000" placeholder="थप जानकारी..."></textarea>
 
+      <div class="form-actions">
+        <button type="button" id="cancel-btn"
+          style="background:#6b7280;display:none"
+          onclick="resetExpenseForm()">
+          रद्द गर्नुहोस्
+        </button>
+        <button id="saveBtn" type="submit" disabled>
+          💾 खर्च सेभ गर्नुहोस्
+        </button>
+      </div>
+    </form>
+
+    <div class="notice">
+      <strong>सुरक्षा:</strong> Firebase बाट डेटा सफलतापूर्वक लोड
+      नभएसम्म सेभ गर्न दिइँदैन। यसले गल्तीले खाली सूचीबाट
+      डेटा प्रतिस्थापन हुने जोखिम कम गर्छ।
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>📋 खर्चको विवरण</h3>
+
+    <label for="search">खर्च खोज्नुहोस्</label>
+    <input id="search" type="search"
+      placeholder="नाम वा प्रकारबाट खोज्नुहोस्">
+
+    <label for="monthFilter">महिना छान्नुहोस्</label>
+    <input id="monthFilter" type="month">
+
+    <div id="expenseList">
+      <div class="empty">Firebase बाट खर्च लोड हुँदैछ...</div>
+    </div>
+
+    <button id="exportBtn" type="button"
+      style="background:#0284c7">
+      ⬇️ खर्च JSON डाउनलोड
+    </button>
+  </div>
+</div>
+
+<script type="module">
+  import {
+    initializeApp,
+    getApp
+  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+
+  import {
+    getAuth,
+    onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+  import {
+    getDatabase,
+    ref,
+    push,
+    set,
+    update,
+    remove,
+    get,
+    onValue
+  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDDY_v7RHnkCTI6uyV4DNDjqoaIBGweg8c",
+    authDomain: "digital-a2552.firebaseapp.com",
+    databaseURL: "https://digital-a2552-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "digital-a2552",
+    storageBucket: "digital-a2552.firebasestorage.app",
+    messagingSenderId: "218135618179",
+    appId: "1:218135618179:web:821b76920d3e5669ac31b6"
+  };
+
+  const $ = id => document.getElementById(id);
+
+  let app;
+  let auth;
+  let db;
+  let currentUser = null;
+  let expensesData = {};
+  let dataLoaded = false;
+  let stopExpenseListener = null;
+  let authGeneration = 0;
+
+  function setStatus(message, color = "#166534") {
+    $("status").textContent = message;
+    $("status").style.color = color;
+  }
+
+  function setConnectionInfo(message) {
+    $("connectionInfo").textContent = message;
+  }
+
+  function money(value) {
+    return "रु. " + Number(value || 0).toLocaleString("en-IN", {
+      maximumFractionDigits: 2
+    });
+  }
+
+  function localDate() {
+    const d = new Date();
+    const local = new Date(
+      d.getTime() - d.getTimezoneOffset() * 60000
+    );
+    return local.toISOString().slice(0, 10);
+  }
+
+  function cacheKey(uid) {
+    return "digital_notebook_house_expenses_" + uid;
+  }
+
+  function saveLocalBackup(uid, data) {
     try {
-      try {
-        app = getApp();
-      } catch {
-        app = initializeApp(firebaseConfig);
-      }
+      localStorage.setItem(cacheKey(uid), JSON.stringify(data));
+      return true;
+    } catch (error) {
+      console.warn("Local backup उपलब्ध भएन:", error);
+      return false;
+    }
+  }
 
-      auth = getAuth(app);
-      db = getDatabase(app);
+  function loadLocalBackup(uid) {
+    try {
+      const raw = localStorage.getItem(cacheKey(uid));
+      if (!raw) return null;
 
-      onAuthStateChanged(auth, user => {
-        currentUser = user;
+      const parsed = JSON.parse(raw);
+      return parsed && typeof parsed === "object" ? parsed : null;
+    } catch (error) {
+      console.warn("Local backup पढ्न सकिएन:", error);
+      return null;
+    }
+  }
 
-        if (!user) {
-          setStatus("लगइन गरिएको छैन। कृपया Dashboard बाट लगइन गर्नुहोस्।", "#dc2626");
-          expensesData = {};
-          renderExpenses();
-          $("saveBtn").disabled = true;
+  $("date").value = localDate();
+
+  function updateSaveButton() {
+    $("saveBtn").disabled = !currentUser || !dataLoaded;
+  }
+
+  function expenseRef(uid) {
+    return ref(db, `users/${uid}/expenses`);
+  }
+
+  function stopListening() {
+    if (typeof stopExpenseListener === "function") {
+      stopExpenseListener();
+      stopExpenseListener = null;
+    }
+  }
+
+  function showLoadError(error, uid) {
+    dataLoaded = false;
+    updateSaveButton();
+
+    const backup = loadLocalBackup(uid);
+
+    if (backup !== null) {
+      expensesData = backup;
+      renderExpenses();
+      setStatus(
+        "⚠️ Firebase डेटा लोड हुन सकेन। स्थानीय ब्याकअप मात्र देखाइएको छ।",
+        "#b45309"
+      );
+    } else {
+      expensesData = {};
+      renderExpenses();
+      setStatus(
+        "❌ Firebase डेटा लोड भएन: " + error.message,
+        "#dc2626"
+      );
+    }
+
+    console.error("Firebase expense read error:", error);
+  }
+
+  function startExpenseListener(user, generation) {
+    stopListening();
+    dataLoaded = false;
+    expensesData = {};
+    renderExpenses();
+    updateSaveButton();
+
+    const userExpenseRef = expenseRef(user.uid);
+    const path = `users/${user.uid}/expenses`;
+
+    setConnectionInfo(
+      "Database: " + firebaseConfig.databaseURL +
+      " | Path: " + path +
+      " | UID: " + user.uid
+    );
+
+    setStatus("Firebase बाट खर्च लोड हुँदैछ...");
+
+    stopExpenseListener = onValue(
+      userExpenseRef,
+
+      snapshot => {
+        if (
+          generation !== authGeneration ||
+          !currentUser ||
+          currentUser.uid !== user.uid
+        ) {
           return;
         }
 
-        $("saveBtn").disabled = false;
-        setStatus("☁️ Firebase Real-time Sync सक्रिय छ।");
+        const value = snapshot.val();
 
-        const userExpenseRef = ref(db, `users/${user.uid}/expenses`);
-        
-        // Real-time listener: डेटा परिवर्तन हुनेबित्तिकै अटोमेटिक अपटेड हुन्छ र कहिल्यै हराउँदैन
-        onValue(userExpenseRef, snapshot => {
-          expensesData = snapshot.val() || {};
-          // LocalStorage मा पनि ब्याकअप राख्ने
-          localStorage.setItem('digital_notebook_expenses', JSON.stringify(expensesData));
-          renderExpenses();
-        }, error => {
-          setStatus("डेटा लोड गर्न समस्या भयो: " + error.message, "#dc2626");
+        expensesData =
+          value && typeof value === "object" ? value : {};
+
+        dataLoaded = true;
+        saveLocalBackup(user.uid, expensesData);
+        renderExpenses();
+        updateSaveButton();
+
+        const count = Object.keys(expensesData).length;
+
+        if (count === 0) {
+          setStatus(
+            "☁️ Firebase जडान भयो। यस UID को expenses path खाली छ (० रेकर्ड)।",
+            "#b45309"
+          );
+        } else {
+          setStatus(
+            `✅ Firebase डेटा लोड भयो। कुल ${count} खर्च रेकर्ड।`
+          );
+        }
+
+        console.log("Firebase database URL:", firebaseConfig.databaseURL);
+        console.log("Firebase expense path:", path);
+        console.log("Firebase UID:", user.uid);
+        console.log("Firebase record count:", count);
+        console.log("Firebase records:", expensesData);
+      },
+
+      error => {
+        if (generation !== authGeneration) return;
+        showLoadError(error, user.uid);
+      }
+    );
+  }
+
+  try {
+    try {
+      app = getApp();
+    } catch {
+      app = initializeApp(firebaseConfig);
+    }
+
+    auth = getAuth(app);
+    db = getDatabase(app);
+
+    onAuthStateChanged(auth, user => {
+      authGeneration++;
+      const generation = authGeneration;
+
+      stopListening();
+      currentUser = user;
+      dataLoaded = false;
+      expensesData = {};
+      renderExpenses();
+      updateSaveButton();
+
+      if (!user) {
+        setConnectionInfo("");
+        setStatus(
+          "लगइन गरिएको छैन। Dashboard बाट सही खातामा लगइन गर्नुहोस्।",
+          "#dc2626"
+        );
+        return;
+      }
+
+      startExpenseListener(user, generation);
+    });
+  } catch (error) {
+    console.error("Firebase initialization error:", error);
+    setStatus(
+      "❌ Firebase जडान त्रुटि: " + error.message,
+      "#dc2626"
+    );
+  }
+
+  $("expenseForm").addEventListener("submit", saveExpenseData);
+
+  async function saveExpenseData(event) {
+    event.preventDefault();
+
+    if (!currentUser) {
+      alert("कृपया पहिले Dashboard बाट लगइन गर्नुहोस्।");
+      return;
+    }
+
+    if (!dataLoaded) {
+      alert(
+        "Firebase बाट पुरानो डेटा लोड भएको छैन। " +
+        "डेटा सुरक्षित गर्न पहिले जडान समस्या समाधान गर्नुहोस्।"
+      );
+      return;
+    }
+
+    const editId = $("edit-expense-id").value;
+    const title = $("title").value.trim();
+    const amount = Number($("amount").value);
+    const category = $("category").value;
+    const date = $("date").value;
+    const note = $("note").value.trim();
+
+    if (
+      !title ||
+      !Number.isFinite(amount) ||
+      amount <= 0 ||
+      !date
+    ) {
+      alert("खर्चको नाम, सही रकम र मिति भर्नुहोस्।");
+      return;
+    }
+
+    const user = currentUser;
+    const uid = user.uid;
+
+    $("saveBtn").disabled = true;
+    setStatus("Firebase मा सेभ हुँदैछ...");
+
+    const record = {
+      title,
+      amount,
+      category,
+      date,
+      note
+    };
+
+    try {
+      let savedRef;
+
+      if (editId) {
+        savedRef = ref(db, `users/${uid}/expenses/${editId}`);
+
+        const oldItem = expensesData[editId];
+        if (!oldItem) {
+          throw new Error(
+            "सम्पादन गर्न खोजिएको रेकर्ड हालको डेटामा भेटिएन।"
+          );
+        }
+
+        await update(savedRef, {
+          ...record,
+          createdAt: oldItem.createdAt || Date.now(),
+          updatedAt: Date.now()
         });
-      });
+      } else {
+        savedRef = push(expenseRef(uid));
+
+        await set(savedRef, {
+          ...record,
+          createdAt: Date.now()
+        });
+      }
+
+      // Firebase बाट लेखिएको रेकर्ड फेरि पढेर पुष्टि गर्ने।
+      const verification = await get(savedRef);
+
+      if (!verification.exists()) {
+        throw new Error(
+          "लेख्ने अनुरोधपछि रेकर्ड भेटिएन। " +
+          "Database URL र path जाँच्नुहोस्।"
+        );
+      }
+
+      if (!currentUser || currentUser.uid !== uid) {
+        throw new Error(
+          "सेभ गर्दा लगइन खाता परिवर्तन भयो। फेरि जाँच्नुहोस्।"
+        );
+      }
+
+      // पुष्टि भएको रेकर्डको मात्र स्थानीय ब्याकअप बनाउने।
+      const verifiedValue = verification.val();
+
+      if (editId) {
+        expensesData = {
+          ...expensesData,
+          [editId]: verifiedValue
+        };
+      } else {
+        expensesData = {
+          ...expensesData,
+          [savedRef.key]: verifiedValue
+        };
+      }
+
+      saveLocalBackup(uid, expensesData);
+      renderExpenses();
+      resetExpenseForm();
+
+      setStatus(
+        `✅ Firebase मा रेकर्ड पुष्टि भयो। ` +
+        `ID: ${savedRef.key}`
+      );
+
+      console.log("Verified Firebase URL:", firebaseConfig.databaseURL);
+      console.log("Verified Firebase UID:", uid);
+      console.log("Verified Firebase path:", savedRef.toString());
+      console.log("Verified saved record:", verifiedValue);
 
     } catch (error) {
-      setStatus("Firebase जडान त्रुटि: " + error.message, "#dc2626");
+      console.error("Firebase save/verification error:", error);
+
+      setStatus(
+        "❌ सेभ वा पुष्टि असफल: " + error.message,
+        "#dc2626"
+      );
+
+      alert(
+        "Firebase मा खर्च सेभ/पुष्टि गर्न समस्या भयो।\n\n" +
+        error.message +
+        "\n\nFirebase Console मा Database URL र UID जाँच्नुहोस्।"
+      );
+    } finally {
+      updateSaveButton();
+    }
+  }
+
+  window.editExpense = function(id) {
+    if (!dataLoaded) {
+      alert("Firebase डेटा लोड भएको छैन।");
+      return;
     }
 
-    // ग्लोबल फंक्सनहरू विन्डोजमा बाइण्ड गरिएको
-    window.saveExpenseData = async function(event) {
-      event.preventDefault();
-      if (!currentUser) {
-        alert("लगइन गर्नुहोस्!");
-        return;
+    const item = expensesData[id];
+    if (!item) {
+      alert("यो खर्च हालको सूचीमा भेटिएन।");
+      return;
+    }
+
+    $("edit-expense-id").value = id;
+    $("title").value = item.title || "";
+    $("amount").value = item.amount ?? "";
+    $("category").value = item.category || "अन्य";
+    $("date").value = item.date || localDate();
+    $("note").value = item.note || "";
+
+    $("form-heading").textContent = "✏️ खर्च सम्पादन गर्नुहोस्";
+    $("saveBtn").textContent = "अपडेट गर्नुहोस्";
+    $("cancel-btn").style.display = "block";
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  window.resetExpenseForm = function() {
+    $("expenseForm").reset();
+    $("edit-expense-id").value = "";
+    $("date").value = localDate();
+    $("form-heading").textContent = "➕ नयाँ खर्च लेख्नुहोस्";
+    $("saveBtn").textContent = "💾 खर्च सेभ गर्नुहोस्";
+    $("cancel-btn").style.display = "none";
+  };
+
+  window.deleteExpense = async function(id) {
+    if (!currentUser || !dataLoaded) {
+      alert("Firebase डेटा लोड नभएसम्म मेटाउन सकिँदैन।");
+      return;
+    }
+
+    const item = expensesData[id];
+    if (!item) {
+      alert("यो खर्च हालको सूचीमा भेटिएन।");
+      return;
+    }
+
+    if (!confirm(
+      `के तपाईं "${item.title || "यो खर्च"}" मेटाउन चाहनुहुन्छ?`
+    )) {
+      return;
+    }
+
+    const uid = currentUser.uid;
+
+    try {
+      setStatus("Firebase बाट खर्च मेटाउँदै...");
+
+      await remove(ref(db, `users/${uid}/expenses/${id}`));
+
+      // मेटिएको कुरा Firebase बाट पुष्टि गर्ने।
+      const check = await get(
+        ref(db, `users/${uid}/expenses/${id}`)
+      );
+
+      if (check.exists()) {
+        throw new Error("मेटाएको रेकर्ड अझै Firebase मा भेटियो।");
       }
 
-      const editId = $("edit-expense-id").value;
-      const title = $("title").value.trim();
-      const amount = Number($("amount").value);
-      const category = $("category").value;
-      const date = $("date").value;
-      const note = $("note").value.trim();
+      delete expensesData[id];
+      saveLocalBackup(uid, expensesData);
+      renderExpenses();
 
-      if (!title || !amount || !date) {
-        alert("कृपया सबै आवश्यक विवरण भर्नुहोस्।");
-        return;
+      setStatus("✅ Firebase बाट खर्च मेटाइएको पुष्टि भयो।");
+    } catch (error) {
+      console.error("Delete error:", error);
+      setStatus(
+        "❌ खर्च मेटाउन/पुष्टि गर्न समस्या: " + error.message,
+        "#dc2626"
+      );
+    }
+  };
+
+  function renderExpenses() {
+    const items = Object.entries(expensesData || {})
+      .filter(([, item]) => item && typeof item === "object")
+      .map(([id, item]) => ({ id, ...item }));
+
+    const today = localDate();
+
+    const todayTotal = items
+      .filter(item => item.date === today)
+      .reduce((sum, item) => sum + Number(item.amount || 0), 0);
+
+    const allTotal = items
+      .reduce((sum, item) => sum + Number(item.amount || 0), 0);
+
+    $("todayTotal").textContent = money(todayTotal);
+    $("allTotal").textContent = money(allTotal);
+
+    const query = $("search").value.trim().toLowerCase();
+    const month = $("monthFilter").value;
+
+    const filtered = items
+      .filter(item => {
+        const text =
+          `${item.title || ""} ${item.category || ""} ${item.note || ""}`
+            .toLowerCase();
+
+        return text.includes(query) &&
+          (!month || (item.date || "").startsWith(month));
+      })
+      .sort((a, b) =>
+        (b.date || "").localeCompare(a.date || "") ||
+        (b.createdAt || 0) - (a.createdAt || 0)
+      );
+
+    const list = $("expenseList");
+    list.replaceChildren();
+
+    if (!dataLoaded && currentUser) {
+      const message = document.createElement("div");
+      message.className = "empty";
+      message.textContent =
+        "Firebase डेटा लोड/पुष्टि हुँदैछ। कृपया पर्खनुहोस्।";
+      list.appendChild(message);
+      return;
+    }
+
+    if (!currentUser) {
+      const message = document.createElement("div");
+      message.className = "empty";
+      message.textContent =
+        "खर्च हेर्न Dashboard बाट लगइन गर्नुहोस्।";
+      list.appendChild(message);
+      return;
+    }
+
+    if (!filtered.length) {
+      const empty = document.createElement("div");
+      empty.className = "empty";
+      empty.textContent = query || month
+        ? "खोजीअनुसार कुनै खर्च भेटिएन।"
+        : "यो Firebase खातामा कुनै खर्च रेकर्ड छैन।";
+      list.appendChild(empty);
+      return;
+    }
+
+    for (const item of filtered) {
+      const card = document.createElement("div");
+      card.className = "expense";
+
+      const top = document.createElement("div");
+      top.className = "expense-top";
+
+      const info = document.createElement("div");
+
+      const name = document.createElement("div");
+      name.className = "expense-name";
+      name.textContent = item.title || "नाम छैन";
+
+      const amount = document.createElement("div");
+      amount.className = "amount red";
+      amount.textContent = money(item.amount);
+
+      const meta = document.createElement("div");
+      meta.className = "expense-meta";
+      meta.textContent =
+        `${item.date || "मिति छैन"} • ${item.category || "अन्य"}`;
+
+      info.append(name, amount, meta);
+
+      if (item.note) {
+        const note = document.createElement("div");
+        note.className = "expense-meta";
+        note.textContent = item.note;
+        info.appendChild(note);
       }
 
-      $("saveBtn").disabled = true;
-      setStatus("Firebase मा सेभ हुँदैछ...");
+      const actions = document.createElement("div");
+      actions.className = "actions";
 
-      try {
-        const userExpenseRef = ref(db, `users/${currentUser.uid}/expenses`);
+      const editBtn = document.createElement("button");
+      editBtn.className = "delete-btn";
+      editBtn.style.background = "#2563eb";
+      editBtn.type = "button";
+      editBtn.innerHTML = '<i class="fa-solid fa-pen"></i>';
+      editBtn.title = "सम्पादन गर्नुहोस्";
+      editBtn.setAttribute("aria-label", "सम्पादन गर्नुहोस्");
+      editBtn.addEventListener("click", () => editExpense(item.id));
 
-        if (editId) {
-          // अपडेट गर्ने
-          const singleRef = ref(db, `users/${currentUser.uid}/expenses/${editId}`);
-          await update(singleRef, { title, amount, category, date, note, updatedAt: Date.now() });
-          setStatus("✅ खर्च सफलताપूर्वक अपडेट भयो!");
-        } else {
-          // नयाँ थप्ने
-          const newRef = push(userExpenseRef);
-          await set(newRef, { title, amount, category, date, note, createdAt: Date.now() });
-          setStatus("✅ खर्च सफलताપूर्वक सेभ भयो!");
-        }
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "delete-btn";
+      deleteBtn.type = "button";
+      deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+      deleteBtn.title = "मेटाउनुहोस्";
+      deleteBtn.setAttribute("aria-label", "मेटाउनुहोस्");
+      deleteBtn.addEventListener("click", () => deleteExpense(item.id));
 
-        resetExpenseForm();
-      } catch (err) {
-        setStatus("❌ सेभ गर्न असफल: " + err.message, "#dc2626");
-      } finally {
-        $("saveBtn").disabled = false;
-      }
+      actions.append(editBtn, deleteBtn);
+      top.append(info, actions);
+      card.appendChild(top);
+      list.appendChild(card);
+    }
+  }
+
+  $("search").addEventListener("input", renderExpenses);
+  $("monthFilter").addEventListener("input", renderExpenses);
+
+  $("exportBtn").addEventListener("click", () => {
+    if (!currentUser || !dataLoaded) {
+      alert("पहिले Firebase बाट डेटा लोड हुन दिनुहोस्।");
+      return;
     }
 
-    window.editExpense = function(id) {
-      const item = expensesData[id];
-      if (!item) return;
+    const exportData = {
+      exportedAt: new Date().toISOString(),
+      uid: currentUser.uid,
+      databaseURL: firebaseConfig.databaseURL,
+      expenses: expensesData
+    };
 
-      $("edit-expense-id").value = id;
-      $("title").value = item.title;
-      $("amount").value = item.amount;
-      $("category").value = item.category;
-      $("date").value = item.date;
-      $("note").value = item.note || "";
+    const blob = new Blob(
+      [JSON.stringify(exportData, null, 2)],
+      { type: "application/json;charset=utf-8" }
+    );
 
-      $("form-heading").textContent = "✏️ खर्च सम्पादन गर्नुहोस्";
-      $("saveBtn").textContent = "अपडेट गर्नुहोस्";
-      $("cancel-btn").style.display = "block";
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "house-expenses-backup.json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
 
-    window.resetExpenseForm = function() {
-      $("expenseForm").reset();
-      $("edit-expense-id").value = "";
-      $("date").value = localDate();
-      $("form-heading").textContent = "➕ नयाँ खर्च लेख्नुहोस्";
-      $("saveBtn").textContent = "💾 खर्च सेभ गर्नुहोस्";
-      $("cancel-btn").style.display = "none";
-    }
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
 
-    window.deleteExpense = async function(id) {
-      if (!confirm("के तपाईँ यो खर्च मेटाउन चाहनुहुन्छ?")) return;
-      try {
-        await remove(ref(db, `users/${currentUser.uid}/expenses/${id}`));
-        setStatus("🗑️ खर्च मेटाइयो।");
-      } catch (err) {
-        setStatus("मेटाउन सकिएन: " + err.message, "#dc2626");
-      }
-    }
-
-    function renderExpenses() {
-      const items = Object.entries(expensesData).map(([id, item]) => ({ id, ...item }));
-      const today = localDate();
-
-      const todayTotal = items
-        .filter(item => item.date === today)
-        .reduce((sum, item) => sum + Number(item.amount || 0), 0);
-
-      const allTotal = items
-        .reduce((sum, item) => sum + Number(item.amount || 0), 0);
-
-      $("todayTotal").textContent = money(todayTotal);
-      $("allTotal").textContent = money(allTotal);
-
-      const query = $("search").value.trim().toLowerCase();
-      const month = $("monthFilter").value;
-
-      const filtered = items
-        .filter(item => {
-          const text = `${item.title || ""} ${item.category || ""} ${item.note || ""}`.toLowerCase();
-          return text.includes(query) && (!month || (item.date || "").startsWith(month));
-        })
-        .sort((a, b) => (b.date || "").localeCompare(a.date || "") || (b.createdAt || 0) - (a.createdAt || 0));
-
-      const list = $("expenseList");
-      list.replaceChildren();
-
-      if (!filtered.length) {
-        const empty = document.createElement("div");
-        empty.className = "empty";
-        empty.textContent = "कुनै खर्च भेटिएन।";
-        list.appendChild(empty);
-        return;
-      }
-
-      for (const item of filtered) {
-        const card = document.createElement("div");
-        card.className = "expense";
-
-        const top = document.createElement("div");
-        top.className = "expense-top";
-
-        const info = document.createElement("div");
-
-        const name = document.createElement("div");
-        name.className = "expense-name";
-        name.textContent = item.title || "नाम छैन";
-
-        const amount = document.createElement("div");
-        amount.className = "amount red";
-        amount.textContent = money(item.amount);
-
-        const meta = document.createElement("div");
-        meta.className = "expense-meta";
-        meta.textContent = `${item.date || ""} • ${item.category || "अन्य"}`;
-
-        info.append(name, amount, meta);
-
-        if (item.note) {
-          const note = document.createElement("div");
-          note.className = "expense-meta";
-          note.textContent = item.note;
-          info.appendChild(note);
-        }
-
-        const btnContainer = document.createElement("div");
-        btnContainer.style.display = "flex";
-        btnContainer.style.gap = "5px";
-
-        const editBtn = document.createElement("button");
-        editBtn.className = "delete-btn";
-        editBtn.style.background = "#2563eb";
-        editBtn.type = "button";
-        editBtn.innerHTML = '<i class="fa-solid fa-pen"></i>';
-        editBtn.title = "सम्पादन गर्नुहोस्";
-        editBtn.addEventListener("click", () => editExpense(item.id));
-
-        const delBtn = document.createElement("button");
-        delBtn.className = "delete-btn";
-        delBtn.type = "button";
-        delBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
-        delBtn.title = "मेटाउनुहोस्";
-        delBtn.addEventListener("click", () => deleteExpense(item.id));
-
-        btnContainer.append(editBtn, delBtn);
-        top.append(info, btnContainer);
-        card.appendChild(top);
-        list.appendChild(card);
-      }
-    }
-
-    $("search").addEventListener("input", renderExpenses);
-    $("monthFilter").addEventListener("input", renderExpenses);
-
-    $("exportBtn").addEventListener("click", () => {
-      const data = JSON.stringify(expensesData, null, 2);
-      const blob = new Blob([cloudToJsonFormat(data)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "house-expenses.json";
-      a.click();
-      URL.revokeObjectURL(url);
-    });
-
-    function cloudToJsonFormat(jsonStr) {
-      return jsonStr;
-    }
-  </script>
+  window.addEventListener("pagehide", stopListening);
+</script>
 </body>
 </html>
