@@ -168,6 +168,37 @@
       margin-bottom: 16px;
     }
 
+    /* SIDEBAR STYLES */
+    #sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 280px;
+      height: 100%;
+      background: #0f172a;
+      color: white;
+      z-index: 1000;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    #sidebar.open {
+      transform: translateX(0);
+    }
+    .menu-toggle {
+      background: #166534;
+      color: white;
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      margin-bottom: 12px;
+      display: inline-block;
+      width: auto;
+    }
+
     @media (max-width: 380px) {
       body {
         padding: 10px;
@@ -181,13 +212,34 @@
 </head>
 
 <body>
+
+  <!-- SIDEBAR (Cloud Sync को लागि) -->
+  <div id="sidebar">
+    <h3>⚙️ सेटिंग्स तथा मेनु</h3>
+    <hr style="border-color: #334155; margin: 15px 0;">
+    
+    <div style="margin-bottom: 20px;">
+      <h4 style="margin: 0 0 8px 0; color: #34d399; font-size: 14px;">☁️ क्लाउड सिंक (Cloud Sync)</h4>
+      <p style="font-size: 12px; color: #94a3b8; margin-bottom: 10px;">तपाईंको खर्च डेटा सुरक्षित रूपमा Firebase मा ब्याकअप वा रिस्टोर गर्नुहोस्।</p>
+      <div style="display: flex; gap: 8px;">
+        <button onclick="handleCloudBackup()" style="margin-top:0; background: #166534; font-size: 12px; padding: 8px;">📤 ब्याकअप</button>
+        <button onclick="handleCloudRestore()" style="margin-top:0; background: #2563eb; font-size: 12px; padding: 8px;">📥 रिस्टोर</button>
+      </div>
+    </div>
+
+    <button onclick="toggleSidebar()" style="background: #dc2626; margin-top: 30px;">बन्द गर्नुहोस् ✕</button>
+  </div>
+
   <div class="container">
 
-    <a class="back-btn" href="index.html">← Dashboard मा फर्कनुहोस्</a>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+      <button class="menu-toggle" onclick="toggleSidebar()">☰ मेनु / ब्याकअप</button>
+      <a class="back-btn" href="index.html" style="margin-bottom: 0; width: auto; padding: 8px 14px;">← Dashboard</a>
+    </div>
 
     <div class="header">
       <h2>🏠 घर खर्च</h2>
-      <p>आफ्नो दैनिक खर्च लेख्नुहोस् — Firebase मा स्वतः Backup</p>
+      <p>आफ्नो दैनिक खर्च लेख्नुहोस् — Firebase मा स्वतः र Manual Backup</p>
       <div id="status">Firebase सँग जडान हुँदैछ...</div>
     </div>
 
@@ -271,11 +323,12 @@
       ref,
       push,
       set,
+      get,
+      child,
       remove,
       onValue
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    // Dashboard मा प्रयोग गरिएको Firebase config नै राख्नुहोस्।
     const firebaseConfig = {
       apiKey: "AIzaSyDDY_v7RHnkCTI6uyV4DNDjqoaIBGweg8c",
       authDomain: "digital-a2552.firebaseapp.com",
@@ -318,8 +371,60 @@
       return ref(db, `users/${currentUser.uid}/expenses`);
     }
 
+    // Cloud Backup function
+    async function backupToCloud() {
+      if (!currentUser) {
+        alert("लगइन गरिएको छैन!");
+        return;
+      }
+      try {
+        setStatus("क्लाउडमा ब्याकअप हुँदैछ...");
+        await set(expensePath(), expenses);
+        alert("✅ सफलताપूर्वक Firebase मा ब्याकअप भयो!");
+        setStatus("☁️ ब्याकअप सफल भयो।");
+      } catch (error) {
+        alert("ब्याकअप असफल: " + error.message);
+        setStatus("❌ ब्याकअप असफल", "#dc2626");
+      }
+    }
+
+    // Cloud Restore function
+    async function restoreFromCloud() {
+      if (!currentUser) {
+        alert("लगइन गरिएको छैन!");
+        return;
+      }
+      if (!confirm("क्लाउडबाट डेटा रिस्टोर गर्दा हालको डेटा सिंक हुनेछ। जारी राख्ने?")) return;
+
+      try {
+        setStatus("क्लाउडबाट डेटा ल्याइँदैछ...");
+        const dbRef = ref(db);
+        const snapshot = await get(child(dbRef, `users/${currentUser.uid}/expenses`));
+        if (snapshot.exists()) {
+          expenses = snapshot.val();
+          render();
+          alert("✅ सफलतापूर्वक क्लाउडबाट डेटा रिस्टोर भयो!");
+          setStatus("☁️ रिस्टोर सफल भयो।");
+        } else {
+          alert("क्लाउडमा कुनै ब्याकअप भेटिएन।");
+          setStatus("कुनै ब्याकअप डेटा छैन।");
+        }
+      } catch (error) {
+        alert("रिस्टोर असफल: " + error.message);
+        setStatus("❌ रिस्टोर असफल", "#dc2626");
+      }
+    }
+
+    window.handleCloudBackup = backupToCloud;
+    window.handleCloudRestore = restoreFromCloud;
+
+    window.toggleSidebar = function() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('open');
+    }
+
     function render() {
-      const items = Object.entries(expenses).map(([id, item]) => ({
+      const items = Object.entries(expenses || {}).map(([id, item]) => ({
         id,
         ...item
       }));
@@ -472,7 +577,6 @@
     });
 
     try {
-      // यदि Firebase पहिले नै यही पेजमा initialize भएको छ भने त्यसैलाई प्रयोग गर्छ।
       let app;
       try {
         app = getApp();
@@ -483,7 +587,6 @@
       auth = getAuth(app);
       db = getDatabase(app);
 
-      // यहाँ Login form छैन। पहिल्यै Login भएको session मात्र जाँचिन्छ।
       onAuthStateChanged(auth, user => {
         if (stopListening) {
           stopListening();
