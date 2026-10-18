@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ne">
 <head>
@@ -161,9 +160,9 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 
   <header class="header">
     <h2>🏠 घर खर्च</h2>
-    <p>Transaction Firebase डेटामा आधारित</p>
+    <p>लोकल स्टोरेज र Firebase ब्याकअप प्रणाली</p>
     <div id="status" role="status" aria-live="polite">
-      Firebase सँग जडान हुँदैछ...
+      डेटा लोड हुँदैछ...
     </div>
   </header>
 
@@ -213,15 +212,14 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 
       <div class="form-actions">
         <button type="button" id="cancel-btn" hidden>रद्द गर्नुहोस्</button>
-        <button type="submit" id="saveBtn" disabled>
+        <button type="submit" id="saveBtn">
           💾 खर्च सेभ गर्नुहोस्
         </button>
       </div>
     </form>
 
     <div class="notice">
-      खर्च Transaction को Firebase सूचीमा राखिन्छ।
-      पुरानो Transaction मेटिँदैन। सेभपछि रेकर्ड पुनः पढेर पुष्टि गरिन्छ।
+      डेटा लोकल स्टोरेजमा सेभ हुन्छ र अनलाइन हुँदा Firebase (`users/default_user/transactions`) मा ब्याकअप हुन्छ।
     </div>
   </section>
 
@@ -235,7 +233,7 @@ button:disabled { opacity: .45; cursor: not-allowed; }
     <input id="monthFilter" type="month">
 
     <div id="expenseList">
-      <div class="empty">Firebase बाट डेटा लोड हुँदैछ...</div>
+      <div class="empty">डेटा लोड हुँदैछ...</div>
     </div>
 
     <button id="exportBtn" type="button">
@@ -245,18 +243,10 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 
 </div>
 
+<!-- Firebase SDK Imports & App Logic -->
 <script type="module">
-import {
-  initializeApp, getApps
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-
-import {
-  getAuth, onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
-import {
-  getDatabase, ref, push, set, update, remove, get, onValue
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getDatabase, ref, set, remove, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDDy-V7RHCTI6uyV4DNDjqoaIBGweg8c",
@@ -269,15 +259,8 @@ const firebaseConfig = {
 };
 
 const $ = id => document.getElementById(id);
-
-let app, auth, db;
-let currentUser = null;
-let transactions = {};
-let expenseItems = [];
-let dataLoaded = false;
-let busy = false;
-let authVersion = 0;
-let stopListener = null;
+let expenses = [];
+let db = null;
 
 function setStatus(message, error = false) {
   $("status").textContent = message;
@@ -296,179 +279,90 @@ function money(value) {
   });
 }
 
-function transactionPath(uid) {
-  return `users/${uid}/transactions`;
-}
-
-function normalize(value) {
-  return String(value ?? "").trim().toLowerCase();
-}
-
-/*
- * Transaction मा खर्च चिनाउने सामान्य फाँटहरू जाँचिन्छन्।
- * type/transactionType मा expense, खर्च वा debit जस्ता मान अपेक्षित छन्।
- */
-function isExpense(item) {
-  const fields = [
-    item.type,
-    item.transactionType,
-    item.transaction_type,
-    item.entryType,
-    item.entry_type,
-    item.kind,
-    item.flow,
-    item.txnType
-  ];
-
-  return fields.some(value => {
-    const v = normalize(value);
-    return [
-      "expense", "expenses", "खर्च", "खर्चा", "debit"
-    ].includes(v);
-  });
-}
-
-function getAmount(item) {
-  return Number(
-    item.amount ?? item.amt ?? item.value ?? item.debitAmount ?? 0
-  );
-}
-
-function getDate(item) {
-  const value = item.date ?? item.transactionDate ??
-    item.transaction_date ?? item.createdDate ?? "";
-
-  if (typeof value === "number") {
-    return new Date(value).toISOString().slice(0, 10);
-  }
-
-  return String(value).slice(0, 10);
-}
-
-function getTitle(item) {
-  return item.title ?? item.name ?? item.description ??
-    item.particulars ?? item.details ?? item.note ?? "खर्च";
-}
-
-function getCategory(item) {
-  return item.category ?? item.head ?? item.expenseCategory ?? "अन्य";
-}
-
-function getNote(item) {
-  return item.note ?? item.remarks ?? item.notes ?? "";
-}
-
-function refreshExpenseItems() {
-  expenseItems = Object.entries(transactions || {})
-    .filter(([, item]) => item && typeof item === "object" && isExpense(item))
-    .map(([id, item]) => ({
-      id,
-      raw: item,
-      title: String(getTitle(item)),
-      amount: getAmount(item),
-      date: getDate(item),
-      category: String(getCategory(item)),
-      note: String(getNote(item)),
-      createdAt: Number(item.createdAt ?? item.timestamp ?? 0)
-    }));
-
-  renderExpenses();
-}
-
-function updateSaveButton() {
-  $("saveBtn").disabled = !currentUser || !dataLoaded || busy;
-}
-
-function stopWatching() {
-  if (typeof stopListener === "function") {
-    stopListener();
-    stopListener = null;
+// LocalStorage बाट डेटा लोड गर्ने
+function loadExpensesFromStorage() {
+  try {
+    const data = localStorage.getItem("local_house_expenses");
+    expenses = data ? JSON.parse(data) : [];
+  } catch (e) {
+    console.error("Load error:", e);
+    expenses = [];
   }
 }
 
-function watchTransactions(user, version) {
-  stopWatching();
+// LocalStorage मा डेटा सेभ गर्ने
+function saveExpensesToStorage() {
+  localStorage.setItem("local_house_expenses", JSON.stringify(expenses));
+}
 
-  dataLoaded = false;
-  transactions = {};
-  refreshExpenseItems();
-  updateSaveButton();
+// Firebase मा ब्याकअप पठाउने function (users/default_user/transactions path मा)
+async function backupToFirebase() {
+  if (!db) return;
+  try {
+    const dbRef = ref(db, 'users/default_user/transactions');
+    const dataObj = {};
+    expenses.forEach(item => {
+      dataObj[item.id] = {
+        title: item.title,
+        amount: item.amount,
+        category: item.category,
+        date: item.date,
+        note: item.note,
+        createdAt: item.createdAt,
+        updatedAt: item.updatedAt || item.createdAt
+      };
+    });
+    await set(dbRef, dataObj);
+    setStatus("✅ लोकल डेटा सेभ भयो र Firebase (`users/default_user/transactions`) मा ब्याकअप सफल भयो।");
+  } catch (err) {
+    console.error("Firebase backup error:", err);
+    setStatus("⚠️ लोकलमा सेभ भयो, तर इन्टरनेट वा Firebase समस्याका कारण ब्याकअप हुन सकेन।", true);
+  }
+}
 
-  setStatus("Transaction बाट खर्च लोड हुँदैछ...");
-
-  const listRef = ref(db, transactionPath(user.uid));
-
-  stopListener = onValue(listRef, snapshot => {
-    if (
-      version !== authVersion ||
-      !currentUser ||
-      currentUser.uid !== user.uid
-    ) return;
-
-    const data = snapshot.val();
-    transactions = data && typeof data === "object" ? data : {};
-    dataLoaded = true;
-
-    refreshExpenseItems();
-    updateSaveButton();
-
-    setStatus(
-      `Firebase जडान भयो। जम्मा कारोबार: ${Object.keys(transactions).length}। ` +
-      `खर्चका रेकर्ड: ${expenseItems.length}।`
-    );
-
-    if (!expenseItems.length) {
-      setStatus(
-        "Transaction डेटा लोड भयो, तर खर्च चिनिने रेकर्ड भेटिएन। " +
-        "Transaction को प्रकार/फाँट मिलाउनुपर्ने हुन सक्छ।",
-        true
-      );
+// Firebase बाट डेटा सिङ्क गर्ने (पहिलो पटक वा अनलाइन हुँदा)
+async function syncFromFirebase() {
+  try {
+    const dbRef = ref(db, 'users/default_user/transactions');
+    const snapshot = await get(dbRef);
+    if (snapshot.exists()) {
+      const fbData = snapshot.val();
+      const fbList = Object.entries(fbData).map(([id, val]) => ({
+        id: id,
+        title: val.title || "खर्च",
+        amount: Number(val.amount || 0),
+        category: val.category || "अन्य",
+        date: val.date || localDate(),
+        note: val.note || "",
+        createdAt: val.createdAt || Date.now(),
+        updatedAt: val.updatedAt || Date.now()
+      }));
+      
+      if (fbList.length > 0) {
+        expenses = fbList;
+        saveExpensesToStorage();
+      }
     }
-  }, error => {
-    dataLoaded = false;
-    updateSaveButton();
-    setStatus("Firebase बाट डेटा पढ्न असफल: " + error.message, true);
-    console.error("Transaction read error:", error);
-  });
+    renderExpenses();
+    setStatus("✅ डेटा सफलतापूर्वक लोड र सिङ्क भयो।");
+  } catch (err) {
+    console.error("Firebase fetch error:", err);
+    loadExpensesFromStorage();
+    renderExpenses();
+    setStatus("ℹ️ अफलाइन मोड: लोकल स्टोरेजबाट डेटा लोड गरिएको छ।", true);
+  }
 }
 
+// Firebase Initialize गर्ने
 try {
-  /*
-   * पहिलेबाट Firebase App छ भने त्यही प्रयोग गर्ने।
-   * नभए Default App बनाउने, अलग नामको App नबनाउने।
-   */
-  app = getApps().find(a =>
-    a.options.projectId === firebaseConfig.projectId
-  ) || initializeApp(firebaseConfig);
-
-  auth = getAuth(app);
+  const app = getApps().find(a => a.options.projectId === firebaseConfig.projectId) || initializeApp(firebaseConfig);
   db = getDatabase(app);
-
-  onAuthStateChanged(auth, user => {
-    authVersion++;
-    const version = authVersion;
-
-    stopWatching();
-    currentUser = user;
-    dataLoaded = false;
-    transactions = {};
-    expenseItems = [];
-    refreshExpenseItems();
-    updateSaveButton();
-
-    if (!user) {
-      setStatus(
-        "लगइन गरिएको छैन। Dashboard मा प्रयोग गरेको खाताबाट लगइन गर्नुहोस्।",
-        true
-      );
-      return;
-    }
-
-    watchTransactions(user, version);
-  });
-} catch (error) {
-  console.error(error);
-  setStatus("Firebase जडान त्रुटि: " + error.message, true);
+  syncFromFirebase();
+} catch (e) {
+  console.error("Firebase init error:", e);
+  loadExpensesFromStorage();
+  renderExpenses();
+  setStatus("ℹ️ अफलाइन मोड: लोकल स्टोरेज प्रयोग भइरहेको छ।", true);
 }
 
 $("date").value = localDate();
@@ -480,25 +374,12 @@ function resetForm() {
   $("form-heading").textContent = "➕ नयाँ खर्च लेख्नुहोस्";
   $("saveBtn").textContent = "💾 खर्च सेभ गर्नुहोस्";
   $("cancel-btn").hidden = true;
-  updateSaveButton();
 }
 
 $("cancel-btn").addEventListener("click", resetForm);
 
 $("expenseForm").addEventListener("submit", async event => {
   event.preventDefault();
-
-  if (busy) return;
-
-  if (!currentUser) {
-    setStatus("लगइन गरिएको छैन।", true);
-    return;
-  }
-
-  if (!dataLoaded) {
-    setStatus("Firebase डेटा लोड नभएसम्म सेभ गर्न मिल्दैन।", true);
-    return;
-  }
 
   const title = $("title").value.trim();
   const amount = Number($("amount").value);
@@ -512,87 +393,51 @@ $("expenseForm").addEventListener("submit", async event => {
     return;
   }
 
-  const uid = currentUser.uid;
-  const version = authVersion;
-  const listRef = ref(db, transactionPath(uid));
-
-  busy = true;
-  updateSaveButton();
-  setStatus("Transaction मा खर्च सेभ हुँदैछ...");
-
-  let recordRef;
-
-  try {
-    const fields = {
-      type: "expense",
-      transactionType: "expense",
+  if (editId) {
+    const index = expenses.findIndex(x => x.id === editId);
+    if (index !== -1) {
+      expenses[index] = {
+        ...expenses[index],
+        title,
+        amount,
+        category,
+        date,
+        note,
+        updatedAt: Date.now()
+      };
+    }
+  } else {
+    const newExpense = {
+      id: "_" + Math.random().toString(36).substr(2, 9),
       title,
-      description: title,
       amount,
       category,
       date,
       note,
-      updatedAt: Date.now()
+      createdAt: Date.now()
     };
-
-    if (editId) {
-      const old = transactions[editId];
-
-      if (!old || !isExpense(old)) {
-        throw new Error("सम्पादन गर्न मिल्ने खर्च रेकर्ड भेटिएन।");
-      }
-
-      recordRef = ref(db, `${transactionPath(uid)}/${editId}`);
-
-      // पुरानो रेकर्डका अन्य फाँट जोगाएर आवश्यक विवरण मात्र अपडेट गर्ने।
-      await update(recordRef, fields);
-    } else {
-      recordRef = push(listRef);
-
-      await set(recordRef, {
-        ...fields,
-        createdAt: Date.now()
-      });
-    }
-
-    if (
-      !currentUser ||
-      currentUser.uid !== uid ||
-      version !== authVersion
-    ) {
-      throw new Error("सेभ गर्दा लगइन खाता परिवर्तन भयो।");
-    }
-
-    const verified = await get(recordRef);
-
-    if (!verified.exists()) {
-      throw new Error("Firebase बाट पुनः पढ्दा रेकर्ड भेटिएन।");
-    }
-
-    setStatus("✅ Firebase मा खर्च सेभ भयो र पुनः पढेर पुष्टि गरियो।");
-    resetForm();
-  } catch (error) {
-    console.error("Expense save error:", error);
-    setStatus("❌ खर्च सेभ गर्न असफल: " + error.message, true);
-  } finally {
-    busy = false;
-    updateSaveButton();
+    expenses.unshift(newExpense);
   }
+
+  // लोकल स्टोरेजमा सेभ गर्ने
+  saveExpensesToStorage();
+  renderExpenses();
+  resetForm();
+
+  // Firebase मा ब्याकअप गर्ने
+  await backupToFirebase();
 });
 
-function editExpense(id) {
-  const item = expenseItems.find(x => x.id === id);
+window.editExpense = function(id) {
+  const item = expenses.find(x => x.id === id);
   if (!item) return;
 
   $("edit-id").value = id;
   $("title").value = item.title;
   $("amount").value = item.amount;
-  $("category").value = [...$("category").options]
-    .some(o => o.value === item.category)
-      ? item.category
-      : "अन्य";
+  $("category").value = item.category;
   $("date").value = item.date || localDate();
-  $("note").value = item.note;
+  $("note").value = item.note || "";
   $("form-heading").textContent = "✏️ खर्च सम्पादन गर्नुहोस्";
   $("saveBtn").textContent = "अपडेट गर्नुहोस्";
   $("cancel-btn").hidden = false;
@@ -600,43 +445,28 @@ function editExpense(id) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-async function deleteExpense(id) {
-  if (!currentUser || !dataLoaded || busy) return;
-
-  const item = expenseItems.find(x => x.id === id);
+window.deleteExpense = async function(id) {
+  const item = expenses.find(x => x.id === id);
   if (!item) return;
 
   if (!confirm(`"${item.title}" खर्च मेटाउने हो?`)) return;
 
-  const uid = currentUser.uid;
-  const version = authVersion;
+  expenses = expenses.filter(x => x.id !== id);
+  saveExpensesToStorage();
+  renderExpenses();
 
-  busy = true;
-  updateSaveButton();
-
-  try {
-    setStatus("खर्च मेटाउँदैछ...");
-
-    const itemRef = ref(db, `${transactionPath(uid)}/${id}`);
-    await remove(itemRef);
-
-    const check = await get(itemRef);
-    if (check.exists()) {
-      throw new Error("मेटाएको रेकर्ड अझै भेटियो।");
+  // Firebase बाट पनि हटाउने
+  if (db) {
+    try {
+      const itemRef = ref(db, `users/default_user/transactions/${id}`);
+      await remove(itemRef);
+      setStatus("✅ खर्च मेटाइयो र Firebase बाट पनि हटाइयो।");
+    } catch (e) {
+      console.error("Firebase delete error:", e);
+      setStatus("✅ लोकलबाट मेटाइयो (Firebase ब्याकअप अपडेट हुन सकेन)।", true);
     }
-
-    if (!currentUser || currentUser.uid !== uid ||
-        version !== authVersion) {
-      throw new Error("लगइन खाता परिवर्तन भयो।");
-    }
-
+  } else {
     setStatus("✅ खर्च मेटाइयो।");
-  } catch (error) {
-    console.error(error);
-    setStatus("❌ खर्च मेटाउन असफल: " + error.message, true);
-  } finally {
-    busy = false;
-    updateSaveButton();
   }
 }
 
@@ -644,43 +474,29 @@ function renderExpenses() {
   const today = localDate();
 
   $("todayTotal").textContent = money(
-    expenseItems
+    expenses
       .filter(x => x.date === today)
       .reduce((sum, x) => sum + x.amount, 0)
   );
 
   $("allTotal").textContent = money(
-    expenseItems.reduce((sum, x) => sum + x.amount, 0)
+    expenses.reduce((sum, x) => sum + x.amount, 0)
   );
 
   const query = $("search").value.trim().toLowerCase();
   const month = $("monthFilter").value;
 
-  const filtered = expenseItems
+  const filtered = expenses
     .filter(x =>
       `${x.title} ${x.category} ${x.note}`.toLowerCase().includes(query) &&
       (!month || x.date.startsWith(month))
-    )
-    .sort((a, b) =>
-      b.date.localeCompare(a.date) || b.createdAt - a.createdAt
     );
 
   const list = $("expenseList");
   list.replaceChildren();
 
-  if (!currentUser) {
-    list.innerHTML = '<div class="empty">पहिले लगइन गर्नुहोस्।</div>';
-    return;
-  }
-
-  if (!dataLoaded) {
-    list.innerHTML = '<div class="empty">Firebase डेटा लोड हुँदैछ...</div>';
-    return;
-  }
-
   if (!filtered.length) {
-    list.innerHTML =
-      '<div class="empty">खर्च रेकर्ड भेटिएन। Transaction को Expense प्रकार जाँच्नुहोस्।</div>';
+    list.innerHTML = '<div class="empty">कुनै खर्च रेकर्ड भेटिएन।</div>';
     return;
   }
 
@@ -723,7 +539,7 @@ function renderExpenses() {
     edit.title = "सम्पादन";
     edit.setAttribute("aria-label", "सम्पादन");
     edit.innerHTML = '<i class="fa-solid fa-pen"></i>';
-    edit.addEventListener("click", () => editExpense(item.id));
+    edit.setAttribute("onclick", `editExpense('${item.id}')`);
 
     const del = document.createElement("button");
     del.type = "button";
@@ -731,7 +547,7 @@ function renderExpenses() {
     del.title = "मेटाउनुहोस्";
     del.setAttribute("aria-label", "मेटाउनुहोस्");
     del.innerHTML = '<i class="fa-solid fa-trash"></i>';
-    del.addEventListener("click", () => deleteExpense(item.id));
+    del.setAttribute("onclick", `deleteExpense('${item.id}')`);
 
     actions.append(edit, del);
     top.append(info, actions);
@@ -744,20 +560,11 @@ $("search").addEventListener("input", renderExpenses);
 $("monthFilter").addEventListener("input", renderExpenses);
 
 $("exportBtn").addEventListener("click", () => {
-  if (!currentUser || !dataLoaded) {
-    setStatus("Firebase डेटा लोड भएपछि मात्र डाउनलोड गर्न मिल्छ।", true);
-    return;
-  }
-
   const blob = new Blob([
     JSON.stringify({
       exportedAt: new Date().toISOString(),
-      uid: currentUser.uid,
-      path: transactionPath(currentUser.uid),
-      expenses: expenseItems.map(x => ({
-        id: x.id,
-        ...x.raw
-      }))
+      path: "users/default_user/transactions",
+      expenses: expenses
     }, null, 2)
   ], { type: "application/json;charset=utf-8" });
 
