@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#166534">
   <title>घर खर्च | Digital Notebook</title>
-
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     * {
       box-sizing: border-box;
@@ -168,37 +168,6 @@
       margin-bottom: 16px;
     }
 
-    /* SIDEBAR STYLES */
-    #sidebar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 280px;
-      height: 100%;
-      background: #0f172a;
-      color: white;
-      z-index: 1000;
-      transform: translateX(-100%);
-      transition: transform 0.3s ease;
-      padding: 20px;
-      overflow-y: auto;
-    }
-    #sidebar.open {
-      transform: translateX(0);
-    }
-    .menu-toggle {
-      background: #166534;
-      color: white;
-      padding: 8px 14px;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      font-size: 14px;
-      margin-bottom: 12px;
-      display: inline-block;
-      width: auto;
-    }
-
     @media (max-width: 380px) {
       body {
         padding: 10px;
@@ -212,34 +181,13 @@
 </head>
 
 <body>
-
-  <!-- SIDEBAR (Cloud Sync को लागि) -->
-  <div id="sidebar">
-    <h3>⚙️ सेटिंग्स तथा मेनु</h3>
-    <hr style="border-color: #334155; margin: 15px 0;">
-    
-    <div style="margin-bottom: 20px;">
-      <h4 style="margin: 0 0 8px 0; color: #34d399; font-size: 14px;">☁️ क्लाउड सिंक (Cloud Sync)</h4>
-      <p style="font-size: 12px; color: #94a3b8; margin-bottom: 10px;">तपाईंको खर्च डेटा सुरक्षित रूपमा Firebase मा ब्याकअप वा रिस्टोर गर्नुहोस्।</p>
-      <div style="display: flex; gap: 8px;">
-        <button onclick="handleCloudBackup()" style="margin-top:0; background: #166534; font-size: 12px; padding: 8px;">📤 ब्याकअप</button>
-        <button onclick="handleCloudRestore()" style="margin-top:0; background: #2563eb; font-size: 12px; padding: 8px;">📥 रिस्टोर</button>
-      </div>
-    </div>
-
-    <button onclick="toggleSidebar()" style="background: #dc2626; margin-top: 30px;">बन्द गर्नुहोस् ✕</button>
-  </div>
-
   <div class="container">
 
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-      <button class="menu-toggle" onclick="toggleSidebar()">☰ मेनु / ब्याकअप</button>
-      <a class="back-btn" href="index.html" style="margin-bottom: 0; width: auto; padding: 8px 14px;">← Dashboard</a>
-    </div>
+    <a class="back-btn" href="index.html">← Dashboard मा फर्कनुहोस्</a>
 
     <div class="header">
       <h2>🏠 घर खर्च</h2>
-      <p>आफ्नो दैनिक खर्च लेख्नुहोस् — Firebase मा स्वतः र Manual Backup</p>
+      <p>आफ्नो दैनिक खर्च लेख्नुहोस् — Firebase मा Real-time Backup</p>
       <div id="status">Firebase सँग जडान हुँदैछ...</div>
     </div>
 
@@ -256,16 +204,16 @@
     </div>
 
     <div class="card">
-      <h3>➕ नयाँ खर्च लेख्नुहोस्</h3>
+      <h3 id="form-heading">➕ नयाँ खर्च लेख्नुहोस्</h3>
 
-      <form id="expenseForm">
+      <form id="expenseForm" onsubmit="saveExpenseData(event)">
+        <input type="hidden" id="edit-expense-id" value="">
+        
         <label for="title">खर्चको नाम</label>
-        <input id="title" type="text"
-          placeholder="जस्तै: तरकारी, चामल, दूध" required>
+        <input id="title" type="text" placeholder="जस्तै: तरकारी, चामल, दूध" required>
 
         <label for="amount">रकम (रु.)</label>
-        <input id="amount" type="number"
-          min="0.01" step="0.01" placeholder="जस्तै: 250" required>
+        <input id="amount" type="number" min="0.01" step="0.01" placeholder="जस्तै: 250" required>
 
         <label for="category">खर्चको प्रकार</label>
         <select id="category">
@@ -283,10 +231,12 @@
         <input id="date" type="date" required>
 
         <label for="note">कैफियत (ऐच्छिक)</label>
-        <textarea id="note" rows="2"
-          placeholder="थप जानकारी..."></textarea>
+        <textarea id="note" rows="2" placeholder="थप जानकारी..."></textarea>
 
-        <button id="saveBtn" type="submit">💾 खर्च सेभ गर्नुहोस्</button>
+        <div style="display: flex; gap: 10px; margin-top: 12px;">
+          <button type="button" id="cancel-btn" onclick="resetExpenseForm()" style="background: #6b7280; display: none;">रद्द गर्नुहोस्</button>
+          <button id="saveBtn" type="submit">💾 खर्च सेभ गर्नुहोस्</button>
+        </div>
       </form>
     </div>
 
@@ -294,8 +244,7 @@
       <h3>📋 खर्चको विवरण</h3>
 
       <label for="search">खर्च खोज्नुहोस्</label>
-      <input id="search" type="search"
-        placeholder="नाम वा प्रकारबाट खोज्नुहोस्">
+      <input id="search" type="search" placeholder="नाम वा प्रकारबाट खोज्नुहोस्">
 
       <label for="monthFilter">महिना छान्नुहोस्</label>
       <input id="monthFilter" type="month">
@@ -304,30 +253,16 @@
         <div class="empty">खर्च लोड हुँदैछ...</div>
       </div>
 
-      <button id="exportBtn" type="button">⬇️ खर्च JSON डाउनलोड</button>
+      <button id="exportBtn" type="button" style="background: #0284c7;">⬇️ खर्च JSON डाउनलोड</button>
     </div>
 
   </div>
 
+  <!-- Firebase SDK Modules Import -->
   <script type="module">
-    import { initializeApp, getApp }
-      from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-
-    import {
-      getAuth,
-      onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
-    import {
-      getDatabase,
-      ref,
-      push,
-      set,
-      get,
-      child,
-      remove,
-      onValue
-    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getDatabase, ref, push, set, update, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDDY_v7RHnkCTI6uyV4DNDjqoaIBGweg8c",
@@ -341,12 +276,9 @@
 
     const $ = id => document.getElementById(id);
 
-    let auth;
-    let db;
+    let app, auth, db;
     let currentUser = null;
-    let expenses = {};
-    let stopListening = null;
-    let busy = false;
+    let expensesData = {};
 
     function setStatus(message, color = "#166534") {
       $("status").textContent = message;
@@ -367,68 +299,131 @@
 
     $("date").value = localDate();
 
-    function expensePath() {
-      return ref(db, `users/${currentUser.uid}/expenses`);
-    }
-
-    // Cloud Backup function
-    async function backupToCloud() {
-      if (!currentUser) {
-        alert("लगइन गरिएको छैन!");
-        return;
-      }
+    try {
       try {
-        setStatus("क्लाउडमा ब्याकअप हुँदैछ...");
-        await set(expensePath(), expenses);
-        alert("✅ सफलताપूर्वक Firebase मा ब्याकअप भयो!");
-        setStatus("☁️ ब्याकअप सफल भयो।");
-      } catch (error) {
-        alert("ब्याकअप असफल: " + error.message);
-        setStatus("❌ ब्याकअप असफल", "#dc2626");
+        app = getApp();
+      } catch {
+        app = initializeApp(firebaseConfig);
       }
-    }
 
-    // Cloud Restore function
-    async function restoreFromCloud() {
-      if (!currentUser) {
-        alert("लगइन गरिएको छैन!");
-        return;
-      }
-      if (!confirm("क्लाउडबाट डेटा रिस्टोर गर्दा हालको डेटा सिंक हुनेछ। जारी राख्ने?")) return;
+      auth = getAuth(app);
+      db = getDatabase(app);
 
-      try {
-        setStatus("क्लाउडबाट डेटा ल्याइँदैछ...");
-        const dbRef = ref(db);
-        const snapshot = await get(child(dbRef, `users/${currentUser.uid}/expenses`));
-        if (snapshot.exists()) {
-          expenses = snapshot.val();
-          render();
-          alert("✅ सफलतापूर्वक क्लाउडबाट डेटा रिस्टोर भयो!");
-          setStatus("☁️ रिस्टोर सफल भयो।");
-        } else {
-          alert("क्लाउडमा कुनै ब्याकअप भेटिएन।");
-          setStatus("कुनै ब्याकअप डेटा छैन।");
+      onAuthStateChanged(auth, user => {
+        currentUser = user;
+
+        if (!user) {
+          setStatus("लगइन गरिएको छैन। कृपया Dashboard बाट लगइन गर्नुहोस्।", "#dc2626");
+          expensesData = {};
+          renderExpenses();
+          $("saveBtn").disabled = true;
+          return;
         }
-      } catch (error) {
-        alert("रिस्टोर असफल: " + error.message);
-        setStatus("❌ रिस्टोर असफल", "#dc2626");
+
+        $("saveBtn").disabled = false;
+        setStatus("☁️ Firebase Real-time Sync सक्रिय छ।");
+
+        const userExpenseRef = ref(db, `users/${user.uid}/expenses`);
+        
+        // Real-time listener: डेटा परिवर्तन हुनेबित्तिकै अटोमेटिक अपटेड हुन्छ र कहिल्यै हराउँदैन
+        onValue(userExpenseRef, snapshot => {
+          expensesData = snapshot.val() || {};
+          // LocalStorage मा पनि ब्याकअप राख्ने
+          localStorage.setItem('digital_notebook_expenses', JSON.stringify(expensesData));
+          renderExpenses();
+        }, error => {
+          setStatus("डेटा लोड गर्न समस्या भयो: " + error.message, "#dc2626");
+        });
+      });
+
+    } catch (error) {
+      setStatus("Firebase जडान त्रुटि: " + error.message, "#dc2626");
+    }
+
+    // ग्लोबल फंक्सनहरू विन्डोजमा बाइण्ड गरिएको
+    window.saveExpenseData = async function(event) {
+      event.preventDefault();
+      if (!currentUser) {
+        alert("लगइन गर्नुहोस्!");
+        return;
+      }
+
+      const editId = $("edit-expense-id").value;
+      const title = $("title").value.trim();
+      const amount = Number($("amount").value);
+      const category = $("category").value;
+      const date = $("date").value;
+      const note = $("note").value.trim();
+
+      if (!title || !amount || !date) {
+        alert("कृपया सबै आवश्यक विवरण भर्नुहोस्।");
+        return;
+      }
+
+      $("saveBtn").disabled = true;
+      setStatus("Firebase मा सेभ हुँदैछ...");
+
+      try {
+        const userExpenseRef = ref(db, `users/${currentUser.uid}/expenses`);
+
+        if (editId) {
+          // अपडेट गर्ने
+          const singleRef = ref(db, `users/${currentUser.uid}/expenses/${editId}`);
+          await update(singleRef, { title, amount, category, date, note, updatedAt: Date.now() });
+          setStatus("✅ खर्च सफलताપूर्वक अपडेट भयो!");
+        } else {
+          // नयाँ थप्ने
+          const newRef = push(userExpenseRef);
+          await set(newRef, { title, amount, category, date, note, createdAt: Date.now() });
+          setStatus("✅ खर्च सफलताપूर्वक सेभ भयो!");
+        }
+
+        resetExpenseForm();
+      } catch (err) {
+        setStatus("❌ सेभ गर्न असफल: " + err.message, "#dc2626");
+      } finally {
+        $("saveBtn").disabled = false;
       }
     }
 
-    window.handleCloudBackup = backupToCloud;
-    window.handleCloudRestore = restoreFromCloud;
+    window.editExpense = function(id) {
+      const item = expensesData[id];
+      if (!item) return;
 
-    window.toggleSidebar = function() {
-      const sidebar = document.getElementById('sidebar');
-      sidebar.classList.toggle('open');
+      $("edit-expense-id").value = id;
+      $("title").value = item.title;
+      $("amount").value = item.amount;
+      $("category").value = item.category;
+      $("date").value = item.date;
+      $("note").value = item.note || "";
+
+      $("form-heading").textContent = "✏️ खर्च सम्पादन गर्नुहोस्";
+      $("saveBtn").textContent = "अपडेट गर्नुहोस्";
+      $("cancel-btn").style.display = "block";
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    function render() {
-      const items = Object.entries(expenses || {}).map(([id, item]) => ({
-        id,
-        ...item
-      }));
+    window.resetExpenseForm = function() {
+      $("expenseForm").reset();
+      $("edit-expense-id").value = "";
+      $("date").value = localDate();
+      $("form-heading").textContent = "➕ नयाँ खर्च लेख्नुहोस्";
+      $("saveBtn").textContent = "💾 खर्च सेभ गर्नुहोस्";
+      $("cancel-btn").style.display = "none";
+    }
 
+    window.deleteExpense = async function(id) {
+      if (!confirm("के तपाईँ यो खर्च मेटाउन चाहनुहुन्छ?")) return;
+      try {
+        await remove(ref(db, `users/${currentUser.uid}/expenses/${id}`));
+        setStatus("🗑️ खर्च मेटाइयो।");
+      } catch (err) {
+        setStatus("मेटाउन सकिएन: " + err.message, "#dc2626");
+      }
+    }
+
+    function renderExpenses() {
+      const items = Object.entries(expensesData).map(([id, item]) => ({ id, ...item }));
       const today = localDate();
 
       const todayTotal = items
@@ -449,9 +444,7 @@
           const text = `${item.title || ""} ${item.category || ""} ${item.note || ""}`.toLowerCase();
           return text.includes(query) && (!month || (item.date || "").startsWith(month));
         })
-        .sort((a, b) =>
-          (b.date || "").localeCompare(a.date || "")
-        );
+        .sort((a, b) => (b.date || "").localeCompare(a.date || "") || (b.createdAt || 0) - (a.createdAt || 0));
 
       const list = $("expenseList");
       list.replaceChildren();
@@ -494,80 +487,38 @@
           info.appendChild(note);
         }
 
-        const del = document.createElement("button");
-        del.className = "delete-btn";
-        del.type = "button";
-        del.textContent = "मेटाउनुहोस्";
+        const btnContainer = document.createElement("div");
+        btnContainer.style.display = "flex";
+        btnContainer.style.gap = "5px";
 
-        del.addEventListener("click", async () => {
-          if (!confirm(`"${item.title}" खर्च मेटाउने हो?`)) return;
+        const editBtn = document.createElement("button");
+        editBtn.className = "delete-btn";
+        editBtn.style.background = "#2563eb";
+        editBtn.type = "button";
+        editBtn.innerHTML = '<i class="fa-solid fa-pen"></i>';
+        editBtn.title = "सम्पादन गर्नुहोस्";
+        editBtn.addEventListener("click", () => editExpense(item.id));
 
-          try {
-            await remove(ref(db, `users/${currentUser.uid}/expenses/${item.id}`));
-            setStatus("खर्च मेटाइयो। Firebase अपडेट हुँदैछ...");
-          } catch (error) {
-            setStatus("मेटाउन सकिएन: " + error.message, "#dc2626");
-          }
-        });
+        const delBtn = document.createElement("button");
+        delBtn.className = "delete-btn";
+        delBtn.type = "button";
+        delBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+        delBtn.title = "मेटाउनुहोस्";
+        delBtn.addEventListener("click", () => deleteExpense(item.id));
 
-        top.append(info, del);
+        btnContainer.append(editBtn, delBtn);
+        top.append(info, btnContainer);
         card.appendChild(top);
         list.appendChild(card);
       }
     }
 
-    $("search").addEventListener("input", render);
-    $("monthFilter").addEventListener("input", render);
-
-    $("expenseForm").addEventListener("submit", async event => {
-      event.preventDefault();
-
-      if (!currentUser || busy) {
-        setStatus("Dashboard मा Login भएको छ कि छैन जाँच गर्नुहोस्।", "#dc2626");
-        return;
-      }
-
-      const title = $("title").value.trim();
-      const amount = Number($("amount").value);
-      const category = $("category").value;
-      const date = $("date").value;
-      const note = $("note").value.trim();
-
-      if (!title || !Number.isFinite(amount) || amount <= 0 || !date) {
-        setStatus("कृपया खर्चको नाम, सही रकम र मिति भर्नुहोस्।", "#dc2626");
-        return;
-      }
-
-      busy = true;
-      $("saveBtn").disabled = true;
-      setStatus("Firebase मा Backup हुँदैछ...");
-
-      try {
-        const newExpense = push(expensePath());
-
-        await set(newExpense, {
-          title,
-          amount,
-          category,
-          date,
-          note,
-          createdAt: Date.now()
-        });
-
-        $("expenseForm").reset();
-        $("date").value = localDate();
-        setStatus("✅ खर्च सेभ भयो र Firebase मा Backup भयो।");
-      } catch (error) {
-        setStatus("❌ Backup असफल: " + error.message, "#dc2626");
-      } finally {
-        busy = false;
-        $("saveBtn").disabled = false;
-      }
-    });
+    $("search").addEventListener("input", renderExpenses);
+    $("monthFilter").addEventListener("input", renderExpenses);
 
     $("exportBtn").addEventListener("click", () => {
-      const data = JSON.stringify(expenses, null, 2);
-      const blob = new Blob([data], { type: "application/json" });
+      const data = JSON.stringify(expensesData, null, 2);
+      const blob = new Blob([cloudToJsonFormat(data)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -576,56 +527,8 @@
       URL.revokeObjectURL(url);
     });
 
-    try {
-      let app;
-      try {
-        app = getApp();
-      } catch {
-        app = initializeApp(firebaseConfig);
-      }
-
-      auth = getAuth(app);
-      db = getDatabase(app);
-
-      onAuthStateChanged(auth, user => {
-        if (stopListening) {
-          stopListening();
-          stopListening = null;
-        }
-
-        currentUser = user;
-
-        if (!user) {
-          expenses = {};
-          render();
-          setStatus(
-            "Dashboard मा पहिले Login गर्नुहोस्, त्यसपछि यो पेज खोल्नुहोस्।",
-            "#dc2626"
-          );
-          $("saveBtn").disabled = true;
-          return;
-        }
-
-        $("saveBtn").disabled = false;
-        setStatus("Firebase सँग जडान हुँदैछ...");
-
-        stopListening = onValue(
-          expensePath(),
-          snapshot => {
-            expenses = snapshot.val() || {};
-            render();
-            setStatus("☁️ Firebase Backup सक्रिय छ।");
-          },
-          error => {
-            setStatus("Firebase पढ्न सकिएन: " + error.message, "#dc2626");
-          }
-        );
-      });
-    } catch (error) {
-      setStatus(
-        "Firebase सुरु भएन। पेजलाई HTTPS hosting बाट खोल्नुहोस्। " + error.message,
-        "#dc2626"
-      );
+    function cloudToJsonFormat(jsonStr) {
+      return jsonStr;
     }
   </script>
 </body>
