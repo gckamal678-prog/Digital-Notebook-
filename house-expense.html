@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ne">
 <head>
@@ -6,247 +7,174 @@
 <meta name="theme-color" content="#0b1220">
 <title>घर खर्च | Digital Notebook</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
 <style>
 :root {
   color-scheme: dark;
-  --bg: #0b1220;
-  --card: #151f30;
-  --input: #0e1726;
-  --border: #29374c;
-  --text: #e5edf8;
-  --muted: #98a8bd;
-  --green: #16a34a;
-  --red: #f87171;
+  --bg:#0b1220; --card:#151f30; --input:#0e1726;
+  --border:#29374c; --text:#e5edf8; --muted:#98a8bd;
+  --green:#16a34a; --red:#f87171; --blue:#0369a1;
 }
-* { box-sizing: border-box; }
-body {
-  margin: 0;
-  padding: 14px;
-  font-family: Arial, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-}
-.container { max-width: 650px; margin: auto; }
-.header {
-  background: linear-gradient(135deg,#14532d,#166534);
-  padding: 20px;
-  border-radius: 16px;
-  margin-bottom: 16px;
-}
-.header h2 { margin: 0 0 8px; }
-.header p { margin: 0; color: #dcfce7; }
-#status {
-  margin-top: 12px;
-  font-size: 13px;
-  line-height: 1.6;
-  overflow-wrap: anywhere;
-}
-.card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  padding: 17px;
-  border-radius: 14px;
-  margin-bottom: 15px;
-  box-shadow: 0 5px 20px #0002;
-}
-h3 { margin-top: 0; }
-label {
-  display: block;
-  font-size: 14px;
-  font-weight: bold;
-  margin: 12px 0 6px;
-}
-input, select, textarea, button {
-  width: 100%;
-  padding: 12px;
-  border-radius: 9px;
-  font-size: 15px;
-}
-input, select, textarea {
-  border: 1px solid var(--border);
-  background: var(--input);
-  color: var(--text);
-}
-input:focus, select:focus, textarea:focus {
-  outline: 2px solid #22c55e88;
-  border-color: #22c55e;
-}
-textarea { resize: vertical; }
-button {
-  border: 0;
-  background: var(--green);
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
-  margin-top: 12px;
-}
-button:disabled { opacity: .45; cursor: not-allowed; }
-.summary {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-bottom: 15px;
-}
-.summary .card { margin: 0; }
-.amount {
-  font-size: 21px;
-  font-weight: bold;
-  margin-top: 8px;
-  overflow-wrap: anywhere;
-}
-.green { color: #4ade80; }
-.red { color: var(--red); }
-.expense {
-  border: 1px solid var(--border);
-  padding: 13px;
-  border-radius: 10px;
-  margin-top: 10px;
-  background: #101a2a;
-}
-.expense-top {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  align-items: flex-start;
-}
-.expense-name { font-weight: bold; overflow-wrap: anywhere; }
-.expense-meta {
-  color: var(--muted);
-  font-size: 13px;
-  margin-top: 5px;
-  overflow-wrap: anywhere;
-  white-space: pre-wrap;
-}
-.actions { display: flex; gap: 5px; flex-shrink: 0; }
-.small-btn {
-  width: 40px;
-  margin: 0;
-  padding: 9px 5px;
-}
-.edit-btn { background: #2563eb; }
-.delete-btn { background: #dc2626; }
-.form-actions { display: flex; gap: 10px; margin-top: 12px; }
-.form-actions button { margin-top: 0; }
-#cancel-btn { background: #475569; }
-#exportBtn { background: #0369a1; }
-.empty {
-  text-align: center;
-  color: var(--muted);
-  padding: 18px 0;
-  line-height: 1.6;
-}
-.notice {
-  background: #29200e;
-  border: 1px solid #854d0e;
-  color: #fde68a;
-  border-radius: 9px;
-  padding: 10px;
-  font-size: 13px;
-  line-height: 1.6;
-  margin-top: 12px;
-}
-@media(max-width:380px) {
-  body { padding: 9px; }
-  .summary { grid-template-columns: 1fr; }
-  .card { padding: 13px; }
-  .header { padding: 16px; }
+*{box-sizing:border-box}
+body{margin:0;padding:14px;font-family:Arial,sans-serif;background:var(--bg);color:var(--text)}
+.container{max-width:700px;margin:auto}
+.header{background:linear-gradient(135deg,#14532d,#166534);padding:20px;border-radius:16px;margin-bottom:16px}
+.header h2{margin:0 0 8px}.header p{margin:0;color:#dcfce7}
+#status{margin-top:12px;font-size:13px;line-height:1.6;overflow-wrap:anywhere}
+.card{background:var(--card);border:1px solid var(--border);padding:16px;border-radius:14px;margin-bottom:15px;box-shadow:0 5px 20px #0002}
+h3{margin:0 0 12px}
+label{display:block;font-size:14px;font-weight:bold;margin:12px 0 6px}
+input,select,textarea,button{width:100%;padding:12px;border-radius:9px;font-size:15px}
+input,select,textarea{border:1px solid var(--border);background:var(--input);color:var(--text);min-width:0}
+input:focus,select:focus,textarea:focus{outline:2px solid #22c55e88;border-color:#22c55e}
+button{border:0;background:var(--green);color:white;font-weight:bold;cursor:pointer;margin-top:12px}
+button:disabled{opacity:.5;cursor:not-allowed}
+.summary{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:15px}
+.summary .card{margin:0}
+.amount{font-size:21px;font-weight:bold;margin-top:8px;overflow-wrap:anywhere}
+.green{color:#4ade80}.red{color:var(--red)}.muted{color:var(--muted)}
+.form-actions{display:flex;gap:10px;margin-top:12px}
+.form-actions button{margin-top:0}
+#cancel-btn{background:#475569}#exportBtn{background:var(--blue)}
+.expense{border:1px solid var(--border);padding:13px;border-radius:10px;margin-top:10px;background:#101a2a}
+.expense-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.expense-name{font-weight:bold;overflow-wrap:anywhere}
+.expense-meta{color:var(--muted);font-size:13px;margin-top:5px;overflow-wrap:anywhere;white-space:pre-wrap}
+.actions{display:flex;gap:5px;flex-shrink:0}
+.small-btn{width:40px;margin:0;padding:9px 5px}
+.edit-btn{background:#2563eb}.delete-btn{background:#dc2626}
+.empty{text-align:center;color:var(--muted);padding:18px 0;line-height:1.6}
+.notice{background:#29200e;border:1px solid #854d0e;color:#fde68a;border-radius:9px;padding:10px;font-size:13px;line-height:1.6;margin-top:12px}
+.filter-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.filter-grid label{margin-top:8px}
+.filter-grid .full{grid-column:1/-1}
+.top-item{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.top-item:last-child{border-bottom:0}
+.top-rank{background:#24364b;color:#86efac;border-radius:8px;padding:7px 10px;font-weight:bold;min-width:36px;text-align:center}
+.top-info{flex:1;min-width:0;overflow-wrap:anywhere}
+.top-count{font-size:12px;color:var(--muted);margin-top:4px}
+.top-total{font-weight:bold;text-align:right;overflow-wrap:anywhere}
+.section-caption{font-size:13px;color:var(--muted);margin-top:-5px;margin-bottom:10px}
+@media(max-width:380px){
+ body{padding:9px}.summary{grid-template-columns:1fr}.card{padding:13px}
+ .header{padding:16px}.filter-grid{grid-template-columns:1fr}
+ .filter-grid .full{grid-column:auto}.expense-top{gap:5px}
 }
 </style>
 </head>
-
 <body>
 <div class="container">
 
-  <header class="header">
-    <h2>🏠 घर खर्च</h2>
-    <p>लोकल स्टोरेज र Firebase ब्याकअप प्रणाली</p>
-    <div id="status" role="status" aria-live="polite">
-      डेटा लोड हुँदैछ...
+<header class="header">
+  <h2>🏠 घर खर्च</h2>
+  <p>स्थानीय डाटा र सुरक्षित Firebase ब्याकअप</p>
+  <div id="status" role="status" aria-live="polite">जडान जाँच हुँदैछ...</div>
+</header>
+
+<section class="summary">
+  <div class="card">
+    <div>छानिएको अवधिको खर्च</div>
+    <div class="amount red" id="periodTotal">रु. ०</div>
+  </div>
+  <div class="card">
+    <div>जम्मा खर्च</div>
+    <div class="amount green" id="allTotal">रु. ०</div>
+  </div>
+</section>
+
+<section class="card">
+  <h3 id="form-heading">➕ नयाँ खर्च लेख्नुहोस्</h3>
+  <form id="expenseForm">
+    <input type="hidden" id="edit-id">
+
+    <label for="title">सामान वा खर्चको नाम</label>
+    <input id="title" maxlength="200" placeholder="जस्तै: चामल, दूध, तरकारी" required>
+
+    <label for="amount">रकम (रु.)</label>
+    <input id="amount" type="number" min="0.01" step="0.01" placeholder="250" required>
+
+    <label for="category">खर्चको प्रकार</label>
+    <select id="category">
+      <option value="खाना तथा किराना">खाना तथा किराना</option>
+      <option value="तरकारी">तरकारी</option>
+      <option value="बिजुली तथा पानी">बिजुली तथा पानी</option>
+      <option value="यातायात">यातायात</option>
+      <option value="स्वास्थ्य">स्वास्थ्य</option>
+      <option value="शिक्षा">शिक्षा</option>
+      <option value="घरायसी सामान">घरायसी सामान</option>
+      <option value="अन्य">अन्य</option>
+    </select>
+
+    <label for="date">मिति</label>
+    <input id="date" type="date" required>
+
+    <label for="note">कैफियत (ऐच्छिक)</label>
+    <textarea id="note" rows="2" maxlength="2000" placeholder="थप जानकारी..."></textarea>
+
+    <div class="form-actions">
+      <button type="button" id="cancel-btn" hidden>रद्द गर्नुहोस्</button>
+      <button type="submit" id="saveBtn">💾 खर्च सेभ गर्नुहोस्</button>
     </div>
-  </header>
+  </form>
+  <div class="notice">
+    डाटा पहिले यस ब्राउजरमा सुरक्षित हुन्छ। लगइन भएको र इन्टरनेट उपलब्ध भएको बेला Firebase मा सिङ्क हुन्छ। अफलाइनमा सेभ भएको डाटा अर्को डिभाइसमा स्वतः पुग्दैन, जबसम्म Firebase सिङ्क हुँदैन।
+  </div>
+</section>
 
-  <section class="summary">
-    <div class="card">
-      <div>आजको खर्च</div>
-      <div class="amount red" id="todayTotal">रु. ०</div>
-    </div>
-    <div class="card">
-      <div>जम्मा खर्च</div>
-      <div class="amount green" id="allTotal">रु. ०</div>
-    </div>
-  </section>
+<section class="card">
+  <h3>🛒 धेरै किनिएका सामान</h3>
+  <div class="section-caption">रेकर्ड गरिएका खरिदको सङ्ख्या र तिनको कुल खर्च</div>
+  <div id="topItems"><div class="empty">खर्च रेकर्ड भएपछि यहाँ देखिन्छ।</div></div>
+</section>
 
-  <section class="card">
-    <h3 id="form-heading">➕ नयाँ खर्च लेख्नुहोस्</h3>
+<section class="card">
+  <h3>📋 खर्चको विवरण</h3>
 
-    <form id="expenseForm">
-      <input type="hidden" id="edit-id">
+  <label for="search">खर्च खोज्नुहोस्</label>
+  <input id="search" type="search" placeholder="नाम, प्रकार वा कैफियत">
 
-      <label for="title">खर्चको नाम</label>
-      <input id="title" type="text" maxlength="200"
-        placeholder="जस्तै: तरकारी, चामल, दूध" required>
-
-      <label for="amount">रकम (रु.)</label>
-      <input id="amount" type="number" min="0.01" step="0.01"
-        placeholder="जस्तै: 250" required>
-
-      <label for="category">खर्चको प्रकार</label>
-      <select id="category">
-        <option value="खाना तथा किराना">खाना तथा किराना</option>
-        <option value="तरकारी">तरकारी</option>
-        <option value="बिजुली तथा पानी">बिजुली तथा पानी</option>
-        <option value="यातायात">यातायात</option>
-        <option value="स्वास्थ्य">स्वास्थ्य</option>
-        <option value="शिक्षा">शिक्षा</option>
-        <option value="घरायसी सामान">घरायसी सामान</option>
-        <option value="अन्य">अन्य</option>
+  <div class="filter-grid">
+    <div class="full">
+      <label for="filterType">मिति अनुसार छान्नुहोस्</label>
+      <select id="filterType">
+        <option value="all">सबै मिति</option>
+        <option value="day">दिन अनुसार</option>
+        <option value="month">महिना अनुसार</option>
+        <option value="year">वर्ष अनुसार</option>
       </select>
-
-      <label for="date">मिति</label>
-      <input id="date" type="date" required>
-
-      <label for="note">कैफियत (ऐच्छिक)</label>
-      <textarea id="note" rows="2" maxlength="2000"
-        placeholder="थप जानकारी..."></textarea>
-
-      <div class="form-actions">
-        <button type="button" id="cancel-btn" hidden>रद्द गर्नुहोस्</button>
-        <button type="submit" id="saveBtn">
-          💾 खर्च सेभ गर्नुहोस्
-        </button>
-      </div>
-    </form>
-
-    <div class="notice">
-      डेटा लोकल स्टोरेजमा सेभ हुन्छ र अनलाइन हुँदा Firebase (`users/default_user/house-expense`) मा ब्याकअप हुन्छ।
     </div>
-  </section>
-
-  <section class="card">
-    <h3>📋 खर्चको विवरण</h3>
-
-    <label for="search">खर्च खोज्नुहोस्</label>
-    <input id="search" type="search" placeholder="नाम वा प्रकारबाट खोज्नुहोस्">
-
-    <label for="monthFilter">महिना छान्नुहोस्</label>
-    <input id="monthFilter" type="month">
-
-    <div id="expenseList">
-      <div class="empty">डेटा लोड हुँदैछ...</div>
+    <div id="dayBox" class="full" hidden>
+      <label for="dayFilter">दिन छान्नुहोस्</label>
+      <input id="dayFilter" type="date">
     </div>
+    <div id="monthBox" class="full" hidden>
+      <label for="monthFilter">महिना छान्नुहोस्</label>
+      <input id="monthFilter" type="month">
+    </div>
+    <div id="yearBox" class="full" hidden>
+      <label for="yearFilter">वर्ष छान्नुहोस्</label>
+      <select id="yearFilter"><option value="">वर्ष छान्नुहोस्</option></select>
+    </div>
+  </div>
 
-    <button id="exportBtn" type="button">
-      <i class="fa-solid fa-download"></i> खर्च JSON डाउनलोड
-    </button>
-  </section>
+  <div id="filterSummary" class="section-caption"></div>
+  <div id="expenseList"><div class="empty">डेटा लोड हुँदैछ...</div></div>
+
+  <button id="exportBtn" type="button">
+    <i class="fa-solid fa-download"></i> खर्च JSON डाउनलोड
+  </button>
+</section>
 
 </div>
 
-<!-- Firebase SDK Imports & App Logic -->
 <script type="module">
-import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getDatabase, ref, set, remove, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+import { initializeApp, getApps } from
+  "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import {
+  getDatabase, ref, get, set, remove
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+import {
+  getAuth, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDDy-V7RHCTI6uyV4DNDjqoaIBGweg8c",
@@ -259,8 +187,15 @@ const firebaseConfig = {
 };
 
 const $ = id => document.getElementById(id);
+const LOCAL_KEY = "local_house_expenses_v2";
+const LEGACY_KEY = "local_house_expenses";
+
+let db, auth, currentUser = null;
 let expenses = [];
-let db = null;
+let ready = false;
+let syncing = false;
+let pendingDeletes = [];
+let remoteLoaded = false;
 
 function setStatus(message, error = false) {
   $("status").textContent = message;
@@ -279,93 +214,337 @@ function money(value) {
   });
 }
 
-// LocalStorage बाट डेटा लोड गर्ने
-function loadExpensesFromStorage() {
+function userPath() {
+  if (!currentUser) throw new Error("लगइन भएको प्रयोगकर्ता छैन।");
+  return `users/${currentUser.uid}/expenses`;
+}
+
+function itemPath(id) {
+  return `${userPath()}/${id}`;
+}
+
+function loadLocal() {
   try {
-    const data = localStorage.getItem("local_house_expenses");
-    expenses = data ? JSON.parse(data) : [];
-  } catch (e) {
-    console.error("Load error:", e);
+    let raw = localStorage.getItem(LOCAL_KEY);
+    if (!raw) raw = localStorage.getItem(LEGACY_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    expenses = Array.isArray(parsed) ? parsed.filter(x => x && x.id) : [];
+  } catch (error) {
+    console.error("Local load:", error);
     expenses = [];
+    setStatus("स्थानीय डाटा पढ्न समस्या भयो।", true);
+  }
+
+  try {
+    pendingDeletes = JSON.parse(
+      localStorage.getItem(LOCAL_KEY + "_deletes") || "[]"
+    );
+    if (!Array.isArray(pendingDeletes)) pendingDeletes = [];
+  } catch {
+    pendingDeletes = [];
   }
 }
 
-// LocalStorage मा डेटा सेभ गर्ने
-function saveExpensesToStorage() {
-  localStorage.setItem("local_house_expenses", JSON.stringify(expenses));
+function saveLocal() {
+  localStorage.setItem(LOCAL_KEY, JSON.stringify(expenses));
+  localStorage.setItem(LOCAL_KEY + "_deletes", JSON.stringify(pendingDeletes));
 }
 
-// Firebase मा ब्याकअप पठाउने function (users/default_user/house-expense path मा)
-async function backupToFirebase() {
-  if (!db) return;
-  try {
-    const dbRef = ref(db, 'users/default_user/house-expense');
-    const dataObj = {};
-    expenses.forEach(item => {
-      dataObj[item.id] = {
-        title: item.title,
-        amount: item.amount,
-        category: item.category,
-        date: item.date,
-        note: item.note,
-        createdAt: item.createdAt,
-        updatedAt: item.updatedAt || item.createdAt
-      };
-    });
-    await set(dbRef, dataObj);
-    setStatus("✅ लोकल डेटा सेभ भयो र Firebase (`users/default_user/house-expense`) मा ब्याकअप सफल भयो।");
-  } catch (err) {
-    console.error("Firebase backup error:", err);
-    setStatus("⚠️ लोकलमा सेभ भयो, तर इन्टरनेट या Firebase समस्याका कारण ब्याकअप हुन सकेन।", true);
-  }
+function normalizeRecord(id, value) {
+  return {
+    id,
+    title: String(value.title || "खर्च"),
+    amount: Number(value.amount || 0),
+    category: String(value.category || "अन्य"),
+    date: String(value.date || localDate()),
+    note: String(value.note || ""),
+    createdAt: Number(value.createdAt || Date.now()),
+    updatedAt: Number(value.updatedAt || value.createdAt || Date.now())
+  };
 }
 
-// Firebase बाट डेटा सिङ्क गर्ने (पहिलो पटक वा अनलाइन हुँदा)
-async function syncFromFirebase() {
-  try {
-    const dbRef = ref(db, 'users/default_user/house-expense');
-    const snapshot = await get(dbRef);
-    if (snapshot.exists()) {
-      const fbData = snapshot.val();
-      const fbList = Object.entries(fbData).map(([id, val]) => ({
-        id: id,
-        title: val.title || "खर्च",
-        amount: Number(val.amount || 0),
-        category: val.category || "अन्य",
-        date: val.date || localDate(),
-        note: val.note || "",
-        createdAt: val.createdAt || Date.now(),
-        updatedAt: val.updatedAt || Date.now()
-      }));
-      
-      if (fbList.length > 0) {
-        expenses = fbList;
-        saveExpensesToStorage();
-      }
+function toRemote(item) {
+  return {
+    title: item.title,
+    amount: Number(item.amount),
+    category: item.category,
+    date: item.date,
+    note: item.note || "",
+    createdAt: item.createdAt || Date.now(),
+    updatedAt: item.updatedAt || item.createdAt || Date.now()
+  };
+}
+
+function mergeRecords(local, remote) {
+  const map = new Map();
+
+  for (const item of remote) map.set(item.id, item);
+
+  for (const item of local) {
+    const old = map.get(item.id);
+    if (!old || Number(item.updatedAt || 0) >= Number(old.updatedAt || 0)) {
+      map.set(item.id, item);
     }
-    renderExpenses();
-    setStatus("✅ डेटा सफलतापूर्वक लोड र सिङ्क भयो।");
-  } catch (err) {
-    console.error("Firebase fetch error:", err);
-    loadExpensesFromStorage();
-    renderExpenses();
-    setStatus("ℹ️ अफलाइन मोड: लोकल स्टोरेजबाट डेटा लोड गरिएको छ।", true);
+  }
+
+  return [...map.values()].sort(
+    (a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0)
+  );
+}
+
+async function syncToFirebase() {
+  if (!db || !currentUser || !navigator.onLine || syncing) return;
+
+  syncing = true;
+  try {
+    // पहिले प्रयोगकर्ताले मेटाएका रेकर्ड सिङ्क गर्ने।
+    for (const id of [...pendingDeletes]) {
+      await remove(ref(db, itemPath(id)));
+      pendingDeletes = pendingDeletes.filter(x => x !== id);
+      saveLocal();
+    }
+
+    // प्रत्येक रेकर्ड छुट्टै लेख्ने; पूरै collection set गरेर
+    // अर्को डिभाइसका रेकर्ड अनायासै नहटाउने।
+    for (const item of expenses) {
+      await set(ref(db, itemPath(item.id)), toRemote(item));
+    }
+
+    setStatus(
+      `✅ Firebase ब्याकअप सफल। UID: ${currentUser.uid} | ${expenses.length} रेकर्ड`
+    );
+  } catch (error) {
+    console.error("Firebase sync error:", error);
+    setStatus(
+      `⚠️ स्थानीय डाटा सुरक्षित छ, Firebase सिङ्क असफल: ${error.code || error.message}`,
+      true
+    );
+  } finally {
+    syncing = false;
   }
 }
 
-// Firebase Initialize गर्ने
-try {
-  const app = getApps().find(a => a.options.projectId === firebaseConfig.projectId) || initializeApp(firebaseConfig);
-  db = getDatabase(app);
-  syncFromFirebase();
-} catch (e) {
-  console.error("Firebase init error:", e);
-  loadExpensesFromStorage();
-  renderExpenses();
-  setStatus("ℹ️ अफलाइन मोड: लोकल स्टोरेज प्रयोग भइरहेको छ।", true);
+async function syncFromFirebase() {
+  if (!db || !currentUser) return;
+
+  try {
+    setStatus("Firebase बाट डाटा लोड हुँदैछ...");
+    const snapshot = await get(ref(db, userPath()));
+    let remote = [];
+
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+      remote = Object.entries(data).map(([id, value]) =>
+        normalizeRecord(id, value)
+      );
+    }
+
+    // Remote र local रेकर्ड मिलाउने; local-only रेकर्ड हराउन नदिने।
+    expenses = mergeRecords(expenses, remote);
+    saveLocal();
+    remoteLoaded = true;
+    renderExpenses();
+
+    setStatus(`✅ Firebase लोड भयो। ${remote.length} रिमोट रेकर्ड भेटियो।`);
+    await syncToFirebase();
+  } catch (error) {
+    console.error("Firebase load error:", error);
+    renderExpenses();
+    setStatus(
+      `⚠️ Firebase बाट पढ्न सकिएन (${error.code || error.message})। स्थानीय डाटा देखाइएको छ।`,
+      true
+    );
+  }
 }
 
-$("date").value = localDate();
+function renderTopItems(filtered) {
+  const groups = new Map();
+
+  for (const item of filtered) {
+    const key = item.title.trim().toLocaleLowerCase();
+    if (!key) continue;
+
+    if (!groups.has(key)) {
+      groups.set(key, { title: item.title.trim(), count: 0, total: 0 });
+    }
+    const group = groups.get(key);
+    group.count += 1;
+    group.total += Number(item.amount || 0);
+  }
+
+  const sorted = [...groups.values()].sort(
+    (a, b) => b.count - a.count || b.total - a.total
+  ).slice(0, 5);
+
+  const box = $("topItems");
+  box.replaceChildren();
+
+  if (!sorted.length) {
+    box.innerHTML = '<div class="empty">छानिएको अवधिमा सामानको रेकर्ड छैन।</div>';
+    return;
+  }
+
+  sorted.forEach((item, index) => {
+    const row = document.createElement("div");
+    row.className = "top-item";
+
+    const rank = document.createElement("div");
+    rank.className = "top-rank";
+    rank.textContent = String(index + 1);
+
+    const info = document.createElement("div");
+    info.className = "top-info";
+
+    const name = document.createElement("div");
+    name.className = "expense-name";
+    name.textContent = item.title;
+
+    const count = document.createElement("div");
+    count.className = "top-count";
+    count.textContent = `${item.count} पटक खरिद रेकर्ड`;
+
+    info.append(name, count);
+
+    const total = document.createElement("div");
+    total.className = "top-total";
+    total.textContent = money(item.total);
+
+    row.append(rank, info, total);
+    box.appendChild(row);
+  });
+}
+
+function getFilteredExpenses() {
+  const query = $("search").value.trim().toLocaleLowerCase();
+  const type = $("filterType").value;
+  const day = $("dayFilter").value;
+  const month = $("monthFilter").value;
+  const year = $("yearFilter").value;
+
+  return expenses.filter(item => {
+    const matchesText =
+      `${item.title} ${item.category} ${item.note}`
+        .toLocaleLowerCase().includes(query);
+
+    let matchesDate = true;
+    if (type === "day") matchesDate = !!day && item.date === day;
+    if (type === "month") matchesDate = !!month && item.date.startsWith(month);
+    if (type === "year") matchesDate = !!year && item.date.startsWith(year + "-");
+
+    return matchesText && matchesDate;
+  });
+}
+
+function renderExpenses() {
+  const filtered = getFilteredExpenses();
+  const today = localDate();
+
+  $("periodTotal").textContent = money(
+    filtered.reduce((sum, item) => sum + Number(item.amount || 0), 0)
+  );
+  $("allTotal").textContent = money(
+    expenses.reduce((sum, item) => sum + Number(item.amount || 0), 0)
+  );
+
+  renderTopItems(filtered);
+
+  const type = $("filterType").value;
+  const labels = {
+    all: "सबै मिति",
+    day: `दिन: ${$("dayFilter").value || "छानिएको छैन"}`,
+    month: `महिना: ${$("monthFilter").value || "छानिएको छैन"}`,
+    year: `वर्ष: ${$("yearFilter").value || "छानिएको छैन"}`
+  };
+  $("filterSummary").textContent =
+    `${labels[type]} · ${filtered.length} रेकर्ड`;
+
+  const list = $("expenseList");
+  list.replaceChildren();
+
+  if (!filtered.length) {
+    list.innerHTML = '<div class="empty">कुनै खर्च रेकर्ड भेटिएन।</div>';
+    return;
+  }
+
+  for (const item of filtered) {
+    const card = document.createElement("div");
+    card.className = "expense";
+
+    const top = document.createElement("div");
+    top.className = "expense-top";
+    const info = document.createElement("div");
+
+    const name = document.createElement("div");
+    name.className = "expense-name";
+    name.textContent = item.title;
+
+    const amount = document.createElement("div");
+    amount.className = "amount red";
+    amount.textContent = money(item.amount);
+
+    const meta = document.createElement("div");
+    meta.className = "expense-meta";
+    meta.textContent = `${item.date || "मिति छैन"} · ${item.category}`;
+
+    info.append(name, amount, meta);
+
+    if (item.note) {
+      const note = document.createElement("div");
+      note.className = "expense-meta";
+      note.textContent = item.note;
+      info.appendChild(note);
+    }
+
+    const actions = document.createElement("div");
+    actions.className = "actions";
+
+    const edit = document.createElement("button");
+    edit.type = "button";
+    edit.className = "small-btn edit-btn";
+    edit.title = "सम्पादन";
+    edit.innerHTML = '<i class="fa-solid fa-pen"></i>';
+    edit.addEventListener("click", () => window.editExpense(item.id));
+
+    const del = document.createElement("button");
+    del.type = "button";
+    del.className = "small-btn delete-btn";
+    del.title = "मेटाउनुहोस्";
+    del.innerHTML = '<i class="fa-solid fa-trash"></i>';
+    del.addEventListener("click", () => window.deleteExpense(item.id));
+
+    actions.append(edit, del);
+    top.append(info, actions);
+    card.appendChild(top);
+    list.appendChild(card);
+  }
+}
+
+function updateYearOptions() {
+  const select = $("yearFilter");
+  const previous = select.value;
+  const years = new Set(expenses.map(x => x.date?.slice(0, 4)).filter(Boolean));
+  years.add(String(new Date().getFullYear()));
+
+  select.replaceChildren();
+  const placeholder = document.createElement("option");
+  placeholder.value = "";
+  placeholder.textContent = "वर्ष छान्नुहोस्";
+  select.appendChild(placeholder);
+
+  [...years].sort((a, b) => b.localeCompare(a)).forEach(year => {
+    const option = document.createElement("option");
+    option.value = year;
+    option.textContent = year;
+    select.appendChild(option);
+  });
+
+  if (years.has(previous)) select.value = previous;
+}
+
+function refreshView() {
+  updateYearOptions();
+  renderExpenses();
+}
 
 function resetForm() {
   $("expenseForm").reset();
@@ -393,39 +572,40 @@ $("expenseForm").addEventListener("submit", async event => {
     return;
   }
 
+  const now = Date.now();
   if (editId) {
     const index = expenses.findIndex(x => x.id === editId);
     if (index !== -1) {
       expenses[index] = {
-        ...expenses[index],
-        title,
-        amount,
-        category,
-        date,
-        note,
-        updatedAt: Date.now()
+        ...expenses[index], title, amount, category, date, note,
+        updatedAt: now
       };
     }
   } else {
-    const newExpense = {
-      id: "_" + Math.random().toString(36).substr(2, 9),
-      title,
-      amount,
-      category,
-      date,
-      note,
-      createdAt: Date.now()
-    };
-    expenses.unshift(newExpense);
+    expenses.unshift({
+      id: "_" + crypto.randomUUID().replaceAll("-", ""),
+      title, amount, category, date, note,
+      createdAt: now, updatedAt: now
+    });
   }
 
-  // लोकल स्टोरेजमा सेभ गर्ने
-  saveExpensesToStorage();
-  renderExpenses();
+  try {
+    saveLocal();
+  } catch (error) {
+    setStatus("स्थानीय डाटा सेभ भएन। ब्राउजरको स्टोरेज जाँच्नुहोस्।", true);
+    return;
+  }
+
+  refreshView();
   resetForm();
 
-  // Firebase मा ब्याकअप गर्ने
-  await backupToFirebase();
+  if (currentUser && navigator.onLine) {
+    await syncToFirebase();
+  } else if (!currentUser) {
+    setStatus("स्थानीय डाटा सेभ भयो। Firebase ब्याकअपका लागि लगइन आवश्यक छ।", true);
+  } else {
+    setStatus("स्थानीय डाटा सेभ भयो। इन्टरनेट आएपछि सिङ्क गर्नुहोस्।", true);
+  }
 });
 
 window.editExpense = function(id) {
@@ -441,140 +621,94 @@ window.editExpense = function(id) {
   $("form-heading").textContent = "✏️ खर्च सम्पादन गर्नुहोस्";
   $("saveBtn").textContent = "अपडेट गर्नुहोस्";
   $("cancel-btn").hidden = false;
-
   window.scrollTo({ top: 0, behavior: "smooth" });
-}
+};
 
 window.deleteExpense = async function(id) {
   const item = expenses.find(x => x.id === id);
-  if (!item) return;
-
-  if (!confirm(`"${item.title}" खर्च मेटाउने हो?`)) return;
+  if (!item || !confirm(`"${item.title}" खर्च मेटाउने हो?`)) return;
 
   expenses = expenses.filter(x => x.id !== id);
-  saveExpensesToStorage();
-  renderExpenses();
+  if (!pendingDeletes.includes(id)) pendingDeletes.push(id);
+  saveLocal();
+  refreshView();
 
-  // Firebase बाट पनि हटाउने
-  if (db) {
-    try {
-      const itemRef = ref(db, `users/default_user/house-expense/${id}`);
-      await remove(itemRef);
-      setStatus("✅ खर्च मेटाइयो र Firebase बाट पनि हटाइयो।");
-    } catch (e) {
-      console.error("Firebase delete error:", e);
-      setStatus("✅ लोकलबाट मेटाइयो (Firebase ब्याकअप अपडेट हुन सकेन)।", true);
-    }
+  if (currentUser && navigator.onLine) {
+    await syncToFirebase();
   } else {
-    setStatus("✅ खर्च मेटाइयो।");
+    setStatus("स्थानीय सूचीबाट हटाइयो। Firebase बाट हटाउन सिङ्क आवश्यक छ।", true);
   }
-}
-
-function renderExpenses() {
-  const today = localDate();
-
-  $("todayTotal").textContent = money(
-    expenses
-      .filter(x => x.date === today)
-      .reduce((sum, x) => sum + x.amount, 0)
-  );
-
-  $("allTotal").textContent = money(
-    expenses.reduce((sum, x) => sum + x.amount, 0)
-  );
-
-  const query = $("search").value.trim().toLowerCase();
-  const month = $("monthFilter").value;
-
-  const filtered = expenses
-    .filter(x =>
-      `${x.title} ${x.category} ${x.note}`.toLowerCase().includes(query) &&
-      (!month || x.date.startsWith(month))
-    );
-
-  const list = $("expenseList");
-  list.replaceChildren();
-
-  if (!filtered.length) {
-    list.innerHTML = '<div class="empty">कुनै खर्च रेकर्ड भेटिएन।</div>';
-    return;
-  }
-
-  for (const item of filtered) {
-    const card = document.createElement("div");
-    card.className = "expense";
-
-    const top = document.createElement("div");
-    top.className = "expense-top";
-
-    const info = document.createElement("div");
-
-    const name = document.createElement("div");
-    name.className = "expense-name";
-    name.textContent = item.title;
-
-    const amount = document.createElement("div");
-    amount.className = "amount red";
-    amount.textContent = money(item.amount);
-
-    const meta = document.createElement("div");
-    meta.className = "expense-meta";
-    meta.textContent = `${item.date || "मिति छैन"} • ${item.category}`;
-
-    info.append(name, amount, meta);
-
-    if (item.note) {
-      const note = document.createElement("div");
-      note.className = "expense-meta";
-      note.textContent = item.note;
-      info.appendChild(note);
-    }
-
-    const actions = document.createElement("div");
-    actions.className = "actions";
-
-    const edit = document.createElement("button");
-    edit.type = "button";
-    edit.className = "small-btn edit-btn";
-    edit.title = "सम्पादन";
-    edit.setAttribute("aria-label", "सम्पादन");
-    edit.innerHTML = '<i class="fa-solid fa-pen"></i>';
-    edit.setAttribute("onclick", `editExpense('${item.id}')`);
-
-    const del = document.createElement("button");
-    del.type = "button";
-    del.className = "small-btn delete-btn";
-    del.title = "मेटाउनुहोस्";
-    del.setAttribute("aria-label", "मेटाउनुहोस्");
-    del.innerHTML = '<i class="fa-solid fa-trash"></i>';
-    del.setAttribute("onclick", `deleteExpense('${item.id}')`);
-
-    actions.append(edit, del);
-    top.append(info, actions);
-    card.appendChild(top);
-    list.appendChild(card);
-  }
-}
+};
 
 $("search").addEventListener("input", renderExpenses);
-$("monthFilter").addEventListener("input", renderExpenses);
+$("filterType").addEventListener("change", () => {
+  const type = $("filterType").value;
+  $("dayBox").hidden = type !== "day";
+  $("monthBox").hidden = type !== "month";
+  $("yearBox").hidden = type !== "year";
+  renderExpenses();
+});
+$("dayFilter").addEventListener("change", renderExpenses);
+$("monthFilter").addEventListener("change", renderExpenses);
+$("yearFilter").addEventListener("change", renderExpenses);
 
 $("exportBtn").addEventListener("click", () => {
-  const blob = new Blob([
-    JSON.stringify({
-      exportedAt: new Date().toISOString(),
-      path: "users/default_user/house-expense",
-      expenses: expenses
-    }, null, 2)
-  ], { type: "application/json;charset=utf-8" });
+  const blob = new Blob([JSON.stringify({
+    exportedAt: new Date().toISOString(),
+    uid: currentUser?.uid || null,
+    path: currentUser ? userPath() : null,
+    expenses,
+    pendingDeletes
+  }, null, 2)], {type:"application/json;charset=utf-8"});
 
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
   a.download = "house-expenses-backup.json";
   a.click();
-  URL.revokeObjectURL(url);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 });
+
+$("date").value = localDate();
+$("dayFilter").value = localDate();
+loadLocal();
+refreshView();
+
+try {
+  const app = getApps().find(a => a.options.projectId === firebaseConfig.projectId)
+    || initializeApp(firebaseConfig);
+  db = getDatabase(app);
+  auth = getAuth(app);
+
+  onAuthStateChanged(auth, async user => {
+    currentUser = user || null;
+
+    if (!user) {
+      setStatus(
+        "स्थानीय मोड: Firebase ब्याकअपका लागि यस पेजमा प्रयोगकर्ताले लगइन गरेको हुनुपर्छ।",
+        true
+      );
+      refreshView();
+      return;
+    }
+
+    setStatus(`लगइन भयो। UID जाँचियो: ${user.uid}`);
+    await syncFromFirebase();
+  });
+} catch (error) {
+  console.error("Firebase initialization:", error);
+  setStatus(`Firebase सुरु गर्न समस्या भयो: ${error.message}`, true);
+}
+
+window.addEventListener("online", async () => {
+  if (currentUser) await syncFromFirebase();
+  else setStatus("इन्टरनेट आयो। Firebase ब्याकअपका लागि लगइन आवश्यक छ।", true);
+});
+
+window.addEventListener("offline", () => {
+  setStatus("अफलाइन मोड: डाटा यस ब्राउजरमा मात्र सेभ हुन्छ।", true);
+});
+
 </script>
 </body>
 </html>
