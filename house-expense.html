@@ -6,7 +6,9 @@
 <meta name="theme-color" content="#0b1220">
 <title>घर खर्च | Digital Notebook</title>
 
+<!-- FontAwesome & Chart.js -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 :root{
@@ -75,6 +77,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .form-actions button{margin-top:0}
 #cancel-btn{background:#475569}
 #exportBtn{background:var(--blue)}
+#pdfBtn{background:#16a34a}
 .expense{
   border:1px solid var(--border);padding:13px;
   border-radius:10px;margin-top:10px;background:#101a2a
@@ -106,27 +109,36 @@ button:disabled{opacity:.5;cursor:not-allowed}
   display:grid;grid-template-columns:1fr 1fr;gap:10px
 }
 .filter-grid .full{grid-column:1/-1}
-.top-item{
-  display:flex;justify-content:space-between;align-items:center;
-  gap:12px;padding:12px 0;border-bottom:1px solid var(--border)
+
+/* Progress Bar Style */
+.progress-container {
+  width: 100%; background-color: var(--input);
+  border-radius: 8px; height: 12px; overflow: hidden; margin-top: 8px;
+  border: 1px solid var(--border);
 }
-.top-item:last-child{border-bottom:0}
-.top-rank{
-  background:#24364b;color:#86efac;border-radius:8px;
-  padding:7px 10px;font-weight:bold;min-width:36px;text-align:center
+.progress-bar {
+  height: 100%; width: 0%; transition: width 0.3s, background-color 0.3s;
 }
-.top-info{flex:1;min-width:0;overflow-wrap:anywhere}
-.top-count{font-size:12px;color:var(--muted);margin-top:4px}
-.top-total{font-weight:bold;text-align:right;overflow-wrap:anywhere}
-.section-caption{font-size:13px;color:var(--muted);margin-bottom:10px}
+
+/* Modal Style */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8);
+  display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 15px;
+}
+.modal-content {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 16px; max-width: 650px; width: 100%; max-height: 90vh;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.modal-body { overflow-y: auto; padding: 15px; flex: 1; background: #fff; color: #333; }
+.modal-footer { padding: 12px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+
 @media(max-width:380px){
   body{padding:9px}
   .summary{grid-template-columns:1fr}
   .card{padding:13px}
   .header{padding:16px}
   .filter-grid{grid-template-columns:1fr}
-  .filter-grid .full{grid-column:auto}
-  .expense-top{gap:5px}
 }
 </style>
 </head>
@@ -135,11 +147,9 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <div class="container">
 
 <header class="header">
-  <h2>🏠 घर खर्च</h2>
-  <p>डिजिटल नोटबुक - स्वचालित क्लाउड सिंक</p>
-  <div id="status" role="status" aria-live="polite">
-    डाटा तयार हुँदैछ...
-  </div>
+  <h2>🏠 घर खर्च व्यवस्थापन</h2>
+  <p>डिजिटल नोटबुक - स्वचालित क्लाउड ब्याकअप</p>
+  <div id="status" role="status" aria-live="polite">डाटा तयार हुँदैछ...</div>
 </header>
 
 <section class="summary">
@@ -150,6 +160,33 @@ button:disabled{opacity:.5;cursor:not-allowed}
   <div class="card">
     <div>जम्मा खर्च</div>
     <div class="amount green" id="allTotal">रु. ०</div>
+  </div>
+</section>
+
+<!-- बजेट सीमा तथा अलर्ट सेक्सन -->
+<section class="card">
+  <h3>🎯 महिनाको बजेट सीमा</h3>
+  <div style="display:flex; gap:10px; align-items:center;">
+    <input type="number" id="monthlyBudgetInput" placeholder="महिनाको बजेट तोक्नुहोस् (रु.)">
+    <button type="button" id="setBudgetBtn" style="width: auto; margin-top:0;">सेभ</button>
+  </div>
+  
+  <div id="budgetStatusArea" style="margin-top:12px;">
+    <div style="display:flex; justify-content:space-between; font-size:13px;">
+      <span id="budgetText">बजेट तोकिएको छैन</span>
+      <span id="budgetPercentText">0%</span>
+    </div>
+    <div class="progress-container">
+      <div id="budgetProgressBar" class="progress-bar"></div>
+    </div>
+  </div>
+</section>
+
+<!-- खर्चको ग्राफ (Chart.js) -->
+<section class="card">
+  <h3>📊 शीर्षक अनुसार खर्च विवरण</h3>
+  <div style="max-height: 260px; display:flex; justify-center:center; align-items:center;">
+    <canvas id="expenseChart"></canvas>
   </div>
 </section>
 
@@ -177,6 +214,14 @@ button:disabled{opacity:.5;cursor:not-allowed}
       <option value="अन्य">अन्य</option>
     </select>
 
+    <label for="paymentMethod">भुक्तानीको माध्यम</label>
+    <select id="paymentMethod">
+      <option value="नगद (Cash)">नगद (Cash)</option>
+      <option value="अनलाइन (QR / Fonepay)">अनलाइन (QR / Fonepay)</option>
+      <option value="बैंक ट्रान्सफर">बैंक ट्रान्सफर</option>
+      <option value="उधारो">उधारो</option>
+    </select>
+
     <label for="date">मिति</label>
     <input id="date" type="date" required>
 
@@ -188,16 +233,6 @@ button:disabled{opacity:.5;cursor:not-allowed}
       <button type="submit" id="saveBtn">💾 खर्च सेभ गर्नुहोस्</button>
     </div>
   </form>
-
-  <div class="notice">
-    यो डाटा तपाईंको मुख्य Digital NoteBook को खातामा स्वतः सुरक्षित हुन्छ।
-  </div>
-</section>
-
-<section class="card">
-  <h3>🛒 धेरै किनिएका सामान</h3>
-  <div class="section-caption">एउटै नामका खरिद रेकर्डको सङ्ख्या र कुल खर्च</div>
-  <div id="topItems"><div class="empty">डाटा लोड हुँदैछ...</div></div>
 </section>
 
 <section class="card">
@@ -232,14 +267,29 @@ button:disabled{opacity:.5;cursor:not-allowed}
     </div>
   </div>
 
-  <div id="filterSummary" class="section-caption"></div>
+  <div id="filterSummary" class="section-caption" style="margin-top:10px;"></div>
   <div id="expenseList"><div class="empty">डाटा लोड हुँदैछ...</div></div>
 
-  <button id="exportBtn" type="button">
-    <i class="fa-solid fa-download"></i> खर्च JSON डाउनलोड
-  </button>
+  <div style="display:flex; gap:10px; margin-top:12px;">
+    <button id="pdfBtn" type="button"><i class="fa-solid fa-file-pdf"></i> PDF / रिपोर्ट प्रिन्ट गर्नुहोस्</button>
+    <button id="exportBtn" type="button"><i class="fa-solid fa-download"></i> JSON डाउनलोड</button>
+  </div>
 </section>
 
+</div>
+
+<!-- PDF PREVIEW MODAL -->
+<div id="pdfModal" class="modal-overlay" style="display:none;">
+  <div class="modal-content">
+    <div style="padding:15px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+      <h3 style="margin:0;">📄 घर खर्च रिपोर्ट (PDF Preview)</h3>
+      <button onclick="closePdfModal()" style="width:auto; margin:0; padding:5px 10px; background:#475569;">✕</button>
+    </div>
+    <div class="modal-body" id="pdfPreviewContainer"></div>
+    <div class="modal-footer">
+      <button onclick="printPdfReport()" style="width:auto; margin:0; background:#16a34a;"><i class="fa-solid fa-print"></i> Print / Download PDF</button>
+    </div>
+  </div>
 </div>
 
 <script type="module">
@@ -259,9 +309,11 @@ const firebaseConfig = {
 
 const $ = id => document.getElementById(id);
 const LOCAL_KEY = "local_house_expenses_v2";
+const BUDGET_KEY = "local_house_budget_val";
 
 let db, auth, currentUser = null;
 let expenses = [];
+let chartInstance = null;
 
 function setStatus(message, error = false) {
   $("status").textContent = message;
@@ -318,39 +370,81 @@ async function syncFromFirebase() {
   }
 }
 
-function renderTopItems(filtered) {
-  const groups = new Map();
-  for (const item of filtered) {
-    const title = item.title.trim();
-    const key = title.toLocaleLowerCase();
-    if (!key) continue;
-    if (!groups.has(key)) groups.set(key, { title, count: 0, total: 0 });
-    const group = groups.get(key);
-    group.count++;
-    group.total += Number(item.amount || 0);
+// बजेट ट्र्याक गर्ने र प्रोग्रेस बार देखाउने
+function updateBudgetUI() {
+  const savedBudget = Number(localStorage.getItem(BUDGET_KEY) || 0);
+  if(savedBudget > 0) $("monthlyBudgetInput").value = savedBudget;
+
+  const currentMonth = localDate().slice(0, 7);
+  const monthTotal = expenses
+    .filter(x => x.date && x.date.startsWith(currentMonth))
+    .reduce((sum, x) => sum + Number(x.amount || 0), 0);
+
+  if (savedBudget > 0) {
+    const percent = Math.min(Math.round((monthTotal / savedBudget) * 100), 100);
+    $("budgetText").textContent = `यो महिनाको खर्च: ${money(monthTotal)} / ${money(savedBudget)}`;
+    $("budgetPercentText").textContent = `${percent}%`;
+
+    const bar = $("budgetProgressBar");
+    bar.style.width = `${percent}%`;
+
+    if (percent < 50) {
+      bar.style.backgroundColor = "#22c55e"; // हरियो
+    } else if (percent < 85) {
+      bar.style.backgroundColor = "#eab308"; // पहेँलो
+    } else {
+      bar.style.backgroundColor = "#ef4444"; // रातो (चेतावनी)
+    }
+  } else {
+    $("budgetText").textContent = "बजेट तोकिएको छैन";
+    $("budgetPercentText").textContent = "0%";
+    $("budgetProgressBar").style.width = "0%";
   }
+}
 
-  const sorted = [...groups.values()].sort((a, b) => b.count - a.count || b.total - a.total).slice(0, 5);
-  const box = $("topItems");
-  box.replaceChildren();
-
-  if (!sorted.length) {
-    box.innerHTML = '<div class="empty">रेकर्ड भेटिएन।</div>';
-    return;
+$("setBudgetBtn").addEventListener("click", () => {
+  const val = Number($("monthlyBudgetInput").value);
+  if (val >= 0) {
+    localStorage.setItem(BUDGET_KEY, val);
+    updateBudgetUI();
   }
+});
 
-  sorted.forEach((item, index) => {
-    const row = document.createElement("div");
-    row.className = "top-item";
-    row.innerHTML = `
-      <div class="top-rank">${index + 1}</div>
-      <div class="top-info">
-        <div class="expense-name">${item.title}</div>
-        <div class="top-count">${item.count} पटक खरिद रेकर्ड</div>
-      </div>
-      <div class="top-total">${money(item.total)}</div>
-    `;
-    box.appendChild(row);
+// खर्चको चार्ट (Pie Chart) बनाउने
+function renderChart(filtered) {
+  const catMap = {};
+  filtered.forEach(x => {
+    catMap[x.category] = (catMap[x.category] || 0) + Number(x.amount || 0);
+  });
+
+  const labels = Object.keys(catMap);
+  const data = Object.values(catMap);
+
+  const ctx = document.getElementById('expenseChart').getContext('2d');
+  
+  if (chartInstance) chartInstance.destroy();
+
+  if(labels.length === 0) return;
+
+  chartInstance = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: data,
+        backgroundColor: [
+          '#16a34a', '#2563eb', '#eab308', '#dc2626', 
+          '#9333ea', '#06b6d4', '#f97316', '#64748b'
+        ]
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#e5edf8', font: { size: 11 } } }
+      }
+    }
   });
 }
 
@@ -362,7 +456,7 @@ function getFilteredExpenses() {
   const year = $("yearFilter").value;
 
   return expenses.filter(item => {
-    const text = `${item.title} ${item.category} ${item.note}`.toLocaleLowerCase();
+    const text = `${item.title} ${item.category} ${item.note} ${item.paymentMethod || ''}`.toLocaleLowerCase();
     if (!text.includes(query)) return false;
     if (type === "day") return !!day && item.date === day;
     if (type === "month") return !!month && item.date.startsWith(month);
@@ -399,7 +493,8 @@ function renderExpenses() {
   $("periodTotal").textContent = money(filtered.reduce((sum, x) => sum + Number(x.amount || 0), 0));
   $("allTotal").textContent = money(expenses.reduce((sum, x) => sum + Number(x.amount || 0), 0));
 
-  renderTopItems(filtered);
+  renderChart(filtered);
+  updateBudgetUI();
 
   const type = $("filterType").value;
   const labels = {
@@ -427,7 +522,7 @@ function renderExpenses() {
         <div>
           <div class="expense-name">${item.title}</div>
           <div class="amount red">${money(item.amount)}</div>
-          <div class="expense-meta">${item.date} · ${item.category}</div>
+          <div class="expense-meta">${item.date} · ${item.category} ${item.paymentMethod ? `(${item.paymentMethod})` : ''}</div>
           ${item.note ? `<div class="expense-meta">${item.note}</div>` : ''}
         </div>
         <div class="actions">
@@ -461,6 +556,7 @@ window.editExpense = function(id) {
   $("title").value = item.title;
   $("amount").value = item.amount;
   $("category").value = item.category;
+  if(item.paymentMethod) $("paymentMethod").value = item.paymentMethod;
   $("date").value = item.date || localDate();
   $("note").value = item.note || "";
   $("form-heading").textContent = "✏️ खर्च सम्पादन गर्नुहोस्";
@@ -485,6 +581,7 @@ $("expenseForm").addEventListener("submit", async event => {
   const title = $("title").value.trim();
   const amount = Number($("amount").value);
   const category = $("category").value;
+  const paymentMethod = $("paymentMethod").value;
   const date = $("date").value;
   const note = $("note").value.trim();
   const editId = $("edit-id").value;
@@ -493,16 +590,121 @@ $("expenseForm").addEventListener("submit", async event => {
 
   if (editId) {
     const idx = expenses.findIndex(x => x.id === editId);
-    if (idx !== -1) expenses[idx] = { id: editId, title, amount, category, date, note };
+    if (idx !== -1) expenses[idx] = { id: editId, title, amount, category, paymentMethod, date, note };
   } else {
     const id = "exp_" + Date.now();
-    expenses.unshift({ id, title, amount, category, date, note });
+    expenses.unshift({ id, title, amount, category, paymentMethod, date, note });
   }
 
   saveLocal();
   refreshView();
   resetForm();
   await syncToFirebase();
+});
+
+// PDF Generating Function (तपाईंले पठाउनुभएको ढाँचा अनुसार)
+function generateHouseExpensePDF() {
+  const filtered = getFilteredExpenses();
+  if (filtered.length === 0) {
+    alert("कुनै खर्च रेकर्ड फेला परेन।");
+    return;
+  }
+
+  const profileName = localStorage.getItem('profile_name') || 'Digital NoteBook';
+  const profileAddress = localStorage.getItem('profile_address') || '';
+  const profileMobile = localStorage.getItem('profile_mobile') || '';
+  const profileEmail = localStorage.getItem('profile_email') || '';
+  const profileAvatar = localStorage.getItem('profile_avatar') || 'N1024.png';
+
+  let totalExpense = 0;
+
+  let html = `
+  <div id="pdf-printable-content" style="background-color: #ffffff; color: #333333; font-family: sans-serif; width: 100%; max-width: 650px; padding: 20px; border-radius: 12px; margin:auto;">
+      <table style="width: 100%; border-bottom: 2px solid #16a34a; padding-bottom: 15px; margin-bottom: 20px; border-collapse: collapse;">
+          <tr>
+              <td style="vertical-align: middle; width: 20%; text-align: center;">
+                  <div style="display: inline-block; text-align: center;">
+                      <div style="width: 55px; height: 55px; border-radius: 50%; overflow: hidden; border: 2px solid #16a34a; margin: 0 auto 4px auto;">
+                          <img src="${profileAvatar}" style="width: 100%; height: 100%; object-fit: cover;">
+                      </div>
+                      <div style="font-size: 11px; font-weight: 700; color: #1f2937;">${profileName}</div>
+                  </div>
+              </td>
+              <td style="vertical-align: middle; text-align: center; width: 55%; padding: 0 10px;">
+                  <img src="bannerlogo.png" style="width: 100%; max-width: 100%; height: auto; object-fit: contain; display: inline-block;" onerror="this.style.display='none'">
+                  <h3 style="margin:5px 0 0 0; color:#16a34a;">घर खर्च रिपोर्ट (House Expense)</h3>
+              </td>
+              <td style="vertical-align: middle; text-align: left; font-size: 10px; color: #555; line-height: 1.4; width: 25%; padding-left: 10px;">
+                  <div>📍 Address: ${profileAddress}</div>
+                  <div>📞 Contact: ${profileMobile}</div>
+                  <div>✉️ Email: ${profileEmail}</div>
+              </td>
+          </tr>
+      </table>
+
+      <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+          <thead>
+              <tr style="background-color: #f3f4f6; color: #374151;">
+                  <th style="padding: 8px; text-align: left; border-bottom: 1px solid #d1d5db;">मिति</th>
+                  <th style="padding: 8px; text-align: left; border-bottom: 1px solid #d1d5db;">खर्चको नाम</th>
+                  <th style="padding: 8px; text-align: left; border-bottom: 1px solid #d1d5db;">प्रकार / माध्यम</th>
+                  <th style="padding: 8px; text-align: right; border-bottom: 1px solid #d1d5db;">रकम (रु.)</th>
+              </tr>
+          </thead>
+          <tbody>`;
+
+  filtered.forEach(item => {
+    totalExpense += Number(item.amount || 0);
+    html += `
+        <tr style="border-bottom: 1px solid #e5e7eb;">
+            <td style="padding: 8px;">${item.date}</td>
+            <td style="padding: 8px; font-weight: bold;">${item.title}</td>
+            <td style="padding: 8px; color: #6b7280;">${item.category} ${item.paymentMethod ? `(${item.paymentMethod})` : ''}</td>
+            <td style="padding: 8px; text-align: right; font-weight: bold; color: #dc2626;">${money(item.amount)}</td>
+        </tr>`;
+  });
+
+  html += `
+          </tbody>
+      </table>
+
+      <div style="margin-top: 20px; text-align: right; font-size: 14px; font-weight: bold; color: #dc2626; border-top: 2px solid #16a34a; padding-top: 10px;">
+          जम्मा खर्च: ${money(totalExpense)}
+      </div>
+
+      <div style="text-align: center; font-size: 10px; color: #9ca3af; margin-top: 25px; border-top: 1px solid #e5e7eb; padding-top: 10px;">
+          Generated by Digital NoteBook | ${new Date().toLocaleDateString('en-NP')}
+      </div>
+  </div>`;
+
+  $("pdfPreviewContainer").innerHTML = html;
+  $("pdfModal").style.display = "flex";
+}
+
+window.closePdfModal = function() {
+  $("pdfModal").style.display = "none";
+}
+
+window.printPdfReport = function() {
+  const content = document.getElementById('pdf-printable-content');
+  const printWindow = window.open('', '_blank');
+  printWindow.document.write('<html><head><title>घर खर्च रिपोर्ट</title></head><body>');
+  printWindow.document.write(content.innerHTML);
+  printWindow.document.write('</body></html>');
+  printWindow.document.close();
+  setTimeout(() => { printWindow.print(); }, 500);
+}
+
+$("pdfBtn").addEventListener("click", generateHouseExpensePDF);
+
+$("exportBtn").addEventListener("click", () => {
+  const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), expenses }, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "house-expenses-report.json";
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 });
 
 $("search").addEventListener("input", renderExpenses);
@@ -524,7 +726,7 @@ $("dayFilter").value = localDate();
 loadLocal();
 refreshView();
 
-// FIREBASE INITIALIZATION & AUTO DETECT
+// FIREBASE INITIALIZATION
 try {
   const app = getApps().find(a => a.options.projectId === firebaseConfig.projectId) || initializeApp(firebaseConfig);
   db = getDatabase(app);
