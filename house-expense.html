@@ -99,16 +99,6 @@ button:disabled{opacity:.5;cursor:not-allowed}
   text-align:center;color:var(--muted);
   padding:18px 0;line-height:1.6
 }
-.notice{
-  background:#29200e;border:1px solid #854d0e;
-  color:#fde68a;border-radius:9px;padding:10px;
-  font-size:13px;line-height:1.6;margin-top:12px;
-  overflow-wrap:anywhere
-}
-.filter-grid{
-  display:grid;grid-template-columns:1fr 1fr;gap:10px
-}
-.filter-grid .full{grid-column:1/-1}
 
 /* Progress Bar Style */
 .progress-container {
@@ -132,6 +122,11 @@ button:disabled{opacity:.5;cursor:not-allowed}
 }
 .modal-body { overflow-y: auto; padding: 15px; flex: 1; background: #fff; color: #333; }
 .modal-footer { padding: 12px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+
+.filter-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px
+}
+.filter-grid .full{grid-column:1/-1}
 
 @media(max-width:380px){
   body{padding:9px}
@@ -158,7 +153,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
     <div class="amount red" id="periodTotal">रु. ०</div>
   </div>
   <div class="card">
-    <div>जम्मा खर्च</div>
+    <div>कुल जम्मा खर्च</div>
     <div class="amount green" id="allTotal">रु. ०</div>
   </div>
 </section>
@@ -185,7 +180,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <!-- खर्चको ग्राफ (Chart.js) -->
 <section class="card">
   <h3>📊 शीर्षक अनुसार खर्च विवरण</h3>
-  <div style="max-height: 260px; display:flex; justify-center:center; align-items:center;">
+  <div style="max-height: 260px; display:flex; justify-content:center; align-items:center;">
     <canvas id="expenseChart"></canvas>
   </div>
 </section>
@@ -204,20 +199,21 @@ button:disabled{opacity:.5;cursor:not-allowed}
 
     <label for="category">खर्चको प्रकार</label>
     <select id="category">
-      <option value="कृषि">बीउ बिजन खनजोत</option>
+      <option value="किराना">किराना पसल</option>
       <option value="तरकारी">तरकारी</option>
       <option value="बिजुली तथा पानी">बिजुली तथा पानी</option>
       <option value="यातायात">यातायात</option>
+      <option value="कृषि">खनजोत तथा बिउमल</option>
       <option value="स्वास्थ्य">स्वास्थ्य</option>
       <option value="शिक्षा">शिक्षा</option>
-      <option value="मसला">मसला सामान</option>
+      <option value="घरायसी सामान">मर-मसला</option>
       <option value="अन्य">अन्य</option>
     </select>
 
     <label for="paymentMethod">भुक्तानीको माध्यम</label>
     <select id="paymentMethod">
       <option value="नगद (Cash)">नगद (Cash)</option>
-      <option value="(QR / Fonepay)">(QR / Fonepay)</option>
+      <option value="अनलाइन (QR / Fonepay)">अनलाइन (QR / Fonepay)</option>
       <option value="बैंक ट्रान्सफर">बैंक ट्रान्सफर</option>
       <option value="उधारो">उधारो</option>
     </select>
@@ -244,9 +240,9 @@ button:disabled{opacity:.5;cursor:not-allowed}
   <div class="filter-grid">
     <div class="full">
       <select id="filterType" aria-label="मिति फिल्टर">
-        <option value="day">दिन</option>
-        <option value="month">महिना</option>
-        <option value="year">वर्ष</option>
+        <option value="month">महिना अनुसार (स्वतः)</option>
+        <option value="day">दिन अनुसार</option>
+        <option value="year">वर्ष अनुसार</option>
       </select>
     </div>
 
@@ -255,7 +251,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
       <input id="dayFilter" type="date">
     </div>
 
-    <div id="monthBox" class="full" hidden>
+    <div id="monthBox" class="full">
       <label for="monthFilter">महिना छान्नुहोस्</label>
       <input id="monthFilter" type="month">
     </div>
@@ -314,6 +310,19 @@ let db, auth, currentUser = null;
 let expenses = [];
 let chartInstance = null;
 
+// शीर्षक अनुसार तोकिएका स्पेसिफिक रङहरू (Category Color Palette)
+const CATEGORY_COLORS = {
+  "तरकारी": "#22c55e",            // हरियो
+  "किराना पसल": "#f97316",   // सुन्तला
+  "बिजुली तथा पानी": "#06b6d4",   // नीलो
+  "यातायात": "#eab308",          // पहेँलो
+  "स्वास्थ्य": "#ec4899",         // गुलाबी
+  "शिक्षा": "#a855f7",           // बैजनी
+  "मरमसला": "#3b82f6",     // गाढा नीलो
+  "कृषि": "#e5edf8",     //गाढा सेतो
+  "अन्य": "#64748b"              // धमिलो/स्लेट
+};
+
 function setStatus(message, error = false) {
   $("status").textContent = message;
   $("status").style.color = error ? "#fecaca" : "#dcfce7";
@@ -322,6 +331,10 @@ function setStatus(message, error = false) {
 function localDate() {
   const d = new Date();
   return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+}
+
+function currentMonthStr() {
+  return localDate().slice(0, 7);
 }
 
 function money(value) {
@@ -369,12 +382,11 @@ async function syncFromFirebase() {
   }
 }
 
-// बजेट ट्र्याक गर्ने र प्रोग्रेस बार देखाउने
 function updateBudgetUI() {
   const savedBudget = Number(localStorage.getItem(BUDGET_KEY) || 0);
   if(savedBudget > 0) $("monthlyBudgetInput").value = savedBudget;
 
-  const currentMonth = localDate().slice(0, 7);
+  const currentMonth = currentMonthStr();
   const monthTotal = expenses
     .filter(x => x.date && x.date.startsWith(currentMonth))
     .reduce((sum, x) => sum + Number(x.amount || 0), 0);
@@ -388,11 +400,11 @@ function updateBudgetUI() {
     bar.style.width = `${percent}%`;
 
     if (percent < 50) {
-      bar.style.backgroundColor = "#22c55e"; // हरियो
+      bar.style.backgroundColor = "#22c55e";
     } else if (percent < 85) {
-      bar.style.backgroundColor = "#eab308"; // पहेँलो
+      bar.style.backgroundColor = "#eab308";
     } else {
-      bar.style.backgroundColor = "#ef4444"; // रातो (चेतावनी)
+      bar.style.backgroundColor = "#ef4444";
     }
   } else {
     $("budgetText").textContent = "बजेट तोकिएको छैन";
@@ -409,7 +421,7 @@ $("setBudgetBtn").addEventListener("click", () => {
   }
 });
 
-// खर्चको चार्ट (Pie Chart) बनाउने
+// पाई चार्टमा शीर्षक अनुसारको रङ प्रयोग गर्ने
 function renderChart(filtered) {
   const catMap = {};
   filtered.forEach(x => {
@@ -418,6 +430,9 @@ function renderChart(filtered) {
 
   const labels = Object.keys(catMap);
   const data = Object.values(catMap);
+  
+  // तोकिएको कलर अनुसार एरे बनाउने
+  const bgColors = labels.map(cat => CATEGORY_COLORS[cat] || "#64748b");
 
   const ctx = document.getElementById('expenseChart').getContext('2d');
   
@@ -431,10 +446,7 @@ function renderChart(filtered) {
       labels: labels,
       datasets: [{
         data: data,
-        backgroundColor: [
-          '#16a34a', '#2563eb', '#eab308', '#dc2626', 
-          '#9333ea', '#06b6d4', '#f97316', '#64748b'
-        ]
+        backgroundColor: bgColors
       }]
     },
     options: {
@@ -600,7 +612,7 @@ $("expenseForm").addEventListener("submit", async event => {
   await syncToFirebase();
 });
 
-// PDF Generating Function (तपाईंले पठाउनुभएको ढाँचा अनुसार)
+// PDF रिपोर्ट बनाउने
 function generateHouseExpensePDF() {
   const filtered = getFilteredExpenses();
   if (filtered.length === 0) {
@@ -718,8 +730,10 @@ $("dayFilter").addEventListener("change", renderExpenses);
 $("monthFilter").addEventListener("change", renderExpenses);
 $("yearFilter").addEventListener("change", renderExpenses);
 
+// सुरुवाती (DEFAULT) सेटिङहरू - मिति नछानीकन यही महिना स्वतः छानिन्छ
 $("date").value = localDate();
 $("dayFilter").value = localDate();
+$("monthFilter").value = currentMonthStr(); // चालू महिना स्वतः सेलेक्ट हुनेछ
 
 loadLocal();
 refreshView();
