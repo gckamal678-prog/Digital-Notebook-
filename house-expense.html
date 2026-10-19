@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ne">
 <head>
@@ -200,8 +199,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 
   <div class="notice">
     अफलाइनमा डाटा यस ब्राउजरमा सुरक्षित हुन्छ।
-    Firebase ब्याकअपका लागि लगइन र इन्टरनेट आवश्यक छ।
-    अर्को डिभाइसमा डाटा हेर्न Firebase सिङ्क सफल भएको हुनुपर्छ।
+    इन्टरनेट हुँदा स्वचालित रूपमा Firebase मा ब्याकअप हुनेछ।
   </div>
 </section>
 
@@ -272,10 +270,6 @@ import {
   getDatabase, ref, get, set, remove
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-import {
-  getAuth, onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
 const firebaseConfig = {
   apiKey: "AIzaSyDDy-V7RHCTI6uyV4DNDjqoaIBGweg8c",
   authDomain: "digital-a2552.firebaseapp.com",
@@ -292,13 +286,10 @@ const LOCAL_KEY = "local_house_expenses_v2";
 const LEGACY_KEY = "local_house_expenses";
 
 let db;
-let auth;
-let currentUser = null;
 let expenses = [];
 let pendingDeletes = [];
 let syncing = false;
 let syncRequested = false;
-let authReady = false;
 
 function setStatus(message, error = false) {
   $("status").textContent = message;
@@ -317,24 +308,13 @@ function money(value) {
   });
 }
 
-// Firebase मा authenticated UID अन्तर्गतको path
 function userPath() {
-  if (!currentUser) {
-    throw new Error("Firebase मा लगइन भएको छैन।");
-  }
-
-  return `users/${currentUser.uid}/house-expense`;
-}
-
-function itemPath(id) {
-  return `${userPath()}/${id}`;
+  return `house-expenses/default_user`;
 }
 
 function loadLocal() {
   try {
     let raw = localStorage.getItem(LOCAL_KEY);
-
-    // पुरानो संस्करणको स्थानीय डाटा भए त्यसलाई पनि पढ्ने
     if (raw === null) {
       raw = localStorage.getItem(LEGACY_KEY);
     }
@@ -397,7 +377,6 @@ function toRemote(item) {
   };
 }
 
-// समान ID भए पछिल्लो updatedAt भएको रेकर्ड राख्ने
 function mergeRecords(local, remote) {
   const map = new Map();
 
@@ -425,7 +404,7 @@ function mergeRecords(local, remote) {
 }
 
 async function syncToFirebase() {
-  if (!db || !currentUser || !navigator.onLine) {
+  if (!db || !navigator.onLine) {
     return;
   }
 
@@ -437,18 +416,14 @@ async function syncToFirebase() {
   syncing = true;
 
   try {
-    const uid = currentUser.uid;
-    const basePath = `users/${uid}/house-expense`;
+    const basePath = userPath();
 
-    // प्रयोगकर्ताले मेटाएका रेकर्ड मात्र Firebase बाट हटाउने
     for (const id of [...pendingDeletes]) {
       await remove(ref(db, `${basePath}/${id}`));
-
       pendingDeletes = pendingDeletes.filter(x => x !== id);
       saveLocal();
     }
 
-    // पूरै collection overwrite नगरी प्रत्येक रेकर्ड सेभ गर्ने
     for (const item of [...expenses]) {
       if (pendingDeletes.includes(item.id)) continue;
 
@@ -458,25 +433,18 @@ async function syncToFirebase() {
       );
     }
 
-    setStatus(
-      `✅ Firebase ब्याकअप सफल। ${expenses.length} रेकर्ड। UID: ${uid}`
-    );
+    setStatus(`✅ Firebase ब्याकअप सफल। ${expenses.length} रेकर्ड।`);
 
   } catch (error) {
     console.error("Firebase backup error:", error);
-
-    setStatus(
-      `⚠️ स्थानीय डाटा सुरक्षित छ, तर Firebase ब्याकअप असफल भयो। ${error.code || error.message}`,
-      true
-    );
+    setStatus(`⚠️ स्थानीय डाटा सुरक्षित छ, तर Firebase ब्याकअप असफल भयो। ${error.message}`, true);
 
   } finally {
     syncing = false;
 
     if (syncRequested) {
       syncRequested = false;
-
-      if (navigator.onLine && currentUser) {
+      if (navigator.onLine) {
         void syncToFirebase();
       }
     }
@@ -484,50 +452,36 @@ async function syncToFirebase() {
 }
 
 async function syncFromFirebase() {
-  if (!db || !currentUser || !navigator.onLine) {
+  if (!db || !navigator.onLine) {
     return;
   }
 
-  const uid = currentUser.uid;
-  const basePath = `users/${uid}/house-expense`;
+  const basePath = userPath();
 
   try {
     setStatus("Firebase बाट घर खर्च लोड हुँदैछ...");
 
     const snapshot = await get(ref(db, basePath));
-
-    // Remote बाट आएको डाटा array मा रूपान्तरण
     let remote = [];
 
     if (snapshot.exists()) {
       const data = snapshot.val();
-
       remote = Object.entries(data).map(([id, value]) =>
         normalizeRecord(id, value)
       );
     }
 
-    // Remote र स्थानीय डाटा मिलाउने
     expenses = mergeRecords(expenses, remote);
-
     saveLocal();
     refreshView();
 
-    setStatus(
-      `✅ Firebase बाट ${remote.length} रेकर्ड लोड भयो। सिङ्क हुँदैछ...`
-    );
-
+    setStatus(`✅ Firebase बाट ${remote.length} रेकर्ड लोड भयो।`);
     await syncToFirebase();
 
   } catch (error) {
     console.error("Firebase load error:", error);
-
     refreshView();
-
-    setStatus(
-      `⚠️ Firebase पढ्न सकिएन। स्थानीय डाटा देखाइएको छ। ${error.code || error.message}`,
-      true
-    );
+    setStatus(`⚠️ Firebase पढ्न सकिएन। स्थानीय डाटा देखाइएको छ। ${error.message}`, true);
   }
 }
 
@@ -561,8 +515,7 @@ function renderTopItems(filtered) {
   box.replaceChildren();
 
   if (!sorted.length) {
-    box.innerHTML =
-      '<div class="empty">रेकर्ड भेटिएन।</div>';
+    box.innerHTML = '<div class="empty">रेकर्ड भेटिएन।</div>';
     return;
   }
 
@@ -608,18 +561,9 @@ function getFilteredExpenses() {
       .toLocaleLowerCase();
 
     if (!text.includes(query)) return false;
-
-    if (type === "day") {
-      return !!day && item.date === day;
-    }
-
-    if (type === "month") {
-      return !!month && item.date.startsWith(month);
-    }
-
-    if (type === "year") {
-      return !!year && item.date.startsWith(year + "-");
-    }
+    if (type === "day") return !!day && item.date === day;
+    if (type === "month") return !!month && item.date.startsWith(month);
+    if (type === "year") return !!year && item.date.startsWith(year + "-");
 
     return true;
   });
@@ -628,15 +572,12 @@ function getFilteredExpenses() {
 function updateYearOptions() {
   const select = $("yearFilter");
   const previous = select.value;
-
   const years = new Set(
     expenses.map(x => x.date?.slice(0, 4)).filter(Boolean)
   );
-
   years.add(String(new Date().getFullYear()));
 
   select.replaceChildren();
-
   const placeholder = document.createElement("option");
   placeholder.value = "";
   placeholder.textContent = "वर्ष छान्नुहोस्";
@@ -675,15 +616,13 @@ function renderExpenses() {
     year: `वर्ष: ${$("yearFilter").value || "छानिएको छैन"}`
   };
 
-  $("filterSummary").textContent =
-    `${labels[type]} · ${filtered.length} रेकर्ड`;
+  $("filterSummary").textContent = `${labels[type]} · ${filtered.length} रेकर्ड`;
 
   const list = $("expenseList");
   list.replaceChildren();
 
   if (!filtered.length) {
-    list.innerHTML =
-      '<div class="empty">कुनै खर्च रेकर्ड भेटिएन।</div>';
+    list.innerHTML = '<div class="empty">कुनै खर्च रेकर्ड भेटिएन।</div>';
     return;
   }
 
@@ -724,7 +663,6 @@ function renderExpenses() {
     edit.type = "button";
     edit.className = "small-btn edit-btn";
     edit.title = "सम्पादन";
-    edit.setAttribute("aria-label", "सम्पादन");
     edit.innerHTML = '<i class="fa-solid fa-pen"></i>';
     edit.addEventListener("click", () => editExpense(item.id));
 
@@ -732,7 +670,6 @@ function renderExpenses() {
     del.type = "button";
     del.className = "small-btn delete-btn";
     del.title = "मेटाउनुहोस्";
-    del.setAttribute("aria-label", "मेटाउनुहोस्");
     del.innerHTML = '<i class="fa-solid fa-trash"></i>';
     del.addEventListener("click", () => deleteExpense(item.id));
 
@@ -778,7 +715,6 @@ $("expenseForm").addEventListener("submit", async event => {
 
   if (editId) {
     const index = expenses.findIndex(x => x.id === editId);
-
     if (index !== -1) {
       expenses[index] = {
         ...expenses[index],
@@ -803,28 +739,13 @@ $("expenseForm").addEventListener("submit", async event => {
   try {
     saveLocal();
   } catch (error) {
-    setStatus(
-      "स्थानीय डाटा सेभ भएन। ब्राउजर स्टोरेज जाँच्नुहोस्।",
-      true
-    );
+    setStatus("स्थानीय डाटा सेभ भएन।", true);
     return;
   }
 
   refreshView();
   resetForm();
-
-  if (currentUser && navigator.onLine) {
-    await syncToFirebase();
-  } else if (!currentUser) {
-    setStatus(
-      "✅ स्थानीय डाटा सेभ भयो। Firebase ब्याकअपका लागि लगइन आवश्यक छ।",
-      true
-    );
-  } else {
-    setStatus(
-      "✅ स्थानीय डाटा सेभ भयो। इन्टरनेट आएपछि सिङ्क हुनेछ।"
-    );
-  }
+  await syncToFirebase();
 });
 
 function editExpense(id) {
@@ -847,7 +768,6 @@ function editExpense(id) {
 
 async function deleteExpense(id) {
   const item = expenses.find(x => x.id === id);
-
   if (!item || !confirm(`"${item.title}" खर्च मेटाउने हो?`)) {
     return;
   }
@@ -866,25 +786,15 @@ async function deleteExpense(id) {
   }
 
   refreshView();
-
-  if (currentUser && navigator.onLine) {
-    await syncToFirebase();
-  } else {
-    setStatus(
-      "स्थानीय सूचीबाट हटाइयो। Firebase मा हटाउन सिङ्क आवश्यक छ।"
-    );
-  }
+  await syncToFirebase();
 }
 
 $("search").addEventListener("input", renderExpenses);
-
 $("filterType").addEventListener("change", () => {
   const type = $("filterType").value;
-
   $("dayBox").hidden = type !== "day";
   $("monthBox").hidden = type !== "month";
   $("yearBox").hidden = type !== "year";
-
   renderExpenses();
 });
 
@@ -896,8 +806,6 @@ $("exportBtn").addEventListener("click", () => {
   const blob = new Blob([
     JSON.stringify({
       exportedAt: new Date().toISOString(),
-      uid: currentUser?.uid || null,
-      path: currentUser ? userPath() : null,
       expenses,
       pendingDeletes
     }, null, 2)
@@ -907,11 +815,9 @@ $("exportBtn").addEventListener("click", () => {
 
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-
   a.href = url;
   a.download = "house-expenses-backup.json";
   a.click();
-
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 });
 
@@ -921,54 +827,28 @@ $("dayFilter").value = localDate();
 loadLocal();
 refreshView();
 
+// Firebase Initialization (Without Login Requirement)
 try {
   const app = getApps().find(
     a => a.options.projectId === firebaseConfig.projectId
   ) || initializeApp(firebaseConfig);
 
   db = getDatabase(app);
-  auth = getAuth(app);
 
-  onAuthStateChanged(auth, async user => {
-    currentUser = user || null;
-    authReady = true;
-
-    if (!user) {
-      setStatus(
-        "स्थानीय मोड। Firebase ब्याकअपका लागि लगइन गर्नुहोस्।",
-        true
-      );
-      refreshView();
-      return;
-    }
-
-    setStatus("लगइन सफल। Firebase डाटा जाँच हुँदैछ...");
-
-    await syncFromFirebase();
-  });
+  // एप खुल्नेबित्तिकै Firebase बाट डाटा तान्ने
+  syncFromFirebase();
 
 } catch (error) {
   console.error("Firebase initialization error:", error);
-
-  setStatus(
-    `Firebase सुरु गर्न सकिएन। ${error.message}`,
-    true
-  );
+  setStatus(`Firebase सुरु गर्न सकिएन। ${error.message}`, true);
 }
 
 window.addEventListener("online", async () => {
-  if (currentUser) {
-    await syncFromFirebase();
-  } else if (authReady) {
-    setStatus("इन्टरनेट आयो। ब्याकअपका लागि लगइन आवश्यक छ।", true);
-  }
+  await syncFromFirebase();
 });
 
 window.addEventListener("offline", () => {
-  setStatus(
-    "अफलाइन मोड। डाटा स्थानीय ब्राउजरमा सेभ हुन्छ।",
-    true
-  );
+  setStatus("अफलाइन मोड। डाटा स्थानीय ब्राउजरमा सेभ हुन्छ।", true);
 });
 </script>
 </body>
