@@ -198,8 +198,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
   </form>
 
   <div class="notice">
-    अफलाइनमा डाटा यस ब्राउजरमा सुरक्षित हुन्छ।
-    इन्टरनेट हुँदा स्वचालित रूपमा Firebase मा ब्याकअप हुनेछ।
+    मुख्य एपमा लगइन भइसकेपछि तपाईंको डाटा स्वतः Firebase मा ब्याकअप हुन्छ।
   </div>
 </section>
 
@@ -270,6 +269,10 @@ import {
   getDatabase, ref, get, set, remove
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
+import {
+  getAuth, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
 const firebaseConfig = {
   apiKey: "AIzaSyDDy-V7RHCTI6uyV4DNDjqoaIBGweg8c",
   authDomain: "digital-a2552.firebaseapp.com",
@@ -286,6 +289,8 @@ const LOCAL_KEY = "local_house_expenses_v2";
 const LEGACY_KEY = "local_house_expenses";
 
 let db;
+let auth;
+let currentUser = null;
 let expenses = [];
 let pendingDeletes = [];
 let syncing = false;
@@ -309,7 +314,10 @@ function money(value) {
 }
 
 function userPath() {
-  return `house-expenses/default_user`;
+  if (!currentUser) {
+    throw new Error("Firebase मा लगइन भएको छैन।");
+  }
+  return `users/${currentUser.uid}/house-expense`;
 }
 
 function loadLocal() {
@@ -404,7 +412,7 @@ function mergeRecords(local, remote) {
 }
 
 async function syncToFirebase() {
-  if (!db || !navigator.onLine) {
+  if (!db || !currentUser || !navigator.onLine) {
     return;
   }
 
@@ -433,18 +441,18 @@ async function syncToFirebase() {
       );
     }
 
-    setStatus(`✅ Firebase ब्याकअप सफल। ${expenses.length} रेकर्ड।`);
+    setStatus(`✅ Firebase ब्याकअप सफल। (${currentUser.email || currentUser.uid})`);
 
   } catch (error) {
     console.error("Firebase backup error:", error);
-    setStatus(`⚠️ स्थानीय डाटा सुरक्षित छ, तर Firebase ब्याकअप असफल भयो। ${error.message}`, true);
+    setStatus(`⚠️ स्थानीय डाटा सुरक्षित छ, तर ब्याकअप असफल: ${error.message}`, true);
 
   } finally {
     syncing = false;
 
     if (syncRequested) {
       syncRequested = false;
-      if (navigator.onLine) {
+      if (navigator.onLine && currentUser) {
         void syncToFirebase();
       }
     }
@@ -452,14 +460,13 @@ async function syncToFirebase() {
 }
 
 async function syncFromFirebase() {
-  if (!db || !navigator.onLine) {
+  if (!db || !currentUser || !navigator.onLine) {
     return;
   }
 
-  const basePath = userPath();
-
   try {
-    setStatus("Firebase बाट घर खर्च लोड हुँदैछ...");
+    const basePath = userPath();
+    setStatus("Firebase बाट डाटा लोड हुँदैछ...");
 
     const snapshot = await get(ref(db, basePath));
     let remote = [];
@@ -475,13 +482,13 @@ async function syncFromFirebase() {
     saveLocal();
     refreshView();
 
-    setStatus(`✅ Firebase बाट ${remote.length} रेकर्ड लोड भयो।`);
+    setStatus(`✅ ${remote.length} रेकर्ड सिङ्क भयो।`);
     await syncToFirebase();
 
   } catch (error) {
     console.error("Firebase load error:", error);
     refreshView();
-    setStatus(`⚠️ Firebase पढ्न सकिएन। स्थानीय डाटा देखाइएको छ। ${error.message}`, true);
+    setStatus(`⚠️ स्थानीय डाटा मात्र उपलब्ध छ। ${error.message}`, true);
   }
 }
 
@@ -745,7 +752,12 @@ $("expenseForm").addEventListener("submit", async event => {
 
   refreshView();
   resetForm();
-  await syncToFirebase();
+
+  if (currentUser && navigator.onLine) {
+    await syncToFirebase();
+  } else {
+    setStatus("✅ स्थानीय रूपमा सेभ भयो। (लगइन वा इन्टरनेट आएपछि ब्याकअप हुनेछ)");
+  }
 });
 
 function editExpense(id) {
@@ -786,7 +798,10 @@ async function deleteExpense(id) {
   }
 
   refreshView();
-  await syncToFirebase();
+
+  if (currentUser && navigator.onLine) {
+    await syncToFirebase();
+  }
 }
 
 $("search").addEventListener("input", renderExpenses);
@@ -827,16 +842,28 @@ $("dayFilter").value = localDate();
 loadLocal();
 refreshView();
 
-// Firebase Initialization (Without Login Requirement)
+// Firebase Auth / Auto-Session Initialization
 try {
   const app = getApps().find(
     a => a.options.projectId === firebaseConfig.projectId
   ) || initializeApp(firebaseConfig);
 
   db = getDatabase(app);
+  auth = getAuth(app);
 
-  // एप खुल्नेबित्तिकै Firebase बाट डाटा तान्ने
-  syncFromFirebase();
+  // मुख्य लगइन सेसनबाट युजर स्वतः डिटेक्ट गर्ने
+  onAuthStateChanged(auth, async user => {
+    currentUser = user || null;
+
+    if (!user) {
+      setStatus("⚠️ मुख्य एपमा लगइन गरिएको छैन। ब्याकअपका लागि लगइन गर्नुहोस्।", true);
+      refreshView();
+      return;
+    }
+
+    setStatus(`✅ लगइन सेसन सक्रिय छ: ${user.email || user.uid}`);
+    await syncFromFirebase();
+  });
 
 } catch (error) {
   console.error("Firebase initialization error:", error);
@@ -844,7 +871,9 @@ try {
 }
 
 window.addEventListener("online", async () => {
-  await syncFromFirebase();
+  if (currentUser) {
+    await syncFromFirebase();
+  }
 });
 
 window.addEventListener("offline", () => {
