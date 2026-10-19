@@ -204,20 +204,20 @@ button:disabled{opacity:.5;cursor:not-allowed}
 
     <label for="category">खर्चको प्रकार</label>
     <select id="category">
-      <option value="खाना तथा किराना">खाना तथा किराना</option>
+      <option value="कृषि">बीउ बिजन खनजोत</option>
       <option value="तरकारी">तरकारी</option>
       <option value="बिजुली तथा पानी">बिजुली तथा पानी</option>
       <option value="यातायात">यातायात</option>
       <option value="स्वास्थ्य">स्वास्थ्य</option>
       <option value="शिक्षा">शिक्षा</option>
-      <option value="घरायसी सामान">घरायसी सामान</option>
+      <option value="मसला">मसला सामान</option>
       <option value="अन्य">अन्य</option>
     </select>
 
     <label for="paymentMethod">भुक्तानीको माध्यम</label>
     <select id="paymentMethod">
       <option value="नगद (Cash)">नगद (Cash)</option>
-      <option value="अनलाइन (QR / Fonepay)">अनलाइन (QR / Fonepay)</option>
+      <option value="(QR / Fonepay)">(QR / Fonepay)</option>
       <option value="बैंक ट्रान्सफर">बैंक ट्रान्सफर</option>
       <option value="उधारो">उधारो</option>
     </select>
@@ -244,10 +244,9 @@ button:disabled{opacity:.5;cursor:not-allowed}
   <div class="filter-grid">
     <div class="full">
       <select id="filterType" aria-label="मिति फिल्टर">
-        <option value="all">सबै मिति</option>
-        <option value="day">दिन अनुसार</option>
-        <option value="month">महिना अनुसार</option>
-        <option value="year">वर्ष अनुसार</option>
+        <option value="day">दिन</option>
+        <option value="month">महिना</option>
+        <option value="year">वर्ष</option>
       </select>
     </div>
 
@@ -498,7 +497,6 @@ function renderExpenses() {
 
   const type = $("filterType").value;
   const labels = {
-    all: "सबै मिति",
     day: `दिन: ${$("dayFilter").value || "छानिएको छैन"}`,
     month: `महिना: ${$("monthFilter").value || "छानिएको छैन"}`,
     year: `वर्ष: ${$("yearFilter").value || "छानिएको छैन"}`
