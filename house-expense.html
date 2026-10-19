@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ne">
 <head>
@@ -5,73 +6,147 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0b1220">
 <title>घर खर्च | Digital Notebook</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<link rel="stylesheet"
+ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
 <style>
-:root {
-  color-scheme: dark;
-  --bg:#0b1220; --card:#151f30; --input:#0e1726;
-  --border:#29374c; --text:#e5edf8; --muted:#98a8bd;
-  --green:#16a34a; --red:#f87171; --blue:#0369a1;
+:root{
+  color-scheme:dark;
+  --bg:#0b1220;
+  --card:#151f30;
+  --input:#0e1726;
+  --border:#29374c;
+  --text:#e5edf8;
+  --muted:#98a8bd;
+  --green:#16a34a;
+  --red:#f87171;
+  --blue:#0369a1;
 }
 *{box-sizing:border-box}
-body{margin:0;padding:14px;font-family:Arial,sans-serif;background:var(--bg);color:var(--text)}
+body{
+  margin:0;padding:14px;font-family:Arial,sans-serif;
+  background:var(--bg);color:var(--text)
+}
 .container{max-width:700px;margin:auto}
-.header{background:linear-gradient(135deg,#14532d,#166534);padding:20px;border-radius:16px;margin-bottom:16px}
-.header h2{margin:0 0 8px}.header p{margin:0;color:#dcfce7}
-#status{margin-top:12px;font-size:13px;line-height:1.6;overflow-wrap:anywhere}
-.card{background:var(--card);border:1px solid var(--border);padding:16px;border-radius:14px;margin-bottom:15px;box-shadow:0 5px 20px #0002}
+.header{
+  background:linear-gradient(135deg,#14532d,#166534);
+  padding:20px;border-radius:16px;margin-bottom:16px
+}
+.header h2{margin:0 0 8px}
+.header p{margin:0;color:#dcfce7}
+#status{
+  margin-top:12px;font-size:13px;line-height:1.6;
+  overflow-wrap:anywhere
+}
+.card{
+  background:var(--card);border:1px solid var(--border);
+  padding:16px;border-radius:14px;margin-bottom:15px;
+  box-shadow:0 5px 20px #0002
+}
 h3{margin:0 0 12px}
 label{display:block;font-size:14px;font-weight:bold;margin:12px 0 6px}
-input,select,textarea,button{width:100%;padding:12px;border-radius:9px;font-size:15px}
-input,select,textarea{border:1px solid var(--border);background:var(--input);color:var(--text);min-width:0}
-input:focus,select:focus,textarea:focus{outline:2px solid #22c55e88;border-color:#22c55e}
-button{border:0;background:var(--green);color:white;font-weight:bold;cursor:pointer;margin-top:12px}
+input,select,textarea,button{
+  width:100%;padding:12px;border-radius:9px;font-size:15px
+}
+input,select,textarea{
+  border:1px solid var(--border);background:var(--input);
+  color:var(--text);min-width:0
+}
+input:focus,select:focus,textarea:focus{
+  outline:2px solid #22c55e88;border-color:#22c55e
+}
+button{
+  border:0;background:var(--green);color:white;
+  font-weight:bold;cursor:pointer;margin-top:12px
+}
 button:disabled{opacity:.5;cursor:not-allowed}
-.summary{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:15px}
+.summary{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:12px;margin-bottom:15px
+}
 .summary .card{margin:0}
-.amount{font-size:21px;font-weight:bold;margin-top:8px;overflow-wrap:anywhere}
-.green{color:#4ade80}.red{color:var(--red)}.muted{color:var(--muted)}
+.amount{
+  font-size:21px;font-weight:bold;margin-top:8px;
+  overflow-wrap:anywhere
+}
+.green{color:#4ade80}
+.red{color:var(--red)}
+.muted{color:var(--muted)}
 .form-actions{display:flex;gap:10px;margin-top:12px}
 .form-actions button{margin-top:0}
-#cancel-btn{background:#475569}#exportBtn{background:var(--blue)}
-.expense{border:1px solid var(--border);padding:13px;border-radius:10px;margin-top:10px;background:#101a2a}
-.expense-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+#cancel-btn{background:#475569}
+#exportBtn{background:var(--blue)}
+.expense{
+  border:1px solid var(--border);padding:13px;
+  border-radius:10px;margin-top:10px;background:#101a2a
+}
+.expense-top{
+  display:flex;justify-content:space-between;
+  gap:10px;align-items:flex-start
+}
 .expense-name{font-weight:bold;overflow-wrap:anywhere}
-.expense-meta{color:var(--muted);font-size:13px;margin-top:5px;overflow-wrap:anywhere;white-space:pre-wrap}
+.expense-meta{
+  color:var(--muted);font-size:13px;margin-top:5px;
+  overflow-wrap:anywhere;white-space:pre-wrap
+}
 .actions{display:flex;gap:5px;flex-shrink:0}
 .small-btn{width:40px;margin:0;padding:9px 5px}
-.edit-btn{background:#2563eb}.delete-btn{background:#dc2626}
-.empty{text-align:center;color:var(--muted);padding:18px 0;line-height:1.6}
-.notice{background:#29200e;border:1px solid #854d0e;color:#fde68a;border-radius:9px;padding:10px;font-size:13px;line-height:1.6;margin-top:12px}
-.filter-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.filter-grid label{margin-top:8px}
+.edit-btn{background:#2563eb}
+.delete-btn{background:#dc2626}
+.empty{
+  text-align:center;color:var(--muted);
+  padding:18px 0;line-height:1.6
+}
+.notice{
+  background:#29200e;border:1px solid #854d0e;
+  color:#fde68a;border-radius:9px;padding:10px;
+  font-size:13px;line-height:1.6;margin-top:12px;
+  overflow-wrap:anywhere
+}
+.filter-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px
+}
 .filter-grid .full{grid-column:1/-1}
-.top-item{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.top-item{
+  display:flex;justify-content:space-between;align-items:center;
+  gap:12px;padding:12px 0;border-bottom:1px solid var(--border)
+}
 .top-item:last-child{border-bottom:0}
-.top-rank{background:#24364b;color:#86efac;border-radius:8px;padding:7px 10px;font-weight:bold;min-width:36px;text-align:center}
+.top-rank{
+  background:#24364b;color:#86efac;border-radius:8px;
+  padding:7px 10px;font-weight:bold;min-width:36px;text-align:center
+}
 .top-info{flex:1;min-width:0;overflow-wrap:anywhere}
 .top-count{font-size:12px;color:var(--muted);margin-top:4px}
 .top-total{font-weight:bold;text-align:right;overflow-wrap:anywhere}
-.section-caption{font-size:13px;color:var(--muted);margin-top:-5px;margin-bottom:10px}
+.section-caption{font-size:13px;color:var(--muted);margin-bottom:10px}
 @media(max-width:380px){
- body{padding:9px}.summary{grid-template-columns:1fr}.card{padding:13px}
- .header{padding:16px}.filter-grid{grid-template-columns:1fr}
- .filter-grid .full{grid-column:auto}.expense-top{gap:5px}
+  body{padding:9px}
+  .summary{grid-template-columns:1fr}
+  .card{padding:13px}
+  .header{padding:16px}
+  .filter-grid{grid-template-columns:1fr}
+  .filter-grid .full{grid-column:auto}
+  .expense-top{gap:5px}
 }
 </style>
 </head>
+
 <body>
 <div class="container">
 
 <header class="header">
   <h2>🏠 घर खर्च</h2>
-  <p>स्थानीय डाटा र सुरक्षित Firebase ब्याकअप</p>
-  <div id="status" role="status" aria-live="polite">जडान जाँच हुँदैछ...</div>
+  <p>स्थानीय डाटा र Firebase ब्याकअप</p>
+  <div id="status" role="status" aria-live="polite">
+    डाटा लोड हुँदैछ...
+  </div>
 </header>
 
 <section class="summary">
   <div class="card">
-    <div>कुल खर्च</div>
+    <div>छानिएको अवधिको खर्च</div>
     <div class="amount red" id="periodTotal">रु. ०</div>
   </div>
   <div class="card">
@@ -82,14 +157,17 @@ button:disabled{opacity:.5;cursor:not-allowed}
 
 <section class="card">
   <h3 id="form-heading">➕ नयाँ खर्च लेख्नुहोस्</h3>
+
   <form id="expenseForm">
     <input type="hidden" id="edit-id">
 
     <label for="title">सामान वा खर्चको नाम</label>
-    <input id="title" maxlength="200" placeholder="जस्तै: चामल, दूध, तरकारी" required>
+    <input id="title" maxlength="200"
+      placeholder="जस्तै: चामल, दूध, तरकारी" required>
 
     <label for="amount">रकम (रु.)</label>
-    <input id="amount" type="number" min="0.01" step="0.01" placeholder="250" required>
+    <input id="amount" type="number" min="0.01" step="0.01"
+      placeholder="250" required>
 
     <label for="category">खर्चको प्रकार</label>
     <select id="category">
@@ -107,46 +185,93 @@ button:disabled{opacity:.5;cursor:not-allowed}
     <input id="date" type="date" required>
 
     <label for="note">कैफियत (ऐच्छिक)</label>
-    <textarea id="note" rows="2" maxlength="2000" placeholder="थप जानकारी..."></textarea>
+    <textarea id="note" rows="2" maxlength="2000"
+      placeholder="थप जानकारी..."></textarea>
 
     <div class="form-actions">
-      <button type="button" id="cancel-btn" hidden>रद्द गर्नुहोस्</button>
-      <button type="submit" id="saveBtn">💾 खर्च सेभ गर्नुहोस्</button>
+      <button type="button" id="cancel-btn" hidden>
+        रद्द गर्नुहोस्
+      </button>
+      <button type="submit" id="saveBtn">
+        💾 खर्च सेभ गर्नुहोस्
+      </button>
     </div>
   </form>
+
   <div class="notice">
-    डाटा पहिले यस ब्राउजरमा सुरक्षित हुन्छ। लगइन भएको र इन्टरनेट उपलब्ध भएको बेला Firebase मा सिङ्क हुन्छ। अफलाइनमा सेभ भएको डाटा अर्को डिभाइसमा स्वतः पुग्दैन, जबसम्म Firebase सिङ्क हुँदैन।
+    अफलाइनमा डाटा यस ब्राउजरमा सुरक्षित हुन्छ।
+    Firebase ब्याकअपका लागि लगइन र इन्टरनेट आवश्यक छ।
+    अर्को डिभाइसमा डाटा हेर्न Firebase सिङ्क सफल भएको हुनुपर्छ।
   </div>
 </section>
 
 <section class="card">
   <h3>🛒 धेरै किनिएका सामान</h3>
-  <div class="section-caption">रेकर्ड गरिएका खरिदको सङ्ख्या र तिनको कुल खर्च</div>
-  <div id="topItems"><div class="empty">खर्च रेकर्ड भएपछि यहाँ देखिन्छ।</div></div>
+  <div class="section-caption">
+    एउटै नामका खरिद रेकर्डको सङ्ख्या र कुल खर्च
+  </div>
+  <div id="topItems">
+    <div class="empty">डाटा लोड हुँदैछ...</div>
+  </div>
 </section>
 
 <section class="card">
   <h3>📋 खर्चको विवरण</h3>
 
   <label for="search">खर्च खोज्नुहोस्</label>
-  <input id="search" type="search" placeholder="नाम, प्रकार वा कैफियत">
+  <input id="search" type="search"
+    placeholder="नाम, प्रकार वा कैफियत">
+
+  <div class="filter-grid">
+    <div class="full">
+      <select id="filterType" aria-label="मिति फिल्टर">
+        <option value="all">सबै मिति</option>
+        <option value="day">दिन अनुसार</option>
+        <option value="month">महिना अनुसार</option>
+        <option value="year">वर्ष अनुसार</option>
+      </select>
+    </div>
+
+    <div id="dayBox" class="full" hidden>
+      <label for="dayFilter">दिन छान्नुहोस्</label>
+      <input id="dayFilter" type="date">
+    </div>
+
+    <div id="monthBox" class="full" hidden>
+      <label for="monthFilter">महिना छान्नुहोस्</label>
+      <input id="monthFilter" type="month">
+    </div>
+
+    <div id="yearBox" class="full" hidden>
+      <label for="yearFilter">वर्ष छान्नुहोस्</label>
+      <select id="yearFilter">
+        <option value="">वर्ष छान्नुहोस्</option>
+      </select>
+    </div>
+  </div>
 
   <div id="filterSummary" class="section-caption"></div>
-  <div id="expenseList"><div class="empty">डेटा लोड हुँदैछ...</div></div>
+  <div id="expenseList">
+    <div class="empty">डाटा लोड हुँदैछ...</div>
+  </div>
 
   <button id="exportBtn" type="button">
-    <i class="fa-solid fa-download"></i> खर्च JSON डाउनलोड
+    <i class="fa-solid fa-download"></i>
+    खर्च JSON डाउनलोड
   </button>
 </section>
 
 </div>
 
 <script type="module">
-import { initializeApp, getApps } from
-  "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import {
+  initializeApp, getApps
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+
 import {
   getDatabase, ref, get, set, remove
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
 import {
   getAuth, onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -162,14 +287,18 @@ const firebaseConfig = {
 };
 
 const $ = id => document.getElementById(id);
+
 const LOCAL_KEY = "local_house_expenses_v2";
 const LEGACY_KEY = "local_house_expenses";
 
-let db, auth, currentUser = null;
+let db;
+let auth;
+let currentUser = null;
 let expenses = [];
-let syncing = false;
 let pendingDeletes = [];
-let remoteLoaded = false;
+let syncing = false;
+let syncRequested = false;
+let authReady = false;
 
 function setStatus(message, error = false) {
   $("status").textContent = message;
@@ -188,9 +317,13 @@ function money(value) {
   });
 }
 
+// Firebase मा authenticated UID अन्तर्गतको path
 function userPath() {
-  if (!currentUser) throw new Error("लगइन भएको प्रयोगकर्ता छैन।");
-  return `users/${currentUser.uid}/expenses`;
+  if (!currentUser) {
+    throw new Error("Firebase मा लगइन भएको छैन।");
+  }
+
+  return `users/${currentUser.uid}/house-expense`;
 }
 
 function itemPath(id) {
@@ -200,28 +333,41 @@ function itemPath(id) {
 function loadLocal() {
   try {
     let raw = localStorage.getItem(LOCAL_KEY);
-    if (!raw) raw = localStorage.getItem(LEGACY_KEY);
-    const parsed = raw ? JSON.parse(raw) : [];
-    expenses = Array.isArray(parsed) ? parsed.filter(x => x && x.id) : [];
-  } catch (error) {
-    console.error("Local load:", error);
-    expenses = [];
-    setStatus("स्थानीय डाटा पढ्न समस्या भयो।", true);
-  }
 
-  try {
-    pendingDeletes = JSON.parse(
+    // पुरानो संस्करणको स्थानीय डाटा भए त्यसलाई पनि पढ्ने
+    if (raw === null) {
+      raw = localStorage.getItem(LEGACY_KEY);
+    }
+
+    const parsed = raw ? JSON.parse(raw) : [];
+
+    expenses = Array.isArray(parsed)
+      ? parsed.filter(x => x && x.id)
+          .map(x => normalizeRecord(x.id, x))
+      : [];
+
+    const deleted = JSON.parse(
       localStorage.getItem(LOCAL_KEY + "_deletes") || "[]"
     );
-    if (!Array.isArray(pendingDeletes)) pendingDeletes = [];
-  } catch {
+
+    pendingDeletes = Array.isArray(deleted)
+      ? [...new Set(deleted.filter(x => typeof x === "string"))]
+      : [];
+
+  } catch (error) {
+    console.error("Local load error:", error);
+    expenses = [];
     pendingDeletes = [];
+    setStatus("स्थानीय डाटा पढ्न समस्या भयो।", true);
   }
 }
 
 function saveLocal() {
   localStorage.setItem(LOCAL_KEY, JSON.stringify(expenses));
-  localStorage.setItem(LOCAL_KEY + "_deletes", JSON.stringify(pendingDeletes));
+  localStorage.setItem(
+    LOCAL_KEY + "_deletes",
+    JSON.stringify(pendingDeletes)
+  );
 }
 
 function normalizeRecord(id, value) {
@@ -233,7 +379,9 @@ function normalizeRecord(id, value) {
     date: String(value.date || localDate()),
     note: String(value.note || ""),
     createdAt: Number(value.createdAt || Date.now()),
-    updatedAt: Number(value.updatedAt || value.createdAt || Date.now())
+    updatedAt: Number(
+      value.updatedAt || value.createdAt || Date.now()
+    )
   };
 }
 
@@ -249,79 +397,135 @@ function toRemote(item) {
   };
 }
 
+// समान ID भए पछिल्लो updatedAt भएको रेकर्ड राख्ने
 function mergeRecords(local, remote) {
   const map = new Map();
 
-  for (const item of remote) map.set(item.id, item);
+  for (const item of remote) {
+    map.set(item.id, item);
+  }
 
   for (const item of local) {
+    if (pendingDeletes.includes(item.id)) continue;
+
     const old = map.get(item.id);
-    if (!old || Number(item.updatedAt || 0) >= Number(old.updatedAt || 0)) {
+
+    if (
+      !old ||
+      Number(item.updatedAt || 0) >= Number(old.updatedAt || 0)
+    ) {
       map.set(item.id, item);
     }
   }
 
   return [...map.values()].sort(
-    (a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0)
+    (a, b) => Number(b.createdAt || 0) -
+              Number(a.createdAt || 0)
   );
 }
 
 async function syncToFirebase() {
-  if (!db || !currentUser || !navigator.onLine || syncing) return;
+  if (!db || !currentUser || !navigator.onLine) {
+    return;
+  }
+
+  if (syncing) {
+    syncRequested = true;
+    return;
+  }
 
   syncing = true;
+
   try {
+    const uid = currentUser.uid;
+    const basePath = `users/${uid}/house-expense`;
+
+    // प्रयोगकर्ताले मेटाएका रेकर्ड मात्र Firebase बाट हटाउने
     for (const id of [...pendingDeletes]) {
-      await remove(ref(db, itemPath(id)));
+      await remove(ref(db, `${basePath}/${id}`));
+
       pendingDeletes = pendingDeletes.filter(x => x !== id);
       saveLocal();
     }
 
-    for (const item of expenses) {
-      await set(ref(db, itemPath(item.id)), toRemote(item));
+    // पूरै collection overwrite नगरी प्रत्येक रेकर्ड सेभ गर्ने
+    for (const item of [...expenses]) {
+      if (pendingDeletes.includes(item.id)) continue;
+
+      await set(
+        ref(db, `${basePath}/${item.id}`),
+        toRemote(item)
+      );
     }
 
     setStatus(
-      `✅ Firebase ब्याकअप सफल। UID: ${currentUser.uid} | ${expenses.length} रेकर्ड`
+      `✅ Firebase ब्याकअप सफल। ${expenses.length} रेकर्ड। UID: ${uid}`
     );
+
   } catch (error) {
-    console.error("Firebase sync error:", error);
+    console.error("Firebase backup error:", error);
+
     setStatus(
-      `⚠️ स्थानीय डाटा सुरक्षित छ, Firebase सिङ्क असफल: ${error.code || error.message}`,
+      `⚠️ स्थानीय डाटा सुरक्षित छ, तर Firebase ब्याकअप असफल भयो। ${error.code || error.message}`,
       true
     );
+
   } finally {
     syncing = false;
+
+    if (syncRequested) {
+      syncRequested = false;
+
+      if (navigator.onLine && currentUser) {
+        void syncToFirebase();
+      }
+    }
   }
 }
 
 async function syncFromFirebase() {
-  if (!db || !currentUser) return;
+  if (!db || !currentUser || !navigator.onLine) {
+    return;
+  }
+
+  const uid = currentUser.uid;
+  const basePath = `users/${uid}/house-expense`;
 
   try {
-    setStatus("Firebase बाट डाटा लोड हुँदैछ...");
-    const snapshot = await get(ref(db, userPath()));
+    setStatus("Firebase बाट घर खर्च लोड हुँदैछ...");
+
+    const snapshot = await get(ref(db, basePath));
+
+    // Remote बाट आएको डाटा array मा रूपान्तरण
     let remote = [];
 
     if (snapshot.exists()) {
       const data = snapshot.val();
+
       remote = Object.entries(data).map(([id, value]) =>
         normalizeRecord(id, value)
       );
     }
 
+    // Remote र स्थानीय डाटा मिलाउने
     expenses = mergeRecords(expenses, remote);
-    saveLocal();
-    remoteLoaded = true;
-    renderExpenses();
 
-    setStatus(`✅ Firebase लोड भयो। ${remote.length} रिमोट रेकर्ड भेटियो।`);
+    saveLocal();
+    refreshView();
+
+    setStatus(
+      `✅ Firebase बाट ${remote.length} रेकर्ड लोड भयो। सिङ्क हुँदैछ...`
+    );
+
     await syncToFirebase();
+
   } catch (error) {
     console.error("Firebase load error:", error);
-    renderExpenses();
+
+    refreshView();
+
     setStatus(
-      `⚠️ Firebase बाट पढ्न सकिएन (${error.code || error.message})। स्थानीय डाटा देखाइएको छ।`,
+      `⚠️ Firebase पढ्न सकिएन। स्थानीय डाटा देखाइएको छ। ${error.code || error.message}`,
       true
     );
   }
@@ -331,27 +535,34 @@ function renderTopItems(filtered) {
   const groups = new Map();
 
   for (const item of filtered) {
-    const key = item.title.trim().toLocaleLowerCase();
+    const title = item.title.trim();
+    const key = title.toLocaleLowerCase();
+
     if (!key) continue;
 
     if (!groups.has(key)) {
-      groups.set(key, { title: item.title.trim(), count: 0, total: 0 });
+      groups.set(key, {
+        title,
+        count: 0,
+        total: 0
+      });
     }
+
     const group = groups.get(key);
-    group.count += 1;
+    group.count++;
     group.total += Number(item.amount || 0);
   }
 
-  const sorted = [...groups.values()].sort(
-    (a, b) => b.count - a.count || b.total - a.total
-  ).slice(0, 5);
+  const sorted = [...groups.values()]
+    .sort((a, b) => b.count - a.count || b.total - a.total)
+    .slice(0, 5);
 
   const box = $("topItems");
   box.replaceChildren();
 
-  if (!sorted.length).
   if (!sorted.length) {
-    box.innerHTML = '<div class="empty">सामानको रेकर्ड छैन।</div>';
+    box.innerHTML =
+      '<div class="empty">रेकर्ड भेटिएन।</div>';
     return;
   }
 
@@ -387,30 +598,92 @@ function renderTopItems(filtered) {
 
 function getFilteredExpenses() {
   const query = $("search").value.trim().toLocaleLowerCase();
+  const type = $("filterType").value;
+  const day = $("dayFilter").value;
+  const month = $("monthFilter").value;
+  const year = $("yearFilter").value;
+
   return expenses.filter(item => {
-    return `${item.title} ${item.category} ${item.note}`
-      .toLocaleLowerCase().includes(query);
+    const text = `${item.title} ${item.category} ${item.note}`
+      .toLocaleLowerCase();
+
+    if (!text.includes(query)) return false;
+
+    if (type === "day") {
+      return !!day && item.date === day;
+    }
+
+    if (type === "month") {
+      return !!month && item.date.startsWith(month);
+    }
+
+    if (type === "year") {
+      return !!year && item.date.startsWith(year + "-");
+    }
+
+    return true;
   });
+}
+
+function updateYearOptions() {
+  const select = $("yearFilter");
+  const previous = select.value;
+
+  const years = new Set(
+    expenses.map(x => x.date?.slice(0, 4)).filter(Boolean)
+  );
+
+  years.add(String(new Date().getFullYear()));
+
+  select.replaceChildren();
+
+  const placeholder = document.createElement("option");
+  placeholder.value = "";
+  placeholder.textContent = "वर्ष छान्नुहोस्";
+  select.appendChild(placeholder);
+
+  [...years].sort((a, b) => b.localeCompare(a)).forEach(year => {
+    const option = document.createElement("option");
+    option.value = year;
+    option.textContent = year;
+    select.appendChild(option);
+  });
+
+  if (years.has(previous)) {
+    select.value = previous;
+  }
 }
 
 function renderExpenses() {
   const filtered = getFilteredExpenses();
 
-  const totalSum = filtered.reduce((sum, item) => sum + Number(item.amount || 0), 0);
-  $("periodTotal").textContent = money(totalSum);
+  $("periodTotal").textContent = money(
+    filtered.reduce((sum, x) => sum + Number(x.amount || 0), 0)
+  );
+
   $("allTotal").textContent = money(
-    expenses.reduce((sum, item) => sum + Number(item.amount || 0), 0)
+    expenses.reduce((sum, x) => sum + Number(x.amount || 0), 0)
   );
 
   renderTopItems(filtered);
 
-  $("filterSummary").textContent = `जम्मा रेकर्ड: ${filtered.length}`;
+  const type = $("filterType").value;
+  const labels = {
+    all: "सबै मिति",
+    day: `दिन: ${$("dayFilter").value || "छानिएको छैन"}`,
+    month: `महिना: ${$("monthFilter").value || "छानिएको छैन"}`,
+    year: `वर्ष: ${$("yearFilter").value || "छानिएको छैन"}`
+  };
+
+  $("filterSummary").textContent =
+    `${labels[type]} · ${filtered.length} रेकर्ड`;
 
   const list = $("expenseList");
   list.replaceChildren();
 
   if (!filtered.length) {
-    list.innerHTML = '<div class="empty">कुनै खर्च रेकर्ड भेटिएन।</div>';
+    list.innerHTML =
+      '<div class="empty">कुनै खर्च रेकर्ड भेटिएन।</div>';
     return;
   }
 
@@ -420,6 +693,7 @@ function renderExpenses() {
 
     const top = document.createElement("div");
     top.className = "expense-top";
+
     const info = document.createElement("div");
 
     const name = document.createElement("div");
@@ -432,7 +706,7 @@ function renderExpenses() {
 
     const meta = document.createElement("div");
     meta.className = "expense-meta";
-    meta.textContent = `${item.date || "मिति छैन"} · ${item.category}`;
+    meta.textContent = `${item.date} · ${item.category}`;
 
     info.append(name, amount, meta);
 
@@ -450,15 +724,17 @@ function renderExpenses() {
     edit.type = "button";
     edit.className = "small-btn edit-btn";
     edit.title = "सम्पादन";
+    edit.setAttribute("aria-label", "सम्पादन");
     edit.innerHTML = '<i class="fa-solid fa-pen"></i>';
-    edit.addEventListener("click", () => window.editExpense(item.id));
+    edit.addEventListener("click", () => editExpense(item.id));
 
     const del = document.createElement("button");
     del.type = "button";
     del.className = "small-btn delete-btn";
     del.title = "मेटाउनुहोस्";
+    del.setAttribute("aria-label", "मेटाउनुहोस्");
     del.innerHTML = '<i class="fa-solid fa-trash"></i>';
-    del.addEventListener("click", () => window.deleteExpense(item.id));
+    del.addEventListener("click", () => deleteExpense(item.id));
 
     actions.append(edit, del);
     top.append(info, actions);
@@ -468,6 +744,7 @@ function renderExpenses() {
 }
 
 function refreshView() {
+  updateYearOptions();
   renderExpenses();
 }
 
@@ -498,26 +775,38 @@ $("expenseForm").addEventListener("submit", async event => {
   }
 
   const now = Date.now();
+
   if (editId) {
     const index = expenses.findIndex(x => x.id === editId);
+
     if (index !== -1) {
       expenses[index] = {
-        ...expenses[index], title, amount, category, date, note,
+        ...expenses[index],
+        title, amount, category, date, note,
         updatedAt: now
       };
     }
   } else {
+    const id = "_" + (
+      crypto.randomUUID
+        ? crypto.randomUUID().replaceAll("-", "")
+        : Date.now().toString(36) + Math.random().toString(36).slice(2)
+    );
+
     expenses.unshift({
-      id: "_" + crypto.randomUUID().replaceAll("-", ""),
-      title, amount, category, date, note,
-      createdAt: now, updatedAt: now
+      id, title, amount, category, date, note,
+      createdAt: now,
+      updatedAt: now
     });
   }
 
   try {
     saveLocal();
   } catch (error) {
-    setStatus("स्थानीय डाटा सेभ भएन। ब्राउजरको स्टोरेज जाँच्नुहोस्।", true);
+    setStatus(
+      "स्थानीय डाटा सेभ भएन। ब्राउजर स्टोरेज जाँच्नुहोस्।",
+      true
+    );
     return;
   }
 
@@ -527,13 +816,18 @@ $("expenseForm").addEventListener("submit", async event => {
   if (currentUser && navigator.onLine) {
     await syncToFirebase();
   } else if (!currentUser) {
-    setStatus("स्थानीय डाटा सेभ भयो। Firebase ब्याकअपका लागि लगइन आवश्यक छ।", true);
+    setStatus(
+      "✅ स्थानीय डाटा सेभ भयो। Firebase ब्याकअपका लागि लगइन आवश्यक छ।",
+      true
+    );
   } else {
-    setStatus("स्थानीय डाटा सेभ भयो। इन्टरनेट आएपछि सिङ्क गर्नुहोस्।", true);
+    setStatus(
+      "✅ स्थानीय डाटा सेभ भयो। इन्टरनेट आएपछि सिङ्क हुनेछ।"
+    );
   }
 });
 
-window.editExpense = function(id) {
+function editExpense(id) {
   const item = expenses.find(x => x.id === id);
   if (!item) return;
 
@@ -543,86 +837,139 @@ window.editExpense = function(id) {
   $("category").value = item.category;
   $("date").value = item.date || localDate();
   $("note").value = item.note || "";
+
   $("form-heading").textContent = "✏️ खर्च सम्पादन गर्नुहोस्";
   $("saveBtn").textContent = "अपडेट गर्नुहोस्";
   $("cancel-btn").hidden = false;
-  window.scrollTo({ top: 0, behavior: "smooth" });
-};
 
-window.deleteExpense = async function(id) {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+async function deleteExpense(id) {
   const item = expenses.find(x => x.id === id);
-  if (!item || !confirm(`"${item.title}" खर्च मेटाउने हो?`)) return;
+
+  if (!item || !confirm(`"${item.title}" खर्च मेटाउने हो?`)) {
+    return;
+  }
 
   expenses = expenses.filter(x => x.id !== id);
-  if (!pendingDeletes.includes(id)) pendingDeletes.push(id);
-  saveLocal();
+
+  if (!pendingDeletes.includes(id)) {
+    pendingDeletes.push(id);
+  }
+
+  try {
+    saveLocal();
+  } catch (error) {
+    setStatus("डाटा परिवर्तन स्थानीय स्टोरेजमा सेभ भएन।", true);
+    return;
+  }
+
   refreshView();
 
   if (currentUser && navigator.onLine) {
     await syncToFirebase();
   } else {
-    setStatus("स्थानीय सूचीबाट हटाइयो। Firebase बाट हटाउन सिङ्क आवश्यक छ।", true);
+    setStatus(
+      "स्थानीय सूचीबाट हटाइयो। Firebase मा हटाउन सिङ्क आवश्यक छ।"
+    );
   }
-};
+}
 
 $("search").addEventListener("input", renderExpenses);
 
+$("filterType").addEventListener("change", () => {
+  const type = $("filterType").value;
+
+  $("dayBox").hidden = type !== "day";
+  $("monthBox").hidden = type !== "month";
+  $("yearBox").hidden = type !== "year";
+
+  renderExpenses();
+});
+
+$("dayFilter").addEventListener("change", renderExpenses);
+$("monthFilter").addEventListener("change", renderExpenses);
+$("yearFilter").addEventListener("change", renderExpenses);
+
 $("exportBtn").addEventListener("click", () => {
-  const blob = new Blob([JSON.stringify({
-    exportedAt: new Date().toISOString(),
-    uid: currentUser?.uid || null,
-    path: currentUser ? userPath() : null,
-    expenses,
-    pendingDeletes
-  }, null, 2)], {type:"application/json;charset=utf-8"});
+  const blob = new Blob([
+    JSON.stringify({
+      exportedAt: new Date().toISOString(),
+      uid: currentUser?.uid || null,
+      path: currentUser ? userPath() : null,
+      expenses,
+      pendingDeletes
+    }, null, 2)
+  ], {
+    type: "application/json;charset=utf-8"
+  });
 
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
+
   a.href = url;
   a.download = "house-expenses-backup.json";
   a.click();
+
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 });
 
 $("date").value = localDate();
+$("dayFilter").value = localDate();
+
 loadLocal();
 refreshView();
 
 try {
-  const app = getApps().find(a => a.options.projectId === firebaseConfig.projectId)
-    || initializeApp(firebaseConfig);
+  const app = getApps().find(
+    a => a.options.projectId === firebaseConfig.projectId
+  ) || initializeApp(firebaseConfig);
+
   db = getDatabase(app);
   auth = getAuth(app);
 
   onAuthStateChanged(auth, async user => {
     currentUser = user || null;
+    authReady = true;
 
     if (!user) {
       setStatus(
-        "स्थानीय मोड: Firebase ब्याकअपका लागि यस पेजमा प्रयोगकर्ताले लगइन गरेको हुनुपर्छ।",
+        "स्थानीय मोड। Firebase ब्याकअपका लागि लगइन गर्नुहोस्।",
         true
       );
       refreshView();
       return;
     }
 
-    setStatus(`लगइन भयो। UID जाँचियो: ${user.uid}`);
+    setStatus("लगइन सफल। Firebase डाटा जाँच हुँदैछ...");
+
     await syncFromFirebase();
   });
+
 } catch (error) {
-  console.error("Firebase initialization:", error);
-  setStatus(`Firebase सुरु गर्न समस्या भयो: ${error.message}`, true);
+  console.error("Firebase initialization error:", error);
+
+  setStatus(
+    `Firebase सुरु गर्न सकिएन। ${error.message}`,
+    true
+  );
 }
 
 window.addEventListener("online", async () => {
-  if (currentUser) await syncFromFirebase();
-  else setStatus("इन्टरनेट आयो। Firebase ब्याकअपका लागि लगइन आवश्यक छ।", true);
+  if (currentUser) {
+    await syncFromFirebase();
+  } else if (authReady) {
+    setStatus("इन्टरनेट आयो। ब्याकअपका लागि लगइन आवश्यक छ।", true);
+  }
 });
 
 window.addEventListener("offline", () => {
-  setStatus("अफलाइन मोड: डाटा यस ब्राउजरमा मात्र सेभ हुन्छ।", true);
+  setStatus(
+    "अफलाइन मोड। डाटा स्थानीय ब्राउजरमा सेभ हुन्छ।",
+    true
+  );
 });
-
 </script>
 </body>
 </html>
