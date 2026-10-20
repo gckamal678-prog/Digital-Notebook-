@@ -429,185 +429,380 @@ tailwind.config = {
 <!-- Firebase & Application Scripts -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getDatabase, ref, set, get, child, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import {
+        getAuth,
+        onAuthStateChanged,
+        createUserWithEmailAndPassword,
+        signInWithEmailAndPassword,
+        sendPasswordResetEmail
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import {
+        getDatabase,
+        ref,
+        get,
+        update,
+        onValue
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyDDY_v7RHnkCTI6uyV4DNDjqoaIBGweg8c",
-      authDomain: "digital-a2552.firebaseapp.com",
-      projectId: "digital-a2552",
-      databaseURL: "https://digital-a2552-default-rtdb.asia-southeast1.firebasedatabase.app",
-      storageBucket: "digital-a2552.firebasestorage.app",
-      messagingSenderId: "218135618179",
-      appId: "1:218135618179:web:821b76920d3e5669ac31b6"
+        apiKey: "AIzaSyDDY_v7RHnkCTI6uyV4DNDjqoaIBGweg8c",
+        authDomain: "digital-a2552.firebaseapp.com",
+        projectId: "digital-a2552",
+        databaseURL: "https://digital-a2552-default-rtdb.asia-southeast1.firebasedatabase.app",
+        storageBucket: "digital-a2552.firebasestorage.app",
+        messagingSenderId: "218135618179",
+        appId: "1:218135618179:web:821b76920d3e5669ac31b6"
     };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getDatabase(app);
 
-    onAuthStateChanged(auth, (user) => {
-        const loginOverlay = document.getElementById('login-overlay');
+    let unsubscribeCloud = null;
+    let activeUid = null;
+    let isLoginMode = false;
+
+    const $ = id => document.getElementById(id);
+
+    function showMessage(message) {
+        alert(message);
+    }
+
+    function readLocalArray(keys) {
+        for (const key of keys) {
+            const raw = localStorage.getItem(key);
+            if (raw === null) continue;
+
+            try {
+                const value = JSON.parse(raw);
+                if (Array.isArray(value)) return value;
+            } catch (error) {
+                console.warn("Invalid local data:", key, error);
+            }
+        }
+        return [];
+    }
+
+    function saveCloudListToLocal(cloudData, cloudKey, localKey) {
+        if (!Object.prototype.hasOwnProperty.call(cloudData, cloudKey)) {
+            return false;
+        }
+
+        const value = cloudData[cloudKey];
+
+        if (value === null || value === undefined) return false;
+
+        const list = Array.isArray(value)
+            ? value
+            : (typeof value === "object" ? Object.values(value) : null);
+
+        if (!list) return false;
+
+        localStorage.setItem(localKey, JSON.stringify(list));
+        return true;
+    }
+
+    function stopCloudListener() {
+        if (typeof unsubscribeCloud === "function") {
+            unsubscribeCloud();
+        }
+        unsubscribeCloud = null;
+        activeUid = null;
+    }
+
+    function listenToCloudChanges(uid) {
+        if (activeUid === uid && unsubscribeCloud) return;
+
+        stopCloudListener();
+        activeUid = uid;
+
+        const userRef = ref(db, `users/${uid}`);
+
+        unsubscribeCloud = onValue(
+            userRef,
+            snapshot => {
+                if (auth.currentUser?.uid !== uid) return;
+                if (!snapshot.exists()) return;
+
+                const data = snapshot.val() || {};
+                let changed = false;
+
+                changed = saveCloudListToLocal(
+                    data, "notes", "advanced_notebook_notes"
+                ) || changed;
+
+                changed = saveCloudListToLocal(
+                    data, "incomes", "digital_notebook_incomes"
+                ) || changed;
+
+                changed = saveCloudListToLocal(
+                    data, "savings", "digital_notebook_savings"
+                ) || changed;
+
+                changed = saveCloudListToLocal(
+                    data, "transactions", "digital_notebook_transactions"
+                ) || changed;
+
+                if (data.theme === "light" || data.theme === "dark") {
+                    if (localStorage.getItem("theme") !== data.theme) {
+                        localStorage.setItem("theme", data.theme);
+                        document.documentElement.classList.toggle(
+                            "dark", data.theme === "dark"
+                        );
+                    }
+                }
+
+                if (data.language === "en" || data.language === "np") {
+                    localStorage.setItem("userLang", data.language);
+                    localStorage.setItem("lang", data.language);
+                }
+
+                if (changed) {
+                    window.updateSummaryCards?.();
+                    window.updateLanguageUI?.();
+                    window.updateThemeUI?.();
+                }
+            },
+            error => {
+                console.error("Cloud listener error:", error);
+                showMessage(
+                    "क्लाउड डेटा पढ्न सकिएन। इन्टरनेट र Firebase Database Rules जाँच गर्नुहोस्।"
+                );
+            }
+        );
+    }
+
+    onAuthStateChanged(auth, user => {
+        const loginOverlay = $("login-overlay");
+
         if (user) {
-            if (loginOverlay) loginOverlay.classList.add('hidden');
+            if (loginOverlay) loginOverlay.classList.add("hidden");
             listenToCloudChanges(user.uid);
         } else {
-            if (loginOverlay) loginOverlay.classList.remove('hidden');
+            stopCloudListener();
+            if (loginOverlay) loginOverlay.classList.remove("hidden");
         }
     });
 
-    function listenToCloudChanges(userId) {
-        const userRef = ref(db, 'users/' + userId);
-        onValue(userRef, (snapshot) => {
-            if (snapshot.exists()) {
-                const data = snapshot.val();
-                let hasNewData = false;
-
-                if (data.notes) { localStorage.setItem('advanced_notebook_notes', JSON.stringify(data.notes)); hasNewData = true; }
-                if (data.incomes) { localStorage.setItem('digital_notebook_incomes', JSON.stringify(data.incomes)); hasNewData = true; }
-                if (data.savings) { localStorage.setItem('digital_notebook_savings', JSON.stringify(data.savings)); hasNewData = true; }
-                if (data.transactions) { localStorage.setItem('digital_notebook_transactions', JSON.stringify(data.transactions)); hasNewData = true; }
-
-                if (hasNewData && typeof updateSummaryCards === 'function') {
-                    updateSummaryCards();
-                }
-            }
-        });
-    }
-
-    let isLoginMode = false;
-
     window.toggleAuthMode = function(mode) {
-        isLoginMode = (mode === 'login');
-        const titleEl = document.getElementById('auth-form-title');
-        const subTitleEl = document.getElementById('auth-form-subtitle');
-        const confirmContainer = document.getElementById('confirm-password-container');
-        const forgotContainer = document.getElementById('forgot-password-container');
-        const actionBtn = document.getElementById('auth-action-btn');
-        const switchText = document.getElementById('auth-switch-text');
+        isLoginMode = mode === "login";
+
+        const title = $("auth-form-title");
+        const subtitle = $("auth-form-subtitle");
+        const confirm = $("confirm-password-container");
+        const forgot = $("forgot-password-container");
+        const button = $("auth-action-btn");
+        const switchText = $("auth-switch-text");
 
         if (isLoginMode) {
-            titleEl.innerText = "Log In";
-            subTitleEl.innerText = "Access your account";
-            confirmContainer.classList.add('hidden');
-            forgotContainer.classList.remove('hidden');
-            actionBtn.innerText = "Login";
-            switchText.innerHTML = `Don't have an account? <button onclick="toggleAuthMode('signup')" class="text-emerald-400 font-bold hover:underline ml-1">Sign Up</button>`;
+            title.innerText = "Log In";
+            subtitle.innerText = "Access your account";
+            confirm.classList.add("hidden");
+            forgot.classList.remove("hidden");
+            button.innerText = "Login";
+            switchText.innerHTML =
+                `Don't have an account?
+                <button onclick="toggleAuthMode('signup')"
+                class="text-emerald-400 font-bold hover:underline ml-1">
+                Sign Up</button>`;
         } else {
-            titleEl.innerText = "Sign Up";
-            subTitleEl.innerText = "Welcome to Digital NoteBook";
-            confirmContainer.classList.remove('hidden');
-            forgotContainer.classList.add('hidden');
-            actionBtn.innerText = "Sign Up";
-            switchText.innerHTML = `Already have an account? <button onclick="toggleAuthMode('login')" class="text-emerald-400 font-bold hover:underline ml-1">Log In</button>`;
+            title.innerText = "Sign Up";
+            subtitle.innerText = "Welcome to Digital NoteBook";
+            confirm.classList.remove("hidden");
+            forgot.classList.add("hidden");
+            button.innerText = "Sign Up";
+            switchText.innerHTML =
+                `Already have an account?
+                <button onclick="toggleAuthMode('login')"
+                class="text-emerald-400 font-bold hover:underline ml-1">
+                Log In</button>`;
         }
-    }
+    };
 
     window.togglePasswordVisibility = function(inputId, iconId) {
-        const input = document.getElementById(inputId);
-        const icon = document.getElementById(iconId);
-        if (input.type === "password") {
-            input.type = "text";
-            icon.classList.remove("fa-eye");
-            icon.classList.add("fa-eye-slash");
-        } else {
-            input.type = "password";
-            icon.classList.remove("fa-eye-slash");
-            icon.classList.add("fa-eye");
+        const input = $(inputId);
+        const icon = $(iconId);
+
+        if (!input || !icon) return;
+
+        const show = input.type === "password";
+        input.type = show ? "text" : "password";
+        icon.classList.toggle("fa-eye", !show);
+        icon.classList.toggle("fa-eye-slash", show);
+    };
+
+    window.handleAuthSubmit = async function() {
+        const email = $("auth-email").value.trim();
+        const password = $("auth-password").value;
+
+        if (!email || !password) {
+            showMessage("इमेल र पासवर्ड दुवै भर्नुहोस्।");
+            return;
         }
-    }
 
-    window.handleAuthSubmit = function() {
-        const email = document.getElementById('auth-email').value;
-        const password = document.getElementById('auth-password').value;
-        
-        if (!email || !password) return;
+        const button = $("auth-action-btn");
+        button.disabled = true;
 
-        if (isLoginMode) {
-            signInWithEmailAndPassword(auth, email, password).catch(() => {});
-        } else {
-            const confirmPassword = document.getElementById('auth-confirm-password').value;
-            if (password !== confirmPassword) return;
-
-            createUserWithEmailAndPassword(auth, email, password)
-                .then(() => {
-                    toggleAuthMode('login');
-                    document.getElementById('auth-password').value = '';
-                    document.getElementById('auth-confirm-password').value = '';
-                })
-                .catch(() => {});
-        }
-    }
-
-    window.handleForgotPassword = function() {
-        const email = document.getElementById('auth-email').value;
-        if (!email) return;
-        sendPasswordResetEmail(auth, email).catch(() => {});
-    }
-
-    async function backupToCloud(userId = "default_user") {
         try {
-            const localData = {
-                notes: JSON.parse(localStorage.getItem('advanced_notebook_notes') || localStorage.getItem('notes') || '[]'),
-                incomes: JSON.parse(localStorage.getItem('digital_notebook_incomes') || localStorage.getItem('incomes') || '[]'),
-                savings: JSON.parse(localStorage.getItem('digital_notebook_savings') || localStorage.getItem('savings') || localStorage.getItem('saving_data') || '[]'),
-                transactions: JSON.parse(localStorage.getItem('digital_notebook_transactions') || localStorage.getItem('transactions') || '[]'),
-                theme: localStorage.getItem('theme') || 'dark',
-                language: localStorage.getItem('language') || 'en',
-                updatedAt: new Date().toISOString()
-            };
-            await set(ref(db, 'users/' + userId), localData);
-            return { success: true };
-        } catch (error) {
-            return { success: false };
-        }
-    }
+            if (isLoginMode) {
+                await signInWithEmailAndPassword(auth, email, password);
+            } else {
+                const confirmPassword = $("auth-confirm-password").value;
 
-    async function restoreFromCloud(userId = "default_user") {
-        try {
-            const dbRef = ref(db);
-            const snapshot = await get(child(dbRef, `users/${userId}`));
-            if (snapshot.exists()) {
-                const data = snapshot.val();
-                if (data.notes) localStorage.setItem('advanced_notebook_notes', JSON.stringify(data.notes));
-                if (data.incomes) localStorage.setItem('digital_notebook_incomes', JSON.stringify(data.incomes));
-                if (data.savings) localStorage.setItem('digital_notebook_savings', JSON.stringify(data.savings));
-                if (data.transactions) localStorage.setItem('digital_notebook_transactions', JSON.stringify(data.transactions));
-                if (data.theme) localStorage.setItem('theme', data.theme);
-                return { success: true };
+                if (password !== confirmPassword) {
+                    showMessage("दुवै पासवर्ड मिलेनन्।");
+                    return;
+                }
+
+                if (password.length < 6) {
+                    showMessage("पासवर्ड कम्तीमा ६ अक्षरको हुनुपर्छ।");
+                    return;
+                }
+
+                await createUserWithEmailAndPassword(auth, email, password);
             }
-            return { success: false };
         } catch (error) {
-            return { success: false };
+            const messages = {
+                "auth/invalid-email": "इमेल ठेगाना सही छैन।",
+                "auth/user-not-found": "यो इमेलको खाता भेटिएन।",
+                "auth/wrong-password": "पासवर्ड मिलेन।",
+                "auth/invalid-credential": "इमेल वा पासवर्ड मिलेन।",
+                "auth/email-already-in-use": "यो इमेलबाट खाता पहिल्यै बनिसकेको छ।",
+                "auth/weak-password": "अझ बलियो पासवर्ड राख्नुहोस्।",
+                "auth/network-request-failed": "इन्टरनेट जडान जाँच गर्नुहोस्।",
+                "auth/too-many-requests": "धेरै पटक प्रयास भयो। केही समयपछि पुनः प्रयास गर्नुहोस्।"
+            };
+
+            showMessage(messages[error.code] ||
+                `लगइन प्रक्रिया सफल भएन। (${error.code || "unknown-error"})`);
+        } finally {
+            button.disabled = false;
         }
+    };
+
+    window.handleForgotPassword = async function() {
+        const email = $("auth-email").value.trim();
+
+        if (!email) {
+            showMessage("पहिले आफ्नो इमेल लेख्नुहोस्।");
+            return;
+        }
+
+        try {
+            await sendPasswordResetEmail(auth, email);
+            showMessage("पासवर्ड रिसेट इमेल पठाइएको छ। Inbox र Spam जाँच गर्नुहोस्।");
+        } catch (error) {
+            showMessage("पासवर्ड रिसेट इमेल पठाउन सकिएन: " + error.code);
+        }
+    };
+
+    function collectLocalData() {
+        return {
+            notes: readLocalArray([
+                "advanced_notebook_notes", "notes"
+            ]),
+            incomes: readLocalArray([
+                "digital_notebook_incomes", "incomes",
+                "income_data", "add_income_list"
+            ]),
+            savings: readLocalArray([
+                "digital_notebook_savings", "savings",
+                "saving_data", "add_saving_list"
+            ]),
+            transactions: readLocalArray([
+                "digital_notebook_transactions", "transactions",
+                "transaction_list"
+            ]),
+            theme: localStorage.getItem("theme") || "dark",
+            language: localStorage.getItem("userLang") ||
+                      localStorage.getItem("lang") || "en",
+            updatedAt: new Date().toISOString()
+        };
     }
 
     window.handleCloudBackup = async function() {
-        let userId = auth.currentUser ? auth.currentUser.uid : (localStorage.getItem('my_unique_userid') || "default_user");
-        await backupToCloud(userId);
+        const user = auth.currentUser;
+
+        if (!user) {
+            showMessage("पहिले आफ्नो खातामा लगइन गर्नुहोस्।");
+            return;
+        }
+
+        const confirmed = confirm(
+            "ब्याकअप गर्दा यस फोनको सूचीसम्बन्धी डेटा क्लाउडमा लेखिनेछ। " +
+            "यस फोनको पुरानो डेटा र क्लाउडको डेटा फरक भएमा क्लाउडका सूचीहरू बदलिन सक्छन्। " +
+            "तपाईंले डेटा जाँच गरेर ब्याकअप गर्नुभएको हो?"
+        );
+
+        if (!confirmed) return;
+
+        try {
+            const localData = collectLocalData();
+            await update(ref(db, `users/${user.uid}`), localData);
+
+            showMessage("ब्याकअप सफल भयो।");
+        } catch (error) {
+            console.error("Backup failed:", error);
+            showMessage(
+                "ब्याकअप असफल भयो। इन्टरनेट, लगइन र Firebase Rules जाँच गर्नुहोस्।"
+            );
+        }
     };
 
     window.handleCloudRestore = async function() {
-        let userId = auth.currentUser ? auth.currentUser.uid : (localStorage.getItem('my_unique_userid') || "default_user");
-        const result = await restoreFromCloud(userId);
-        if(result.success) location.reload();
+        const user = auth.currentUser;
+
+        if (!user) {
+            showMessage("पहिले आफ्नो खातामा लगइन गर्नुहोस्।");
+            return;
+        }
+
+        if (!confirm(
+            "क्लाउडको डेटा यो फोनमा ल्याउने हो? " +
+            "यसले यो फोनका सम्बन्धित स्थानीय सूचीहरू बदल्न सक्छ।"
+        )) return;
+
+        try {
+            const snapshot = await get(ref(db, `users/${user.uid}`));
+
+            if (!snapshot.exists()) {
+                showMessage("यो खातामा क्लाउड ब्याकअप भेटिएन।");
+                return;
+            }
+
+            const data = snapshot.val() || {};
+
+            saveCloudListToLocal(
+                data, "notes", "advanced_notebook_notes"
+            );
+            saveCloudListToLocal(
+                data, "incomes", "digital_notebook_incomes"
+            );
+            saveCloudListToLocal(
+                data, "savings", "digital_notebook_savings"
+            );
+            saveCloudListToLocal(
+                data, "transactions", "digital_notebook_transactions"
+            );
+
+            if (data.theme === "light" || data.theme === "dark") {
+                localStorage.setItem("theme", data.theme);
+            }
+
+            if (data.language === "en" || data.language === "np") {
+                localStorage.setItem("userLang", data.language);
+                localStorage.setItem("lang", data.language);
+            }
+
+            showMessage("क्लाउडबाट डेटा ल्याइयो। पृष्ठ पुनः लोड हुँदैछ।");
+            location.reload();
+        } catch (error) {
+            console.error("Restore failed:", error);
+            showMessage(
+                "डेटा पुनः ल्याउन सकिएन। इन्टरनेट र Firebase Rules जाँच गर्नुहोस्।"
+            );
+        }
     };
-
-    async function triggerAutomaticCloudBackup() {
-        let userId = auth.currentUser ? auth.currentUser.uid : localStorage.getItem('my_unique_userid');
-        if (userId && auth.currentUser) {
-            await backupToCloud(userId);
-        }
-    }
-
-    window.addEventListener('storage', () => {
-        triggerAutomaticCloudBackup();
-    });
-    setInterval(() => {
-        if (auth.currentUser) {
-            triggerAutomaticCloudBackup();
-        }
-    }, 60000);
 </script>
 
 <script>
