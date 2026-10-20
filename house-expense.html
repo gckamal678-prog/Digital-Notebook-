@@ -182,7 +182,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
   </div>
 </section>
 
-<!-- बजेट प्रगति विवरण सेक्सन (मुख्य पेजबाट इनपुट बक्स पूर्ण रूपमा हटाइयो) -->
+<!-- बजेट प्रगति विवरण सेक्सन -->
 <section class="card">
   <div style="display:flex; justify-content:space-between; align-items:center; font-size:14px; font-weight:bold;">
     <span>🎯 महिनाको बजेट प्रगति</span>
@@ -326,7 +326,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 
 <script type="module">
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -347,7 +347,6 @@ let db, auth, currentUser = null;
 let expenses = [];
 let chartInstance = null;
 
-// नयाँ र पुराना सबै क्याटेगरी र रङहरू (Data 100% सुरक्षित राख्न म्याच गरिएको)
 const CATEGORY_COLORS = {
   "तरकारी": "#22c55e",
   "किराना पसल": "#f97316",
@@ -400,26 +399,8 @@ async function syncToFirebase() {
   try {
     const userRef = ref(db, `users/${currentUser.uid}/house_expenses`);
     await set(userRef, expenses);
-    setStatus(`✅ क्लाउड ब्याकअप सफल`);
   } catch (e) {
     setStatus(`⚠️ स्थानीय सेभ भयो (क्लाउड सिंक त्रुटि)`, true);
-  }
-}
-
-async function syncFromFirebase() {
-  if (!db || !currentUser || !navigator.onLine) return;
-  try {
-    const snapshot = await get(child(ref(db), `users/${currentUser.uid}/house_expenses`));
-    if (snapshot.exists()) {
-      expenses = snapshot.val() || [];
-      saveLocal();
-      refreshView();
-      setStatus(`✅ क्लाउडबाट डाटा सिंक भयो`);
-    } else {
-      await syncToFirebase();
-    }
-  } catch (e) {
-    setStatus(`⚠️ स्थानीय डाटा देखाइएको छ`, true);
   }
 }
 
@@ -662,7 +643,6 @@ $("expenseForm").addEventListener("submit", async event => {
   await syncToFirebase();
 });
 
-// PDF रिपोर्ट बनाउने ढाँचा (जस्ताको तस्तै राखिएको)
 function generateHouseExpensePDF() {
   const filtered = getFilteredExpenses();
   if (filtered.length === 0) {
@@ -691,7 +671,6 @@ function generateHouseExpensePDF() {
                   </div>
               </td>
               <td style="vertical-align: middle; text-align: center; width: 55%; padding: 0 10px;">
-                  <img src="bannerlogo.png" style="width: 100%; max-width: 100%; height: auto; object-fit: contain; display: inline-block;" onerror="this.style.display='none'">
                   <h3 style="margin:5px 0 0 0; color:#16a34a;">घर खर्च रिपोर्ट (House Expense)</h3>
               </td>
               <td style="vertical-align: middle; text-align: left; font-size: 10px; color: #555; line-height: 1.4; width: 25%; padding-left: 10px;">
@@ -787,7 +766,7 @@ $("monthFilter").value = currentMonthStr();
 loadLocal();
 refreshView();
 
-// FIREBASE INITIALIZATION
+// 🔥 REALTIME FIREBASE SYNC INITIALIZATION
 try {
   const app = getApps().find(a => a.options.projectId === firebaseConfig.projectId) || initializeApp(firebaseConfig);
   db = getDatabase(app);
@@ -796,9 +775,22 @@ try {
   onAuthStateChanged(auth, async (user) => {
     if (user) {
       currentUser = user;
-      await syncFromFirebase();
+      
+      // onValue ले लाइभ (Realtime) रूपमा परिवर्तनहरू ट्र्याक गर्छ
+      const userExpensesRef = ref(db, `users/${currentUser.uid}/house_expenses`);
+      onValue(userExpensesRef, (snapshot) => {
+        if (snapshot.exists()) {
+          expenses = snapshot.val() || [];
+          saveLocal();
+          refreshView();
+          setStatus(`✅ क्लाउडबाट लाइभ डाटा सिंक भयो`);
+        } else {
+          syncToFirebase();
+        }
+      });
+
     } else {
-      setStatus("स्थानीय मोड (ड्यासबोर्डमा लगइन भएपछि स्वतः सिंक हुन्छ)");
+      setStatus("स्थानीय मोड (ड्यासबोर्डमा लगइन भएपछि स्वतः लाइभ सिंक हुन्छ)");
     }
   });
 } catch (e) {
