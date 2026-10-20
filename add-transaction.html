@@ -1,702 +1,842 @@
-<!DOCTYPE html>
-<html lang="en" class="dark">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#0f172a">
-<title>Digital NoteBook — Transactions & Ledger</title>
+<!DOCTYPE html>  <html lang="en" class="dark">  
+<head>  
+<meta charset="UTF-8">  
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">  
+<title>Digital NoteBook - Transactions & Ledger</title>  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>  
+<script src="https://cdn.tailwindcss.com"></script>  
+<script>  
+tailwind.config = {  
+    darkMode: 'class',  
+    theme: {  
+        extend: {  
+            fontFamily: {  
+                sans: ['Poppins', 'sans-serif'],  
+            }  
+        }  
+    }  
+}  
+</script>  
+<script>  
+    const savedTheme = localStorage.getItem('theme') || 'dark';  
+    if (savedTheme === 'light') {  
+        document.documentElement.classList.remove('dark');  
+    } else {  
+        document.documentElement.classList.add('dark');  
+    }  
+</script>  
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">  
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">  
+</head>  
+<body class="bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 text-xs">  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2"></div>  <div class="flex min-h-screen w-full">  <div id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 bg-slate-900 border-r border-slate-800 transform -translate-x-full transition-transform duration-300 flex flex-col text-white">  
+      
+    <div class="flex items-center justify-between px-4 py-3 border-b border-slate-800">  
+        <div class="flex items-center space-x-2.5">  
+            <div class="w-8 h-8 rounded-lg bg-emerald-600 border border-emerald-500 flex items-center justify-center overflow-hidden shadow-md">  
+                <img src="N1024.png" alt="Logo" class="w-full h-full object-cover">  
+            </div>  
+            <div>  
+                <h1 class="text-sm font-extrabold tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">  
+                    Digital NoteBook  
+                </h1>  
+            </div>  
+        </div>  
+        <button onclick="toggleSidebar()" class="text-slate-400 hover:text-white text-lg focus:outline-none">  
+            ✕  
+        </button>  
+    </div>  
 
-<script>
-(() => {
-  const theme = localStorage.getItem('theme') || 'dark';
-  document.documentElement.classList.toggle('dark', theme === 'dark');
-})();
-</script>
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-tailwind.config = { darkMode: 'class' };
-</script>
-<link rel="stylesheet"
- href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <div class="p-3 space-y-3 overflow-y-auto flex-1 text-xs">  
+        <div class="bg-slate-800/50 border border-slate-700/60 rounded-xl p-3 flex items-center space-x-3">  
+            <div class="relative cursor-pointer group" onclick="document.getElementById('avatar-upload-input').click()">  
+                <div class="w-11 h-11 rounded-full bg-emerald-600 border border-emerald-500 flex items-center justify-center overflow-hidden shadow-sm">  
+                    <img id="sidebar-avatar-img" src="N1024.png" alt="Profile" class="w-full h-full object-cover">  
+                </div>  
+            </div>  
+            <input type="file" id="avatar-upload-input" accept="image/*" class="hidden" onchange="handleAvatarUpload(event)">  
+            <div>  
+                <h3 id="sidebar-profile-name" class="text-white font-bold text-sm"></h3>  
+                <p class="text-[10px] text-slate-400"><span class="lang-text" data-en="Click icon to set photo" data-np="फोटो राख्न क्लिक गर्नुहोस्">Click icon to set photo</span></p>  
+            </div>  
+        </div>  
 
-<style>
-body {font-family:Poppins,sans-serif}
-input,select,textarea,button {font:inherit}
-.field {width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;color:#0f172a}
-.dark .field {background:#1e293b;border-color:#334155;color:#f8fafc}
-.panel {background:white;border:1px solid #e2e8f0;border-radius:16px;padding:16px}
-.dark .panel {background:#0f172a;border-color:#1e293b}
-.btn {padding:10px 14px;border-radius:10px;font-weight:600}
-.primary {background:#059669;color:white}
-.danger {background:#e11d48;color:white}
-.muted {color:#64748b}
-.dark .muted {color:#94a3b8}
-table {width:100%;border-collapse:collapse}
-th,td {padding:9px;text-align:left;border-bottom:1px solid #e2e8f0}
-.dark th,.dark td {border-color:#334155}
-#auth-screen {position:fixed;inset:0;z-index:100;background:#0f172a;color:white;display:flex;align-items:center;justify-content:center;padding:20px}
-[hidden] {display:none!important}
-</style>
-</head>
+        <nav class="space-y-1 font-medium">  
+            <a href="index.html" class="flex items-center gap-2.5 py-2.5 px-3 rounded-xl hover:bg-slate-800 text-slate-300 transition"><span>📊</span> <span class="lang-text" data-en="Overview" data-np="अवलोकन">Overview</span></a>  
+            <a href="add-transaction.html" class="flex items-center gap-2.5 py-2.5 px-3 rounded-xl bg-emerald-600 text-white shadow-md shadow-emerald-600/20 transition"><span>🔄</span> <span class="lang-text" data-en="Transactions & Ledger" data-np="कारोबार र खाता">Transactions & Ledger</span></a>  
+            <a href="savings.html" class="flex items-center gap-2.5 py-2.5 px-3 rounded-xl hover:bg-slate-800 text-slate-300 transition"><span>💵</span> <span class="lang-text" data-en="Cashflow / Savings" data-np="नगद प्रवाह / बचत">Cashflow / Savings</span></a>  
+        </nav>  
 
-<body class="bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 text-sm">
+        <div class="space-y-2.5 bg-slate-800/50 p-3 rounded-xl border border-slate-700/60">  
+            <h3 class="text-[11px] font-bold text-white flex items-center gap-1.5 mb-1">  
+                <i class="fa-solid fa-address-card text-emerald-400"></i> <span class="lang-text" data-en="Personal Info" data-np="व्यक्तिगत विवरण">Personal Info</span>  
+            </h3>  
+            <div>  
+                <label class="block text-[10px] font-semibold text-slate-400 mb-0.5"><span class="lang-text" data-en="Full Name" data-np="पूरा नाम">Full Name</span></label>  
+                <input type="text" id="input-full-name" placeholder="Enter Full Name" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-white text-xs focus:outline-none focus:border-emerald-500">  
+            </div>  
+            <div>  
+                <label class="block text-[10px] font-semibold text-slate-400 mb-0.5"><span class="lang-text" data-en="Address" data-np="ठेगाना">Address</span></label>  
+                <input type="text" id="input-address" placeholder="Enter Address" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-white text-xs focus:outline-none focus:border-emerald-500">  
+            </div>  
+            <div>  
+                <label class="block text-[10px] font-semibold text-slate-400 mb-0.5"><span class="lang-text" data-en="Mobile Number" data-np="मोबाइल नम्बर">Mobile Number</span></label>  
+                <input type="tel" id="input-mobile" placeholder="Enter Mobile Number" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-white text-xs focus:outline-none focus:border-emerald-500">  
+            </div>  
+            <div>  
+                <label class="block text-[10px] font-semibold text-slate-400 mb-0.5"><span class="lang-text" data-en="Email Address" data-np="इमेल ठेगाना">Email Address</span></label>  
+                <input type="email" id="input-email" placeholder="Enter Email" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-white text-xs focus:outline-none focus:border-emerald-500">  
+            </div>  
+            <button onclick="saveProfileDetails()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition shadow-md">  
+                <span class="lang-text" data-en="Save Info" data-np="सेभ गर्नुहोस्">Save Info</span>  
+            </button>  
+        </div>  
+    </div>  
+</div>  
 
-<div id="auth-screen">
-  <form id="auth-form" class="w-full max-w-sm space-y-4 bg-slate-900 p-6 rounded-2xl border border-slate-700">
-    <h1 class="text-xl font-bold">Digital NoteBook</h1>
-    <p class="text-slate-300">Sign in to access your private records.</p>
-    <label class="block">Email
-      <input id="auth-email" class="field mt-1" type="email" autocomplete="username" required>
-    </label>
-    <label class="block">Password
-      <input id="auth-password" class="field mt-1" type="password" autocomplete="current-password" required>
-    </label>
-    <button id="auth-submit" class="btn primary w-full" type="submit">Sign in</button>
-    <button id="auth-create" class="btn w-full bg-slate-700" type="button">Create account</button>
-    <p id="auth-message" role="status" class="text-amber-300"></p>
-  </form>
+<div class="flex-1 flex flex-col w-full">  
+      
+    <header class="sticky top-0 z-40 flex items-center justify-between px-3 md:px-5 py-3.5 bg-slate-900/95 backdrop-blur border-b border-emerald-500/20 shadow-md">  
+        <div class="flex items-center space-x-2.5">  
+            <button onclick="toggleSidebar()" class="text-white text-xl focus:outline-none hover:text-emerald-400 transition">☰</button>  
+            <div class="flex items-center space-x-2 cursor-pointer" onclick="toggleSidebar()">  
+                <div class="w-7 h-7 rounded-lg bg-emerald-600 border border-emerald-500/50 flex items-center justify-center overflow-hidden shadow-sm">  
+                    <img src="N1024.png" alt="Logo" class="w-full h-full object-cover">  
+                </div>  
+                <span class="text-xs md:text-sm font-extrabold tracking-wider bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">  
+                    Digital NoteBook  
+                </span>  
+            </div>  
+        </div>  
+
+        <div class="flex items-center space-x-2">  
+            <!-- Eye Toggle (Privacy Feature) Button -->  
+            <button onclick="togglePrivacy()" id="privacy-toggle-btn" title="Toggle Amount Visibility" class="w-7 h-7 rounded-md bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-200 hover:bg-slate-700 transition">  
+                <i id="privacy-icon" class="fa-solid fa-eye text-xs"></i>  
+            </button>  
+            <button onclick="toggleLanguage()" id="lang-toggle-btn" class="px-2 py-1 rounded-md bg-slate-800 border border-slate-700 text-[10px] font-bold text-slate-200 hover:bg-slate-700 transition">ENG</button>  
+            <button onclick="toggleTheme()" id="theme-toggle-btn" class="w-7 h-7 rounded-md bg-slate-800 border border-slate-700 flex items-center justify-center text-sm hover:bg-slate-700 transition">🌛</button>  
+            <div class="relative cursor-pointer" onclick="toggleSidebar()">  
+                <div class="w-8 h-8 rounded-full bg-emerald-600 border border-emerald-500 flex items-center justify-center overflow-hidden shadow-sm">  
+                    <img id="header-avatar-img" src="N1024.png" alt="Profile" class="w-full h-full object-cover">  
+                </div>  
+            </div>  
+        </div>  
+    </header>  
+
+    <main class="p-4 md:p-6 space-y-4 flex-1 w-full text-xs">  
+          
+        <div class="flex justify-between items-center px-1 py-1 text-white">  
+            <div>  
+                <p id="dynamic-date" class="text-[11px] font-semibold tracking-wider text-slate-400 uppercase mb-1"></p>  
+                <h2 class="text-base md:text-lg font-bold text-slate-800 dark:text-white tracking-tight flex items-center gap-2">  
+                    <i class="fa-solid fa-right-left text-emerald-500"></i> <span class="lang-text" data-en="Transactions & Ledger Manager" data-np="कारोबार र खाता प्रबन्धक">Transactions & Ledger Manager</span>  
+                </h2>  
+            </div>  
+        </div>  
+
+        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors mb-4">  
+            <button onclick="toggleAccordion('section-transaction')" class="w-full flex justify-between items-center p-4 md:p-5 text-left font-bold text-sm text-slate-900 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">  
+                <span class="flex items-center gap-2"><i class="fa-solid fa-right-left text-emerald-500"></i> <span class="lang-text" data-en="Add New Transaction" data-np="नयाँ कारोबार थप्नुहोस्">Add New Transaction</span></span>  
+                <i id="icon-section-transaction" class="fa-solid fa-chevron-down transition-transform"></i>  
+            </button>  
+            <div id="content-section-transaction" class="p-4 md:p-6 border-t border-slate-100 dark:border-slate-800 space-y-4">  
+                <form id="transaction-form" onsubmit="saveTransaction(event)" class="space-y-3">  
+                    <input type="hidden" id="edit-txn-index" value="">  
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">  
+                        <div>  
+                            <label class="block text-[11px] font-semibold text-slate-400 mb-1"><span class="lang-text" data-en="Date" data-np="मिति">Date</span></label>  
+                            <input type="date" id="txn-date" required class="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 rounded-xl text-xs outline-none focus:ring-2 focus:ring-emerald-500">  
+                        </div>  
+                        <div>  
+                            <label class="block text-[11px] font-semibold text-slate-400 mb-1"><span class="lang-text" data-en="Name" data-np="नाम">Name</span></label>  
+                            <input type="text" id="txn-party" placeholder="Enter name" required class="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 rounded-xl text-xs outline-none focus:ring-2 focus:ring-emerald-500">  
+                        </div>  
+                    </div>  
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">  
+                        <div>  
+                            <label class="block text-[11px] font-semibold text-slate-400 mb-1"><span class="lang-text" data-en="Type" data-np="प्रकार">Type</span></label>  
+                            <select id="txn-type" onchange="handleTypeChange()" class="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 rounded-xl text-xs outline-none focus:ring-2 focus:ring-emerald-500">  
+                                <option value="Receivable">Receivable</option>  
+                                <option value="Payable">Payable</option>  
+                                <option value="Expense">Expense</option>  
+                            </select>  
+                        </div>  
+                        <div id="interest-fields-wrapper" class="grid grid-cols-2 gap-2">  
+                            <div>  
+                                <label class="block text-[11px] font-semibold text-slate-400 mb-1"><span class="lang-text" data-en="Monthly Interest Rate (%)" data-np="मासिक ब्याज दर (%)">Monthly Interest Rate (%)</span></label>  
+                                <input type="number" step="any" id="txn-interest-rate" value="0" oninput="calculateTotalAmount()" placeholder="Monthly Rate (%)" class="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 rounded-xl text-xs outline-none">  
+                            </div>  
+                            <div>  
+                                <label class="block text-[11px] font-semibold text-slate-400 mb-1"><span class="lang-text" data-en="Period (Months)" data-np="अवधि (महिना)">Period (Months)</span></label>  
+                                <input type="number" step="any" id="txn-period" value="0" oninput="calculateTotalAmount()" placeholder="Time in months" class="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 rounded-xl text-xs outline-none">  
+                            </div>  
+                        </div>  
+                    </div>  
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">  
+                        <div>  
+                            <label class="block text-[11px] font-semibold text-slate-400 mb-1"><span class="lang-text" data-en="Principal Amount (NPR / INR)" data-np="मूल रकम (नेरु / भारु)">Principal Amount (NPR / INR)</span></label>  
+                            <div class="grid grid-cols-2 gap-2">  
+                                <input type="number" step="any" id="txn-amount-npr" oninput="calculateTotalAmount()" placeholder="NPR (Rs)" class="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 rounded-xl text-xs outline-none">  
+                                <input type="number" step="any" id="txn-amount-inr" oninput="calculateTotalAmount()" placeholder="INR (₹)" class="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 rounded-xl text-xs outline-none">  
+                            </div>  
+                        </div>  
+                        <div>  
+                            <label class="block text-[11px] font-semibold text-slate-400 mb-1"><span class="lang-text" data-en="Total Amount (Converted to NPR)" data-np="जम्मा रकम (नेरु मा रूपान्तरित)">Total Amount (Converted to NPR)</span></label>  
+                            <input type="text" id="txn-total-calc" readonly placeholder="Total calculation" class="w-full border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 px-3 py-2 rounded-xl text-xs outline-none font-bold">  
+                        </div>  
+                    </div>  
+                    <div>  
+                        <label class="block text-[11px] font-semibold text-slate-400 mb-1"><span class="lang-text" data-en="Remarks / Note" data-np="टिप्पणी / नोट">Remarks / Note</span></label>  
+                        <input type="text" id="txn-note" placeholder="Optional details..." class="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 rounded-xl text-xs outline-none focus:ring-2 focus:ring-emerald-500">  
+                    </div>  
+                    <div class="flex gap-2 pt-2">  
+                        <button type="button" id="txn-cancel-btn" onclick="resetTxnForm()" class="hidden w-1/3 bg-slate-500 text-white p-2.5 rounded-xl text-xs"><span class="lang-text" data-en="Cancel" data-np="रद्द गर्नुहोस्">Cancel</span></button>  
+                        <button type="submit" id="txn-submit-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium p-2.5 rounded-xl text-xs transition"><span class="lang-text" data-en="Save Transaction" data-np="कारोबार सेभ गर्नुहोस्">Save Transaction</span></button>  
+                    </div>  
+                </form>  
+            </div>  
+        </div>  
+
+        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors">  
+            <button onclick="toggleAccordion('section-party')" class="w-full flex justify-between items-center p-4 md:p-5 text-left font-bold text-sm text-slate-900 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">  
+                <span class="flex items-center gap-2"><i class="fa-solid fa-users text-emerald-500"></i> <span class="lang-text" data-en="Party Accounts & Ledger Table" data-np="पार्टी खाता र लेजर टेबल">Party Accounts & Ledger Table</span></span>  
+                <i id="icon-section-party" class="fa-solid fa-chevron-down transition-transform"></i>  
+            </button>  
+            <div id="content-section-party" class="p-4 md:p-6 border-t border-slate-100 dark:border-slate-800 space-y-4">  
+                  
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">  
+                    <div class="relative">  
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><i class="fa-solid fa-search"></i></span>  
+                        <input type="text" id="search-party" placeholder="Search party name..." oninput="renderPartyAccounts()" class="w-full pl-9 pr-3 py-2 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white rounded-xl text-xs outline-none">  
+                    </div>  
+                    <div>  
+                        <select id="sort-party" onchange="renderPartyAccounts()" class="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white rounded-xl text-xs outline-none">  
+                            <option value="name">Sort by Name (A-Z)</option>  
+                            <option value="balance_desc">Highest Balance</option>  
+                            <option value="date_desc">Newest Date First</option>  
+                        </select>  
+                    </div>  
+                </div>  
+
+                <div id="party-list-container" class="space-y-3"></div>  
+            </div>  
+        </div>  
+
+    </main>  
 </div>
 
-<div id="app" hidden>
-<header class="sticky top-0 z-30 bg-slate-900 text-white border-b border-emerald-500/30 p-3 flex flex-wrap gap-3 items-center justify-between">
-  <a href="index.html" class="font-bold text-emerald-400">📒 Digital NoteBook</a>
-  <div class="flex gap-2 items-center flex-wrap">
-    <span id="sync-status" class="text-xs text-slate-300">Connecting…</span>
-    <button id="privacy-btn" class="btn bg-slate-700" type="button" title="Toggle amount visibility"><i class="fa-solid fa-eye"></i></button>
-    <button id="language-btn" class="btn bg-slate-700" type="button">EN</button>
-    <button id="theme-btn" class="btn bg-slate-700" type="button">🌙</button>
-    <a href="setting.html" class="btn bg-slate-700">Settings</a>
-    <a href="account.html" class="btn bg-slate-700">Trash / Account</a>
-    <button id="signout-btn" class="btn danger" type="button">Sign out</button>
-  </div>
-</header>
+</div>  <div id="pdf-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-3">  
+    <div class="bg-white dark:bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">  
+        <div class="flex justify-between items-center px-4 py-3 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">  
+            <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">  
+                <i class="fa-solid fa-file-pdf text-emerald-500"></i> Party Ledger Report PDF Preview  
+            </h3>  
+            <button onclick="closePdfModal()" class="text-slate-400 hover:text-white text-base font-bold">✕</button>  
+        </div>  <div id="pdf-preview-container" class="p-4 overflow-y-auto flex-1 bg-slate-100 dark:bg-slate-950 flex justify-center">  
+    </div>  
 
-<main class="max-w-6xl mx-auto p-4 space-y-5">
-  <section class="flex flex-wrap justify-between items-center gap-3">
-    <div>
-      <p id="today" class="muted text-xs"></p>
-      <h1 class="text-xl font-bold">Transactions & Party Ledger</h1>
-    </div>
-    <span id="user-label" class="muted text-xs"></span>
-  </section>
-
-  <section class="panel space-y-4">
-    <h2 id="form-title" class="font-bold text-lg">Add transaction</h2>
-    <form id="transaction-form" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-      <input id="record-id" type="hidden">
-      <label>Date<input id="txn-date" class="field mt-1" type="date" required></label>
-      <label>Party / Name<input id="txn-party" class="field mt-1" maxlength="200" required></label>
-      <label>Type
-        <select id="txn-type" class="field mt-1">
-          <option value="Receivable">Receivable</option>
-          <option value="Payable">Payable</option>
-          <option value="Expense">Expense</option>
-        </select>
-      </label>
-      <label>Monthly interest rate (%)<input id="txn-rate" class="field mt-1" type="number" min="0" max="100" step="any" value="0"></label>
-      <label>Period (months)<input id="txn-period" class="field mt-1" type="number" min="0" max="1200" step="any" value="0"></label>
-      <label>Principal (NPR)<input id="txn-npr" class="field mt-1" type="number" min="0" step="any" value="0" required></label>
-      <label>Principal (INR)<input id="txn-inr" class="field mt-1" type="number" min="0" step="any" value="0" required></label>
-      <label class="sm:col-span-2">Total (NPR)
-        <input id="txn-total" class="field mt-1" readonly>
-      </label>
-      <label class="sm:col-span-2">Remarks / Notes
-        <textarea id="txn-note" class="field mt-1" rows="2" maxlength="3000"></textarea>
-      </label>
-      <div class="sm:col-span-2 flex gap-2">
-        <button id="save-btn" class="btn primary flex-1" type="submit">Save transaction</button>
-        <button id="cancel-edit" class="btn bg-slate-500 text-white" type="button" hidden>Cancel edit</button>
-      </div>
-    </form>
-    <p class="muted text-xs">INR conversion rate: 1 INR = 1.60 NPR. This rate is configurable in the code.</p>
-  </section>
-
-  <section class="panel space-y-3">
-    <h2 class="text-lg font-bold">Party Accounts & Ledger</h2>
-    <div class="grid sm:grid-cols-2 gap-3">
-      <input id="search" class="field" placeholder="Search party…">
-      <select id="sort" class="field">
-        <option value="name">Sort by name</option>
-        <option value="balance">Highest balance</option>
-        <option value="date">Newest date</option>
-      </select>
-    </div>
-    <div id="party-list" class="space-y-3"></div>
-  </section>
-
-  <section class="panel">
-    <h2 class="font-bold">Profile</h2>
-    <form id="profile-form" class="grid sm:grid-cols-2 gap-3 mt-3">
-      <label>Full name<input id="profile-name" class="field mt-1" maxlength="200"></label>
-      <label>Address<input id="profile-address" class="field mt-1" maxlength="500"></label>
-      <label>Mobile<input id="profile-mobile" class="field mt-1" maxlength="50"></label>
-      <label>Contact email<input id="profile-email" class="field mt-1" type="email" maxlength="254"></label>
-      <button class="btn primary sm:col-span-2" type="submit">Save profile</button>
-    </form>
-  </section>
-
-  <section class="panel">
-    <h2 class="font-bold">Legacy local data migration</h2>
-    <p class="muted my-2">Check the old device's local transaction data before importing. Import never deletes the source data.</p>
-    <button id="migration-preview" class="btn bg-slate-700 text-white" type="button">Preview old local data</button>
-    <div id="migration-area" class="mt-3 space-y-2"></div>
-  </section>
-</main>
+    <div class="p-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex justify-end gap-2">  
+        <button onclick="printFromModal()" class="bg-slate-700 hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm">  
+            <i class="fa-solid fa-print"></i> Print  
+        </button>  
+    </div>  
 </div>
 
-<div id="pdf-modal" hidden class="fixed inset-0 z-50 bg-black/70 p-3 overflow-auto">
-  <div class="max-w-3xl mx-auto bg-white text-slate-900 rounded-xl p-4">
-    <div class="flex justify-between gap-3 mb-3">
-      <h2 class="font-bold">Party Ledger Report</h2>
-      <button id="pdf-close" class="btn bg-slate-200">Close</button>
-    </div>
-    <div id="pdf-content"></div>
-    <button id="pdf-download" class="btn primary mt-4">Download PDF</button>
-    <button id="pdf-print" class="btn bg-slate-700 text-white mt-4">Print</button>
-  </div>
-</div>
-
-<div id="toast" class="fixed bottom-4 left-4 right-4 z-[110] mx-auto max-w-lg p-3 rounded-xl bg-slate-900 text-white shadow-xl" hidden role="status"></div>
-
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import {
-  getAuth, onAuthStateChanged, signInWithEmailAndPassword,
-  createUserWithEmailAndPassword, signOut
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import {
-  getDatabase, ref, onValue, get, update, push, serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyDDY_v7RHnkCTI6uyV4DNDjqoaIBGweg8c",
-  authDomain: "digital-a2552.firebaseapp.com",
-  databaseURL: "https://digital-a2552-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "digital-a2552",
-  storageBucket: "digital-a2552.firebasestorage.app",
-  messagingSenderId: "218135618179",
-  appId: "1:218135618179:web:821b76920d3e5669ac31b6"
-};
-
-const appFirebase = initializeApp(firebaseConfig);
-const auth = getAuth(appFirebase);
-const db = getDatabase(appFirebase);
-
-const $ = id => document.getElementById(id);
-const INR_RATE = 1.6;
-let currentUser = null;
-let transactions = [];
-let profile = {};
-let settings = {};
-let unsubscribeTransactions = null;
-let unsubscribeProfile = null;
-let unsubscribeSettings = null;
-let busy = false;
-let privateAmounts = localStorage.getItem('isPrivate') === 'true';
-let language = localStorage.getItem('lang') || 'EN';
-
-function toast(message, error = false) {
-  const el = $('toast');
-  el.textContent = message;
-  el.style.background = error ? '#be123c' : '#0f766e';
-  el.hidden = false;
-  clearTimeout(toast.timer);
-  toast.timer = setTimeout(() => el.hidden = true, 4000);
-}
-function setStatus(message) { $('sync-status').textContent = message; }
-function errMessage(error) {
-  const messages = {
-    'auth/invalid-credential': 'Email or password is incorrect.',
-    'auth/email-already-in-use': 'This email is already registered.',
-    'auth/weak-password': 'Use a stronger password.',
-    'auth/invalid-email': 'Please enter a valid email.',
-    'PERMISSION_DENIED': 'Firebase Rules denied this action. Check your database rules.'
-  };
-  return messages[error?.code] || error?.message || 'An unexpected error occurred.';
-}
-function safeNumber(value) {
-  const n = Number(value);
-  return Number.isFinite(n) && n >= 0 ? n : 0;
-}
-function escapeHtml(value) {
-  return String(value ?? '').replace(/[&<>"']/g, c => ({
-    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
-  })[c]);
-}
-function money(value) {
-  return privateAmounts ? '••••••' :
-    'Rs ' + Number(value || 0).toLocaleString('en-IN', {
-      minimumFractionDigits: 2, maximumFractionDigits: 2
-    });
-}
-function calculate(npr, inr, rate, period, type) {
-  const principal = safeNumber(npr) + safeNumber(inr) * INR_RATE;
-  return type === 'Expense'
-    ? principal
-    : principal + principal * safeNumber(rate) * safeNumber(period) / 100;
-}
-function updateTotal() {
-  $('txn-total').value = money(calculate(
-    $('txn-npr').value, $('txn-inr').value,
-    $('txn-rate').value, $('txn-period').value, $('txn-type').value
-  ));
-}
-function transactionPath(id) {
-  return `users/${currentUser.uid}/transactions/${id}`;
-}
-function profilePath() {
-  return `users/${currentUser.uid}/profile`;
-}
-function settingsPath() {
-  return `users/${currentUser.uid}/settings`;
-}
-function stopListeners() {
-  [unsubscribeTransactions, unsubscribeProfile, unsubscribeSettings]
-    .forEach(fn => { if (typeof fn === 'function') fn(); });
-  unsubscribeTransactions = unsubscribeProfile = unsubscribeSettings = null;
-}
-function startListeners(user) {
-  stopListeners();
-  currentUser = user;
-  $('user-label').textContent = user.email || user.uid;
-  $('auth-screen').hidden = true;
-  $('app').hidden = false;
-  setStatus('Connecting to cloud…');
-
-  unsubscribeTransactions = onValue(ref(db, `users/${user.uid}/transactions`), snap => {
-    const data = snap.val() || {};
-    transactions = Object.entries(data)
-      .filter(([id, item]) => item && typeof item === 'object' && !item.deletedAt)
-      .map(([id, item]) => ({ ...item, id }));
-    setStatus('Synced ✓');
-    renderParties();
-    updateTotal();
-  }, error => {
-    setStatus('Sync error');
-    toast(errMessage(error), true);
-  });
-
-  unsubscribeProfile = onValue(ref(db, profilePath()), snap => {
-    profile = snap.val() || {};
-    $('profile-name').value = profile.name || '';
-    $('profile-address').value = profile.address || '';
-    $('profile-mobile').value = profile.mobile || '';
-    $('profile-email').value = profile.email || user.email || '';
-  }, error => toast(errMessage(error), true));
-
-  unsubscribeSettings = onValue(ref(db, settingsPath()), snap => {
-    settings = snap.val() || {};
-    applySharedSettings();
-  }, error => toast(errMessage(error), true));
-}
-function applySharedSettings() {
-  const theme = settings.theme || localStorage.getItem('theme') || 'dark';
-  document.documentElement.classList.toggle('dark', theme === 'dark');
-  language = settings.language || localStorage.getItem('lang') || 'EN';
-  $('language-btn').textContent = language;
-  $('theme-btn').textContent = theme === 'dark' ? '🌙' : '🌞';
-  if (settings.accentColor) {
-    document.documentElement.style.setProperty('--app-accent', settings.accentColor);
-  }
-}
-async function saveSettings(patch) {
-  if (!currentUser) throw new Error('Please sign in first.');
-  await update(ref(db, settingsPath()), {
-    ...patch,
-    updatedAt: Date.now(),
-    updatedBy: currentUser.uid
-  });
-}
-$('auth-form').addEventListener('submit', async e => {
-  e.preventDefault();
-  $('auth-message').textContent = '';
-  $('auth-submit').disabled = true;
-  try {
-    await signInWithEmailAndPassword(auth, $('auth-email').value.trim(), $('auth-password').value);
-  } catch (error) {
-    $('auth-message').textContent = errMessage(error);
-  } finally {
-    $('auth-submit').disabled = false;
-  }
-});
-$('auth-create').addEventListener('click', async () => {
-  try {
-    await createUserWithEmailAndPassword(auth, $('auth-email').value.trim(), $('auth-password').value);
-  } catch (error) {
-    $('auth-message').textContent = errMessage(error);
-  }
-});
-$('signout-btn').addEventListener('click', () => signOut(auth).catch(e => toast(errMessage(e), true)));
-onAuthStateChanged(auth, user => {
-  if (user) startListeners(user);
-  else {
-    stopListeners();
-    currentUser = null;
-    transactions = [];
-    $('app').hidden = true;
-    $('auth-screen').hidden = false;
-    setStatus('Signed out');
-  }
-});
-
-['txn-npr','txn-inr','txn-rate','txn-period','txn-type'].forEach(id =>
-  $(id).addEventListener('input', updateTotal)
-);
-$('txn-type').addEventListener('change', () => {
-  const expense = $('txn-type').value === 'Expense';
-  $('txn-rate').disabled = expense;
-  $('txn-period').disabled = expense;
-  updateTotal();
-});
-$('txn-date').value = new Date().toISOString().slice(0,10);
-
-function resetForm() {
-  $('transaction-form').reset();
-  $('record-id').value = '';
-  $('txn-date').value = new Date().toISOString().slice(0,10);
-  $('txn-rate').disabled = false;
-  $('txn-period').disabled = false;
-  $('form-title').textContent = 'Add transaction';
-  $('save-btn').textContent = 'Save transaction';
-  $('cancel-edit').hidden = true;
-  updateTotal();
-}
-$('cancel-edit').addEventListener('click', resetForm);
-
-$('transaction-form').addEventListener('submit', async e => {
-  e.preventDefault();
-  if (!currentUser || busy) return;
-  const party = $('txn-party').value.trim();
-  if (!party) return toast('Enter a party name.', true);
-
-  const npr = safeNumber($('txn-npr').value);
-  const inr = safeNumber($('txn-inr').value);
-  const rate = safeNumber($('txn-rate').value);
-  const period = safeNumber($('txn-period').value);
-  const type = $('txn-type').value;
-  const id = $('record-id').value;
-  const now = Date.now();
-
-  const record = {
-    date: $('txn-date').value,
-    party, type, rate, period, npr, inr,
-    total: calculate(npr, inr, rate, period, type),
-    note: $('txn-note').value.trim(),
-    updatedAt: now,
-    updatedBy: currentUser.uid,
-    schemaVersion: 2
-  };
-  if (!record.date) return toast('Select a date.', true);
-
-  busy = true;
-  $('save-btn').disabled = true;
-  setStatus('Saving…');
-  try {
-    if (id) {
-      // Update only this record. Check its latest version first.
-      const snap = await get(ref(db, transactionPath(id)));
-      if (!snap.exists()) throw new Error('This record no longer exists. Refresh and try again.');
-      const old = snap.val();
-      if (old.updatedAt && Number(old.updatedAt) > Number(window.editStartedAt || 0)) {
-        const proceed = confirm('This record may have changed on another device. Save your changes anyway?');
-        if (!proceed) return;
-      }
-      await update(ref(db, transactionPath(id)), record);
-      toast('Transaction updated.');
-    } else {
-      const newRef = push(ref(db, `users/${currentUser.uid}/transactions`));
-      await update(newRef, { ...record, createdAt: now, createdBy: currentUser.uid });
-      toast('Transaction saved.');
-    }
-    resetForm();
-    setStatus('Synced ✓');
-  } catch (error) {
-    setStatus('Save failed');
-    toast(errMessage(error), true);
-  } finally {
-    busy = false;
-    $('save-btn').disabled = false;
-  }
-});
-
-function editTransaction(id) {
-  const tx = transactions.find(t => t.id === id);
-  if (!tx) return toast('Record not found. Refreshing data may help.', true);
-  $('record-id').value = id;
-  window.editStartedAt = Number(tx.updatedAt || 0);
-  $('txn-date').value = tx.date || '';
-  $('txn-party').value = tx.party || '';
-  $('txn-type').value = tx.type || 'Receivable';
-  $('txn-rate').value = tx.rate || 0;
-  $('txn-period').value = tx.period || 0;
-  $('txn-npr').value = tx.npr || 0;
-  $('txn-inr').value = tx.inr || 0;
-  $('txn-note').value = tx.note || '';
-  $('form-title').textContent = 'Edit transaction';
-  $('save-btn').textContent = 'Update transaction';
-  $('cancel-edit').hidden = false;
-  $('txn-type').dispatchEvent(new Event('change'));
-  window.scrollTo({top:0, behavior:'smooth'});
-}
-
-async function moveToTrash(id) {
-  if (!currentUser) return;
-  const tx = transactions.find(t => t.id === id);
-  if (!tx) return toast('Record not found.', true);
-  if (!confirm('Move this transaction to Trash? It can be restored within 30 days.')) return;
-
-  try {
-    const trashRecord = {
-      ...tx,
-      recordId: id,
-      recordType: 'transactions',
-      deletedAt: Date.now(),
-      deletedBy: currentUser.uid,
-      expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000
-    };
-    // Atomic multi-path update; never overwrite users/{uid}.
-    await update(ref(db), {
-      [`users/${currentUser.uid}/trash/transactions/${id}`]: trashRecord,
-      [transactionPath(id)]: null
-    });
-    toast('Moved to Trash. Restore it from account.html.');
-  } catch (error) {
-    toast(errMessage(error), true);
-  }
-}
-
-function renderParties() {
-  const root = $('party-list');
-  const q = $('search').value.trim().toLowerCase();
-  const groups = new Map();
-  transactions.forEach(tx => {
-    const key = (tx.party || 'Unknown').trim().toLowerCase();
-    if (!groups.has(key)) groups.set(key, {name:tx.party || 'Unknown', items:[], balance:0, latest:''});
-    const g = groups.get(key);
-    g.items.push(tx);
-    g.latest = tx.date > g.latest ? tx.date : g.latest;
-    if (tx.type === 'Receivable') g.balance += Number(tx.total || 0);
-    else g.balance -= Number(tx.total || 0);
-  });
-  let list = [...groups.values()].filter(g => g.name.toLowerCase().includes(q));
-  const sort = $('sort').value;
-  list.sort((a,b) => sort === 'balance' ? b.balance-a.balance :
-    sort === 'date' ? b.latest.localeCompare(a.latest) : a.name.localeCompare(b.name));
-
-  root.replaceChildren();
-  if (!list.length) {
-    root.textContent = 'No transaction records found.';
-    return;
-  }
-  list.forEach((g, i) => {
-    const details = document.createElement('details');
-    details.className = 'border rounded-xl p-3 dark:border-slate-700';
-    const summary = document.createElement('summary');
-    summary.className = 'cursor-pointer font-bold flex flex-wrap justify-between gap-2';
-    summary.textContent = `${g.name} — ${g.items.length} records — Net: ${money(g.balance)}`;
-    details.appendChild(summary);
-
-    const report = document.createElement('button');
-    report.className = 'btn primary my-3';
-    report.textContent = 'Preview / PDF report';
-    report.addEventListener('click', () => showReport(g.name));
-    details.appendChild(report);
-
-    const wrap = document.createElement('div');
-    wrap.className = 'overflow-x-auto';
-    const table = document.createElement('table');
-    table.innerHTML = '<thead><tr><th>Date</th><th>Type</th><th>NPR / INR</th><th>Total</th><th>Actions</th></tr></thead>';
-    const tbody = document.createElement('tbody');
-
-    [...g.items].sort((a,b) => (b.date||'').localeCompare(a.date||'')).forEach(tx => {
-      const tr = document.createElement('tr');
-      const cells = [
-        tx.date || '',
-        tx.type || '',
-        privateAmounts ? '•••• / ••••' : `${tx.npr || 0} / ${tx.inr || 0}`,
-        money(tx.total)
-      ];
-      cells.forEach(value => {
-        const td = document.createElement('td');
-        td.textContent = value;
-        tr.appendChild(td);
-      });
-      const actionTd = document.createElement('td');
-      const edit = document.createElement('button');
-      edit.className = 'btn bg-blue-600 text-white mr-1';
-      edit.textContent = 'Edit';
-      edit.addEventListener('click', () => editTransaction(tx.id));
-      const del = document.createElement('button');
-      del.className = 'btn danger';
-      del.textContent = 'Trash';
-      del.addEventListener('click', () => moveToTrash(tx.id));
-      actionTd.append(edit, del);
-      tr.appendChild(actionTd);
-      tbody.appendChild(tr);
-    });
-    table.appendChild(tbody);
-    wrap.appendChild(table);
-    details.appendChild(wrap);
-    root.appendChild(details);
-  });
-}
-$('search').addEventListener('input', renderParties);
-$('sort').addEventListener('change', renderParties);
-
-function showReport(partyName) {
-  const items = transactions.filter(t => (t.party || '').toLowerCase() === partyName.toLowerCase())
-    .sort((a,b) => (b.date||'').localeCompare(a.date||''));
-  if (!items.length) return toast('No data for this report.', true);
-  let net = 0;
-  const rows = items.map(t => {
-    net += t.type === 'Receivable' ? Number(t.total||0) : -Number(t.total||0);
-    return `<tr><td>${escapeHtml(t.date)}</td><td>${escapeHtml(t.type)}</td>
-      <td>${privateAmounts ? '••••' : `${escapeHtml(t.npr)} / ${escapeHtml(t.inr)}`}</td>
-      <td>${money(t.total)}</td><td>${escapeHtml(t.note || '-')}</td></tr>`;
-  }).join('');
-  $('pdf-content').innerHTML = `
-    <div id="printable" style="font-family:Arial,sans-serif;padding:18px;color:#111">
-      <h2 style="font-size:22px;font-weight:bold">Digital NoteBook — Party Ledger</h2>
-      <p>${escapeHtml(profile.name || '')} · ${escapeHtml(profile.address || '')}</p>
-      <p>Contact: ${escapeHtml(profile.mobile || '')} · ${escapeHtml(profile.email || '')}</p>
-      <h3 style="margin:16px 0;font-weight:bold">Party: ${escapeHtml(partyName)}</h3>
-      <table border="1" style="width:100%;border-collapse:collapse;font-size:11px">
-        <thead><tr><th>Date</th><th>Type</th><th>NPR / INR</th><th>Total NPR</th><th>Note</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-      <p style="margin-top:16px;font-weight:bold">Net Balance: ${money(net)}</p>
-      <p style="margin-top:24px;font-size:10px">Generated by Digital NoteBook · ${new Date().toLocaleDateString()}</p>
-    </div>`;
-  $('pdf-modal').hidden = false;
-}
-$('pdf-close').addEventListener('click', () => $('pdf-modal').hidden = true);
-$('pdf-download').addEventListener('click', async () => {
-  if (!window.html2pdf) return toast('PDF library could not load.', true);
-  try {
-    await html2pdf().set({
-      margin:8,
-      filename:'party-ledger.pdf',
-      image:{type:'jpeg',quality:0.95},
-      html2canvas:{scale:2,useCORS:true},
-      jsPDF:{unit:'mm',format:'a4',orientation:'landscape'}
-    }).from($('printable')).save();
-  } catch (e) { toast(errMessage(e), true); }
-});
-$('pdf-print').addEventListener('click', () => window.print());
-
-$('profile-form').addEventListener('submit', async e => {
-  e.preventDefault();
-  if (!currentUser) return;
-  try {
-    await update(ref(db, profilePath()), {
-      name:$('profile-name').value.trim(),
-      address:$('profile-address').value.trim(),
-      mobile:$('profile-mobile').value.trim(),
-      email:$('profile-email').value.trim(),
-      updatedAt:Date.now(),
-      updatedBy:currentUser.uid
-    });
-    toast('Profile saved.');
-  } catch (error) { toast(errMessage(error), true); }
-});
-
-$('privacy-btn').addEventListener('click', () => {
-  privateAmounts = !privateAmounts;
-  localStorage.setItem('isPrivate', String(privateAmounts));
-  $('privacy-btn').innerHTML = privateAmounts
-    ? '<i class="fa-solid fa-eye-slash"></i>' : '<i class="fa-solid fa-eye"></i>';
-  renderParties();
-  updateTotal();
-});
-$('language-btn').addEventListener('click', async () => {
-  language = language === 'EN' ? 'NEP' : 'EN';
-  localStorage.setItem('lang', language);
-  $('language-btn').textContent = language;
-  try { await saveSettings({language}); }
-  catch (e) { toast('Language changed locally, but cloud settings failed: '+errMessage(e), true); }
-});
-$('theme-btn').addEventListener('click', async () => {
-  const theme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
-  document.documentElement.classList.toggle('dark', theme === 'dark');
-  localStorage.setItem('theme', theme);
-  $('theme-btn').textContent = theme === 'dark' ? '🌙' : '🌞';
-  try { await saveSettings({theme}); }
-  catch (e) { toast('Theme changed locally, but cloud settings failed: '+errMessage(e), true); }
-});
-
-$('migration-preview').addEventListener('click', async () => {
-  const keys = ['digital_notebook_transactions'];
-  const oldItems = [];
-  for (const key of keys) {
-    try {
-      const data = JSON.parse(localStorage.getItem(key) || '[]');
-      if (Array.isArray(data)) oldItems.push(...data.map(x => ({...x, _legacyKey:key})));
-    } catch { toast(`Could not parse ${key}. Original data was not changed.`, true); }
-  }
-  const area = $('migration-area');
-  area.replaceChildren();
-  const msg = document.createElement('p');
-  msg.textContent = `Found ${oldItems.length} legacy transaction(s). Cloud data will not be cleared or overwritten.`;
-  area.appendChild(msg);
-  if (!oldItems.length) return;
-
-  const check = document.createElement('label');
-  const checkbox = document.createElement('input');
-  checkbox.type = 'checkbox';
-  check.append(checkbox, document.createTextNode(' I reviewed the preview and want to import these legacy records.'));
-  area.appendChild(check);
-
-  const preview = document.createElement('pre');
-  preview.className = 'text-xs overflow-auto max-h-48 bg-slate-100 dark:bg-slate-800 p-3 rounded';
-  preview.textContent = JSON.stringify(oldItems.slice(0,10), null, 2);
-  area.appendChild(preview);
-
-  const importBtn = document.createElement('button');
-  importBtn.className = 'btn primary';
-  importBtn.textContent = 'Import legacy records';
-  importBtn.disabled = true;
-  checkbox.addEventListener('change', () => importBtn.disabled = !checkbox.checked);
-  importBtn.addEventListener('click', async () => {
-    if (!currentUser || !checkbox.checked) return;
-    importBtn.disabled = true;
-    try {
-      const existing = await get(ref(db, `users/${currentUser.uid}/transactions`));
-      const cloud = existing.val() || {};
-      const updates = {};
-      let count = 0;
-      for (const item of oldItems) {
-        const newRef = push(ref(db, `users/${currentUser.uid}/transactions`));
-        // Import as new records; never replace existing cloud IDs.
-        updates[`users/${currentUser.uid}/transactions/${newRef.key}`] = {
-          date:item.date || new Date().toISOString().slice(0,10),
-          party:String(item.party || 'Imported record'),
-          type:['Receivable','Payable','Expense'].includes(item.type) ? item.type : 'Receivable',
-          rate:safeNumber(item.rate), period:safeNumber(item.period),
-          npr:safeNumber(item.npr), inr:safeNumber(item.inr),
-          total:safeNumber(item.total),
-          note:String(item.note || ''),
-          createdAt:Date.now(), updatedAt:Date.now(),
-          createdBy:currentUser.uid, updatedBy:currentUser.uid,
-          schemaVersion:2, importedFrom:'localStorage'
-        };
-        count++;
-      }
-      if (count) await update(ref(db), updates);
-      toast(`Imported ${count} records. Old local data was retained.`);
-      area.replaceChildren();
-    } catch (error) {
-      toast('Import failed: '+errMessage(error), true);
-      importBtn.disabled = false;
-    }
-  });
-  area.appendChild(importBtn);
-});
-
-$('today').textContent = new Date().toLocaleString();
-setInterval(() => { $('today').textContent = new Date().toLocaleString(); }, 30000);
-updateTotal();
-</script>
-</body>
+</div>  <script type="module">  
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";  
+    import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";  
+  
+    const firebaseConfig = {  
+      apiKey: "AIzaSyDDY_v7RHnkCTI6uyV4DNDjqoaIBGweg8c",  
+      authDomain: "digital-a2552.firebaseapp.com",  
+      projectId: "digital-a2552",  
+      storageBucket: "digital-a2552.firebasestorage.app",  
+      messagingSenderId: "218135618179",  
+      appId: "1:218135618179:web:821b76920d3e5669ac31b6"  
+    };  
+  
+    const app = initializeApp(firebaseConfig);  
+    const db = getDatabase(app);  
+  
+    async function backupToCloud(userId = "default_user") {  
+        try {  
+            const localData = {  
+                transactions: JSON.parse(localStorage.getItem('digital_notebook_transactions') || '[]'),  
+                theme: localStorage.getItem('theme') || 'dark',  
+                language: localStorage.getItem('lang') || 'EN',  
+                updatedAt: new Date().toISOString()  
+            };  
+            await set(ref(db, 'users/' + userId), localData);  
+            showToast(currentLang === 'NEP' ? 'डाटा सफलतापूर्वक सेभ भयो!' : 'Data successfully saved!', 'success');  
+        } catch (error) {  
+            console.error("Cloud Backup Error:", error);  
+            showToast(error.message, 'error');  
+        }  
+    }  
+  
+    async function restoreFromCloud(userId = "default_user") {  
+        try {  
+            const dbRef = ref(db);  
+            const snapshot = await get(child(dbRef, `users/${userId}`));  
+            if (snapshot.exists()) {  
+                const data = snapshot.val();  
+                if (data.transactions) localStorage.setItem('digital_notebook_transactions', JSON.stringify(data.transactions));  
+                if (data.theme) localStorage.setItem('theme', data.theme);  
+                if (data.language) localStorage.setItem('lang', data.language);  
+                  
+                showToast(currentLang === 'NEP' ? 'डाटा सफलतापूर्वक सिंक भयो!' : 'Data successfully synced!', 'success');  
+                setTimeout(() => location.reload(), 1000);  
+            } else {  
+                showToast(currentLang === 'NEP' ? 'कुनै ब्याकअप फेला परेन!' : 'No backup found!', 'error');  
+            }  
+        } catch (error) {  
+            console.error("Cloud Restore Error:", error);  
+            showToast(error.message, 'error');  
+        }  
+    }  
+  
+    window.handleCloudBackup = () => backupToCloud("default_user");  
+    window.handleCloudRestore = () => restoreFromCloud("default_user");  
+</script>  <script>  
+    function toggleSidebar() {  
+        const sidebar = document.getElementById('sidebar');  
+        if (sidebar) sidebar.classList.toggle('-translate-x-full');  
+    }  
+  
+    let currentLang = localStorage.getItem('lang') || 'EN';  
+    let isPrivate = localStorage.getItem('isPrivate') === 'true';  
+  
+    function updatePrivacyUI() {  
+        const icon = document.getElementById('privacy-icon');  
+        if (icon) {  
+            if (isPrivate) {  
+                icon.className = 'fa-solid fa-eye-slash text-xs text-rose-400';  
+            } else {  
+                icon.className = 'fa-solid fa-eye text-xs';  
+            }  
+        }  
+    }  
+  
+    function togglePrivacy() {  
+        isPrivate = !isPrivate;  
+        localStorage.setItem('isPrivate', isPrivate);  
+        updatePrivacyUI();  
+        calculateTotalAmount();  
+        renderPartyAccounts();  
+    }  
+  
+    function formatAmount(amount) {  
+        if (isPrivate) {  
+            return '••••••';  
+        }  
+        return `Rs ${parseFloat(amount).toFixed(2)}`;  
+    }  
+  
+    function updateLanguageUI() {  
+        const btn = document.getElementById('lang-toggle-btn');  
+        if(btn) btn.innerText = currentLang;  
+  
+        document.querySelectorAll('.lang-text').forEach(el => {  
+            const text = currentLang === 'NEP' ? el.getAttribute('data-np') : el.getAttribute('data-en');  
+            if(text) el.innerText = text;  
+        });  
+    }  
+  
+    function toggleLanguage() {  
+        currentLang = currentLang === 'EN' ? 'NEP' : 'EN';  
+        localStorage.setItem('lang', currentLang);  
+        updateLanguageUI();  
+        updateDynamicHeader();  
+        renderPartyAccounts();  
+    }  
+  
+    function updateThemeUI() {  
+        const isDark = document.documentElement.classList.contains('dark');  
+        const themeBtn = document.getElementById('theme-toggle-btn');  
+        if(themeBtn) themeBtn.innerText = isDark ? '🌛' : '🌞';  
+    }  
+  
+    function toggleTheme() {  
+        const htmlEl = document.documentElement;  
+        if (htmlEl.classList.contains('dark')) {  
+            htmlEl.classList.remove('dark');  
+            localStorage.setItem('theme', 'light');  
+        } else {  
+            htmlEl.classList.add('dark');  
+            localStorage.setItem('theme', 'dark');  
+        }  
+        updateThemeUI();  
+    }  
+  
+    function updateDynamicHeader() {  
+        const now = new Date();  
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };  
+        const dateString = now.toLocaleDateString(currentLang === 'NEP' ? 'ne-NP' : 'en-US', options).toUpperCase();  
+        const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };  
+        const timeString = now.toLocaleTimeString('en-US', timeOptions);  
+  
+        const dateEl = document.getElementById('dynamic-date');  
+        if (dateEl) dateEl.innerText = `${dateString} | ${timeString}`;  
+    }  
+  
+    setInterval(updateDynamicHeader, 1000);  
+  
+    function toggleAccordion(id) {  
+        const content = document.getElementById(`content-${id}`);  
+        const icon = document.getElementById(`icon-${id}`);  
+        if(content) content.classList.toggle('hidden');  
+        if(icon) icon.classList.toggle('rotate-180');  
+    }  
+  
+    function showToast(message, type = 'success') {  
+        const container = document.getElementById('toast-container');  
+        if(!container) return;  
+        const toast = document.createElement('div');  
+        toast.className = `${type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'} text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-semibold flex items-center gap-2`;  
+        toast.innerHTML = `<span>${type === 'success' ? '✅' : '⚠️'}</span> <span>${message}</span>`;  
+        container.appendChild(toast);  
+        setTimeout(() => toast.remove(), 3000);  
+    }  
+  
+    const INR_RATE = 1.6;  
+  
+    function handleTypeChange() {  
+        const type = document.getElementById('txn-type').value;  
+        const interestWrapper = document.getElementById('interest-fields-wrapper');  
+        if (type === 'Expense') {  
+            interestWrapper.classList.add('hidden');  
+            document.getElementById('txn-interest-rate').value = 0;  
+            document.getElementById('txn-period').value = 0;  
+        } else {  
+            interestWrapper.classList.remove('hidden');  
+        }  
+        calculateTotalAmount();  
+    }  
+  
+    function calculateTotalAmount() {  
+        const npr = parseFloat(document.getElementById('txn-amount-npr').value) || 0;  
+        const inr = parseFloat(document.getElementById('txn-amount-inr').value) || 0;  
+        let principal = npr + (inr * INR_RATE);  
+  
+        const type = document.getElementById('txn-type').value;  
+        if (type !== 'Expense') {  
+            const rate = parseFloat(document.getElementById('txn-interest-rate').value) || 0;  
+            const period = parseFloat(document.getElementById('txn-period').value) || 0;  
+            const interest = (principal * rate * period) / 100;  
+            principal += interest;  
+        }  
+  
+        const totalCalcEl = document.getElementById('txn-total-calc');  
+        if (isPrivate) {  
+            totalCalcEl.value = '••••••';  
+        } else {  
+            totalCalcEl.value = principal.toFixed(2);  
+        }  
+    }  
+  
+    function saveTransaction(event) {  
+        event.preventDefault();  
+        const index = document.getElementById('edit-txn-index').value;  
+        const date = document.getElementById('txn-date').value;  
+        const party = document.getElementById('txn-party').value.trim();  
+        const type = document.getElementById('txn-type').value;  
+        const rate = parseFloat(document.getElementById('txn-interest-rate').value) || 0;  
+        const period = parseFloat(document.getElementById('txn-period').value) || 0;  
+        const npr = parseFloat(document.getElementById('txn-amount-npr').value) || 0;  
+        const inr = parseFloat(document.getElementById('txn-amount-inr').value) || 0;  
+          
+        let principal = npr + (inr * INR_RATE);  
+        if (type !== 'Expense') {  
+            const interest = (principal * rate * period) / 100;  
+            principal += interest;  
+        }  
+        const total = principal;  
+  
+        const note = document.getElementById('txn-note').value.trim();  
+  
+        let transactions = JSON.parse(localStorage.getItem('digital_notebook_transactions') || '[]');  
+        const item = { date, party, type, rate, period, npr, inr, total, note };  
+  
+        if (index === "") {  
+            transactions.unshift(item);  
+            showToast('कारोबार सफलतापूर्वक सेभ भयो!', 'success');  
+        } else {  
+            transactions[index] = item;  
+            showToast('कारोबार रेकर्ड अपडेट भयो!', 'success');  
+        }  
+  
+        localStorage.setItem('digital_notebook_transactions', JSON.stringify(transactions));  
+        resetTxnForm();  
+        renderPartyAccounts();  
+    }  
+  
+    function resetTxnForm() {  
+        document.getElementById('transaction-form').reset();  
+        document.getElementById('edit-txn-index').value = "";  
+        document.getElementById('txn-submit-btn').innerText = currentLang === 'NEP' ? 'कारोबार सेभ गर्नुहोस्' : 'Save Transaction';  
+        document.getElementById('txn-cancel-btn').classList.add('hidden');  
+        document.getElementById('txn-date').valueAsDate = new Date();  
+        handleTypeChange();  
+    }  
+  
+    function renderPartyAccounts() {  
+        const container = document.getElementById('party-list-container');  
+        const searchQuery = (document.getElementById('search-party')?.value || '').toLowerCase();  
+        const sortOption = document.getElementById('sort-party')?.value || 'name';  
+        if(!container) return;  
+  
+        let transactions = JSON.parse(localStorage.getItem('digital_notebook_transactions') || '[]');  
+        container.innerHTML = '';  
+  
+        if (transactions.length === 0) {  
+            container.innerHTML = `<p class="text-slate-400 text-center py-3">${currentLang === 'NEP' ? 'कुनै कारोबार रेकर्ड फेला परेन।' : 'No transaction records found.'}</p>`;  
+            return;  
+        }  
+  
+        const parties = {};  
+        transactions.forEach((tx, idx) => {  
+            const rawName = tx.party || 'Unknown';  
+            const matchedKey = Object.keys(parties).find(k => k.toLowerCase() === rawName.toLowerCase()) || rawName;  
+  
+            if (!parties[matchedKey]) {  
+                parties[matchedKey] = {  
+                    name: matchedKey,  
+                    balance: 0,  
+                    items: []  
+                };  
+            }  
+            parties[matchedKey].items.push({ ...tx, originalIndex: idx });  
+  
+            if (tx.type === 'Receivable') {  
+                parties[matchedKey].balance += tx.total;  
+            } else if (tx.type === 'Payable') {  
+                parties[matchedKey].balance -= tx.total;  
+            } else if (tx.type === 'Expense') {  
+                parties[matchedKey].balance -= tx.total;  
+            }  
+        });  
+  
+        let partyArray = Object.values(parties);  
+  
+        if (searchQuery) {  
+            partyArray = partyArray.filter(p => p.name.toLowerCase().includes(searchQuery));  
+        }  
+  
+        if (sortOption === 'name') {  
+            partyArray.sort((a, b) => a.name.localeCompare(b.name));  
+        } else if (sortOption === 'balance_desc') {  
+            partyArray.sort((a, b) => b.balance - a.balance);  
+        } else if (sortOption === 'date_desc') {  
+            partyArray.sort((a, b) => {  
+                let maxDateA = Math.max(...a.items.map(i => new Date(i.date)));  
+                let maxDateB = Math.max(...b.items.map(i => new Date(i.date)));  
+                return maxDateB - maxDateA;  
+            });  
+        }  
+  
+        if (partyArray.length === 0) {  
+            container.innerHTML = `<p class="text-slate-400 text-center py-3">No matching party found.</p>`;  
+            return;  
+        }  
+  
+        partyArray.forEach((partyData, pIdx) => {  
+            const partyDiv = document.createElement('div');  
+            partyDiv.className = "bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/60 rounded-xl overflow-hidden mb-2";  
+  
+            let headerHtml = `  
+                <div class="flex justify-between items-center p-3 cursor-pointer select-none hover:bg-slate-100 dark:hover:bg-slate-800/80 transition" onclick="togglePartyLedgerItem('${pIdx}')">  
+                    <div class="flex items-center gap-2">  
+                        <i id="icon-party-item-${pIdx}" class="fa-solid fa-chevron-right text-[10px] text-slate-400 transition-transform"></i>  
+                        <div>  
+                            <h4 class="font-bold text-slate-900 dark:text-white text-xs"><i class="fa-solid fa-user text-emerald-400 mr-1.5"></i>${partyData.name}</h4>  
+                            <p class="text-[10px] text-slate-500 dark:text-slate-400">${partyData.items.length} records</p>  
+                        </div>  
+                    </div>  
+                    <div class="flex items-center gap-3">  
+                        <span class="font-bold text-xs ${partyData.balance >= 0 ? 'text-emerald-500' : 'text-rose-500'}">Net: ${formatAmount(partyData.balance)}</span>  
+                    </div>  
+                </div>  
+            `;  
+  
+            let detailsHtml = `<div id="ledger-party-item-${pIdx}" class="hidden border-t border-slate-200 dark:border-slate-700/60 bg-white dark:bg-slate-900/50 p-2 space-y-2">`;  
+              
+            detailsHtml += `  
+                <div class="flex justify-end gap-2 mb-1">  
+                    <button onclick="event.stopPropagation(); generateAndSharePartyPDF('${partyData.name}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded-lg text-[10px] font-semibold flex items-center gap-1.5 shadow-sm">  
+                        <i class="fa-solid fa-file-pdf"></i> Generate & View PDF  
+                    </button>  
+                </div>  
+                <div class="overflow-x-auto">  
+                    <table class="w-full text-left border-collapse">  
+                        <thead>  
+                            <tr class="border-b border-slate-200 dark:border-slate-700 text-[10px] text-slate-400">  
+                                <th class="py-1 px-2">Date</th>  
+                                <th class="py-1 px-2">Type</th>  
+                                <th class="py-1 px-2">NPR/INR</th>  
+                                <th class="py-1 px-2">Total</th>  
+                                <th class="py-1 px-2 text-right">Actions</th>  
+                            </tr>  
+                        </thead>  
+                        <tbody>  
+            `;  
+  
+            partyData.items.sort((a, b) => new Date(b.date) - new Date(a.date));  
+  
+            partyData.items.forEach(tx => {  
+                const displayNprInr = isPrivate ? 'NPR: •••• | INR: ••••' : `NPR: ${tx.npr} | INR: ${tx.inr}`;  
+                detailsHtml += `  
+                    <tr class="border-b border-slate-100 dark:border-slate-800 text-[11px]">  
+                        <td class="py-1.5 px-2 font-semibold text-slate-800 dark:text-slate-200">${tx.date}</td>  
+                        <td class="py-1.5 px-2">  
+                            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold ${tx.type === 'Receivable' ? 'bg-emerald-500/10 text-emerald-500' : tx.type === 'Payable' ? 'bg-amber-500/10 text-amber-500' : 'bg-rose-500/10 text-rose-500'}">${tx.type}</span>  
+                        </td>  
+                        <td class="py-1.5 px-2 text-slate-500">${displayNprInr}</td>  
+                        <td class="py-1.5 px-2 font-bold text-emerald-500">${formatAmount(tx.total)}</td>  
+                        <td class="py-1.5 px-2 text-right space-x-2">  
+                            <button onclick="event.stopPropagation(); editTransaction(${tx.originalIndex})" class="text-blue-500 hover:text-blue-600"><i class="fa-solid fa-pen-to-square"></i></button>  
+                            <button onclick="event.stopPropagation(); deleteTransaction(${tx.originalIndex})" class="text-rose-500 hover:text-rose-600"><i class="fa-solid fa-trash"></i></button>  
+                        </td>  
+                    </tr>  
+                `;  
+            });  
+  
+            detailsHtml += `</tbody></table></div></div>`;  
+            partyDiv.innerHTML = headerHtml + detailsHtml;  
+            container.appendChild(partyDiv);  
+        });  
+    }  
+  
+    function togglePartyLedgerItem(pIdx) {  
+        const ledger = document.getElementById(`ledger-party-item-${pIdx}`);  
+        const icon = document.getElementById(`icon-party-item-${pIdx}`);  
+        if(ledger && icon) {  
+            if(ledger.classList.contains('hidden')) {  
+                ledger.classList.remove('hidden');  
+                icon.classList.add('rotate-90');  
+            } else {  
+                ledger.classList.add('hidden');  
+                icon.classList.remove('rotate-90');  
+            }  
+        }  
+    }  
+  
+    function generateAndSharePartyPDF(partyName) {  
+        let transactions = JSON.parse(localStorage.getItem('digital_notebook_transactions') || '[]');  
+        let partyItems = transactions.filter(t => (t.party || '').toLowerCase() === partyName.toLowerCase());  
+          
+        if(partyItems.length === 0) {  
+            showToast('PDF बनाउन कुनै डाटा छैन!', 'error');  
+            return;  
+        }  
+  
+        const profileName = localStorage.getItem('profile_name') || 'Digital NoteBook';  
+        const profileAddress = localStorage.getItem('profile_address') || '';  
+        const profileMobile = localStorage.getItem('profile_mobile') || '';  
+        const profileEmail = localStorage.getItem('profile_email') || '';  
+        const profileAvatar = localStorage.getItem('profile_avatar') || 'N1024.png';  
+  
+        let previewContainer = document.getElementById('pdf-preview-container');  
+          
+        let html = `  
+        <div id="pdf-printable-content" style="background-color: #ffffff; color: #333333; font-family: 'Poppins', sans-serif; width: 100%; max-width: 650px; padding: 25px; border-radius: 12px; box-sizing: border-box;">  
+            <table style="width: 100%; border-bottom: 2px solid #16a34a; padding-bottom: 15px; margin-bottom: 20px; border-collapse: collapse;">  
+                <tr>  
+                    <td style="vertical-align: middle; width: 20%; text-align: center;">  
+                        <div style="display: inline-block; text-align: center;">  
+                            <div style="width: 55px; height: 55px; border-radius: 50%; overflow: hidden; border: 2px solid #16a34a; margin: 0 auto 4px auto;">  
+                                <img src="${profileAvatar}" style="width: 100%; height: 100%; object-fit: cover;">  
+                            </div>  
+                            <div style="font-size: 11px; font-weight: 700; color: #1f2937;">${profileName}</div>  
+                        </div>  
+                    </td>  
+                    <td style="vertical-align: middle; text-align: center; width: 55%; padding: 0 10px;">  
+                        <img src="bannerlogo.png" style="width: 100%; max-width: 100%; height: auto; object-fit: contain; display: inline-block;">  
+                    </td>  
+                    <td style="vertical-align: middle; text-align: left; font-size: 10px; color: #555; line-height: 1.4; width: 25%; padding-left: 10px;">  
+                        <div>📍 Address: ${profileAddress}</div>  
+                        <div>📞 Contact: ${profileMobile}</div>  
+                        <div>✉️ Email: ${profileEmail}</div>  
+                    </td>  
+                </tr>  
+            </table>  
+  
+            <h2 style="text-align: center; color: #1f2937; margin-bottom: 5px; text-transform: uppercase; font-size: 15px; font-weight: 800; letter-spacing: 1px;">Party Ledger Report</h2>  
+            <div style="text-align: center; font-size: 13px; font-weight: 600; color: #16a34a; margin-bottom: 20px;">Party: ${partyName}</div>  
+  
+            <table style="width: 100%; border-collapse: collapse; font-size: 11px;">  
+                <thead>  
+                    <tr style="background-color: #f3f4f6; color: #374151;">  
+                        <th style="padding: 10px; text-align: left; border-bottom: 1px solid #d1d5db;">Date</th>  
+                        <th style="padding: 10px; text-align: left; border-bottom: 1px solid #d1d5db;">Type</th>  
+                        <th style="padding: 10px; text-align: left; border-bottom: 1px solid #d1d5db;">NPR / INR</th>  
+                        <th style="padding: 10px; text-align: left; border-bottom: 1px solid #d1d5db;">Total (NPR)</th>  
+                        <th style="padding: 10px; text-align: left; border-bottom: 1px solid #d1d5db;">Note</th>  
+                    </tr>  
+                </thead>  
+                <tbody>`;  
+  
+        let netBalance = 0;  
+        partyItems.sort((a, b) => new Date(b.date) - new Date(a.date));  
+        partyItems.forEach(item => {  
+            if(item.type === 'Receivable') {  
+                netBalance += item.total;  
+            } else {  
+                netBalance -= item.total;  
+            }  
+  
+            const pdfNprInr = isPrivate ? 'NPR: •••• | INR: ••••' : `NPR: ${item.npr} | INR: ${item.inr}`;  
+  
+            html += `  
+                <tr style="border-bottom: 1px solid #e5e7eb;">  
+                    <td style="padding: 9px;">${item.date}</td>  
+                    <td style="padding: 9px; font-weight: bold; color: ${item.type === 'Receivable' ? '#16a34a' : '#e11d48'};">${item.type}</td>  
+                    <td style="padding: 9px;">${pdfNprInr}</td>  
+                    <td style="padding: 9px; font-weight: bold; color: #16a34a;">${formatAmount(item.total)}</td>  
+                    <td style="padding: 9px; color: #6b7280;">${item.note || '-'}</td>  
+                </tr>`;  
+        });  
+  
+        html += `  
+                </tbody>  
+            </table>  
+  
+            <div style="margin-top: 20px; text-align: right; font-size: 14px; font-weight: bold; color: ${netBalance >= 0 ? '#16a34a' : '#e11d48'}; border-top: 2px solid #16a34a; padding-top: 15px;">  
+                Net Balance: ${formatAmount(netBalance)}  
+            </div>  
+              
+            <div style="text-align: center; font-size: 10px; color: #9ca3af; margin-top: 30px; border-top: 1px solid #e5e7eb; padding-top: 10px;">  
+                Generated by Digital NoteBook | ${new Date().toLocaleDateString('en-NP')}  
+            </div>  
+        </div>`;  
+  
+        previewContainer.innerHTML = html;  
+        document.getElementById('pdf-modal').classList.remove('hidden');  
+    }  
+  
+    function closePdfModal() {  
+        document.getElementById('pdf-modal').classList.add('hidden');  
+    }  
+  
+    function printFromModal() {  
+        const element = document.getElementById('pdf-printable-content');  
+        let printWindow = window.open('', '_blank');  
+        printWindow.document.write('<html><head><title>Party Ledger Report</title></head><body>');  
+        printWindow.document.write(element.innerHTML);  
+        printWindow.document.write('</body></html>');  
+        printWindow.document.close();  
+        setTimeout(() => {  
+            printWindow.print();  
+        }, 500);  
+    }  
+  
+    function editTransaction(idx) {  
+        let transactions = JSON.parse(localStorage.getItem('digital_notebook_transactions') || '[]');  
+        const tx = transactions[idx];  
+        if(!tx) return;  
+  
+        document.getElementById('edit-txn-index').value = idx;  
+        document.getElementById('txn-date').value = tx.date;  
+        document.getElementById('txn-party').value = tx.party;  
+        document.getElementById('txn-type').value = tx.type;  
+        document.getElementById('txn-interest-rate').value = tx.rate;  
+        document.getElementById('txn-period').value = tx.period;  
+        document.getElementById('txn-amount-npr').value = tx.npr;  
+        document.getElementById('txn-amount-inr').value = tx.inr;  
+        document.getElementById('txn-note').value = tx.note;  
+  
+        handleTypeChange();  
+        document.getElementById('txn-submit-btn').innerText = currentLang === 'NEP' ? 'अपडेट गर्नुहोस्' : 'Update Transaction';  
+        document.getElementById('txn-cancel-btn').classList.remove('hidden');  
+  
+        const content = document.getElementById('content-section-transaction');  
+        if (content && content.classList.contains('hidden')) {  
+            toggleAccordion('section-transaction');  
+        }  
+        window.scrollTo({ top: 0, behavior: 'smooth' });  
+    }  
+  
+    function deleteTransaction(idx) {  
+        if(confirm(currentLang === 'NEP' ? 'के तपाईं यो कारोबार हटाउन निश्चित हुनुहुन्छ?' : 'Are you sure you want to delete this transaction?')) {  
+            let transactions = JSON.parse(localStorage.getItem('digital_notebook_transactions') || '[]');  
+            transactions.splice(idx, 1);  
+            localStorage.setItem('digital_notebook_transactions', JSON.stringify(transactions));  
+            renderPartyAccounts();  
+            showToast('कारोबार रेकर्ड हटाइयो!', 'success');  
+        }  
+    }  
+  
+    function saveProfileDetails() {  
+        const name = document.getElementById('input-full-name').value;  
+        const address = document.getElementById('input-address').value;  
+        const mobile = document.getElementById('input-mobile').value;  
+        const email = document.getElementById('input-email').value;  
+  
+        if(name) localStorage.setItem('profile_name', name);  
+        localStorage.setItem('profile_address', address);  
+        localStorage.setItem('profile_mobile', mobile);  
+        localStorage.setItem('profile_email', email);  
+  
+        loadUserData();  
+        showToast(currentLang === 'NEP' ? 'विवरण सफलतापूर्वक सेभ भयो!' : 'Details saved successfully!', 'success');  
+    }  
+  
+    function loadUserData() {  
+        const savedName = localStorage.getItem('profile_name') || '';  
+        const savedAddress = localStorage.getItem('profile_address') || '';  
+        const savedMobile = localStorage.getItem('profile_mobile') || '';  
+        const savedEmail = localStorage.getItem('profile_email') || '';  
+  
+        if(document.getElementById('input-full-name')) document.getElementById('input-full-name').value = savedName;  
+        if(document.getElementById('input-address')) document.getElementById('input-address').value = savedAddress;  
+        if(document.getElementById('input-mobile')) document.getElementById('input-mobile').value = savedMobile;  
+        if(document.getElementById('input-email')) document.getElementById('input-email').value = savedEmail;  
+  
+        const nameEl = document.getElementById('sidebar-profile-name');  
+        if(nameEl) nameEl.innerText = savedName;  
+    }  
+  
+    function handleAvatarUpload(event) {  
+        const file = event.target.files[0];  
+        if (file) {  
+            const reader = new FileReader();  
+            reader.onload = function(e) {  
+                const base64Image = e.target.result;  
+                localStorage.setItem('profile_avatar', base64Image);  
+                loadAvatar();  
+                showToast(currentLang === 'NEP' ? 'प्रोफाइल फोटो अपडेट भयो!' : 'Profile photo updated!', 'success');  
+            };  
+            reader.readAsDataURL(file);  
+        }  
+    }  
+  
+    function loadAvatar() {  
+        const savedImage = localStorage.getItem('profile_avatar') || 'N1024.png';  
+        ['sidebar-avatar-img', 'header-avatar-img'].forEach(id => {  
+            const img = document.getElementById(id);  
+            if(img) img.src = savedImage;  
+        });  
+    }  
+  
+    document.addEventListener("DOMContentLoaded", () => {  
+        updatePrivacyUI();  
+        updateLanguageUI();  
+        updateThemeUI();  
+        updateDynamicHeader();  
+        loadUserData();  
+        loadAvatar();  
+        renderPartyAccounts();  
+  
+        const dateInput = document.getElementById('txn-date');  
+        if(dateInput && !dateInput.value) {  
+            dateInput.valueAsDate = new Date();  
+        }  
+    });  
+</script>  <script>  
+    window.addEventListener('online', async () => {  
+        console.log('Internet connected! Syncing offline data to Firebase...');  
+        if (typeof window.handleCloudBackup === 'function') {  
+            await window.handleCloudBackup();  
+        }  
+    });  
+</script>  </body>  
 </html>
