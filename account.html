@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,304 +9,136 @@
 
   <style>
     :root {
-      --accent: #00ed20;
-      --bg: #101521;
-      --surface: #1b2336;
-      --surface2: #171e2e;
-      --text: #eef2ff;
-      --muted: #a5afc3;
-      --border: #303a50;
-      --danger: #ff5252;
-      --success: #20c879;
+      --accent:#00ed20; --bg:#101521; --surface:#1b2336;
+      --surface2:#171e2e; --text:#eef2ff; --muted:#a5afc3;
+      --border:#303a50; --danger:#ff5252; --success:#20c879;
     }
-
-    * { box-sizing: border-box; }
-
+    * { box-sizing:border-box; }
     body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      font-family: Poppins, Arial, sans-serif;
-      font-size: 16px;
+      margin:0; background:var(--bg); color:var(--text);
+      font-family:Poppins,Arial,sans-serif; font-size:16px;
     }
-
-    button, input { font: inherit; }
-
+    button,input { font:inherit; }
     button {
-      cursor: pointer;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 11px 15px;
-      color: var(--text);
-      background: var(--surface2);
-      font-weight: 600;
+      cursor:pointer; border:1px solid var(--border); border-radius:12px;
+      padding:11px 15px; color:var(--text); background:var(--surface2);
+      font-weight:600;
     }
-
-    button:disabled {
-      opacity: .45;
-      cursor: not-allowed;
-    }
-
-    button.primary {
-      color: #07120a;
-      background: var(--accent);
-      border-color: var(--accent);
-    }
-
-    button.danger {
-      color: white;
-      background: #c62828;
-      border-color: #c62828;
-    }
-
-    button.success {
-      color: white;
-      background: #16834b;
-      border-color: #16834b;
-    }
-
+    button:disabled { opacity:.45; cursor:not-allowed; }
+    button.primary { color:#07120a; background:var(--accent); border-color:var(--accent); }
+    button.danger { color:white; background:#c62828; border-color:#c62828; }
+    button.success { color:white; background:#16834b; border-color:#16834b; }
     input {
-      width: 100%;
-      padding: 12px;
-      border-radius: 11px;
-      border: 1px solid var(--border);
-      background: var(--surface2);
-      color: var(--text);
-      margin-top: 7px;
+      width:100%; padding:12px; border-radius:11px; border:1px solid var(--border);
+      background:var(--surface2); color:var(--text); margin-top:7px;
     }
-
     .app-header {
-      min-height: 84px;
-      padding: 14px 17px;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      position: sticky;
-      top: 0;
-      z-index: 50;
+      min-height:84px; padding:14px 17px; background:var(--surface);
+      border-bottom:1px solid var(--border); display:flex; align-items:center;
+      gap:15px; position:sticky; top:0; z-index:50;
     }
-
     .back-button {
-      width: 61px;
-      height: 61px;
-      flex-shrink: 0;
-      font-size: 27px;
-      padding: 0;
-      background: transparent;
+      width:61px; height:61px; flex-shrink:0; font-size:27px;
+      padding:0; background:transparent;
     }
-
-    .header-copy { min-width: 0; flex: 1; }
-
-    .app-name {
-      font-weight: 800;
-      font-size: 20px;
-      line-height: 1.4;
-    }
-
-    .app-subtitle {
-      color: var(--muted);
-      font-size: 14px;
-      margin-top: 2px;
-    }
-
+    .header-copy { min-width:0; flex:1; }
+    .app-name { font-weight:800; font-size:20px; line-height:1.4; }
+    .app-subtitle { color:var(--muted); font-size:14px; margin-top:2px; }
     .sync-pill {
-      border: 1px solid var(--border);
-      color: var(--muted);
-      border-radius: 30px;
-      padding: 7px 11px;
-      font-size: 12px;
-      white-space: nowrap;
+      border:1px solid var(--border); color:var(--muted); border-radius:30px;
+      padding:7px 11px; font-size:12px; white-space:nowrap;
     }
-
-    main {
-      width: min(100%, 900px);
-      margin: 0 auto;
-      padding: 24px 16px 45px;
-    }
-
-    h1 {
-      margin: 0 0 8px;
-      font-size: 27px;
-    }
-
-    h2 {
-      margin: 0 0 13px;
-      font-size: 20px;
-    }
-
-    h3 { margin: 0 0 8px; font-size: 16px; }
-
-    p { line-height: 1.6; }
-
-    .muted { color: var(--muted); }
-    .small { font-size: 13px; }
+    main { width:min(100%,900px); margin:0 auto; padding:24px 16px 45px; }
+    h1 { margin:0 0 8px; font-size:27px; }
+    h2 { margin:0 0 13px; font-size:20px; }
+    h3 { margin:0 0 8px; font-size:16px; }
+    p { line-height:1.6; }
+    .muted { color:var(--muted); }
+    .small { font-size:13px; }
     .section-caption {
-      margin: 28px 4px 12px;
-      color: var(--muted);
-      font-weight: 700;
-      letter-spacing: .7px;
-      font-size: 13px;
-      text-transform: uppercase;
+      margin:28px 4px 12px; color:var(--muted); font-weight:700;
+      letter-spacing:.7px; font-size:13px; text-transform:uppercase;
     }
-
     .panel {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 19px;
-      padding: 20px;
-      margin: 17px 0;
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:19px; padding:20px; margin:17px 0;
     }
-
     .card {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 15px;
-      padding: 15px;
-      margin: 12px 0;
-      overflow-wrap: anywhere;
+      background:var(--surface2); border:1px solid var(--border);
+      border-radius:15px; padding:15px; margin:12px 0; overflow-wrap:anywhere;
     }
-
-    .row {
-      display: flex;
-      gap: 9px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
+    .row { display:flex; gap:9px; align-items:center; flex-wrap:wrap; }
     .between {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
+      display:flex; justify-content:space-between; align-items:center;
+      gap:12px; flex-wrap:wrap;
     }
-
     .status {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 12px;
-      margin: 12px 0;
-      overflow-wrap: anywhere;
-      white-space: pre-wrap;
+      background:var(--surface2); border:1px solid var(--border);
+      border-radius:12px; padding:12px; margin:12px 0;
+      overflow-wrap:anywhere; white-space:pre-wrap;
     }
-
-    .status.good { color: #39dc91; }
-    .status.error { color: #ff7777; }
-
-    label {
-      display: block;
-      font-weight: 600;
-      margin: 14px 0;
-    }
-
+    .status.good { color:#39dc91; }
+    .status.error { color:#ff7777; }
+    label { display:block; font-weight:600; margin:14px 0; }
     .record {
-      padding: 15px;
-      margin: 12px 0;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      overflow-wrap: anywhere;
+      padding:15px; margin:12px 0; border:1px solid var(--border);
+      border-radius:14px; overflow-wrap:anywhere;
     }
-
-    .record-meta {
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.7;
-      margin-top: 8px;
-    }
-
-    .record-actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: 12px;
-    }
-
+    .record-meta { color:var(--muted); font-size:12px; line-height:1.7; margin-top:8px; }
+    .record-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
     .badge {
-      display: inline-block;
-      border: 1px solid var(--border);
-      padding: 4px 9px;
-      border-radius: 30px;
-      font-size: 11px;
+      display:inline-block; border:1px solid var(--border);
+      padding:4px 9px; border-radius:30px; font-size:11px;
     }
-
-    .hidden { display: none !important; }
-    .danger-text { color: #ff7777; }
-    .good-text { color: #39dc91; }
-
-    .footer {
-      text-align: center;
-      color: var(--muted);
-      font-size: 12px;
-      padding: 20px;
-    }
-
+    .hidden { display:none !important; }
+    .danger-text { color:#ff7777; }
+    .good-text { color:#39dc91; }
+    .footer { text-align:center; color:var(--muted); font-size:12px; padding:20px; }
     .modal {
-      position: fixed;
-      inset: 0;
-      z-index: 1000;
-      background: #000a;
-      display: grid;
-      place-items: center;
-      padding: 18px;
+      position:fixed; inset:0; z-index:1000; background:#000a;
+      display:grid; place-items:center; padding:18px;
     }
-
     .modal-box {
-      width: min(450px, 100%);
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 17px;
-      padding: 22px;
+      width:min(450px,100%); background:var(--surface);
+      border:1px solid var(--border); border-radius:17px; padding:22px;
     }
-
-    @media (max-width: 480px) {
-      .app-header { padding: 12px; gap: 11px; }
-      .back-button { width: 54px; height: 54px; }
-      .app-name { font-size: 18px; }
-      .app-subtitle { font-size: 12px; }
-      main { padding: 22px 14px 35px; }
-      h1 { font-size: 24px; }
-      .panel { padding: 16px; }
-      .sync-pill { font-size: 11px; padding: 6px 8px; }
+    @media (max-width:480px) {
+      .app-header { padding:12px; gap:11px; }
+      .back-button { width:54px; height:54px; }
+      .app-name { font-size:18px; }
+      .app-subtitle { font-size:12px; }
+      main { padding:22px 14px 35px; }
+      h1 { font-size:24px; }
+      .panel { padding:16px; }
+      .sync-pill { font-size:11px; padding:6px 8px; }
     }
   </style>
 </head>
 
 <body>
-  <!-- Settings page जस्तै माथिल्लो header; पुरानो sidebar हटाइएको छ -->
   <header class="app-header">
-    <button id="backButton" class="back-button" type="button"
-      aria-label="Go back" title="Back">‹</button>
-
+    <button id="backButton" class="back-button" type="button" aria-label="Go back" title="Back">‹</button>
     <div class="header-copy">
       <div class="app-name">📘 Digital NoteBook</div>
       <div class="app-subtitle">Account & Recovery</div>
     </div>
-
     <span id="syncStatus" class="sync-pill">Connecting…</span>
   </header>
 
   <main>
     <h1>Account & Recovery</h1>
-    <p class="muted">Manage your account, biometric convenience unlock, Trash, and backups.</p>
-
+    <p class="muted">Manage your account, MPIN, Trash, and backups.</p>
     <div id="pageStatus" class="status">Connecting to Firebase…</div>
 
     <div class="section-caption">Account</div>
-
     <section class="panel">
       <h2>👤 Account information</h2>
-
       <div class="card">
         <div class="muted small">Signed-in email</div>
         <strong id="accountEmail">Loading…</strong>
-
         <div class="muted small" style="margin-top:12px">Firebase UID</div>
         <div id="accountUid" class="small">—</div>
       </div>
-
       <div class="row">
         <button id="refreshButton" type="button">Refresh data</button>
         <button id="resetPasswordButton" type="button">Send password reset email</button>
@@ -313,47 +146,47 @@
       </div>
     </section>
 
-    <div class="section-caption">Device security</div>
-
+    <div class="section-caption">MPIN security</div>
     <section class="panel">
-      <h2>🔐 Fingerprint / Biometric unlock</h2>
-
-      <p>
-        Supported devices and browsers may offer fingerprint, face recognition,
-        or screen-lock verification through WebAuthn.
-      </p>
-
-      <div id="biometricStatus" class="status">Checking browser support…</div>
-
-      <div class="row">
-        <button id="registerBiometricButton" class="primary" type="button">
-          Set up biometric
-        </button>
-        <button id="testBiometricButton" type="button">Test biometric</button>
-        <button id="removeBiometricButton" type="button">Remove setup</button>
-      </div>
-
+      <h2>🔐 MPIN lock</h2>
       <p class="muted small">
-        Biometric availability depends on the phone, browser, HTTPS, and device settings.
-        This page's test checks the browser credential locally; it does not authenticate
-        the user to Firebase. A production biometric login requires server-side WebAuthn
-        challenge verification.
+        Set or change the four-digit MPIN used by the notebook lock screen.
+        This setting is saved locally on this device.
       </p>
+      <label>
+        Current MPIN
+        <input id="currentMpin" type="password" inputmode="numeric"
+          autocomplete="off" maxlength="4" placeholder="Current 4-digit MPIN">
+      </label>
+      <label>
+        New MPIN
+        <input id="newMpin" type="password" inputmode="numeric"
+          autocomplete="off" maxlength="4" placeholder="New 4-digit MPIN">
+      </label>
+      <label>
+        Confirm new MPIN
+        <input id="confirmMpin" type="password" inputmode="numeric"
+          autocomplete="off" maxlength="4" placeholder="Enter new MPIN again">
+      </label>
+      <div class="row">
+        <button id="saveMpinButton" class="primary" type="button">Save MPIN</button>
+        <button id="showMpinButton" type="button">Show / hide MPIN</button>
+      </div>
+      <div id="mpinStatus" class="status" aria-live="polite">
+        Default MPIN is 1234 if no MPIN has been set previously.
+      </div>
     </section>
 
     <div class="section-caption">Trash & recovery</div>
-
     <section class="panel">
       <div class="between">
         <h2>🗑️ Central Trash</h2>
         <button id="reloadTrashButton" type="button">Refresh Trash</button>
       </div>
-
       <p class="muted small">
         Restore recoverable records. If a record already exists at its original path,
         Restore will stop rather than overwrite it.
       </p>
-
       <div class="row">
         <div class="card" style="flex:1;min-width:110px">
           <div class="muted small">Total records</div>
@@ -364,14 +197,11 @@
           <h2 id="expiredCount">0</h2>
         </div>
       </div>
-
       <label>
         Search Trash
         <input id="trashSearch" type="search" placeholder="Search records…">
       </label>
-
       <div id="trashList"></div>
-
       <p class="muted small">
         Automatic permanent deletion after 30 days requires a scheduled Firebase Cloud
         Function. This page alone cannot guarantee server-side expiry cleanup.
@@ -379,54 +209,41 @@
     </section>
 
     <div class="section-caption">Backup</div>
-
     <section class="panel">
       <h2>📦 Backup & Recovery</h2>
-
       <p class="muted">
         Export your data as JSON. Import adds missing sections and skips sections that
         already exist; it does not replace existing sections.
       </p>
-
       <div class="row">
         <button id="exportButton" class="primary" type="button">Export backup JSON</button>
         <button id="chooseBackupButton" type="button">Restore from JSON</button>
         <input id="backupFile" class="hidden" type="file" accept=".json,application/json">
       </div>
-
       <div id="backupStatus" class="status">
         Your backup is saved to your device when you export it.
       </div>
     </section>
 
     <div class="section-caption">Password</div>
-
     <section class="panel">
       <h2>🔑 Change password</h2>
       <p class="muted small">Your current password may be required to confirm this operation.</p>
-
       <label>
         Current password
-        <input id="currentPassword" type="password"
-          autocomplete="current-password" placeholder="Current password">
+        <input id="currentPassword" type="password" autocomplete="current-password"
+          placeholder="Current password">
       </label>
-
       <label>
         New password
-        <input id="newPassword" type="password"
-          autocomplete="new-password" minlength="6"
-          placeholder="At least 6 characters">
+        <input id="newPassword" type="password" autocomplete="new-password"
+          minlength="6" placeholder="At least 6 characters">
       </label>
-
-      <button id="changePasswordButton" class="primary" type="button">
-        Change password
-      </button>
-
+      <button id="changePasswordButton" class="primary" type="button">Change password</button>
       <div id="passwordStatus" class="status hidden"></div>
     </section>
 
     <div class="section-caption">Security</div>
-
     <section class="panel">
       <h2>🛡️ Security information</h2>
       <p>
@@ -434,19 +251,29 @@
         <code>users/{uid}</code> path. Do not use public read/write rules in production.
       </p>
       <p class="muted small">
-        Account login uses Firebase Authentication. Settings are read from the shared
-        Firebase settings path. This page does not delete the whole account or erase
-        all cloud data.
+        Account login uses Firebase Authentication. Preferences are read locally first,
+        including offline, and synchronized when Firebase is available.
       </p>
     </section>
   </main>
 
   <footer class="footer">Digital NoteBook Web App</footer>
 
-  <div id="busyModal" class="modal hidden" role="dialog" aria-modal="true">
+  <div id="busyModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="busyTitle">
     <div class="modal-box">
       <h2 id="busyTitle">Please wait</h2>
       <p id="busyText">Working…</p>
+    </div>
+  </div>
+
+  <div id="confirmModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+    <div class="modal-box">
+      <h2 id="confirmTitle">Please confirm</h2>
+      <p id="confirmText"></p>
+      <div class="row">
+        <button id="confirmCancel" type="button">Cancel</button>
+        <button id="confirmAccept" class="primary" type="button">Continue</button>
+      </div>
     </div>
   </div>
 
@@ -472,15 +299,11 @@
     const DAY_MS = 86400000;
     const TRASH_DAYS = 30;
 
-    let auth = null;
-    let db = null;
-    let user = null;
-    let userRef = null;
-    let settingsRef = null;
-    let trashRef = null;
-    let settingsListener = null;
-    let trashListener = null;
+    let auth = null, db = null, user = null, userRef = null;
+    let settingsRef = null, trashRef = null;
+    let settingsListener = null, trashListener = null;
     let trashSnapshot = {};
+    let confirmResolver = null;
 
     function status(message, kind = "") {
       const el = $("pageStatus");
@@ -495,30 +318,39 @@
       el.classList.remove("hidden");
     }
 
-    function syncStatus(message) {
-      $("syncStatus").textContent = message;
-    }
-
+    function syncStatus(message) { $("syncStatus").textContent = message; }
     function busy(title, text) {
       $("busyTitle").textContent = title;
       $("busyText").textContent = text;
       $("busyModal").classList.remove("hidden");
     }
+    function notBusy() { $("busyModal").classList.add("hidden"); }
 
-    function notBusy() {
-      $("busyModal").classList.add("hidden");
+    function askConfirm(message, title = "Please confirm") {
+      $("confirmTitle").textContent = title;
+      $("confirmText").textContent = message;
+      $("confirmModal").classList.remove("hidden");
+      return new Promise(resolve => { confirmResolver = resolve; });
     }
+
+    function finishConfirm(answer) {
+      $("confirmModal").classList.add("hidden");
+      if (confirmResolver) {
+        const resolve = confirmResolver;
+        confirmResolver = null;
+        resolve(answer);
+      }
+    }
+
+    $("confirmCancel").addEventListener("click", () => finishConfirm(false));
+    $("confirmAccept").addEventListener("click", () => finishConfirm(true));
+    $("confirmModal").addEventListener("click", event => {
+      if (event.target === $("confirmModal")) finishConfirm(false);
+    });
 
     function json(value) {
       try { return JSON.stringify(value, null, 2); }
       catch (_) { return "{}"; }
-    }
-
-    function escapeHtml(value) {
-      return String(value ?? "").replace(/[&<>"']/g, c => ({
-        "&": "&amp;", "<": "&lt;", ">": "&gt;",
-        '"': "&quot;", "'": "&#39;"
-      })[c]);
     }
 
     function dateText(value) {
@@ -527,26 +359,22 @@
       return new Date(n).toLocaleString();
     }
 
+    // Apply locally cached preferences immediately, including when offline.
     function applySettings(settings) {
       if (!settings || typeof settings !== "object") return;
 
-      if (settings.theme === "dark" || settings.theme === "light") {
-        document.body.classList.toggle("light-theme", settings.theme === "light");
-        if (settings.theme === "light") {
-          document.documentElement.style.setProperty("--bg", "#f3f5fa");
-          document.documentElement.style.setProperty("--surface", "#ffffff");
-          document.documentElement.style.setProperty("--surface2", "#f7f8fc");
-          document.documentElement.style.setProperty("--text", "#172033");
-          document.documentElement.style.setProperty("--muted", "#697386");
-          document.documentElement.style.setProperty("--border", "#dfe4ee");
-        } else {
-          document.documentElement.style.setProperty("--bg", "#101521");
-          document.documentElement.style.setProperty("--surface", "#1b2336");
-          document.documentElement.style.setProperty("--surface2", "#171e2e");
-          document.documentElement.style.setProperty("--text", "#eef2ff");
-          document.documentElement.style.setProperty("--muted", "#a5afc3");
-          document.documentElement.style.setProperty("--border", "#303a50");
-        }
+      const light = settings.theme === "light";
+      if (settings.theme === "dark" || light) {
+        const palette = light ? {
+          bg:"#f3f5fa", surface:"#ffffff", surface2:"#f7f8fc",
+          text:"#172033", muted:"#697386", border:"#dfe4ee"
+        } : {
+          bg:"#101521", surface:"#1b2336", surface2:"#171e2e",
+          text:"#eef2ff", muted:"#a5afc3", border:"#303a50"
+        };
+        Object.entries(palette).forEach(([key, value]) =>
+          document.documentElement.style.setProperty("--" + key, value)
+        );
       }
 
       if (settings.accentColor && /^#[0-9a-fA-F]{6}$/.test(settings.accentColor)) {
@@ -558,23 +386,64 @@
         document.body.style.fontSize = size + "px";
       }
 
-      const allowedFonts = ["Arial", "Roboto", "Poppins", "Inter", "Georgia", "system-ui"];
-      if (allowedFonts.includes(settings.font_family)) {
+      const fonts = ["Arial", "Roboto", "Poppins", "Inter", "Georgia", "system-ui"];
+      if (fonts.includes(settings.font_family)) {
         document.body.style.fontFamily = settings.font_family + ", Arial, sans-serif";
+      }
+
+      if (settings.lang === "ne" || settings.lang === "en") {
+        document.documentElement.lang = settings.lang;
       }
     }
 
+    function loadCachedSettings() {
+      try {
+        const cached = JSON.parse(localStorage.getItem("digital_notebook_settings") || "{}");
+        applySettings(cached);
+        if (!cached.theme) {
+          const oldTheme = localStorage.getItem("theme");
+          if (oldTheme === "light" || oldTheme === "dark") applySettings({theme:oldTheme});
+        }
+      } catch (error) {
+        console.warn("Could not read local preferences:", error);
+      }
+    }
+
+    // Other tabs/pages can update the shared local settings while offline.
+    window.addEventListener("storage", event => {
+      if (event.key === "digital_notebook_settings" && event.newValue) {
+        try { applySettings(JSON.parse(event.newValue)); } catch (_) {}
+      }
+      if (event.key === "theme" && ["light", "dark"].includes(event.newValue)) {
+        applySettings({theme:event.newValue});
+      }
+    });
+
     function listenSettings() {
       settingsRef = userRef.child("settings");
-
       if (settingsListener) settingsRef.off("value", settingsListener);
 
       settingsListener = snapshot => {
-        const settings = snapshot.val() || {};
-        applySettings(settings);
+        const remote = snapshot.val();
+        if (!remote || typeof remote !== "object") {
+          // Do not replace valid cached settings with an empty cloud value.
+          return;
+        }
+
+        let cached = {};
         try {
-          localStorage.setItem("digital_notebook_settings", JSON.stringify(settings));
+          cached = JSON.parse(localStorage.getItem("digital_notebook_settings") || "{}");
         } catch (_) {}
+
+        const merged = {...cached, ...remote};
+        applySettings(merged);
+
+        try {
+          localStorage.setItem("digital_notebook_settings", JSON.stringify(merged));
+          if (merged.theme) localStorage.setItem("theme", merged.theme);
+        } catch (error) {
+          console.warn("Could not cache settings:", error);
+        }
       };
 
       settingsRef.on("value", settingsListener, error => {
@@ -584,46 +453,30 @@
 
     function validOriginalPath(path) {
       if (typeof path !== "string" || !user) return false;
-
       const parts = path.split("/");
       if (parts.length < 3 || parts[0] !== "users" || parts[1] !== user.uid) return false;
-
       return parts.every(part =>
-        part.length > 0 &&
-        part !== "." &&
-        part !== ".." &&
+        part.length > 0 && part !== "." && part !== ".." &&
         !/[.#$\[\]]/.test(part)
       );
     }
 
     function normaliseTrashRecord(category, id, raw) {
       if (!raw || typeof raw !== "object") return null;
-
       const recordType = String(raw.recordType || raw.trashType || category || "legacy");
       const data = raw.data !== undefined ? raw.data :
         (raw.originalData !== undefined ? raw.originalData : null);
-
       let originalPath = typeof raw.originalPath === "string" ? raw.originalPath : "";
 
-      // Compatibility for older house-expense entries that stored the record directly.
       if (!originalPath && recordType === "house_expense" && data && data.id) {
         originalPath = "users/" + user.uid + "/house_expenses/" + data.id;
       }
 
       const deletedAt = Number(raw.deletedAt || raw.deleted_at || 0);
-      const expiresAt = Number(raw.expiresAt || (
-        deletedAt ? deletedAt + TRASH_DAYS * DAY_MS : 0
-      ));
+      const expiresAt = Number(raw.expiresAt ||
+        (deletedAt ? deletedAt + TRASH_DAYS * DAY_MS : 0));
 
-      return {
-        category,
-        id,
-        recordType,
-        data,
-        originalPath,
-        deletedAt,
-        expiresAt
-      };
+      return {category, id, recordType, data, originalPath, deletedAt, expiresAt};
     }
 
     function collectTrash(raw) {
@@ -638,20 +491,15 @@
           const entry = group[id];
           if (!entry || typeof entry !== "object") return;
 
-          const directRecord =
-            "originalPath" in entry ||
-            "data" in entry ||
-            "trashType" in entry ||
-            "recordType" in entry ||
-            "deletedAt" in entry;
+          const direct = "originalPath" in entry || "data" in entry ||
+            "trashType" in entry || "recordType" in entry || "deletedAt" in entry;
 
-          if (directRecord) {
+          if (direct) {
             const item = normaliseTrashRecord(category, id, entry);
             if (item) items.push(item);
             return;
           }
 
-          // Current nested format: trash/{recordType}/{recordId}
           Object.keys(entry).forEach(nestedId => {
             const nested = entry[nestedId];
             if (!nested || typeof nested !== "object") return;
@@ -681,12 +529,8 @@
 
       const query = $("trashSearch").value.trim().toLowerCase();
       const filtered = items.filter(item =>
-        [
-          item.recordType,
-          item.id,
-          item.originalPath,
-          json(item.data)
-        ].join(" ").toLowerCase().includes(query)
+        [item.recordType, item.id, item.originalPath, json(item.data)]
+          .join(" ").toLowerCase().includes(query)
       );
 
       const list = $("trashList");
@@ -695,9 +539,7 @@
       if (!filtered.length) {
         const empty = document.createElement("p");
         empty.className = "muted";
-        empty.textContent = items.length
-          ? "No records match your search."
-          : "Trash is empty.";
+        empty.textContent = items.length ? "No records match your search." : "Trash is empty.";
         list.appendChild(empty);
         return;
       }
@@ -722,14 +564,12 @@
         const badge = document.createElement("span");
         badge.className = "badge";
         badge.textContent = expired ? "Expired" : "Recoverable";
-
         header.append(titleEl, badge);
         card.appendChild(header);
 
         const meta = document.createElement("div");
         meta.className = "record-meta";
-        meta.textContent =
-          "Type: " + item.recordType +
+        meta.textContent = "Type: " + item.recordType +
           "\nDeleted: " + dateText(item.deletedAt) +
           "\nExpires: " + dateText(item.expiresAt) +
           "\nOriginal path: " + (item.originalPath || "Not recorded");
@@ -742,11 +582,7 @@
         restore.className = "success";
         restore.type = "button";
         restore.textContent = "Restore";
-        restore.disabled =
-          expired ||
-          !validOriginalPath(item.originalPath) ||
-          item.data === null ||
-          item.data === undefined;
+        restore.disabled = expired || !validOriginalPath(item.originalPath) || item.data == null;
         restore.addEventListener("click", () => restoreItem(item));
 
         const remove = document.createElement("button");
@@ -758,21 +594,19 @@
         actions.append(restore, remove);
         card.appendChild(actions);
 
-        if (!item.originalPath || item.data === null || item.data === undefined) {
+        if (!item.originalPath || item.data == null) {
           const warning = document.createElement("p");
           warning.className = "small danger-text";
           warning.textContent =
             "This older entry lacks the data or original path needed for safe automatic restoration.";
           card.appendChild(warning);
         }
-
         list.appendChild(card);
       });
     }
 
     function listenTrash() {
       trashRef = userRef.child("trash");
-
       if (trashListener) trashRef.off("value", trashListener);
 
       trashListener = snapshot => {
@@ -789,27 +623,19 @@
 
     async function restoreItem(item) {
       if (!user) return;
-
       if (item.expiresAt && item.expiresAt <= Date.now()) {
         status("This record has expired and cannot be restored.", "error");
         return;
       }
-
       if (!validOriginalPath(item.originalPath) || item.data == null) {
         status("This record does not have a safe restore path or valid data.", "error");
         return;
       }
-
-      if (!confirm("Restore this record? If the original record already exists, it will not be overwritten.")) {
-        return;
-      }
+      if (!await askConfirm("Restore this record? If the original record already exists, it will not be overwritten.", "Restore record")) return;
 
       busy("Restoring record", "Checking the original record path…");
-
       try {
         const originalRef = db.ref(item.originalPath);
-
-        // A transaction ensures an existing record is not intentionally overwritten.
         const result = await originalRef.transaction(current => {
           if (current !== null) return;
           return item.data;
@@ -831,8 +657,7 @@
     }
 
     async function deleteTrashItem(item) {
-      if (!confirm("Permanently delete this Trash entry? This cannot be undone.")) return;
-
+      if (!await askConfirm("Permanently delete this Trash entry? This cannot be undone.", "Permanently delete")) return;
       try {
         await itemTrashRef(item).remove();
         status("Trash entry permanently deleted.", "good");
@@ -842,10 +667,7 @@
     }
 
     function downloadJson(filename, data) {
-      const blob = new Blob([json(data)], {
-        type: "application/json;charset=utf-8"
-      });
-
+      const blob = new Blob([json(data)], {type:"application/json;charset=utf-8"});
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
@@ -858,23 +680,19 @@
 
     async function exportBackup() {
       if (!userRef || !user) return;
-
       busy("Creating backup", "Reading account data from Firebase…");
-
       try {
         const snapshot = await userRef.once("value");
         const backup = {
-          format: "digital-notebook-backup-v1",
-          createdAt: new Date().toISOString(),
-          uid: user.uid,
-          data: snapshot.val() || {}
+          format:"digital-notebook-backup-v1",
+          createdAt:new Date().toISOString(),
+          uid:user.uid,
+          data:snapshot.val() || {}
         };
-
         downloadJson(
           "digital-notebook-backup-" + new Date().toISOString().slice(0, 10) + ".json",
           backup
         );
-
         boxStatus("backupStatus", "Backup exported successfully.", "good");
       } catch (error) {
         boxStatus("backupStatus", "Backup failed: " + error.message, "error");
@@ -887,21 +705,17 @@
       if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
         throw new Error("Invalid backup file.");
       }
-
       if (parsed.format !== "digital-notebook-backup-v1") {
         throw new Error("Unsupported backup format.");
       }
-
       if (!parsed.data || typeof parsed.data !== "object" || Array.isArray(parsed.data)) {
         throw new Error("Backup data is missing or invalid.");
       }
-
       return parsed.data;
     }
 
     async function restoreBackup(file) {
       if (!file || !userRef) return;
-
       if (file.size > 25 * 1024 * 1024) {
         boxStatus("backupStatus", "Backup exceeds the 25 MB import limit.", "error");
         return;
@@ -910,7 +724,6 @@
       try {
         const parsed = JSON.parse(await file.text());
         const data = validateBackup(parsed);
-
         const allowed = new Set([
           "transactions", "savings", "house_expenses", "house_budget",
           "incomes", "income_sources", "notes", "secureNotes", "secureDocs",
@@ -918,15 +731,13 @@
           "partyLedger", "party_ledger", "accounting", "budgets"
         ]);
 
-        if (!confirm(
-          "Import this backup by adding missing top-level sections only?\n\n" +
-          "Existing sections will be skipped and will not be overwritten."
+        if (!await askConfirm(
+          "Import this backup by adding missing top-level sections only? Existing sections will be skipped and will not be overwritten.",
+          "Restore backup"
         )) return;
 
         busy("Restoring backup", "Checking and importing missing sections…");
-
-        const imported = [];
-        const skipped = [];
+        const imported = [], skipped = [];
 
         for (const key of Object.keys(data)) {
           if (!allowed.has(key) || /[.#$\[\]\/]/.test(key)) {
@@ -958,8 +769,10 @@
     }
 
     async function sendPasswordReset() {
-      if (!user || !user.email) return;
-
+      if (!user || !user.email) {
+        status("No signed-in email address is available.", "error");
+        return;
+      }
       try {
         await auth.sendPasswordResetEmail(user.email);
         status("Password reset email sent. Check your inbox and spam folder.", "good");
@@ -970,16 +783,13 @@
 
     async function changePassword() {
       if (!user) return;
-
       const current = $("currentPassword").value;
       const next = $("newPassword").value;
 
       if (!current || next.length < 6) {
-        boxStatus(
-          "passwordStatus",
+        boxStatus("passwordStatus",
           "Enter your current password and a new password with at least 6 characters.",
-          "error"
-        );
+          "error");
         return;
       }
 
@@ -987,213 +797,56 @@
         const credential = firebase.auth.EmailAuthProvider.credential(user.email, current);
         await user.reauthenticateWithCredential(credential);
         await user.updatePassword(next);
-
         $("currentPassword").value = "";
         $("newPassword").value = "";
-
         boxStatus("passwordStatus", "Password changed successfully.", "good");
       } catch (error) {
         boxStatus("passwordStatus", "Password change failed: " + error.message, "error");
       }
     }
 
-    function base64UrlToBytes(value) {
-      const padded = value.replace(/-/g, "+").replace(/_/g, "/") +
-        "=".repeat((4 - value.length % 4) % 4);
-      const binary = atob(padded);
-      const bytes = new Uint8Array(binary.length);
+    // Compatible with the existing index.html key: app_mpin.
+    function saveMpin() {
+      const current = $("currentMpin").value.trim();
+      const next = $("newMpin").value.trim();
+      const confirmPin = $("confirmMpin").value.trim();
+      const stored = localStorage.getItem("app_mpin") || "1234";
 
-      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-      return bytes;
-    }
-
-    function bytesToBase64Url(buffer) {
-      const bytes = new Uint8Array(buffer);
-      let binary = "";
-      bytes.forEach(byte => binary += String.fromCharCode(byte));
-
-      return btoa(binary)
-        .replace(/\+/g, "-")
-        .replace(/\//g, "_")
-        .replace(/=+$/g, "");
-    }
-
-    function biometricKey() {
-      return user ? "digital_notebook_webauthn_" + user.uid : "";
-    }
-
-    function savedBiometric() {
-      try {
-        return JSON.parse(localStorage.getItem(biometricKey()) || "null");
-      } catch (_) {
-        return null;
-      }
-    }
-
-    function checkBiometricSupport() {
-      const supported =
-        window.isSecureContext &&
-        !!window.PublicKeyCredential &&
-        !!navigator.credentials &&
-        typeof navigator.credentials.create === "function" &&
-        typeof navigator.credentials.get === "function";
-
-      if (!supported) {
-        boxStatus(
-          "biometricStatus",
-          "WebAuthn उपलब्ध छैन। HTTPS, supported browser र device security settings जाँच गर्नुहोस्।",
-          "error"
-        );
-
-        $("registerBiometricButton").disabled = true;
-        $("testBiometricButton").disabled = true;
+      if (!/^\d{4}$/.test(next) || !/^\d{4}$/.test(confirmPin)) {
+        boxStatus("mpinStatus", "New MPIN and confirmation must each contain exactly 4 digits.", "error");
         return;
       }
 
-      const saved = savedBiometric();
+      if (current !== stored) {
+        boxStatus("mpinStatus", "Current MPIN is incorrect.", "error");
+        return;
+      }
 
-      boxStatus(
-        "biometricStatus",
-        saved
-          ? "यो browser मा biometric credential reference छ। Test biometric थिचेर जाँच गर्नुहोस्।"
-          : "Browser ले WebAuthn समर्थन गर्छ। Set up गर्दा फोनले उपलब्ध authentication विकल्प देखाउन सक्छ।",
-        "good"
-      );
-    }
-
-    async function registerBiometric() {
-      if (!user) return;
-
-      if (!window.isSecureContext || !window.PublicKeyCredential || !navigator.credentials) {
-        boxStatus(
-          "biometricStatus",
-          "Biometric setup का लागि HTTPS र WebAuthn समर्थन गर्ने browser आवश्यक छ।",
-          "error"
-        );
+      if (next !== confirmPin) {
+        boxStatus("mpinStatus", "New MPIN and confirmation do not match.", "error");
         return;
       }
 
       try {
-        busy("Set up biometric", "Follow the authentication prompt on your device…");
-
-        const challenge = crypto.getRandomValues(new Uint8Array(32));
-        const userId = new TextEncoder().encode(user.uid.slice(0, 64));
-
-        const credential = await navigator.credentials.create({
-          publicKey: {
-            challenge,
-            rp: {
-              name: "Digital NoteBook",
-              id: location.hostname
-            },
-            user: {
-              id: userId,
-              name: user.email || user.uid,
-              displayName: user.email || "Digital NoteBook user"
-            },
-            pubKeyCredParams: [
-              { type: "public-key", alg: -7 },
-              { type: "public-key", alg: -257 }
-            ],
-            authenticatorSelection: {
-              authenticatorAttachment: "platform",
-              residentKey: "preferred",
-              userVerification: "required"
-            },
-            timeout: 60000,
-            attestation: "none"
-          }
-        });
-
-        if (!credential) throw new Error("No credential was created.");
-
-        localStorage.setItem(biometricKey(), JSON.stringify({
-          id: bytesToBase64Url(credential.rawId),
-          rpId: location.hostname,
-          createdAt: Date.now(),
-          note: "Local test only; not a server-verified login credential."
-        }));
-
-        boxStatus(
-          "biometricStatus",
-          "Device credential created. You can test it on this browser. This does not replace Firebase login.",
-          "good"
-        );
+        localStorage.setItem("app_mpin", next);
+        $("currentMpin").value = "";
+        $("newMpin").value = "";
+        $("confirmMpin").value = "";
+        boxStatus("mpinStatus", "MPIN saved on this device.", "good");
       } catch (error) {
-        console.error(error);
-        boxStatus(
-          "biometricStatus",
-          "Biometric setup failed or was cancelled: " +
-          (error.message || error.name || "Unknown error"),
-          "error"
-        );
-      } finally {
-        notBusy();
+        boxStatus("mpinStatus", "Could not save MPIN on this device: " + error.message, "error");
       }
     }
 
-    async function testBiometric() {
-      const saved = savedBiometric();
-
-      if (!saved || !saved.id) {
-        boxStatus("biometricStatus", "पहिले Set up biometric गर्नुहोस्।", "error");
-        return;
-      }
-
-      try {
-        busy("Biometric test", "Follow your device authentication prompt…");
-
-        const challenge = crypto.getRandomValues(new Uint8Array(32));
-
-        const credential = await navigator.credentials.get({
-          publicKey: {
-            challenge,
-            rpId: saved.rpId || location.hostname,
-            allowCredentials: [{
-              type: "public-key",
-              id: base64UrlToBytes(saved.id)
-            }],
-            userVerification: "required",
-            timeout: 60000
-          }
-        });
-
-        if (!credential) throw new Error("No credential returned.");
-
-        boxStatus(
-          "biometricStatus",
-          "Device authentication succeeded. This local test does not verify the response on a server or sign into Firebase.",
-          "good"
-        );
-      } catch (error) {
-        console.error(error);
-        boxStatus(
-          "biometricStatus",
-          "Biometric test failed or was cancelled: " +
-          (error.message || error.name || "Unknown error"),
-          "error"
-        );
-      } finally {
-        notBusy();
-      }
-    }
-
-    function removeBiometric() {
-      if (!user) return;
-
-      localStorage.removeItem(biometricKey());
-
-      boxStatus(
-        "biometricStatus",
-        "यो browser को saved credential reference हटाइयो। यसले फोनको system बाट credential मेटाउँदैन।",
-        "good"
-      );
-    }
+    $("showMpinButton").addEventListener("click", () => {
+      const inputs = [$("currentMpin"), $("newMpin"), $("confirmMpin")];
+      const show = inputs.some(input => input.type === "password");
+      inputs.forEach(input => input.type = show ? "text" : "password");
+    });
 
     function detachListeners() {
       if (settingsRef && settingsListener) settingsRef.off("value", settingsListener);
       if (trashRef && trashListener) trashRef.off("value", trashListener);
-
       settingsListener = null;
       trashListener = null;
     }
@@ -1201,7 +854,6 @@
     function initialiseFirebase() {
       try {
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-
         auth = firebase.auth();
         db = firebase.database();
 
@@ -1216,26 +868,23 @@
 
           user = currentUser;
           userRef = db.ref("users/" + user.uid);
-
           $("accountEmail").textContent = user.email || "Email unavailable";
           $("accountUid").textContent = user.uid;
-          syncStatus("Syncing…");
+          syncStatus(navigator.onLine ? "Syncing…" : "Offline");
 
           try {
             await userRef.child("settings").once("value");
-
             listenSettings();
             listenTrash();
-            checkBiometricSupport();
-
-            status("Account ready. Settings and Trash listeners are active.", "good");
+            status(
+              navigator.onLine
+                ? "Account ready. Settings and Trash listeners are active."
+                : "Offline mode: cached display preferences are active. Cloud data will sync when online.",
+              "good"
+            );
           } catch (error) {
             console.error(error);
-            status(
-              "Cannot access account data. Check Firebase Realtime Database Rules: " +
-              error.message,
-              "error"
-            );
+            status("Cannot access account data. Check Firebase Realtime Database Rules: " + error.message, "error");
             syncStatus("Permission error");
           }
         }, error => {
@@ -1253,6 +902,11 @@
     });
 
     $("logoutButton").addEventListener("click", async () => {
+      if (!await askConfirm("Are you sure you want to log out?", "Log out")) return;
+      if (!auth) {
+        status("Firebase Authentication is not ready.", "error");
+        return;
+      }
       try {
         await auth.signOut();
         location.replace("index.html");
@@ -1263,7 +917,6 @@
 
     $("refreshButton").addEventListener("click", async () => {
       if (!userRef) return;
-
       try {
         const snapshot = await userRef.child("trash").once("value");
         trashSnapshot = snapshot.val() || {};
@@ -1276,10 +929,10 @@
 
     $("resetPasswordButton").addEventListener("click", sendPasswordReset);
     $("changePasswordButton").addEventListener("click", changePassword);
+    $("saveMpinButton").addEventListener("click", saveMpin);
 
     $("reloadTrashButton").addEventListener("click", async () => {
       if (!trashRef) return;
-
       try {
         const snapshot = await trashRef.once("value");
         trashSnapshot = snapshot.val() || {};
@@ -1293,29 +946,23 @@
     $("trashSearch").addEventListener("input", renderTrash);
     $("exportButton").addEventListener("click", exportBackup);
     $("chooseBackupButton").addEventListener("click", () => $("backupFile").click());
-
     $("backupFile").addEventListener("change", event => {
       const file = event.target.files && event.target.files[0];
       if (file) restoreBackup(file);
     });
 
-    $("registerBiometricButton").addEventListener("click", registerBiometric);
-    $("testBiometricButton").addEventListener("click", testBiometric);
-    $("removeBiometricButton").addEventListener("click", removeBiometric);
+    window.addEventListener("offline", () => {
+      syncStatus("Offline");
+      status("Offline mode: local preferences remain available. Cloud operations need internet.");
+    });
 
-    // Apply cached settings immediately, then Firebase becomes the shared source.
-    try {
-      const cached = JSON.parse(localStorage.getItem("digital_notebook_settings") || "{}");
-      applySettings(cached);
+    window.addEventListener("online", () => {
+      syncStatus(user ? "Syncing…" : "Local");
+      if (user) status("Internet restored. Firebase connection can resume.", "good");
+    });
 
-      if (!cached.theme) {
-        const oldTheme = localStorage.getItem("theme");
-        if (oldTheme === "light" || oldTheme === "dark") {
-          applySettings({ theme: oldTheme });
-        }
-      }
-    } catch (_) {}
-
+    // Apply settings from local storage before waiting for Firebase.
+    loadCachedSettings();
     initialiseFirebase();
   })();
   </script>
