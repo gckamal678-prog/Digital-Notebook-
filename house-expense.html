@@ -29,22 +29,31 @@ body{
   background:var(--bg);color:var(--text)
 }
 .container{max-width:700px;margin:auto}
+
+/* Header Design (Clean & Compact) */
 .header{
   background:linear-gradient(135deg,#14532d,#166534);
-  padding:20px;border-radius:16px;margin-bottom:16px;
+  padding:16px 20px;border-radius:16px;margin-bottom:16px;
   display:flex; justify-content:space-between; align-items:center;
 }
-.header-left h2{margin:0 0 4px}
-.header-left p{margin:0;color:#dcfce7;font-size:13px}
-.target-btn {
-  background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
-  padding: 10px 14px; border-radius: 12px; color: #fff; cursor: pointer;
-  display: flex; flex-direction: column; align-items: center; font-size: 11px;
+.header h2{margin:0 0 4px; font-size: 20px;}
+.header p{margin:0;color:#dcfce7; font-size:12px;}
+
+.target-icon-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  width: 45px; height: 45px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: #facc15; font-size: 20px; cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
 }
-.target-btn i { font-size: 18px; margin-bottom: 2px; color: #facc15; }
+.target-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
 
 #status{
-  margin-top:12px;font-size:13px;line-height:1.6;
+  margin-top:8px;font-size:13px;line-height:1.6;
   overflow-wrap:anywhere
 }
 .card{
@@ -140,8 +149,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
   body{padding:9px}
   .summary{grid-template-columns:1fr}
   .card{padding:13px}
-  .header{padding:16px; flex-direction: column; align-items: flex-start; gap: 12px;}
-  .target-btn { width: 100%; flex-direction: row; justify-content: center; gap: 8px; }
+  .header{padding:14px;}
   .filter-grid{grid-template-columns:1fr}
 }
 </style>
@@ -150,14 +158,14 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <body>
 <div class="container">
 
+<!-- Header with Target Icon on Right -->
 <header class="header">
-  <div class="header-left">
+  <div>
     <h2>🏠 घर खर्च व्यवस्थापन</h2>
     <p>थोरै बचाऔं, भविष्य सजाऔं</p>
   </div>
-  <button type="button" class="target-btn" onclick="openBudgetModal()">
+  <button type="button" class="target-icon-btn" onclick="openBudgetModal()" title="टार्गेट सेट गर्नुहोस्">
     <i class="fa-solid fa-bullseye"></i>
-    <span>टार्गेट सेट गर्नुहोस्</span>
   </button>
 </header>
 
@@ -174,7 +182,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
   </div>
 </section>
 
-<!-- बजेट प्रगति विवरण सेक्सन (रातो घेराभित्रको बक्स हटाइएको) -->
+<!-- बजेट प्रगति विवरण सेक्सन (मुख्य पेजबाट इनपुट बक्स पूर्ण रूपमा हटाइयो) -->
 <section class="card">
   <div style="display:flex; justify-content:space-between; align-items:center; font-size:14px; font-weight:bold;">
     <span>🎯 महिनाको बजेट प्रगति</span>
@@ -182,7 +190,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
   </div>
   <div id="budgetStatusArea" style="margin-top:8px;">
     <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--muted); margin-bottom:6px;">
-      <span id="budgetText">बजेट तोकिएको छैन</span>
+      <span id="budgetText">बजेट तोकिएको छैन (माथिको टार्गेट आइकनमा थिच्नुहोस्)</span>
     </div>
     <div class="progress-container">
       <div id="budgetProgressBar" class="progress-bar"></div>
@@ -214,7 +222,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
     <select id="category">
       <option value="किराना पसल">किराना पसल</option>
       <option value="तरकारी">तरकारी</option>
-      <option value="बिल तथा रिचार्ज">बिजुली, पानी, नेट, फोन</option>
+      <option value="बिल तथा रिचार्ज">बिल तथा रिचार्ज (बिजुली, पानी, नेट, फोन)</option>
       <option value="यातायात">यातायात</option>
       <option value="स्वास्थ्य">स्वास्थ्य</option>
       <option value="शिक्षा">शिक्षा</option>
@@ -339,16 +347,21 @@ let db, auth, currentUser = null;
 let expenses = [];
 let chartInstance = null;
 
-// तोकिएको क्याटेगरी र रङहरू[span_5](start_span)[span_5](end_span)
+// नयाँ र पुराना सबै क्याटेगरी र रङहरू (Data 100% सुरक्षित राख्न म्याच गरिएको)
 const CATEGORY_COLORS = {
-  "तरकारी": "#22c55e",         // हरियो
-  "किराना पसल": "#f97316",   // सुन्तला
-  "बिल तथा रिचार्ज": "#06b6d4", // नीलो
-  "यातायात": "#eab308",      // पहेँलो
-  "स्वास्थ्य": "#ec4899",     // गुलाबी
-  "शिक्षा": "#a855f7",       // बैजनी
-  "कृषि": "#34d399",         // कृषि (सफा हरियो/टर्क्युइज)
-  "अन्य": "#64748b"          // स्लेट
+  "तरकारी": "#22c55e",
+  "किराना पसल": "#f97316",
+  "किराना": "#f97316",
+  "बिल तथा रिचार्ज": "#06b6d4",
+  "बिजुली तथा पानी": "#06b6d4",
+  "यातायात": "#eab308",
+  "स्वास्थ्य": "#ec4899",
+  "शिक्षा": "#a855f7",
+  "कृषि": "#34d399",
+  "खनजोत तथा बिउमल": "#34d399",
+  "घरायसी सामान": "#3b82f6",
+  "मर-मसला": "#3b82f6",
+  "अन्य": "#64748b"
 };
 
 function setStatus(message, error = false) {
@@ -414,6 +427,7 @@ async function syncFromFirebase() {
 window.openBudgetModal = function() {
   const savedBudget = Number(localStorage.getItem(BUDGET_KEY) || 0);
   if(savedBudget > 0) $("modalBudgetInput").value = savedBudget;
+  else $("modalBudgetInput").value = "";
   $("budgetModal").style.display = "flex";
 }
 
@@ -453,7 +467,7 @@ function updateBudgetUI() {
       bar.style.backgroundColor = "#ef4444";
     }
   } else {
-    $("budgetText").textContent = "बजेट तोकिएको छैन (टार्गेट आइकनमा क्लिक गरी सेट गर्नुहोस्)";
+    $("budgetText").textContent = "बजेट तोकिएको छैन (माथिको 🎯 आइकनमा क्लिक गरी सेट गर्नुहोस्)";
     $("budgetPercentText").textContent = "0%";
     $("budgetProgressBar").style.width = "0%";
   }
@@ -648,7 +662,7 @@ $("expenseForm").addEventListener("submit", async event => {
   await syncToFirebase();
 });
 
-// PDF रिपोर्ट बनाउने ढाँचा (जस्ताको तस्तै राखिएको)[span_6](start_span)[span_6](end_span)
+// PDF रिपोर्ट बनाउने ढाँचा (जस्ताको तस्तै राखिएको)
 function generateHouseExpensePDF() {
   const filtered = getFilteredExpenses();
   if (filtered.length === 0) {
