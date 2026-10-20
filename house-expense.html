@@ -29,24 +29,30 @@ body{
   background:var(--bg);color:var(--text)
 }
 .container{max-width:700px;margin:auto}
-
-/* Header style with target icon & slogan */
 .header{
   background:linear-gradient(135deg,#14532d,#166534);
-  padding:18px 20px;border-radius:16px;margin-bottom:15px;
-  display:flex;justify-content:space-between;align-items:center;
+  padding:20px;border-radius:16px;margin-bottom:16px;
+  display:flex; justify-content:space-between; align-items:center;
 }
-.header-left h2{margin:0 0 4px; font-size: 20px;}
-.header-left p{margin:0;color:#dcfce7; font-size: 13px;}
-.header-right {cursor:pointer; background: rgba(255,255,255,0.15); padding: 10px 12px; border-radius: 12px; text-align: center;}
-.header-right i {font-size: 22px; color: #facc15;}
+.header-left h2{margin:0 0 4px}
+.header-left p{margin:0;color:#dcfce7;font-size:13px}
+.target-btn {
+  background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+  padding: 10px 14px; border-radius: 12px; color: #fff; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; font-size: 11px;
+}
+.target-btn i { font-size: 18px; margin-bottom: 2px; color: #facc15; }
 
+#status{
+  margin-top:12px;font-size:13px;line-height:1.6;
+  overflow-wrap:anywhere
+}
 .card{
   background:var(--card);border:1px solid var(--border);
   padding:16px;border-radius:14px;margin-bottom:15px;
   box-shadow:0 5px 20px #0002
 }
-h3{margin:0 0 12px; font-size: 16px;}
+h3{margin:0 0 12px}
 label{display:block;font-size:14px;font-weight:bold;margin:12px 0 6px}
 input,select,textarea,button{
   width:100%;padding:12px;border-radius:9px;font-size:15px
@@ -63,26 +69,23 @@ button{
   font-weight:bold;cursor:pointer;margin-top:12px
 }
 button:disabled{opacity:.5;cursor:not-allowed}
-
 .summary{
   display:grid;grid-template-columns:1fr 1fr;
   gap:12px;margin-bottom:15px
 }
 .summary .card{margin:0}
 .amount{
-  font-size:19px;font-weight:bold;margin-top:6px;
+  font-size:21px;font-weight:bold;margin-top:8px;
   overflow-wrap:anywhere
 }
 .green{color:#4ade80}
 .red{color:var(--red)}
 .muted{color:var(--muted)}
-
 .form-actions{display:flex;gap:10px;margin-top:12px}
 .form-actions button{margin-top:0}
 #cancel-btn{background:#475569}
 #exportBtn{background:var(--blue)}
 #pdfBtn{background:#16a34a}
-
 .expense{
   border:1px solid var(--border);padding:13px;
   border-radius:10px;margin-top:10px;background:#101a2a
@@ -122,11 +125,11 @@ button:disabled{opacity:.5;cursor:not-allowed}
 }
 .modal-content {
   background: var(--card); border: 1px solid var(--border);
-  border-radius: 16px; max-width: 650px; width: 100%; max-height: 90vh;
+  border-radius: 16px; max-width: 450px; width: 100%;
   display: flex; flex-direction: column; overflow: hidden;
 }
-.modal-body { overflow-y: auto; padding: 15px; flex: 1; background: #fff; color: #333; }
-.modal-footer { padding: 12px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+.modal-body { padding: 20px; flex: 1; }
+.modal-footer { padding: 12px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
 
 .filter-grid{
   display:grid;grid-template-columns:1fr 1fr;gap:10px
@@ -137,7 +140,8 @@ button:disabled{opacity:.5;cursor:not-allowed}
   body{padding:9px}
   .summary{grid-template-columns:1fr}
   .card{padding:13px}
-  .header{padding:16px}
+  .header{padding:16px; flex-direction: column; align-items: flex-start; gap: 12px;}
+  .target-btn { width: 100%; flex-direction: row; justify-content: center; gap: 8px; }
   .filter-grid{grid-template-columns:1fr}
 }
 </style>
@@ -146,42 +150,39 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <body>
 <div class="container">
 
-<!-- Header Section -->
 <header class="header">
   <div class="header-left">
     <h2>🏠 घर खर्च व्यवस्थापन</h2>
-    <p>✨ थोरै बचाऔं, भविष्य सजाऔं</p>
+    <p>थोरै बचाऔं, भविष्य सजाऔं</p>
   </div>
-  <div class="header-right" onclick="scrollToBudget()">
+  <button type="button" class="target-btn" onclick="openBudgetModal()">
     <i class="fa-solid fa-bullseye"></i>
-    <div style="font-size:10px; margin-top:2px; color:#dcfce7;">टार्गेट</div>
-  </div>
+    <span>टार्गेट सेट गर्नुहोस्</span>
+  </button>
 </header>
 
-<!-- Summary Section -->
+<div id="status" role="status" aria-live="polite" style="margin-bottom:12px;">डाटा तयार हुँदैछ...</div>
+
 <section class="summary">
-  <div class="card">
-    <div class="muted" style="font-size:13px;">छानिएको अवधिको खर्च</div>
+  <div class="card" style="margin:0;">
+    <div>छानिएको अवधिको खर्च</div>
     <div class="amount red" id="periodTotal">रु. ०</div>
   </div>
-  <div class="card">
-    <div class="muted" style="font-size:13px;">कुल जम्मा खर्च</div>
+  <div class="card" style="margin:0;">
+    <div>कुल जम्मा खर्च</div>
     <div class="amount green" id="allTotal">रु. ०</div>
   </div>
 </section>
 
-<!-- बजेट सीमा तथा अलर्ट सेक्सन -->
-<section class="card" id="budgetCard">
-  <h3>🎯 महिनाको बजेट सीमा</h3>
-  <div style="display:flex; gap:10px; align-items:center;">
-    <input type="number" id="monthlyBudgetInput" placeholder="महिनाको बजेट तोक्नुहोस् (रु.)">
-    <button type="button" id="setBudgetBtn" style="width: auto; margin-top:0;">सेभ</button>
+<!-- बजेट प्रगति विवरण सेक्सन (रातो घेराभित्रको बक्स हटाइएको) -->
+<section class="card">
+  <div style="display:flex; justify-content:space-between; align-items:center; font-size:14px; font-weight:bold;">
+    <span>🎯 महिनाको बजेट प्रगति</span>
+    <span id="budgetPercentText" style="color:var(--green);">0%</span>
   </div>
-  
-  <div id="budgetStatusArea" style="margin-top:12px;">
-    <div style="display:flex; justify-content:space-between; font-size:13px;">
+  <div id="budgetStatusArea" style="margin-top:8px;">
+    <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--muted); margin-bottom:6px;">
       <span id="budgetText">बजेट तोकिएको छैन</span>
-      <span id="budgetPercentText">0%</span>
     </div>
     <div class="progress-container">
       <div id="budgetProgressBar" class="progress-bar"></div>
@@ -192,12 +193,11 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <!-- खर्चको ग्राफ (Chart.js) -->
 <section class="card">
   <h3>📊 शीर्षक अनुसार खर्च विवरण</h3>
-  <div style="max-height: 240px; display:flex; justify-content:center; align-items:center;">
+  <div style="max-height: 260px; display:flex; justify-content:center; align-items:center;">
     <canvas id="expenseChart"></canvas>
   </div>
 </section>
 
-<!-- नयाँ खर्च थप्ने फारम -->
 <section class="card">
   <h3 id="form-heading">➕ नयाँ खर्च लेख्नुहोस्</h3>
 
@@ -243,14 +243,13 @@ button:disabled{opacity:.5;cursor:not-allowed}
   </form>
 </section>
 
-<!-- खर्चको विवरण तथा लिस्ट सेक्सन -->
 <section class="card">
   <h3>📋 खर्चको विवरण</h3>
 
   <label for="search">खर्च खोज्नुहोस्</label>
   <input id="search" type="search" placeholder="नाम, प्रकार वा कैफियत">
 
-  <div class="filter-grid" style="margin-top:10px;">
+  <div class="filter-grid" style="margin-top:12px;">
     <div class="full">
       <select id="filterType" aria-label="मिति फिल्टर">
         <option value="month">महिना अनुसार (स्वतः)</option>
@@ -275,14 +274,10 @@ button:disabled{opacity:.5;cursor:not-allowed}
     </div>
   </div>
 
-  <div id="filterSummary" class="section-caption" style="margin-top:10px; font-size:13px; color:var(--muted);"></div>
-  
+  <div id="filterSummary" class="section-caption" style="margin-top:10px;"></div>
   <div id="expenseList"><div class="empty">डाटा लोड हुँदैछ...</div></div>
-  <div id="seeMoreContainer" style="text-align:center; margin-top:12px;" hidden>
-    <button type="button" id="seeMoreBtn" style="background:#334155; width:auto; padding:8px 20px; font-size:13px;">See More...</button>
-  </div>
 
-  <div style="display:flex; gap:10px; margin-top:16px;">
+  <div style="display:flex; gap:10px; margin-top:12px;">
     <button id="pdfBtn" type="button"><i class="fa-solid fa-file-pdf"></i> PDF रिपोर्ट</button>
     <button id="exportBtn" type="button"><i class="fa-solid fa-download"></i> JSON डाउनलोड</button>
   </div>
@@ -290,14 +285,31 @@ button:disabled{opacity:.5;cursor:not-allowed}
 
 </div>
 
+<!-- BUDGET MODAL -->
+<div id="budgetModal" class="modal-overlay" style="display:none;">
+  <div class="modal-content">
+    <div style="padding:15px 20px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+      <h3 style="margin:0;">🎯 महिनाको बजेट टार्गेट</h3>
+      <button onclick="closeBudgetModal()" style="width:auto; margin:0; padding:4px 10px; background:#475569;">✕</button>
+    </div>
+    <div class="modal-body">
+      <label for="modalBudgetInput">मासिक खर्च सीमा (रु.)</label>
+      <input type="number" id="modalBudgetInput" placeholder="जस्तै: 30000">
+    </div>
+    <div class="modal-footer">
+      <button type="button" onclick="saveBudgetFromModal()" style="width:auto; margin:0;">सेभ गर्नुहोस्</button>
+    </div>
+  </div>
+</div>
+
 <!-- PDF PREVIEW MODAL -->
 <div id="pdfModal" class="modal-overlay" style="display:none;">
-  <div class="modal-content">
+  <div class="modal-content" style="max-width:650px; max-height:90vh;">
     <div style="padding:15px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
       <h3 style="margin:0;">📄 घर खर्च रिपोर्ट (PDF Preview)</h3>
       <button onclick="closePdfModal()" style="width:auto; margin:0; padding:5px 10px; background:#475569;">✕</button>
     </div>
-    <div class="modal-body" id="pdfPreviewContainer"></div>
+    <div class="modal-body" id="pdfPreviewContainer" style="background:#fff; color:#333; overflow-y:auto;"></div>
     <div class="modal-footer">
       <button onclick="printPdfReport()" style="width:auto; margin:0; background:#16a34a;"><i class="fa-solid fa-print"></i> Print / Download PDF</button>
     </div>
@@ -326,22 +338,26 @@ const BUDGET_KEY = "local_house_budget_val";
 let db, auth, currentUser = null;
 let expenses = [];
 let chartInstance = null;
-let showAllRecords = false; // See more को लागि कन्ट्रोलर
 
-// श्रेणी अनुसार तोकिएका रङहरू
+// तोकिएको क्याटेगरी र रङहरू[span_5](start_span)[span_5](end_span)
 const CATEGORY_COLORS = {
-  "तरकारी": "#22c55e",          // हरियो
-  "किराना पसल": "#f97316",    // सुन्तला
+  "तरकारी": "#22c55e",         // हरियो
+  "किराना पसल": "#f97316",   // सुन्तला
+  "किराना": "#f97316",         // पुरानो डाटा म्याच गर्न
   "बिल तथा रिचार्ज": "#06b6d4", // नीलो
-  "यातायात": "#eab308",         // पहेँलो
-  "स्वास्थ्य": "#ec4899",        // गुलाबी
-  "शिक्षा": "#a855f7",          // बैजनी
-  "कृषि": "#84cc16",            // लाइम हरियो
-  "अन्य": "#64748b"             // स्लेट
+  "यातायात": "#eab308",      // पहेँलो
+  "स्वास्थ्य": "#ec4899",     // गुलाबी
+  "शिक्षा": "#a855f7",       // बैजनी
+  "कृषि": "#34d399",         // कृषि (सफा हरियो/टर्क्युइज)
+  "खनजोत तथा बिउमल": "#34d399", // पुरानो कृषि डाटा म्याच गर्न
+  "घरायसी सामान": "#3b82f6",  // रोयल ब्लु
+  "मर-मसला": "#3b82f6",     // पुरानो डाटा म्याच गर्न
+  "अन्य": "#64748b"          // स्लेट
 };
 
-function scrollToBudget() {
-  $("budgetCard").scrollIntoView({ behavior: 'smooth' });
+function setStatus(message, error = false) {
+  $("status").textContent = message;
+  $("status").style.color = error ? "#fecaca" : "#dcfce7";
 }
 
 function localDate() {
@@ -375,8 +391,9 @@ async function syncToFirebase() {
   try {
     const userRef = ref(db, `users/${currentUser.uid}/house_expenses`);
     await set(userRef, expenses);
+    setStatus(`✅ क्लाउड ब्याकअप सफल`);
   } catch (e) {
-    console.error("Sync error", e);
+    setStatus(`⚠️ स्थानीय सेभ भयो (क्लाउड सिंक त्रुटि)`, true);
   }
 }
 
@@ -388,18 +405,37 @@ async function syncFromFirebase() {
       expenses = snapshot.val() || [];
       saveLocal();
       refreshView();
+      setStatus(`✅ क्लाउडबाट डाटा सिंक भयो`);
     } else {
       await syncToFirebase();
     }
   } catch (e) {
-    console.error("Fetch error", e);
+    setStatus(`⚠️ स्थानीय डाटा देखाइएको छ`, true);
+  }
+}
+
+// बजेट मोडल कन्ट्रोल
+window.openBudgetModal = function() {
+  const savedBudget = Number(localStorage.getItem(BUDGET_KEY) || 0);
+  if(savedBudget > 0) $("modalBudgetInput").value = savedBudget;
+  $("budgetModal").style.display = "flex";
+}
+
+window.closeBudgetModal = function() {
+  $("budgetModal").style.display = "none";
+}
+
+window.saveBudgetFromModal = function() {
+  const val = Number($("modalBudgetInput").value);
+  if (val >= 0) {
+    localStorage.setItem(BUDGET_KEY, val);
+    updateBudgetUI();
+    closeBudgetModal();
   }
 }
 
 function updateBudgetUI() {
   const savedBudget = Number(localStorage.getItem(BUDGET_KEY) || 0);
-  if(savedBudget > 0) $("monthlyBudgetInput").value = savedBudget;
-
   const currentMonth = currentMonthStr();
   const monthTotal = expenses
     .filter(x => x.date && x.date.startsWith(currentMonth))
@@ -421,24 +457,18 @@ function updateBudgetUI() {
       bar.style.backgroundColor = "#ef4444";
     }
   } else {
-    $("budgetText").textContent = "बजेट तोकिएको छैन";
+    $("budgetText").textContent = "बजेट तोकिएको छैन (टार्गेट आइकनमा क्लिक गरी सेट गर्नुहोस्)";
     $("budgetPercentText").textContent = "0%";
     $("budgetProgressBar").style.width = "0%";
   }
 }
 
-$("setBudgetBtn").addEventListener("click", () => {
-  const val = Number($("monthlyBudgetInput").value);
-  if (val >= 0) {
-    localStorage.setItem(BUDGET_KEY, val);
-    updateBudgetUI();
-  }
-});
-
+// पाई चार्ट रेन्डर गर्ने
 function renderChart(filtered) {
   const catMap = {};
   filtered.forEach(x => {
-    catMap[x.category] = (catMap[x.category] || 0) + Number(x.amount || 0);
+    const cat = x.category || "अन्य";
+    catMap[cat] = (catMap[cat] || 0) + Number(x.amount || 0);
   });
 
   const labels = Object.keys(catMap);
@@ -447,13 +477,17 @@ function renderChart(filtered) {
 
   const ctx = document.getElementById('expenseChart').getContext('2d');
   if (chartInstance) chartInstance.destroy();
+
   if(labels.length === 0) return;
 
   chartInstance = new Chart(ctx, {
     type: 'doughnut',
     data: {
       labels: labels,
-      datasets: [{ data: data, backgroundColor: bgColors }]
+      datasets: [{
+        data: data,
+        backgroundColor: bgColors
+      }]
     },
     options: {
       responsive: true,
@@ -527,15 +561,10 @@ function renderExpenses() {
 
   if (!filtered.length) {
     list.innerHTML = '<div class="empty">कुनै खर्च रेकर्ड भेटिएन।</div>';
-    $("seeMoreContainer").hidden = true;
     return;
   }
 
-  // See More logic: यदि ४ भन्दा बढी छन् र showAllRecords falso छ भने सुरुमा ३/४ वटा मात्र देखाउने
-  const displayLimit = showAllRecords ? filtered.length : 4;
-  const visibleItems = filtered.slice(0, displayLimit);
-
-  for (const item of visibleItems) {
+  for (const item of filtered) {
     const card = document.createElement("div");
     card.className = "expense";
     card.innerHTML = `
@@ -554,19 +583,7 @@ function renderExpenses() {
     `;
     list.appendChild(card);
   }
-
-  if (filtered.length > 4) {
-    $("seeMoreContainer").hidden = false;
-    $("seeMoreBtn").textContent = showAllRecords ? "কম കാണിക്കുക (Less)" : `See More... (${filtered.length - 4} थप)`;
-  } else {
-    $("seeMoreContainer").hidden = true;
-  }
 }
-
-$("seeMoreBtn").addEventListener("click", () => {
-  showAllRecords = !showAllRecords;
-  renderExpenses();
-});
 
 function refreshView() {
   updateYearOptions();
@@ -635,7 +652,7 @@ $("expenseForm").addEventListener("submit", async event => {
   await syncToFirebase();
 });
 
-// PDF रिपोर्ट बनाउने
+// PDF रिपोर्ट बनाउने ढाँचा (जस्ताको तस्तै राखिएको)[span_6](start_span)[span_6](end_span)
 function generateHouseExpensePDF() {
   const filtered = getFilteredExpenses();
   if (filtered.length === 0) {
@@ -643,10 +660,38 @@ function generateHouseExpensePDF() {
     return;
   }
 
+  const profileName = localStorage.getItem('profile_name') || 'Digital NoteBook';
+  const profileAddress = localStorage.getItem('profile_address') || '';
+  const profileMobile = localStorage.getItem('profile_mobile') || '';
+  const profileEmail = localStorage.getItem('profile_email') || '';
+  const profileAvatar = localStorage.getItem('profile_avatar') || 'N1024.png';
+
   let totalExpense = 0;
+
   let html = `
-  <div id="pdf-printable-content" style="background-color: #ffffff; color: #333333; font-family: sans-serif; width: 100%; max-width: 650px; padding: 20px; margin:auto;">
-      <h3 style="text-align:center; color:#16a34a; margin-bottom:15px;">🏠 घर खर्च रिपोर्ट (House Expense Report)</h3>
+  <div id="pdf-printable-content" style="background-color: #ffffff; color: #333333; font-family: sans-serif; width: 100%; max-width: 650px; padding: 20px; border-radius: 12px; margin:auto;">
+      <table style="width: 100%; border-bottom: 2px solid #16a34a; padding-bottom: 15px; margin-bottom: 20px; border-collapse: collapse;">
+          <tr>
+              <td style="vertical-align: middle; width: 20%; text-align: center;">
+                  <div style="display: inline-block; text-align: center;">
+                      <div style="width: 55px; height: 55px; border-radius: 50%; overflow: hidden; border: 2px solid #16a34a; margin: 0 auto 4px auto;">
+                          <img src="${profileAvatar}" style="width: 100%; height: 100%; object-fit: cover;">
+                      </div>
+                      <div style="font-size: 11px; font-weight: 700; color: #1f2937;">${profileName}</div>
+                  </div>
+              </td>
+              <td style="vertical-align: middle; text-align: center; width: 55%; padding: 0 10px;">
+                  <img src="bannerlogo.png" style="width: 100%; max-width: 100%; height: auto; object-fit: contain; display: inline-block;" onerror="this.style.display='none'">
+                  <h3 style="margin:5px 0 0 0; color:#16a34a;">घर खर्च रिपोर्ट (House Expense)</h3>
+              </td>
+              <td style="vertical-align: middle; text-align: left; font-size: 10px; color: #555; line-height: 1.4; width: 25%; padding-left: 10px;">
+                  <div>📍 Address: ${profileAddress}</div>
+                  <div>📞 Contact: ${profileMobile}</div>
+                  <div>✉️ Email: ${profileEmail}</div>
+              </td>
+          </tr>
+      </table>
+
       <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
           <thead>
               <tr style="background-color: #f3f4f6; color: #374151;">
@@ -672,8 +717,13 @@ function generateHouseExpensePDF() {
   html += `
           </tbody>
       </table>
+
       <div style="margin-top: 20px; text-align: right; font-size: 14px; font-weight: bold; color: #dc2626; border-top: 2px solid #16a34a; padding-top: 10px;">
           जम्मा खर्च: ${money(totalExpense)}
+      </div>
+
+      <div style="text-align: center; font-size: 10px; color: #9ca3af; margin-top: 25px; border-top: 1px solid #e5e7eb; padding-top: 10px;">
+          Generated by Digital NoteBook | ${new Date().toLocaleDateString('en-NP')}
       </div>
   </div>`;
 
@@ -707,19 +757,18 @@ $("exportBtn").addEventListener("click", () => {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 });
 
-$("search").addEventListener("input", () => { showAllRecords = false; renderExpenses(); });
+$("search").addEventListener("input", renderExpenses);
 $("filterType").addEventListener("change", () => {
   const type = $("filterType").value;
   $("dayBox").hidden = type !== "day";
   $("monthBox").hidden = type !== "month";
   $("yearBox").hidden = type !== "year";
-  showAllRecords = false;
   renderExpenses();
 });
 
-$("dayFilter").addEventListener("change", () => { showAllRecords = false; renderExpenses(); });
-$("monthFilter").addEventListener("change", () => { showAllRecords = false; renderExpenses(); });
-$("yearFilter").addEventListener("change", () => { showAllRecords = false; renderExpenses(); });
+$("dayFilter").addEventListener("change", renderExpenses);
+$("monthFilter").addEventListener("change", renderExpenses);
+$("yearFilter").addEventListener("change", renderExpenses);
 
 $("date").value = localDate();
 $("dayFilter").value = localDate();
@@ -728,6 +777,7 @@ $("monthFilter").value = currentMonthStr();
 loadLocal();
 refreshView();
 
+// FIREBASE INITIALIZATION
 try {
   const app = getApps().find(a => a.options.projectId === firebaseConfig.projectId) || initializeApp(firebaseConfig);
   db = getDatabase(app);
@@ -737,10 +787,12 @@ try {
     if (user) {
       currentUser = user;
       await syncFromFirebase();
+    } else {
+      setStatus("स्थानीय मोड (ड्यासबोर्डमा लगइन भएपछि स्वतः सिंक हुन्छ)");
     }
   });
 } catch (e) {
-  console.log("Offline mode active");
+  setStatus("स्थानीय मोड तयार छ");
 }
 </script>
 </body>
