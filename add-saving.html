@@ -1,697 +1,610 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html><html lang="en" class="dark">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<meta name="theme-color" content="#0f172a">
-<title>Digital NoteBook - Savings</title><!-- Offline preferences are applied before the page is displayed. --><script>
-(function () {
-  try {
-    const p = JSON.parse(localStorage.getItem("dnb_display_preferences") || "{}");
-    const theme = p.theme || localStorage.getItem("theme") || "dark";
-    document.documentElement.className = theme === "light" ? "" : "dark";
-    document.documentElement.style.setProperty("--accent", p.accent || "#00e600");
-    document.documentElement.style.setProperty("--font-size",
-      ({small:"14px",medium:"16px",large:"18px"})[p.fontSize] || "14px");
-    document.documentElement.style.setProperty("--font-family",
-      ({Poppins:"Poppins, sans-serif",Arial:"Arial, sans-serif",system:"system-ui, sans-serif",Georgia:"Georgia, serif",Verdana:"Verdana, sans-serif"})[p.fontFamily] || "system-ui, sans-serif");
-  } catch (_) {}
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#020617">
+<title>Digital NoteBook — Savings</title><script>
+/* Preferences work locally, before Firebase or internet is available. */
+(function(){
+  const defaults={theme:"dark",lang:"EN",font_size:"small",font_family:"Poppins",accentColor:"#00e600"};
+  let saved={};
+  try{saved=JSON.parse(localStorage.getItem("dnb_preferences")||"{}")}catch(e){}
+  try{
+    if(localStorage.getItem("theme")) saved.theme=localStorage.getItem("theme");
+    if(localStorage.getItem("lang")) saved.lang=localStorage.getItem("lang");
+  }catch(e){}
+  const p={...defaults,...saved};
+  document.documentElement.classList.toggle("dark",p.theme!=="light");
+  document.documentElement.dataset.lang=p.lang;
+  document.documentElement.dataset.fontsize=p.font_size;
+  document.documentElement.dataset.fontfamily=p.font_family;
+  document.documentElement.style.setProperty("--accent",p.accentColor);
 })();
-</script><style>
-:root{--accent:#00e600;--font-size:14px;--font-family:system-ui,sans-serif}
+</script><script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Arial&family=Roboto:wght@400;500;700&family=Georgia&display=swap" rel="stylesheet"><style>
+:root{--accent:#00e600;--bg:#f1f5f9;--panel:#fff;--text:#0f172a;--muted:#64748b;--border:#dbe2ea;--field:#f8fafc;--header:#fff}
+html.dark{--bg:#0b1020;--panel:#192235;--text:#edf2fc;--muted:#aab5c8;--border:#303b50;--field:#111827;--header:#192235}
 *{box-sizing:border-box}
-body{margin:0;font-family:var(--font-family);font-size:var(--font-size);background:#f1f5f9;color:#0f172a;line-height:1.5}
-html.dark body{background:#0b1120;color:#e5e7eb}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-family,Poppins),sans-serif;font-size:14px;transition:background .15s,color .15s}
+html[data-fontsize="small"] body{font-size:13px}
+html[data-fontsize="medium"] body{font-size:15px}
+html[data-fontsize="large"] body{font-size:17px}
+html[data-fontfamily="Poppins"]{--font-family:Poppins}
+html[data-fontfamily="Arial"]{--font-family:Arial}
+html[data-fontfamily="Roboto"]{--font-family:Roboto}
+html[data-fontfamily="Georgia"]{--font-family:Georgia}
 button,input,select{font:inherit}
 button{cursor:pointer}
-.topbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;padding:14px 16px;background:#fff;border-bottom:1px solid #dbe1ea}
-html.dark .topbar{background:#182235;border-color:#303b50}
-.back{width:42px;height:42px;border-radius:13px;border:1px solid #d1d5db;background:transparent;color:inherit;font-size:22px}
-html.dark .back{border-color:#374151}
-.brand{font-size:18px;font-weight:800;flex:1}
-.subtitle{font-size:12px;color:#64748b;font-weight:400}
-html.dark .subtitle{color:#a8b2c4}
-.top-actions{display:flex;gap:7px;align-items:center}
-.small-btn{border:1px solid #cbd5e1;border-radius:10px;padding:8px 10px;background:transparent;color:inherit}
-html.dark .small-btn{border-color:#3b465a}
-main{width:min(900px,100%);margin:auto;padding:16px;display:grid;gap:16px}
-.card{padding:17px;border-radius:18px;border:1px solid #dbe1ea;background:#fff;box-shadow:0 3px 12px #00000008}
-html.dark .card{background:#182235;border-color:#303b50;box-shadow:none}
-h1,h2,h3,p{margin-top:0}
-h2{font-size:20px;margin-bottom:5px}
-h3{font-size:17px;margin-bottom:12px}
-.muted{color:#64748b}
-html.dark .muted{color:#a8b2c4}
-.small{font-size:12px}
-.status{padding:11px 12px;border:1px solid #cbd5e1;border-radius:12px;overflow-wrap:anywhere}
-html.dark .status{border-color:#374151}
-.status.error{color:#dc2626}
-.status.success{color:#15803d}
-html.dark .status.success{color:#4ade80}
-label{display:block;font-weight:650;margin-bottom:6px}
-input,select{width:100%;padding:11px 12px;border:1px solid #cbd5e1;border-radius:11px;background:#f8fafc;color:#0f172a;min-width:0}
-html.dark input,html.dark select{background:#101827;border-color:#374151;color:#e5e7eb}
-input[type=color]{height:46px;padding:4px}
-.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
-.row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
-.btn{border:0;border-radius:11px;padding:11px 15px;font-weight:750;background:var(--accent);color:#061006}
-.btn.secondary{background:transparent;color:inherit;border:1px solid #cbd5e1}
-html.dark .btn.secondary{border-color:#374151}
-.btn.danger{background:#dc2626;color:white}
-.btn:disabled{opacity:.55;cursor:not-allowed}
-.accent{color:var(--accent)}
-.statgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.stat{border:1px solid #dbe1ea;border-radius:13px;padding:13px}
-html.dark .stat{border-color:#374151}
-.stat strong{display:block;font-size:19px;overflow-wrap:anywhere}
-.progress{height:10px;border-radius:99px;background:#dbe1ea;overflow:hidden;margin-top:9px}
-html.dark .progress{background:#303b50}
-.progress>div{height:100%;width:0;background:var(--accent);transition:width .2s}
-.record{padding:13px;border:1px solid #dbe1ea;border-radius:13px;margin-top:10px}
-html.dark .record{border-color:#374151}
-.record-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
-.record-title{font-weight:800;overflow-wrap:anywhere}
-.record-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
-.record-actions button{padding:7px 10px;font-size:12px}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.topbar{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:12px;padding:13px 16px;background:var(--header);border-bottom:1px solid var(--border)}
+.back{width:42px;height:42px;border:1px solid var(--border);background:var(--panel);color:var(--text);border-radius:12px;font-size:22px}
+.brand{font-weight:800;font-size:17px;line-height:1.25}
+.subbrand{font-size:12px;color:var(--muted);margin-top:4px}
+.sync{margin-left:auto;border:1px solid var(--border);border-radius:30px;padding:7px 10px;color:var(--muted);font-size:11px;white-space:nowrap}
+main{max-width:900px;margin:auto;padding:17px 14px 40px}
+h2{font-size:22px;margin:8px 0}
+h3{font-size:16px;margin:0 0 14px}
+.muted{color:var(--muted)}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:19px;padding:16px;margin-bottom:14px;box-shadow:0 3px 15px #00000008}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.field{min-width:0}
+.field label{display:block;color:var(--muted);font-size:12px;margin:0 0 6px}
+input,select{width:100%;padding:11px;border:1px solid var(--border);border-radius:11px;background:var(--field);color:var(--text);min-width:0}
+.btn{border:1px solid var(--border);background:var(--panel);color:var(--text);padding:10px 13px;border-radius:11px;font-weight:600}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:#062006}
+.btn-danger{color:#ef4444}
+.btn-sm{padding:7px 9px;font-size:12px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.pref-row{display:grid;grid-template-columns:1fr minmax(125px,45%);gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)}
+.pref-row:last-child{border-bottom:0}
+.pref-title{font-weight:700}
+.pref-desc{font-size:12px;color:var(--muted);margin-top:4px}
+.color-input{height:43px;padding:4px}
+.progress-track{height:10px;background:var(--border);border-radius:20px;overflow:hidden;margin-top:9px}
+.progress-fill{height:100%;width:0;background:var(--accent);transition:width .2s}
+.list{display:grid;gap:9px;margin-top:14px}
+.group{border:1px solid var(--border);border-radius:13px;overflow:hidden}
+.group-head{padding:12px;background:var(--field);display:flex;align-items:center;justify-content:space-between;gap:10px}
+.record{padding:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.record-title{font-weight:700}
+.record-meta{color:var(--muted);font-size:12px;margin-top:4px}
+.amount{color:var(--accent);font-weight:800}
 .hidden{display:none!important}
-footer{padding:0 16px 24px;text-align:center;font-size:12px;color:#64748b}
-@media(max-width:540px){.grid{grid-template-columns:1fr}.brand{font-size:16px}.topbar{padding:10px}.top-actions{gap:4px}.small-btn{padding:7px}.card{padding:14px}main{padding:12px}}
-@media print{.topbar,#preferences-card,#savings-form-card,#search-row,.record-actions,footer,.no-print{display:none!important}body,html.dark body{background:white!important;color:#111!important}.card,.record{background:white!important;color:#111!important;border-color:#ccc!important;box-shadow:none!important}main{width:100%;padding:0}.muted{color:#444!important}}
-</style></head>
-<body><header class="topbar">
-  <button class="back" id="back-btn" type="button" aria-label="Go back">‹</button>
-  <div class="brand">📘 Digital NoteBook<div class="subtitle" id="header-subtitle">Savings</div></div>
-  <div class="top-actions">
-    <button class="small-btn" id="quick-theme" type="button" aria-label="Toggle theme">🌙</button>
-    <button class="small-btn" id="quick-language" type="button">EN</button>
+#toast{position:fixed;z-index:99;left:50%;bottom:20px;transform:translateX(-50%);width:max-content;max-width:92vw;background:#172033;color:white;padding:12px 16px;border-radius:12px;box-shadow:0 8px 25px #0005;display:none}
+#toast.show{display:block}
+dialog{border:1px solid var(--border);border-radius:18px;background:var(--panel);color:var(--text);width:min(95vw,700px);max-height:90vh;padding:0}
+dialog::backdrop{background:#0009}
+.modal-head,.modal-body,.modal-foot{padding:15px}
+.modal-head,.modal-foot{border-bottom:1px solid var(--border)}
+.modal-foot{border-bottom:0;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+.report{background:#fff;color:#222;padding:20px;font-family:Arial,sans-serif;overflow-wrap:anywhere}
+.report table{width:100%;border-collapse:collapse;font-size:12px}
+.report th,.report td{border:1px solid #ddd;padding:7px;text-align:left}
+.report th{background:#f1f5f9}
+.status-note{padding:12px;border:1px solid var(--border);border-radius:12px;color:var(--muted);font-size:12px;margin-bottom:14px}
+@media(max-width:540px){.grid{grid-template-columns:1fr}.card{padding:13px}.topbar{padding:10px}.brand{font-size:15px}.pref-row{grid-template-columns:1fr 42%}h2{font-size:20px}.record .actions{margin-top:0}}
+@media print{.topbar,#preferences-card,#form-card,#target-card,#list-actions,#toast,.no-print{display:none!important}body{background:white;color:#111}.card{box-shadow:none;border:0}main{padding:0}}
+</style></head><body>
+<header class="topbar">
+  <button class="back" onclick="goBack()" aria-label="Go back">‹</button>
+  <div>
+    <div class="brand">📘 Digital NoteBook</div>
+    <div class="subbrand" id="header-subtitle">Savings</div>
   </div>
+  <div class="sync" id="sync-status">Local ready</div>
 </header><main>
-  <section>
-    <h2 data-en="Savings" data-np="बचत">Savings</h2>
-    <p class="muted" data-en="Manage your savings and goals." data-np="आफ्नो बचत र लक्ष्य व्यवस्थापन गर्नुहोस्।">Manage your savings and goals.</p>
-    <div id="app-status" class="status" role="status" aria-live="polite">Starting…</div>
-  </section>  <section class="card" id="preferences-card">
-    <div class="row" style="justify-content:space-between">
-      <h3 data-en="Display & Preferences" data-np="प्रदर्शन र प्राथमिकताहरू">Display & Preferences</h3>
-      <span class="small muted" data-en="Saved on this device" data-np="यसै उपकरणमा सुरक्षित">Saved on this device</span>
+  <div class="row" style="margin:4px 2px 15px">
+    <div>
+      <div class="muted" id="dynamic-date"></div>
+      <h2 id="page-title">💰 Savings</h2>
     </div>
-    <p class="muted small" data-en="These options are stored locally and work offline. They are not uploaded to Firebase from this page." data-np="यी विकल्प यसै उपकरणमा सुरक्षित हुन्छन् र अफलाइन पनि चल्छन्। यस पेजबाट Firebase मा पठाइँदैनन्।">These options are stored locally and work offline. They are not uploaded to Firebase from this page.</p>
-    <div class="grid">
-      <div>
-        <label for="pref-language" data-en="Language" data-np="भाषा">Language</label>
-        <select id="pref-language">
-          <option value="EN">English</option>
-          <option value="NEP">नेपाली</option>
-        </select>
-      </div>
-      <div>
-        <label for="pref-theme" data-en="Theme" data-np="थिम">Theme</label>
-        <select id="pref-theme">
-          <option value="dark">Dark</option>
-          <option value="light">Light</option>
-        </select>
-      </div>
-      <div>
-        <label for="pref-font-size" data-en="Font size" data-np="अक्षरको आकार">Font size</label>
-        <select id="pref-font-size">
-          <option value="small">Small</option>
-          <option value="medium">Medium</option>
-          <option value="large">Large</option>
-        </select>
-      </div>
-      <div>
-        <label for="pref-font-family" data-en="Font family" data-np="अक्षर शैली">Font family</label>
-        <select id="pref-font-family">
-          <option value="Poppins">Poppins</option>
-          <option value="Arial">Arial</option>
-          <option value="system">System default</option>
-          <option value="Georgia">Georgia</option>
-          <option value="Verdana">Verdana</option>
-        </select>
-      </div>
-      <div>
-        <label for="pref-accent" data-en="Accent color" data-np="मुख्य रङ">Accent color</label>
-        <input id="pref-accent" type="color" value="#00e600">
-      </div>
+    <button class="btn" id="open-prefs" onclick="togglePreferences()">⚙️ Preferences</button>
+  </div>  <div class="status-note" id="status-note">
+    Preferences are stored on this device and work offline. Cloud savings sync requires sign-in and an internet connection.
+  </div>  <!-- DISPLAY & PREFERENCES: local-first; usable offline -->  <section class="card hidden" id="preferences-card">
+    <div class="row">
+      <h3 id="prefs-heading">Display &amp; Preferences</h3>
+      <button class="btn btn-sm" onclick="togglePreferences()">✕</button>
     </div>
-    <div class="row" style="margin-top:14px">
-      <button class="btn" id="preferences-save" type="button" data-en="Save on this device" data-np="यस फोनमा सेभ गर्नुहोस्">Save on this device</button>
-      <button class="btn secondary" id="preferences-reset" type="button" data-en="Reset preferences" data-np="सेटिङ रिसेट">Reset preferences</button>
+    <div class="pref-row">
+      <div><div class="pref-title" data-en="Language" data-np="भाषा">Language</div><div class="pref-desc" data-en="Change page language offline." data-np="इन्टरनेटबिना भाषा बदल्नुहोस्।">Change page language offline.</div></div>
+      <select id="pref-lang" onchange="changePreference('lang',this.value)"><option value="EN">English</option><option value="NEP">नेपाली</option></select>
     </div>
-    <p id="preferences-status" class="small muted" style="margin:12px 0 0" aria-live="polite"></p>
-  </section>  <section class="card">
-    <div class="row" style="justify-content:space-between">
-      <h3 data-en="Savings target" data-np="बचत लक्ष्य">Savings target</h3>
-      <button class="btn secondary" id="target-open" type="button" data-en="Set target" data-np="लक्ष्य राख्नुहोस्">Set target</button>
+    <div class="pref-row">
+      <div><div class="pref-title" data-en="Theme" data-np="थिम">Theme</div><div class="pref-desc" data-en="Light or dark mode." data-np="लाइट वा डार्क मोड।">Light or dark mode.</div></div>
+      <select id="pref-theme" onchange="changePreference('theme',this.value)"><option value="dark">Dark</option><option value="light">Light</option></select>
     </div>
-    <div class="row" style="justify-content:space-between">
-      <span id="target-progress-text">Rs 0 / Goal not set</span>
-      <strong class="accent" id="target-percentage">0%</strong>
+    <div class="pref-row">
+      <div><div class="pref-title" data-en="Font size" data-np="अक्षरको आकार">Font size</div><div class="pref-desc" data-en="Adjust text size." data-np="अक्षर सानो वा ठूलो बनाउनुहोस्।">Adjust text size.</div></div>
+      <select id="pref-font-size" onchange="changePreference('font_size',this.value)"><option value="small">Small</option><option value="medium">Medium</option><option value="large">Large</option></select>
     </div>
-    <div class="progress"><div id="target-progress-bar"></div></div>
-    <div class="statgrid" style="margin-top:14px">
-      <div class="stat"><span class="muted" data-en="Total savings (NPR)" data-np="कुल बचत (नेरु)">Total savings (NPR)</span><strong class="accent" id="total-savings">Rs 0.00</strong></div>
-      <div class="stat"><span class="muted" data-en="Number of records" data-np="रेकर्ड सङ्ख्या">Number of records</span><strong id="record-count">0</strong></div>
+    <div class="pref-row">
+      <div><div class="pref-title" data-en="Font family" data-np="अक्षरको शैली">Font family</div><div class="pref-desc" data-en="Choose a font." data-np="अक्षरको शैली छान्नुहोस्।">Choose a font.</div></div>
+      <select id="pref-font-family" onchange="changePreference('font_family',this.value)"><option>Poppins</option><option>Arial</option><option>Roboto</option><option>Georgia</option></select>
     </div>
-  </section>  <section class="card" id="savings-form-card">
-    <h3 id="form-heading" data-en="Add savings" data-np="बचत थप्नुहोस्">Add savings</h3>
+    <div class="pref-row">
+      <div><div class="pref-title" data-en="Accent color" data-np="मुख्य रङ">Accent color</div><div class="pref-desc" data-en="Choose highlight color." data-np="मुख्य रङ छान्नुहोस्।">Choose highlight color.</div></div>
+      <input class="color-input" type="color" id="pref-accent" value="#00e600" onchange="changePreference('accentColor',this.value)">
+    </div>
+    <div class="actions">
+      <button class="btn" onclick="resetPreferences()" id="reset-prefs">Reset preferences</button>
+      <button class="btn btn-primary" onclick="syncPreferences()" id="sync-prefs">Sync preferences</button>
+    </div>
+    <p class="muted" style="font-size:12px" id="prefs-help">Your choices apply immediately and are saved locally, even offline. Sync sends them to your signed-in Firebase account when online.</p>
+  </section>  <section class="card" id="target-card">
+    <div class="row">
+      <h3 id="target-heading">🎯 Savings Target</h3>
+      <button class="btn btn-sm" onclick="openTarget()" id="set-target-btn">Set target</button>
+    </div>
+    <div class="row">
+      <span id="target-progress-text">Rs 0.00 / Goal not set</span>
+      <strong class="amount" id="target-percent">0%</strong>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="target-progress-bar"></div></div>
+  </section>  <section class="card" id="form-card">
+    <h3 id="form-heading">➕ Add Savings</h3>
     <form id="savings-form">
       <input type="hidden" id="edit-id">
       <div class="grid">
-        <div>
-          <label for="s-title" data-en="Title" data-np="शीर्षक">Title</label>
-          <input id="s-title" maxlength="160" required placeholder="e.g. Bank deposit">
+        <div class="field">
+          <label for="title" id="label-title">Savings title</label>
+          <input id="title" required maxlength="160" placeholder="e.g. Bank deposit">
         </div>
-        <div>
-          <label for="s-category" data-en="Category" data-np="श्रेणी">Category</label>
-          <select id="s-category">
-            <option value="Bank">🏦 Bank</option>
-            <option value="Cash">💵 Cash</option>
-            <option value="Investment">📈 Investment</option>
-            <option value="Other">📦 Other</option>
-          </select>
+        <div class="field">
+          <label for="category" id="label-category">Category</label>
+          <select id="category"><option value="Bank">🏦 Bank</option><option value="Cash">💵 Cash</option><option value="Investment">📈 Investment</option><option value="Other">Other</option></select>
         </div>
-        <div>
-          <label for="s-npr">NPR (रु)</label>
-          <input id="s-npr" type="number" min="0" step="0.01" value="0" required>
+        <div class="field">
+          <label for="npr" id="label-npr">Amount (NPR)</label>
+          <input id="npr" type="number" step="0.01" min="0" inputmode="decimal" value="0">
         </div>
-        <div>
-          <label for="s-inr">INR (₹)</label>
-          <input id="s-inr" type="number" min="0" step="0.01" value="0" required>
+        <div class="field">
+          <label for="inr" id="label-inr">Amount (INR)</label>
+          <input id="inr" type="number" step="0.01" min="0" inputmode="decimal" value="0">
         </div>
-        <div>
-          <label for="s-total" data-en="Total in NPR (INR rate: 1.6)" data-np="नेरुमा जम्मा (भारु दर: १.६)">Total in NPR (INR rate: 1.6)</label>
-          <input id="s-total" readonly value="0.00">
+        <div class="field">
+          <label for="total" id="label-total">Total in NPR (INR × 1.6)</label>
+          <input id="total" readonly value="0.00">
         </div>
-        <div>
-          <label for="s-date" data-en="Date" data-np="मिति">Date</label>
-          <input id="s-date" type="date" required>
+        <div class="field">
+          <label for="date" id="label-date">Date</label>
+          <input id="date" type="date" required>
         </div>
       </div>
-      <div class="row" style="margin-top:14px">
-        <button class="btn" id="save-record" type="submit" data-en="Add savings" data-np="बचत थप्नुहोस्">Add savings</button>
-        <button class="btn secondary hidden" id="cancel-edit" type="button" data-en="Cancel edit" data-np="सम्पादन रद्द">Cancel edit</button>
+      <div class="actions">
+        <button class="btn btn-primary" type="submit" id="save-btn">Add savings</button>
+        <button class="btn hidden" type="button" id="cancel-edit" onclick="resetForm()">Cancel</button>
       </div>
     </form>
   </section>  <section class="card">
-    <div class="row" style="justify-content:space-between">
-      <h3 data-en="Savings records" data-np="बचत रेकर्ड">Savings records</h3>
-      <button class="btn secondary" id="print-report" type="button" data-en="Report / Print" data-np="रिपोर्ट / प्रिन्ट">Report / Print</button>
+    <div class="row">
+      <h3 id="list-heading">📒 Savings Records</h3>
+      <button class="btn btn-sm" onclick="toggleAmountPrivacy()" id="privacy-btn">🙈 Hide amounts</button>
     </div>
-    <div class="grid" id="search-row">
-      <div>
-        <label for="search-records" data-en="Search" data-np="खोज्नुहोस्">Search</label>
-        <input id="search-records" placeholder="Search title…">
-      </div>
-      <div>
-        <label for="sort-records" data-en="Sort by" data-np="क्रम मिलाउनुहोस्">Sort by</label>
-        <select id="sort-records">
-          <option value="date">Newest date first</option>
-          <option value="name">Title A–Z</option>
-          <option value="amount">Highest amount</option>
-        </select>
-      </div>
+    <div class="grid">
+      <div class="field"><label for="search" id="label-search">Search title</label><input id="search" placeholder="Search..." oninput="renderSavings()"></div>
+      <div class="field"><label for="sort" id="label-sort">Sort by</label><select id="sort" onchange="renderSavings()"><option value="name">Title A–Z</option><option value="total_desc">Highest amount</option><option value="date_desc">Newest date</option></select></div>
     </div>
-    <div id="records-list" style="margin-top:12px">
-      <p class="muted" data-en="Sign in to load your records." data-np="रेकर्ड लोड गर्न लगइन गर्नुहोस्।">Sign in to load your records.</p>
+    <div class="actions" id="list-actions">
+      <button class="btn" onclick="generateReport()" id="pdf-btn">📄 Preview report</button>
+      <button class="btn" onclick="window.print()" id="print-btn">🖨 Print</button>
+      <button class="btn" onclick="exportSavings()" id="export-btn">Export JSON</button>
+      <button class="btn" onclick="document.getElementById('import-file').click()" id="import-btn">Import JSON</button>
+      <input id="import-file" type="file" accept="application/json,.json" class="hidden" onchange="importSavings(event)">
     </div>
-    <div class="row" style="justify-content:space-between;border-top:1px solid #cbd5e1;margin-top:15px;padding-top:14px">
-      <strong data-en="Grand total" data-np="कुल जम्मा">Grand total</strong>
-      <strong class="accent" id="grand-total">Rs 0.00</strong>
+    <div class="list" id="savings-list"></div>
+    <div class="row" style="margin-top:15px;padding-top:12px;border-top:1px solid var(--border)">
+      <strong id="grand-label">Grand Total Savings</strong>
+      <strong class="amount" id="grand-total">Rs 0.00</strong>
     </div>
-  </section>  <section class="card hidden" id="target-card">
-    <h3 data-en="Savings target" data-np="बचत लक्ष्य">Savings target</h3>
-    <label for="target-amount" data-en="Target amount in NPR" data-np="लक्ष्य रकम (नेरु)">Target amount in NPR</label>
-    <input id="target-amount" type="number" min="0" step="0.01" value="0">
-    <div class="row" style="margin-top:12px">
-      <button class="btn" id="target-save" type="button" data-en="Save" data-np="सेभ गर्नुहोस्">Save</button>
-      <button class="btn secondary" id="target-cancel" type="button" data-en="Cancel" data-np="रद्द गर्नुहोस्">Cancel</button>
+    <div class="muted" id="record-count" style="margin-top:8px;font-size:12px">0 records</div>
+  </section>  <section class="card">
+    <div class="row">
+      <div><h3 id="trash-heading">🗑 Recently Deleted</h3><div class="muted" id="trash-description">Restore records within 30 days.</div></div>
+      <button class="btn btn-sm" onclick="loadTrash()" id="refresh-trash">Refresh</button>
     </div>
+    <div class="list" id="trash-list"></div>
+    <p class="muted" style="font-size:12px" id="trash-note">Automatic permanent deletion after 30 days requires a deployed server-side cleanup function.</p>
   </section>
-</main><footer data-en="Display preferences work offline. Savings records require a signed-in account to synchronize with Firebase. Printing uses your browser." data-np="प्रदर्शन प्राथमिकता अफलाइन चल्छ। बचत रेकर्ड Firebase मा सिंक गर्न लगइन आवश्यक छ। प्रिन्ट गर्न ब्राउजर प्रयोग हुन्छ।">Display preferences work offline. Savings records require a signed-in account to synchronize with Firebase. Printing uses your browser.</footer><!-- Firebase Authentication + Realtime Database (compat SDK) --><script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script><script>
+</main><div id="toast" role="status" aria-live="polite"></div><dialog id="target-dialog">
+  <div class="modal-head"><strong id="target-dialog-title">Set savings target</strong></div>
+  <div class="modal-body"><label for="target-input" id="target-input-label">Target amount (NPR)</label><input id="target-input" type="number" min="0" step="0.01"></div>
+  <div class="modal-foot"><button class="btn" onclick="closeTarget()" id="target-cancel">Cancel</button><button class="btn btn-primary" onclick="saveTarget()" id="target-save">Save</button></div>
+</dialog><dialog id="report-dialog">
+  <div class="modal-head row"><strong id="report-title">Savings report preview</strong><button class="btn btn-sm" onclick="document.getElementById('report-dialog').close()">✕</button></div>
+  <div class="modal-body" id="report-content"></div>
+  <div class="modal-foot"><button class="btn" onclick="window.print()" id="report-print">Print</button><button class="btn btn-primary" onclick="downloadPDF()" id="report-pdf">Generate PDF</button></div>
+</dialog><script>
 "use strict";
 
-/* ---------------- OFFLINE DISPLAY PREFERENCES ---------------- */
-const PREF_KEY = "dnb_display_preferences";
-const PREF_DEFAULTS = {
-  language: "EN",
-  theme: "dark",
-  fontSize: "small",
-  fontFamily: "Poppins",
-  accent: "#00e600"
+/* Firebase configuration */
+const firebaseConfig={
+  apiKey:"AIzaSyDDY_v7RHnkCTI6uyV4DNDjqoaIBGweg8c",
+  authDomain:"digital-a2552.firebaseapp.com",
+  databaseURL:"https://digital-a2552-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:"digital-a2552",
+  storageBucket:"digital-a2552.firebasestorage.app",
+  messagingSenderId:"218135618179",
+  appId:"1:821b76920d3e5669ac31b6:web:821b76920d3e5669ac31b6"
 };
-let preferences = loadPreferences();
+/* Correct appId is set below to the project's supplied value. */
+firebaseConfig.appId="1:218135618179:web:821b76920d3e5669ac31b6";
 
-function loadPreferences() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(PREF_KEY) || "{}");
-    return {...PREF_DEFAULTS, ...saved};
-  } catch (_) {
-    return {...PREF_DEFAULTS};
-  }
+const INR_RATE=1.6;
+const TRASH_DAYS=30;
+const DEFAULT_PREFS={theme:"dark",lang:"EN",font_size:"small",font_family:"Poppins",accentColor:"#00e600"};
+let prefs=readPrefs();
+let db=null,auth=null,currentUser=null;
+let savings={};
+let trash={};
+let cloudReady=false;
+let hideAmounts=localStorage.getItem("savings_hidden")==="true";
+let targetAmount=Number(localStorage.getItem("savings_target_amount")||0);
+let dataListener=null,trashListener=null,settingsListener=null;
+let toastTimer=null;
+const $=id=>document.getElementById(id);
+const esc=value=>String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const pathPart=s=>String(s).replace(/[.#$\[\]\/]/g,"_");
+
+function readPrefs(){
+  let saved={};
+  try{saved=JSON.parse(localStorage.getItem("dnb_preferences")||"{}")}catch(e){}
+  if(localStorage.getItem("theme"))saved.theme=localStorage.getItem("theme");
+  if(localStorage.getItem("lang"))saved.lang=localStorage.getItem("lang");
+  return {...DEFAULT_PREFS,...saved};
 }
-function applyPreferences() {
-  const root = document.documentElement;
-  root.classList.toggle("dark", preferences.theme === "dark");
-  root.style.setProperty("--accent", preferences.accent || PREF_DEFAULTS.accent);
-  root.style.setProperty("--font-size", ({small:"14px",medium:"16px",large:"18px"})[preferences.fontSize] || "14px");
-  root.style.setProperty("--font-family", ({
-    Poppins:"Poppins, sans-serif",
-    Arial:"Arial, sans-serif",
-    system:"system-ui, sans-serif",
-    Georgia:"Georgia, serif",
-    Verdana:"Verdana, sans-serif"
-  })[preferences.fontFamily] || "system-ui, sans-serif");
+function toast(message){
+  const el=$("toast");el.textContent=message;el.classList.add("show");
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove("show"),3000);
+}
+function status(message){$("sync-status").textContent=message}
+function localPrefsSave(){
+  localStorage.setItem("dnb_preferences",JSON.stringify(prefs));
+  localStorage.setItem("theme",prefs.theme);
+  localStorage.setItem("lang",prefs.lang);
+}
+function applyPrefs(){
+  document.documentElement.classList.toggle("dark",prefs.theme==="dark");
+  document.documentElement.dataset.lang=prefs.lang;
+  document.documentElement.dataset.fontsize=prefs.font_size;
+  document.documentElement.dataset.fontfamily=prefs.font_family;
+  document.documentElement.style.setProperty("--accent",prefs.accentColor);
+  $("pref-lang").value=prefs.lang;
+  $("pref-theme").value=prefs.theme;
+  $("pref-font-size").value=prefs.font_size;
+  $("pref-font-family").value=prefs.font_family;
+  $("pref-accent").value=prefs.accentColor;
+  updateLanguage();
+}
+function changePreference(key,value){
+  prefs[key]=value;localPrefsSave();applyPrefs();
+  toast(prefs.lang==="NEP"?"सेटिङ यसै डिभाइसमा सेभ भयो।":"Preference saved on this device.");
+  if(currentUser&&navigator.onLine)syncPreferences();
+}
+function resetPreferences(){
+  prefs={...DEFAULT_PREFS};localPrefsSave();applyPrefs();
+  if(currentUser&&navigator.onLine)syncPreferences();
+  toast(prefs.lang==="NEP"?"पूर्वनिर्धारित सेटिङ लागू भयो।":"Preferences reset.");
+}
+function togglePreferences(){$("preferences-card").classList.toggle("hidden")}
+function syncPreferences(){
+  if(!currentUser||!db){toast("Sign in to sync preferences.");return}
+  if(!navigator.onLine){toast("Offline: preferences are saved locally.");return}
+  db.ref("users/"+currentUser.uid+"/settings").update(prefs)
+    .then(()=>toast(prefs.lang==="NEP"?"सेटिङ क्लाउडमा सिंक भयो।":"Preferences synced."))
+    .catch(e=>{console.error(e);toast("Sync failed. Local preferences are kept.")});
+}
+const translations={
+  "header-subtitle":["Savings","बचत"],
+  "page-title":["💰 Savings","💰 बचत"],
+  "open-prefs":["⚙️ Preferences","⚙️ सेटिङ"],
+  "prefs-heading":["Display & Preferences","देखावट र प्राथमिकता"],
+  "target-heading":["🎯 Savings Target","🎯 बचत लक्ष्य"],
+  "set-target-btn":["Set target","लक्ष्य राख्नुहोस्"],
+  "form-heading":["➕ Add Savings","➕ बचत थप्नुहोस्"],
+  "label-title":["Savings title","बचतको शीर्षक"],
+  "label-category":["Category","श्रेणी"],
+  "label-npr":["Amount (NPR)","रकम (नेरु)"],
+  "label-inr":["Amount (INR)","रकम (भारु)"],
+  "label-total":["Total in NPR (INR × 1.6)","जम्मा नेरु (भारु × १.६)"],
+  "label-date":["Date","मिति"],
+  "save-btn":["Add savings","बचत थप्नुहोस्"],
+  "cancel-edit":["Cancel","रद्द गर्नुहोस्"],
+  "list-heading":["📒 Savings Records","📒 बचत रेकर्ड"],
+  "privacy-btn":["🙈 Hide amounts","🙈 रकम लुकाउनुहोस्"],
+  "label-search":["Search title","शीर्षक खोज्नुहोस्"],
+  "label-sort":["Sort by","क्रम मिलाउनुहोस्"],
+  "pdf-btn":["📄 Preview report","📄 रिपोर्ट हेर्नुहोस्"],
+  "print-btn":["🖨 Print","🖨 प्रिन्ट"],
+  "export-btn":["Export JSON","JSON निर्यात"],
+  "import-btn":["Import JSON","JSON आयात"],
+  "grand-label":["Grand Total Savings","कुल जम्मा बचत"],
+  "trash-heading":["🗑 Recently Deleted","🗑 हालै मेटाइएका"],
+  "trash-description":["Restore records within 30 days.","३० दिनभित्र रेकर्ड फिर्ता ल्याउनुहोस्।"],
+  "refresh-trash":["Refresh","रिफ्रेस"],
+  "target-dialog-title":["Set savings target","बचत लक्ष्य राख्नुहोस्"],
+  "target-input-label":["Target amount (NPR)","लक्ष्य रकम (नेरु)"],
+  "target-cancel":["Cancel","रद्द गर्नुहोस्"],
+  "target-save":["Save","सेभ"],
+  "report-title":["Savings report preview","बचत रिपोर्ट पूर्वावलोकन"],
+  "report-print":["Print","प्रिन्ट"],
+  "report-pdf":["Generate PDF","PDF बनाउनुहोस्"]
+};
+function updateLanguage(){
+  const np=prefs.lang==="NEP";
+  document.querySelectorAll("[data-en][data-np]").forEach(el=>el.textContent=np?el.dataset.np:el.dataset.en);
+  Object.entries(translations).forEach(([id,values])=>{if($(id))$(id).textContent=values[np?1:0]});
+  $("lang-toggle-unused")?.remove();
+  document.title=np?"Digital NoteBook — बचत":"Digital NoteBook — Savings";
+  renderSavings();renderTrash();updateTargetUI();
+}
+function goBack(){if(history.length>1)history.back();else location.href="index.html"}
+function updateDate(){
+  const locale=prefs.lang==="NEP"?"ne-NP":"en-US";
+  $("dynamic-date").textContent=new Date().toLocaleDateString(locale,{weekday:"long",year:"numeric",month:"long",day:"numeric"});
+}
+function calculateTotal(){
+  const npr=Math.max(0,Number($("npr").value)||0);
+  const inr=Math.max(0,Number($("inr").value)||0);
+  $("total").value=(npr+inr*INR_RATE).toFixed(2);
+}
+$("npr").addEventListener("input",calculateTotal);
+$("inr").addEventListener("input",calculateTotal);
 
-  document.getElementById("pref-language").value = preferences.language;
-  document.getElementById("pref-theme").value = preferences.theme;
-  document.getElementById("pref-font-size").value = preferences.fontSize;
-  document.getElementById("pref-font-family").value = preferences.fontFamily;
-  document.getElementById("pref-accent").value = preferences.accent;
-  document.getElementById("quick-theme").textContent = preferences.theme === "dark" ? "🌙" : "☀️";
-  document.getElementById("quick-language").textContent = preferences.language === "NEP" ? "ने" : "EN";
-
-  document.querySelectorAll("[data-en][data-np]").forEach(el => {
-    const text = el.getAttribute(preferences.language === "NEP" ? "data-np" : "data-en");
-    if (text !== null) el.textContent = text;
+function valuesOfRecords(){
+  return Object.entries(savings||{}).map(([id,item])=>({...item,id}));
+}
+function saveLocalCache(){
+  localStorage.setItem("digital_notebook_savings_cache",JSON.stringify(savings));
+}
+function renderSavings(){
+  const list=$("savings-list");if(!list)return;
+  const query=$("search").value.trim().toLowerCase();
+  const sort=$("sort").value;
+  let records=valuesOfRecords().filter(r=>!r.deletedAt&&String(r.title||"").toLowerCase().includes(query));
+  records.sort((a,b)=>{
+    if(sort==="total_desc")return Number(b.total||0)-Number(a.total||0);
+    if(sort==="date_desc")return String(b.date||"").localeCompare(String(a.date||""));
+    return String(a.title||"").localeCompare(String(b.title||""));
   });
-  document.documentElement.lang = preferences.language === "NEP" ? "ne" : "en";
-  updateDynamicLabels();
-}
-function savePreferences() {
-  preferences = {
-    language: document.getElementById("pref-language").value,
-    theme: document.getElementById("pref-theme").value,
-    fontSize: document.getElementById("pref-font-size").value,
-    fontFamily: document.getElementById("pref-font-family").value,
-    accent: document.getElementById("pref-accent").value
-  };
-  try {
-    localStorage.setItem(PREF_KEY, JSON.stringify(preferences));
-    /* Keep older pages' local theme/language convention in step. */
-    localStorage.setItem("theme", preferences.theme);
-    localStorage.setItem("lang", preferences.language);
-    applyPreferences();
-    document.getElementById("preferences-status").textContent =
-      preferences.language === "NEP" ? "यस उपकरणमा सेभ भयो। इन्टरनेट आवश्यक छैन।" : "Saved on this device. No internet required.";
-  } catch (_) {
-    document.getElementById("preferences-status").textContent =
-      "Could not save preferences. Check this browser's storage settings.";
+  list.innerHTML="";
+  const grand=valuesOfRecords().reduce((sum,r)=>sum+(Number(r.total)||0),0);
+  $("grand-total").textContent=hideAmounts?"Rs ••••••":money(grand);
+  $("record-count").textContent=prefs.lang==="NEP"?`${records.length} रेकर्ड`:`${records.length} record(s)`;
+  $("privacy-btn").textContent=hideAmounts?(prefs.lang==="NEP"?"👁 रकम देखाउनुहोस्":"👁 Show amounts"):(prefs.lang==="NEP"?"🙈 रकम लुकाउनुहोस्":"🙈 Hide amounts");
+  if(!records.length){
+    list.innerHTML=`<div class="muted" style="padding:18px;text-align:center">${prefs.lang==="NEP"?"बचत रेकर्ड भेटिएन।":"No savings records found."}</div>`;
+    updateTargetUI();return;
   }
-}
-function resetPreferences() {
-  preferences = {...PREF_DEFAULTS};
-  try {
-    localStorage.setItem(PREF_KEY, JSON.stringify(preferences));
-    localStorage.setItem("theme", preferences.theme);
-    localStorage.setItem("lang", preferences.language);
-  } catch (_) {}
-  applyPreferences();
-  document.getElementById("preferences-status").textContent =
-    preferences.language === "NEP" ? "पूर्वनिर्धारित सेटिङ राखियो।" : "Default preferences restored.";
-}
-document.getElementById("preferences-save").addEventListener("click", savePreferences);
-document.getElementById("preferences-reset").addEventListener("click", resetPreferences);
-["pref-language","pref-theme","pref-font-size","pref-font-family","pref-accent"].forEach(id => {
-  document.getElementById(id).addEventListener("change", savePreferences);
-});
-document.getElementById("quick-theme").addEventListener("click", () => {
-  preferences.theme = preferences.theme === "dark" ? "light" : "dark";
-  savePreferences();
-});
-document.getElementById("quick-language").addEventListener("click", () => {
-  preferences.language = preferences.language === "EN" ? "NEP" : "EN";
-  savePreferences();
-});
-document.getElementById("back-btn").addEventListener("click", () => {
-  if (history.length > 1) history.back();
-  else location.href = "index.html";
-});
-
-/* ---------------- LOCAL UI STATUS (NO TOAST / ALERT) ---------------- */
-function status(message, type) {
-  const el = document.getElementById("app-status");
-  el.textContent = message;
-  el.className = "status" + (type ? " " + type : "");
-}
-function t(en, np) {
-  return preferences.language === "NEP" ? np : en;
-}
-function updateDynamicLabels() {
-  document.getElementById("form-heading").textContent =
-    document.getElementById("edit-id").value ? t("Edit savings","बचत सम्पादन") : t("Add savings","बचत थप्नुहोस्");
-  document.getElementById("save-record").textContent =
-    document.getElementById("edit-id").value ? t("Update savings","बचत अपडेट गर्नुहोस्") : t("Add savings","बचत थप्नुहोस्");
-}
-function todayLocal() {
-  const d = new Date();
-  const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
-  return local.toISOString().slice(0,10);
-}
-
-/* ---------------- FIREBASE ---------------- */
-const firebaseConfig = {
-  apiKey: "AIzaSyDDY_v7RHnkCTI6uyV4DNDjqoaIBGweg8c",
-  authDomain: "digital-a2552.firebaseapp.com",
-  databaseURL: "https://digital-a2552-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "digital-a2552",
-  storageBucket: "digital-a2552.firebasestorage.app",
-  messagingSenderId: "218135618179",
-  appId: "1:821b76920d3e5669ac31b6:web:821b76920d3e5669ac31b6"
-};
-
-let db = null;
-let auth = null;
-let uid = null;
-let savingsRef = null;
-let targetRef = null;
-let savingsListener = null;
-let targetListener = null;
-let savings = [];
-let targetAmount = 0;
-let busy = false;
-
-function cleanNumber(value) {
-  const n = Number(value);
-  return Number.isFinite(n) && n >= 0 ? n : 0;
-}
-function totalFor(npr, inr) {
-  return Math.round((cleanNumber(npr) + cleanNumber(inr) * 1.6) * 100) / 100;
-}
-function calculateFormTotal() {
-  document.getElementById("s-total").value =
-    totalFor(document.getElementById("s-npr").value, document.getElementById("s-inr").value).toFixed(2);
-}
-document.getElementById("s-npr").addEventListener("input", calculateFormTotal);
-document.getElementById("s-inr").addEventListener("input", calculateFormTotal);
-document.getElementById("s-date").value = todayLocal();
-
-function openTarget() {
-  document.getElementById("target-amount").value = String(targetAmount || 0);
-  document.getElementById("target-card").classList.remove("hidden");
-  document.getElementById("target-card").scrollIntoView({behavior:"smooth",block:"center"});
-}
-function closeTarget() {
-  document.getElementById("target-card").classList.add("hidden");
-}
-document.getElementById("target-open").addEventListener("click", openTarget);
-document.getElementById("target-cancel").addEventListener("click", closeTarget);
-
-document.getElementById("target-save").addEventListener("click", async () => {
-  if (!targetRef) {
-    status(t("Sign in to save your target.","लक्ष्य सेभ गर्न लगइन गर्नुहोस्।"), "error");
-    return;
+  const groups=new Map();
+  records.forEach(r=>{const key=String(r.title||"Untitled").trim()||"Untitled";const low=key.toLowerCase();if(!groups.has(low))groups.set(low,{title:key,items:[],total:0});const g=groups.get(low);g.items.push(r);g.total+=Number(r.total)||0});
+  for(const [key,g] of groups){
+    const el=document.createElement("div");el.className="group";
+    const head=document.createElement("div");head.className="group-head";
+    head.innerHTML=`<div><strong>${esc(g.title)}</strong><div class="muted" style="font-size:12px">${g.items.length} ${prefs.lang==="NEP"?"रेकर्ड":"record(s)"}</div></div><strong class="amount">${hideAmounts?"Rs ••••••":money(g.total)}</strong>`;
+    el.appendChild(head);
+    g.items.forEach(r=>{
+      const row=document.createElement("div");row.className="record";
+      row.innerHTML=`<div><div class="record-title">${esc(r.date||"")}</div><div class="record-meta">${esc(r.category||"Other")} · NPR ${hideAmounts?"•••":Number(r.npr||0).toFixed(2)} · INR ${hideAmounts?"•••":Number(r.inr||0).toFixed(2)}</div></div>
+      <div class="row"><strong class="amount">${hideAmounts?"Rs ••••••":money(r.total)}</strong><div class="actions" style="margin:0"><button class="btn btn-sm" data-edit="${esc(r.id)}">${prefs.lang==="NEP"?"सम्पादन":"Edit"}</button><button class="btn btn-sm btn-danger" data-delete="${esc(r.id)}">${prefs.lang==="NEP"?"मेटाउनुहोस्":"Delete"}</button></div></div>`;
+      el.appendChild(row);
+    });
+    list.appendChild(el);
   }
-  const amount = cleanNumber(document.getElementById("target-amount").value);
-  try {
-    await targetRef.set(amount);
-    closeTarget();
-    status(t("Savings target saved.","बचत लक्ष्य सेभ भयो।"), "success");
-  } catch (e) {
-    status(t("Could not save target: ","लक्ष्य सेभ भएन: ") + e.message, "error");
-  }
-});
-
-document.getElementById("savings-form").addEventListener("submit", async event => {
-  event.preventDefault();
-  if (!savingsRef || !uid) {
-    status(t("Sign in to save savings records.","बचत रेकर्ड सेभ गर्न लगइन गर्नुहोस्।"), "error");
-    return;
-  }
-  if (busy) return;
-  const title = document.getElementById("s-title").value.trim();
-  const category = document.getElementById("s-category").value;
-  const npr = cleanNumber(document.getElementById("s-npr").value);
-  const inr = cleanNumber(document.getElementById("s-inr").value);
-  const date = document.getElementById("s-date").value;
-  const editId = document.getElementById("edit-id").value;
-
-  if (!title || !date) {
-    status(t("Enter a title and date.","शीर्षक र मिति राख्नुहोस्।"), "error");
-    return;
-  }
-
-  const now = Date.now();
-  const record = {
-    title, category, npr, inr, total: totalFor(npr, inr), date,
-    updatedAt: now
-  };
-  busy = true;
-  document.getElementById("save-record").disabled = true;
-  try {
-    if (editId) {
-      const old = savings.find(x => x.id === editId);
-      if (!old) throw new Error("This record no longer exists. Refresh the page.");
-      /* Update only this record; do not overwrite the user's entire data. */
-      await savingsRef.child(editId).update(record);
-      status(t("Savings record updated.","बचत रेकर्ड अपडेट भयो।"), "success");
-    } else {
-      const newRef = savingsRef.push();
-      record.createdAt = now;
-      await newRef.set(record);
-      status(t("Savings record added.","बचत रेकर्ड थपियो।"), "success");
-    }
+  list.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>editSavings(b.dataset.edit));
+  list.querySelectorAll("[data-delete]").forEach(b=>b.onclick=()=>deleteSavings(b.dataset.delete));
+  updateTargetUI();
+}
+function money(n){return "Rs "+(Number(n)||0).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}
+function updateTargetUI(){
+  const total=valuesOfRecords().reduce((s,r)=>s+(Number(r.total)||0),0);
+  const target=Number(targetAmount)||0;
+  const pct=target>0?Math.min(100,Math.round(total/target*100)):0;
+  $("target-progress-text").textContent=hideAmounts?"Rs •••••• / Rs ••••••":target>0?`${money(total)} / ${money(target)}`:`${money(total)} / ${prefs.lang==="NEP"?"लक्ष्य राखिएको छैन":"Goal not set"}`;
+  $("target-percent").textContent=pct+"%";
+  $("target-progress-bar").style.width=pct+"%";
+}
+function resetForm(){
+  $("savings-form").reset();$("edit-id").value="";$("npr").value="0";$("inr").value="0";
+  $("date").value=new Date().toLocaleDateString("en-CA");calculateTotal();
+  $("save-btn").textContent=prefs.lang==="NEP"?"बचत थप्नुहोस्":"Add savings";
+  $("cancel-edit").classList.add("hidden");
+}
+function editSavings(id){
+  const r=savings[id];if(!r)return;
+  $("edit-id").value=id;$("title").value=r.title||"";$("category").value=r.category||"Other";
+  $("npr").value=Number(r.npr)||0;$("inr").value=Number(r.inr)||0;$("date").value=r.date||"";
+  calculateTotal();$("save-btn").textContent=prefs.lang==="NEP"?"अपडेट गर्नुहोस्":"Update savings";
+  $("cancel-edit").classList.remove("hidden");$("form-card").scrollIntoView({behavior:"smooth"});
+}
+function requireCloud(){
+  if(!currentUser||!db){toast("Please sign in first.");return false}
+  if(!navigator.onLine){toast("Offline. Cloud record changes need internet.");return false}
+  return true;
+}
+$("savings-form").addEventListener("submit",async e=>{
+  e.preventDefault();calculateTotal();
+  if(!requireCloud())return;
+  const title=$("title").value.trim(),date=$("date").value;
+  const npr=Number($("npr").value)||0,inr=Number($("inr").value)||0,total=npr+inr*INR_RATE;
+  if(!title||!date||npr<0||inr<0||!Number.isFinite(total)){toast("Check the title, date and amounts.");return}
+  const id=$("edit-id").value||db.ref("users/"+currentUser.uid+"/savings").push().key;
+  const previous=savings[id]||{};
+  const record={title,category:$("category").value,npr,inr,total:Number(total.toFixed(2)),date,updatedAt:firebase.database.ServerValue.TIMESTAMP,createdAt:previous.createdAt||firebase.database.ServerValue.TIMESTAMP};
+  try{
+    await db.ref(`users/${currentUser.uid}/savings/${id}`).update(record);
+    toast(prefs.lang==="NEP"?"बचत सेभ भयो।":"Savings saved.");
     resetForm();
-  } catch (e) {
-    status(t("Save failed: ","सेभ भएन: ") + e.message, "error");
-  } finally {
-    busy = false;
-    document.getElementById("save-record").disabled = false;
-  }
+  }catch(err){console.error(err);toast("Could not save to cloud. Check connection and database rules.")}
 });
-
-function resetForm() {
-  document.getElementById("savings-form").reset();
-  document.getElementById("edit-id").value = "";
-  document.getElementById("s-date").value = todayLocal();
-  document.getElementById("s-npr").value = "0";
-  document.getElementById("s-inr").value = "0";
-  calculateFormTotal();
-  document.getElementById("cancel-edit").classList.add("hidden");
-  updateDynamicLabels();
+async function deleteSavings(id){
+  if(!requireCloud())return;
+  const r=savings[id];if(!r)return;
+  if(!confirm(prefs.lang==="NEP"?"यो रेकर्डलाई Trash मा सार्ने?":"Move this record to Trash?"))return;
+  const trashId=db.ref(`users/${currentUser.uid}/trash/savings`).push().key;
+  const now=Date.now();
+  const trashItem={recordType:"savings",originalPath:`users/${currentUser.uid}/savings/${id}`,data:r,deletedAt:now,expiresAt:now+TRASH_DAYS*86400000};
+  const updates={};
+  updates[`users/${currentUser.uid}/trash/savings/${trashId}`]=trashItem;
+  updates[`users/${currentUser.uid}/savings/${id}`]=null;
+  try{await db.ref().update(updates);toast(prefs.lang==="NEP"?"Trash मा सारियो।":"Moved to Trash.");}
+  catch(err){console.error(err);toast("Delete failed. Check database rules.")}
 }
-document.getElementById("cancel-edit").addEventListener("click", resetForm);
-
-function editRecord(id) {
-  const item = savings.find(x => x.id === id);
-  if (!item) return;
-  document.getElementById("edit-id").value = id;
-  document.getElementById("s-title").value = item.title || "";
-  document.getElementById("s-category").value = item.category || "Other";
-  document.getElementById("s-npr").value = cleanNumber(item.npr);
-  document.getElementById("s-inr").value = cleanNumber(item.inr);
-  document.getElementById("s-date").value = item.date || todayLocal();
-  calculateFormTotal();
-  document.getElementById("cancel-edit").classList.remove("hidden");
-  updateDynamicLabels();
-  document.getElementById("savings-form-card").scrollIntoView({behavior:"smooth",block:"start"});
-}
-
-/* ---------------- CENTRAL TRASH ----------------
-   Schema: users/{uid}/trash/{recordType}/{recordId}
-   Restore is blocked when the original record path already exists.
-*/
-async function deleteRecord(id) {
-  if (!savingsRef || !uid) return;
-  const item = savings.find(x => x.id === id);
-  if (!item) return;
-  if (!confirm(t("Move this savings record to Trash? It can be restored for 30 days.","यो बचत रेकर्ड Trash मा सार्ने? ३० दिनभित्र फर्काउन सकिन्छ।"))) return;
-
-  const originalRef = savingsRef.child(id);
-  const trashRef = db.ref("users/" + uid + "/trash/savings/" + id);
-  try {
-    /* Transaction prevents a competing deletion from copying a changed record. */
-    const result = await originalRef.transaction(current => current === null ? undefined : null);
-    if (!result.committed || !result.snapshot.exists()) {
-      status(t("The record changed or was already removed. Refresh and try again.","रेकर्ड परिवर्तन भएको वा हटिसकेको छ। फेरि लोड गर्नुहोस्।"), "error");
-      return;
-    }
-    const originalPath = "users/" + uid + "/savings/" + id;
-    const data = result.snapshot.val();
-    const deletedAt = Date.now();
-    try {
-      await trashRef.set({
-        recordType: "savings",
-        originalPath,
-        data,
-        deletedAt,
-        expiresAt: deletedAt + 30 * 24 * 60 * 60 * 1000
-      });
-      status(t("Moved to Trash. Restore it within 30 days.","Trash मा सारियो। ३० दिनभित्र फर्काउन सक्नुहुन्छ।"), "success");
-    } catch (trashError) {
-      /* If writing Trash fails, restore the original only if the path remains empty. */
-      await originalRef.transaction(current => current === null ? data : undefined);
-      throw trashError;
-    }
-  } catch (e) {
-    status(t("Could not delete record: ","रेकर्ड हटाउन सकिएन: ") + e.message, "error");
+function toggleAmountPrivacy(){hideAmounts=!hideAmounts;localStorage.setItem("savings_hidden",String(hideAmounts));renderSavings()}
+function openTarget(){$("target-input").value=targetAmount;$("target-dialog").showModal()}
+function closeTarget(){$("target-dialog").close()}
+async function saveTarget(){
+  const n=Number($("target-input").value);
+  if(!Number.isFinite(n)||n<0){toast("Enter a valid target.");return}
+  targetAmount=n;localStorage.setItem("savings_target_amount",String(n));updateTargetUI();closeTarget();
+  if(currentUser&&db&&navigator.onLine){
+    try{await db.ref(`users/${currentUser.uid}/savings_meta/targetAmount`).set(n)}
+    catch(e){console.error(e);toast("Target saved locally; cloud sync failed.");return}
   }
+  toast(prefs.lang==="NEP"?"लक्ष्य सेभ भयो।":"Target saved.");
 }
-
-function renderRecords() {
-  const list = document.getElementById("records-list");
-  list.replaceChildren();
-  const query = document.getElementById("search-records").value.trim().toLowerCase();
-  const sort = document.getElementById("sort-records").value;
-  let shown = savings.filter(x => String(x.title || "").toLowerCase().includes(query));
-  shown.sort((a,b) => {
-    if (sort === "name") return String(a.title || "").localeCompare(String(b.title || ""));
-    if (sort === "amount") return cleanNumber(b.total) - cleanNumber(a.total);
-    return String(b.date || "").localeCompare(String(a.date || ""));
+function renderTrash(){
+  const el=$("trash-list");if(!el)return;el.innerHTML="";
+  const items=[];
+  Object.entries(trash||{}).forEach(([type,records])=>{
+    if(records&&typeof records==="object")Object.entries(records).forEach(([id,item])=>{
+      if(item&&typeof item==="object"&&(item.originalPath||item.data||item.deletedAt))items.push({type,id,item});
+    });
   });
-
-  let grandTotal = 0;
-  savings.forEach(x => grandTotal += cleanNumber(x.total));
-  document.getElementById("grand-total").textContent = money(grandTotal);
-  document.getElementById("total-savings").textContent = money(grandTotal);
-  document.getElementById("record-count").textContent = String(savings.length);
-
-  const percent = targetAmount > 0 ? Math.min(100, Math.round(grandTotal / targetAmount * 100)) : 0;
-  document.getElementById("target-percentage").textContent = percent + "%";
-  document.getElementById("target-progress-bar").style.width = percent + "%";
-  document.getElementById("target-progress-text").textContent = targetAmount > 0
-    ? money(grandTotal) + " / " + money(targetAmount)
-    : money(grandTotal) + " / " + t("Goal not set","लक्ष्य राखिएको छैन");
-
-  if (!uid) {
-    list.innerHTML = '<p class="muted">' + escapeHtml(t("Sign in to load your records.","रेकर्ड लोड गर्न लगइन गर्नुहोस्।")) + '</p>';
-    return;
-  }
-  if (!shown.length) {
-    list.innerHTML = '<p class="muted">' + escapeHtml(t("No savings records found.","बचत रेकर्ड भेटिएन।")) + '</p>';
-    return;
-  }
-
-  shown.forEach(item => {
-    const card = document.createElement("article");
-    card.className = "record";
-
-    const head = document.createElement("div");
-    head.className = "record-head";
-    const left = document.createElement("div");
-    const title = document.createElement("div");
-    title.className = "record-title";
-    title.textContent = item.title || t("Untitled","शीर्षक छैन");
-    const detail = document.createElement("div");
-    detail.className = "muted small";
-    detail.textContent = (item.date || "—") + " · " + (item.category || "Other");
-    left.append(title, detail);
-    const amount = document.createElement("strong");
-    amount.className = "accent";
-    amount.textContent = money(cleanNumber(item.total));
-    head.append(left, amount);
-
-    const breakdown = document.createElement("div");
-    breakdown.className = "muted small";
-    breakdown.style.marginTop = "6px";
-    breakdown.textContent = "NPR: " + cleanNumber(item.npr).toFixed(2) + " · INR: " + cleanNumber(item.inr).toFixed(2);
-
-    const actions = document.createElement("div");
-    actions.className = "record-actions";
-    const edit = document.createElement("button");
-    edit.className = "btn secondary";
-    edit.type = "button";
-    edit.textContent = t("Edit","सम्पादन");
-    edit.addEventListener("click", () => editRecord(item.id));
-    const del = document.createElement("button");
-    del.className = "btn danger";
-    del.type = "button";
-    del.textContent = t("Move to Trash","Trash मा सार्नुहोस्");
-    del.addEventListener("click", () => deleteRecord(item.id));
-    actions.append(edit, del);
-    card.append(head, breakdown, actions);
-    list.append(card);
+  if(!items.length){el.innerHTML=`<div class="muted" style="padding:12px">${prefs.lang==="NEP"?"Trash खाली छ।":"Trash is empty."}</div>`;return}
+  items.sort((a,b)=>(Number(b.item.deletedAt)||0)-(Number(a.item.deletedAt)||0));
+  items.forEach(({type,id,item})=>{
+    const expired=Number(item.expiresAt||((Number(item.deletedAt)||0)+TRASH_DAYS*86400000))<=Date.now();
+    const data=item.data||item;
+    const row=document.createElement("div");row.className="group";
+    row.innerHTML=`<div class="record"><div><div class="record-title">${esc(data.title||data.name||item.recordType||type)}</div><div class="record-meta">${esc(type)} · ${item.deletedAt?new Date(item.deletedAt).toLocaleString():""} · ${expired?"Expired":"Restore available"}</div></div><div class="actions" style="margin:0"><button class="btn btn-sm" data-restore="${esc(type)}|${esc(id)}" ${expired?"disabled":""}>${prefs.lang==="NEP"?"फिर्ता ल्याउनुहोस्":"Restore"}</button><button class="btn btn-sm btn-danger" data-purge="${esc(type)}|${esc(id)}">${prefs.lang==="NEP"?"स्थायी हटाउनुहोस्":"Delete permanently"}</button></div></div>`;
+    el.appendChild(row);
   });
+  el.querySelectorAll("[data-restore]").forEach(b=>b.onclick=()=>restoreTrash(b.dataset.restore.split("|")[0],b.dataset.restore.split("|")[1]));
+  el.querySelectorAll("[data-purge]").forEach(b=>b.onclick=()=>purgeTrash(b.dataset.purge.split("|")[0],b.dataset.purge.split("|")[1]));
 }
-function money(value) {
-  return "Rs " + cleanNumber(value).toLocaleString("en-IN", {minimumFractionDigits:2, maximumFractionDigits:2});
+async function restoreTrash(type,id){
+  if(!requireCloud())return;
+  const ref=db.ref(`users/${currentUser.uid}/trash/${type}/${id}`);
+  try{
+    const snap=await ref.once("value");if(!snap.exists())return;
+    const item=snap.val();
+    if(Number(item.expiresAt||((Number(item.deletedAt)||0)+TRASH_DAYS*86400000))<=Date.now()){toast("This Trash item has expired.");return}
+    const originalPath=item.originalPath;
+    const data=item.data;
+    if(typeof originalPath!=="string"||!originalPath.startsWith(`users/${currentUser.uid}/`)||!data||typeof data!=="object"){toast("This legacy Trash item needs manual recovery.");return}
+    const originalRef=db.ref(originalPath);
+    const result=await originalRef.transaction(current=>current===null?data:undefined);
+    if(!result.committed){toast("Restore conflict: the original record already exists.");return}
+    try{await ref.remove();toast(prefs.lang==="NEP"?"रेकर्ड फिर्ता आयो।":"Record restored.")}
+    catch(err){toast("Restored, but Trash copy remains. Refresh and retry cleanup.");}
+  }catch(err){console.error(err);toast("Restore failed.")}
 }
-function escapeHtml(value) {
-  return String(value).replace(/[&<>"']/g, ch => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-  })[ch]);
+async function purgeTrash(type,id){
+  if(!requireCloud())return;
+  if(!confirm(prefs.lang==="NEP"?"यो रेकर्ड स्थायी रूपमा हटाउने? यो फिर्ता आउँदैन।":"Permanently delete this Trash item? This cannot be undone."))return;
+  try{await db.ref(`users/${currentUser.uid}/trash/${type}/${id}`).remove();toast("Trash item permanently deleted.");}
+  catch(err){console.error(err);toast("Could not delete Trash item.")}
 }
-document.getElementById("search-records").addEventListener("input", renderRecords);
-document.getElementById("sort-records").addEventListener("change", renderRecords);
-
-document.getElementById("print-report").addEventListener("click", () => {
-  if (!uid) {
-    status(t("Sign in before printing your cloud records.","क्लाउड रेकर्ड प्रिन्ट गर्न पहिले लगइन गर्नुहोस्।"), "error");
-    return;
-  }
-  if (!savings.length) {
-    status(t("There are no records to print.","प्रिन्ट गर्न रेकर्ड छैन।"), "error");
-    return;
-  }
-  window.print();
-});
-
-/* ---------------- AUTH / REALTIME LISTENERS ---------------- */
-function detachListeners() {
-  if (savingsRef && savingsListener) savingsRef.off("value", savingsListener);
-  if (targetRef && targetListener) targetRef.off("value", targetListener);
-  savingsListener = null;
-  targetListener = null;
+async function loadTrash(){
+  if(!currentUser||!db){renderTrash();return}
+  try{const s=await db.ref(`users/${currentUser.uid}/trash`).once("value");trash=s.val()||{};renderTrash()}
+  catch(e){console.error(e);toast("Could not refresh Trash.")}
 }
-function startUserSession(user) {
-  detachListeners();
-  uid = user.uid;
-  savingsRef = db.ref("users/" + uid + "/savings");
-  targetRef = db.ref("users/" + uid + "/savingsTarget");
+function generateReport(){
+  const rows=valuesOfRecords().filter(r=>!r.deletedAt);
+  if(!rows.length){toast(prefs.lang==="NEP"?"रिपोर्ट बनाउन रेकर्ड छैन।":"No records to report.");return}
+  const total=rows.reduce((s,r)=>s+(Number(r.total)||0),0);
+  $("report-content").innerHTML=`<div class="report" id="report-printable"><h2 style="text-align:center">Digital NoteBook — Savings Report</h2><p>Generated: ${esc(new Date().toLocaleString())}</p><table><thead><tr><th>Date</th><th>Title</th><th>Category</th><th>NPR</th><th>INR</th><th>Total NPR</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.date)}</td><td>${esc(r.title)}</td><td>${esc(r.category)}</td><td>${Number(r.npr||0).toFixed(2)}</td><td>${Number(r.inr||0).toFixed(2)}</td><td>${money(r.total)}</td></tr>`).join("")}</tbody></table><h3 style="text-align:right;margin-top:18px">Grand Total: ${money(total)}</h3></div>`;
+  $("report-dialog").showModal();
+}
+async function downloadPDF(){
+  const element=$("report-printable");
+  if(!element){toast("Open report preview first.");return}
+  if(!window.html2pdf){toast("PDF library unavailable. Use Print instead.");return}
+  try{await html2pdf().set({margin:8,filename:"Digital-Notebook-Savings.pdf",image:{type:"jpeg",quality:.95},html2canvas:{scale:2,useCORS:true},jsPDF:{unit:"mm",format:"a4",orientation:"landscape"}}).from(element).save();}
+  catch(e){console.error(e);toast("PDF generation failed. Try Print.")}
+}
+function exportSavings(){
+  const payload={format:"digital-notebook-savings-v1",exportedAt:new Date().toISOString(),savings:savings,targetAmount};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=url;a.download="digital-notebook-savings.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+async function importSavings(event){
+  const file=event.target.files&&event.target.files[0];if(!file)return;
+  try{
+    const data=JSON.parse(await file.text());
+    const incoming=data.savings;
+    if(!incoming||typeof incoming!=="object")throw new Error("Invalid backup");
+    if(!requireCloud())return;
+    if(!confirm("Import records that do not already exist? Existing cloud records will not be overwritten."))return;
+    let added=0,skipped=0;
+    for(const [oldId,item] of Object.entries(incoming)){
+      if(!item||typeof item!=="object"||!String(item.title||"").trim()){skipped++;continue}
+      const newId=db.ref(`users/${currentUser.uid}/savings`).push().key;
+      /* Import as new IDs to avoid overwriting existing records. */
+      try{await db.ref(`users/${currentUser.uid}/savings/${newId}`).transaction(current=>current===null?{title:String(item.title).slice(0,160),category:String(item.category||"Other"),npr:Math.max(0,Number(item.npr)||0),inr:Math.max(0,Number(item.inr)||0),total:Math.max(0,Number(item.npr)||0)+Math.max(0,Number(item.inr)||0)*INR_RATE,date:/^\d{4}-\d{2}-\d{2}$/.test(item.date||"")?item.date:new Date().toLocaleDateString("en-CA"),createdAt:firebase.database.ServerValue.TIMESTAMP,updatedAt:firebase.database.ServerValue.TIMESTAMP}:undefined);added++}
+      catch(e){skipped++}
+    }
+    if(data.targetAmount!==undefined){targetAmount=Math.max(0,Number(data.targetAmount)||0);localStorage.setItem("savings_target_amount",String(targetAmount))}
+    toast(`Import finished: ${added} added, ${skipped} skipped.`);
+  }catch(e){console.error(e);toast("Invalid JSON backup.")}
+  finally{event.target.value=""}
+}
 
-  status(t("Signed in. Connecting to your savings…","लगइन भयो। बचतसँग जडान हुँदैछ…"));
-
-  savingsListener = snapshot => {
-    const value = snapshot.val() || {};
-    savings = Object.entries(value)
-      .filter(([id, data]) => data && typeof data === "object" && !data.deletedAt)
-      .map(([id, data]) => ({...data, id}));
-    renderRecords();
-    status(t("Connected. Savings records are syncing in real time.","जडान भयो। बचत रेकर्ड रियलटाइममा सिंक हुँदैछन्।"), "success");
+function startCloudListeners(user){
+  currentUser=user;
+  if(!db){status("Cloud unavailable");return}
+  const root=`users/${user.uid}`;
+  status(navigator.onLine?"Connecting…":"Offline");
+  dataListener=snap=>{savings=snap.val()||{};saveLocalCache();renderSavings();status(navigator.onLine?"Synced":"Offline cache")};
+  trashListener=snap=>{trash=snap.val()||{};renderTrash()};
+  settingsListener=snap=>{
+    const cloud=snap.val();if(!cloud)return;
+    const merged={...prefs};
+    ["theme","lang","font_size","font_family","accentColor"].forEach(k=>{if(cloud[k]!==undefined)merged[k]=cloud[k]});
+    prefs={...DEFAULT_PREFS,...merged};localPrefsSave();applyPrefs();
   };
-  targetListener = snapshot => {
-    targetAmount = cleanNumber(snapshot.val());
-    renderRecords();
-  };
-
-  savingsRef.on("value", savingsListener, error => {
-    status(t("Could not load savings: ","बचत लोड भएन: ") + error.message, "error");
-  });
-  targetRef.on("value", targetListener, error => {
-    status(t("Could not load target: ","लक्ष्य लोड भएन: ") + error.message, "error");
+  db.ref(root+"/savings").on("value",dataListener,err=>{console.error(err);status("Sync error");toast("Savings sync failed. Check Firebase rules.")});
+  db.ref(root+"/trash").on("value",trashListener,err=>{console.error(err);toast("Trash sync failed.")});
+  db.ref(root+"/settings").on("value",settingsListener,err=>console.error(err));
+  db.ref(root+"/savings_meta/targetAmount").on("value",snap=>{
+    if(snap.exists()){targetAmount=Math.max(0,Number(snap.val())||0);localStorage.setItem("savings_target_amount",String(targetAmount));updateTargetUI()}
   });
 }
-
-try {
-  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-  auth = firebase.auth();
-  db = firebase.database();
-
-  auth.onAuthStateChanged(user => {
-    if (user) {
-      startUserSession(user);
-    } else {
-      detachListeners();
-      uid = null;
-      savingsRef = null;
-      targetRef = null;
-      savings = [];
-      targetAmount = 0;
-      renderRecords();
-      status(t("You are signed out. Sign in from the Home page to sync savings.","तपाईं लगआउट हुनुहुन्छ। बचत सिंक गर्न Home पेजबाट लगइन गर्नुहोस्।"), "error");
-    }
-  });
-} catch (e) {
-  status(t("Firebase could not start. Check your internet connection and Firebase setup. ","Firebase सुरु भएन। इन्टरनेट र Firebase सेटिङ जाँच गर्नुहोस्।") + e.message, "error");
+function stopCloudListeners(){
+  if(!db||!currentUser)return;
+  const root=`users/${currentUser.uid}`;
+  if(dataListener)db.ref(root+"/savings").off("value",dataListener);
+  if(trashListener)db.ref(root+"/trash").off("value",trashListener);
+  if(settingsListener)db.ref(root+"/settings").off("value",settingsListener);
+  dataListener=trashListener=settingsListener=null;
 }
+function initFirebase(){
+  try{
+    if(!firebase.apps.length)firebase.initializeApp(firebaseConfig);
+    auth=firebase.auth();db=firebase.database();
+    /* Enable SDK's local persistence cache for supported offline reads. */
+    db.ref(".info/connected").on("value",snap=>{if(!navigator.onLine)status("Offline");else if(snap.val()===true)status("Connected");});
+    auth.onAuthStateChanged(user=>{
+      if(!user){stopCloudListeners();status("Sign in required");toast("Please sign in to use cloud savings.");setTimeout(()=>location.replace("index.html"),1200);return}
+      startCloudListeners(user);
+      if(navigator.onLine)syncPreferences();
+    });
+  }catch(e){console.error(e);status("Firebase error");toast("Firebase could not start. Check internet and configuration.")}
+}
+window.addEventListener("online",()=>{status("Online");if(currentUser){syncPreferences();loadTrash()}});
+window.addEventListener("offline",()=>status("Offline — local preferences still work"));
+window.addEventListener("beforeunload",stopCloudListeners);
 
-applyPreferences();
-calculateFormTotal();
-renderRecords();
-
-/* Note: This page does not run a client-side 30-day deletion timer.
-   Expired Trash cleanup must be performed by a deployed scheduled
-   Firebase Cloud Function. This page only moves deleted savings
-   into the shared Trash schema.
-*/
+applyPrefs();
+updateDate();
+setInterval(updateDate,60000);
+$("date").value=new Date().toLocaleDateString("en-CA");
+calculateTotal();
+renderSavings();
+renderTrash();
+initFirebase();
 </script></body>
 </html>
