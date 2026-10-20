@@ -1,388 +1,389 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#1b2336">
-  <title>Settings — Digital NoteBook</title>
-
-  <style>
-    :root {
-      --accent: #00ed20;
-      --bg: #101521;
-      --surface: #1b2336;
-      --surface2: #171e2e;
-      --text: #eef2ff;
-      --muted: #a5afc3;
-      --border: #303a50;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Digital NoteBook - Settings & Preferences</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Firebase App (core) and Firebase Auth -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<!-- EmailJS SDK -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script type="text/javascript">
+    (function(){
+        emailjs.init("K1o1WC9jydWnUnUl7");
+    })();
+</script>
+<script>
+tailwind.config = {
+    darkMode: 'class',
+    theme: {
+        extend: {
+            fontFamily: {
+                sans: ['Poppins', 'sans-serif'],
+            }
+        }
     }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      font-family: Poppins, Arial, sans-serif;
-      font-size: 16px;
+}
+</script>
+<script>
+    const savedSettings = JSON.parse(localStorage.getItem("digital_notebook_settings") || "{}");
+    const savedTheme = savedSettings.theme || localStorage.getItem('theme') || 'dark';
+    if (savedTheme === 'light') {
+        document.documentElement.classList.remove('dark');
+    } else {
+        document.documentElement.classList.add('dark');
     }
-
-    button, select, input, textarea { font: inherit; }
-
-    button {
-      cursor: pointer;
-      padding: 11px 15px;
-      border-radius: 11px;
-      border: 1px solid var(--border);
-      background: var(--surface2);
-      color: var(--text);
-      font-weight: 600;
+</script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500;700&family=Georgia&family=Srikhand&display=swap" rel="stylesheet">
+<style>
+    @keyframes rainbow {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
     }
-
-    button.primary {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: #07120a;
+    .animate-rainbow {
+        background-size: 300% auto;
+        animation: rainbow 5s linear infinite;
     }
-
-    input, select, textarea {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid var(--border);
-      border-radius: 11px;
-      background: var(--surface2);
-      color: var(--text);
+    .more-text {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
-
-    .header {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 14px 17px;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      position: sticky;
-      top: 0;
-      z-index: 10;
+    .more-text.show {
+        display: block;
+        overflow: visible;
     }
-
-    .back {
-      width: 61px;
-      height: 61px;
-      font-size: 27px;
-      flex-shrink: 0;
-    }
-
-    .header-main { flex: 1; min-width: 0; }
-    .brand { font-size: 20px; font-weight: 800; }
-    .subtitle { color: var(--muted); font-size: 13px; margin-top: 3px; }
-
-    .sync {
-      color: var(--muted);
-      font-size: 12px;
-      border: 1px solid var(--border);
-      border-radius: 30px;
-      padding: 7px 10px;
-      white-space: nowrap;
-    }
-
-    main {
-      max-width: 850px;
-      margin: auto;
-      padding: 24px 16px 45px;
-    }
-
-    h1 { font-size: 27px; margin: 0 0 8px; }
-    h2 { font-size: 19px; margin: 0 0 14px; }
-    p { line-height: 1.6; }
-    .muted { color: var(--muted); }
-    .small { font-size: 13px; }
-
-    .caption {
-      margin: 27px 4px 12px;
-      font-size: 13px;
-      font-weight: 800;
-      color: var(--muted);
-      letter-spacing: .7px;
-      text-transform: uppercase;
-    }
-
-    .panel {
-      border: 1px solid var(--border);
-      background: var(--surface);
-      border-radius: 19px;
-      overflow: hidden;
-      margin: 16px 0;
-    }
-
-    .setting-row {
-      display: flex;
-      align-items: center;
-      gap: 13px;
-      padding: 17px 15px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .setting-row:last-child { border-bottom: 0; }
-
-    .setting-icon {
-      width: 54px;
-      height: 54px;
-      flex-shrink: 0;
-      display: grid;
-      place-items: center;
-      border-radius: 15px;
-      background: #292c50;
-      font-size: 23px;
-    }
-
-    .setting-copy { flex: 1; min-width: 0; }
-    .setting-title { font-weight: 700; }
-    .setting-desc { color: var(--muted); font-size: 13px; margin-top: 4px; line-height: 1.5; }
-
-    .setting-control { width: 145px; flex-shrink: 0; }
-    .setting-control select { padding: 11px; }
-
     .switch {
-      width: 60px;
-      height: 34px;
-      flex-shrink: 0;
-      border-radius: 40px;
-      background: #596273;
-      position: relative;
-      cursor: pointer;
-      border: 0;
-      padding: 0;
+        width: 60px;
+        height: 34px;
+        flex-shrink: 0;
+        border-radius: 40px;
+        background: #596273;
+        position: relative;
+        cursor: pointer;
+        border: 0;
+        padding: 0;
+        transition: background .15s;
     }
-
     .switch::after {
-      content: "";
-      position: absolute;
-      width: 26px;
-      height: 26px;
-      left: 4px;
-      top: 4px;
-      border-radius: 50%;
-      background: white;
-      transition: transform .15s;
+        content: "";
+        position: absolute;
+        width: 26px;
+        height: 26px;
+        left: 4px;
+        top: 4px;
+        border-radius: 50%;
+        background: white;
+        transition: transform .15s;
     }
-
-    .switch[aria-checked="true"] { background: var(--accent); }
+    .switch[aria-checked="true"] { background: var(--accent, #00ed20); }
     .switch[aria-checked="true"]::after { transform: translateX(26px); }
-
-    .color-input {
-      width: 62px;
-      height: 48px;
-      padding: 4px;
-      cursor: pointer;
-    }
-
-    .inner { padding: 18px; }
-    .account-row { border-bottom: 1px solid var(--border); padding: 15px 0; }
-    .account-row:last-child { border-bottom: 0; }
-
-    .status {
-      padding: 12px;
-      margin-top: 13px;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 11px;
-      white-space: pre-wrap;
-      overflow-wrap: anywhere;
-    }
-
-    .status.good { color: #39dc91; }
-    .status.error { color: #ff7777; }
-
-    label { display: block; font-weight: 600; margin: 13px 0; }
-    textarea { min-height: 100px; resize: vertical; }
-    .row { display: flex; flex-wrap: wrap; gap: 9px; align-items: center; }
-
-    .footer {
-      text-align: center;
-      color: var(--muted);
-      font-size: 12px;
-      padding: 22px;
-    }
-
-    @media (max-width: 520px) {
-      .header { padding: 12px; gap: 10px; }
-      .back { width: 52px; height: 52px; }
-      .brand { font-size: 18px; }
-      .subtitle { font-size: 12px; }
-      .setting-row { gap: 10px; padding: 14px 11px; }
-      .setting-icon { width: 43px; height: 43px; font-size: 19px; }
-      .setting-control { width: 126px; }
-      .setting-control select { font-size: 13px; }
-      h1 { font-size: 24px; }
-    }
-  </style>
+</style>
 </head>
+<body id="main-body" class="bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 text-xs">
 
-<body>
-  <header class="header">
-    <button class="back" id="backButton" type="button" aria-label="Back">‹</button>
-    <div class="header-main">
-      <div class="brand">📘 Digital NoteBook</div>
-      <div class="subtitle" data-i18n="headerSubtitle">Display & Preferences</div>
+<!-- TOAST NOTIFICATION CONTAINER -->
+<div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2"></div>
+
+<div class="flex min-h-screen w-full">
+    
+    <!-- SIDEBAR SECTION -->
+    <div id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 bg-slate-900 border-r border-slate-800 transform -translate-x-full transition-transform duration-300 flex flex-col text-white">
+        
+        <div class="flex items-center justify-between px-4 py-3 border-b border-slate-800">
+            <div class="flex items-center space-x-2.5">
+                <div class="w-8 h-8 rounded-lg bg-emerald-600 border border-emerald-500 flex items-center justify-center overflow-hidden shadow-md">
+                    <img src="N1024.png" alt="Logo" class="w-full h-full object-cover">
+                </div>
+                <div>
+                    <h1 class="text-sm font-extrabold tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">
+                        Digital NoteBook
+                    </h1>
+                </div>
+            </div>
+            <button onclick="toggleSidebar()" class="text-slate-400 hover:text-white text-lg focus:outline-none">
+                ✕
+            </button>
+        </div>
+
+        <div class="p-3 space-y-3 overflow-y-auto flex-1 text-xs">
+            <div class="bg-slate-800/50 border border-slate-700/60 rounded-xl p-3 flex items-center space-x-3">
+                <div class="relative cursor-pointer group" onclick="document.getElementById('avatar-upload-input').click()">
+                    <div class="w-11 h-11 rounded-full bg-emerald-600 border border-emerald-500 flex items-center justify-center overflow-hidden shadow-sm">
+                        <img id="sidebar-avatar-img" src="N1024.png" alt="Profile" class="w-full h-full object-cover">
+                    </div>
+                </div>
+                <input type="file" id="avatar-upload-input" accept="image/*" class="hidden" onchange="handleAvatarUpload(event)">
+                <div>
+                    <h3 id="sidebar-profile-name" class="text-white font-bold text-sm"></h3>
+                    <p class="text-[10px] text-slate-400"><span class="lang-text" data-en="Click icon to set photo" data-np="फोटो राख्न क्लिक गर्नुहोस्">Click icon to set photo</span></p>
+                </div>
+            </div>
+
+            <!-- SIDEBAR NAVIGATION -->
+            <nav class="space-y-1 font-medium">
+                <a href="index.html" class="flex items-center gap-2.5 py-2.5 px-3 rounded-xl hover:bg-slate-800 text-slate-300 transition"><span>📊</span> <span class="lang-text" data-en="Overview" data-np="अवलोकन">Overview</span></a>
+                <a href="setting.html" class="flex items-center gap-2.5 py-2.5 px-3 rounded-xl bg-emerald-600 text-white shadow-md shadow-emerald-600/20 transition"><span>⚙️</span> <span class="lang-text" data-en="Settings & About" data-np="सेटिङ र बारेमा">Settings & About</span></a>
+            </nav>
+
+            <div class="space-y-2.5 bg-slate-800/50 p-3 rounded-xl border border-slate-700/60">
+                <h3 class="text-[11px] font-bold text-white flex items-center gap-1.5 mb-1">
+                    <i class="fa-solid fa-address-card text-emerald-400"></i> <span class="lang-text" data-en="Personal Info" data-np="व्यक्तिगत विवरण">Personal Info</span>
+                </h3>
+                <div>
+                    <label class="block text-[10px] font-semibold text-slate-400 mb-0.5"><span class="lang-text" data-en="Full Name" data-np="पूरा नाम">Full Name</span></label>
+                    <input type="text" id="input-full-name" placeholder="Enter Full Name" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-white text-xs focus:outline-none focus:border-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-semibold text-slate-400 mb-0.5"><span class="lang-text" data-en="Address" data-np="ठेगाना">Address</span></label>
+                    <input type="text" id="input-address" placeholder="Enter Address" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-white text-xs focus:outline-none focus:border-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-semibold text-slate-400 mb-0.5"><span class="lang-text" data-en="Mobile Number" data-np="मोबाइल नम्बर">Mobile Number</span></label>
+                    <input type="tel" id="input-mobile" placeholder="Enter Mobile Number" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-white text-xs focus:outline-none focus:border-emerald-500">
+                </div>
+                <button onclick="saveProfileDetails()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition shadow-md">
+                    <span class="lang-text" data-en="Save Info" data-np="सेभ गर्नुहोस्">Save Info</span>
+                </button>
+            </div>
+        </div>
     </div>
-    <span class="sync" id="syncStatus">Local</span>
-  </header>
 
-  <main>
-    <h1 data-i18n="settingsTitle">Settings</h1>
-    <p class="muted" data-i18n="settingsIntro">
-      Personalize your notebook. Your preferences are saved on this device first.
-    </p>
+    <div class="flex-1 flex flex-col w-full">
+        
+        <!-- HEADER SECTION -->
+        <header class="sticky top-0 z-40 flex items-center justify-between px-3 md:px-5 py-3.5 bg-slate-900/95 backdrop-blur border-b border-emerald-500/20 shadow-md">
+            <div class="flex items-center space-x-2.5">
+                <button onclick="toggleSidebar()" class="text-white text-xl focus:outline-none hover:text-emerald-400 transition">☰</button>
+                <div class="flex items-center space-x-2 cursor-pointer" onclick="toggleSidebar()">
+                    <div class="w-7 h-7 rounded-lg bg-emerald-600 border border-emerald-500/50 flex items-center justify-center overflow-hidden shadow-sm">
+                        <img src="N1024.png" alt="Logo" class="w-full h-full object-cover">
+                    </div>
+                    <span class="text-xs md:text-sm font-extrabold tracking-wider bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">
+                        Digital NoteBook
+                    </span>
+                </div>
+            </div>
 
-    <div class="caption" data-i18n="displayHeading">Display & Preferences</div>
+            <div class="flex items-center space-x-2">
+                <button onclick="toggleLanguage()" id="lang-toggle-btn" class="px-2 py-1 rounded-md bg-slate-800 border border-slate-700 text-[10px] font-bold text-slate-200 hover:bg-slate-700 transition">ENG</button>
+                <button onclick="toggleTheme()" id="theme-toggle-btn" class="w-7 h-7 rounded-md bg-slate-800 border border-slate-700 flex items-center justify-center text-sm hover:bg-slate-700 transition">🌛</button>
+                <div class="relative cursor-pointer" onclick="toggleSidebar()">
+                    <div class="w-8 h-8 rounded-full bg-emerald-600 border border-emerald-500 flex items-center justify-center overflow-hidden shadow-sm">
+                        <img id="header-avatar-img" src="N1024.png" alt="Profile" class="w-full h-full object-cover">
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <main class="p-4 md:p-6 space-y-4 flex-1 w-full text-xs">
+            <div class="flex justify-between items-center px-1 py-1 text-white">
+                <div>
+                    <p id="dynamic-date" class="text-[11px] font-semibold tracking-wider text-slate-400 uppercase mb-1"></p>
+                    <h2 class="text-base md:text-lg font-bold text-slate-800 dark:text-white tracking-tight flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-emerald-500"></i> <span class="lang-text" data-en="Settings & Preferences" data-np="सेटिङ र प्राथमिकताहरू">Settings & Preferences</span>
+                    </h2>
+                </div>
+            </div>
 
-    <section class="panel">
-      <div class="setting-row">
-        <div class="setting-icon">🌐</div>
-        <div class="setting-copy">
-          <div class="setting-title" data-i18n="language">Language</div>
-          <div class="setting-desc" data-i18n="languageDesc">Choose the language used by this page.</div>
-        </div>
-        <div class="setting-control">
-          <select id="languageSelect" aria-label="Language">
-            <option value="en">English</option>
-            <option value="ne">नेपाली</option>
-          </select>
-        </div>
-      </div>
+            <!-- SETTINGS & STYLING SECTION -->
+            <div class="space-y-4 w-full max-w-5xl mx-auto">
+                
+                <!-- DISPLAY & PREFERENCES SECTION -->
+                <div class="bg-white dark:bg-slate-900 p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border border-slate-200 dark:border-slate-800 transition-colors duration-300 w-full">
+                    <h4 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-200 dark:border-slate-800 pb-3" data-i18n="displayHeading">🎨 Display & Preferences</h4>
 
-      <div class="setting-row">
-        <div class="setting-icon" id="themeIcon">🌙</div>
-        <div class="setting-copy">
-          <div class="setting-title" data-i18n="darkMode">Dark mode</div>
-          <div class="setting-desc" data-i18n="darkDesc">Use a darker appearance.</div>
-        </div>
-        <button id="darkToggle" class="switch" type="button"
-          role="switch" aria-checked="true" aria-label="Dark mode"></button>
-      </div>
+                    <div class="space-y-3 w-full">
+                        <!-- Language -->
+                        <div class="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-base">🌐</div>
+                                <div>
+                                    <div class="font-bold text-slate-800 dark:text-slate-200" data-i18n="language">Language</div>
+                                    <div class="text-[10px] text-slate-500 dark:text-slate-400" data-i18n="languageDesc">Choose the language used by this page.</div>
+                                </div>
+                            </div>
+                            <div class="w-32">
+                                <select id="languageSelect" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs text-slate-800 dark:text-white outline-none">
+                                    <option value="en">English</option>
+                                    <option value="ne">नेपाली</option>
+                                </select>
+                            </div>
+                        </div>
 
-      <div class="setting-row">
-        <div class="setting-icon">🔠</div>
-        <div class="setting-copy">
-          <div class="setting-title" data-i18n="fontSize">Font size</div>
-          <div class="setting-desc" data-i18n="fontSizeDesc">Adjust text size.</div>
-        </div>
-        <div class="setting-control">
-          <select id="fontSizeSelect" aria-label="Font size">
-            <option value="14" data-i18n="small">Small</option>
-            <option value="16" data-i18n="medium">Medium</option>
-            <option value="18" data-i18n="large">Large</option>
-            <option value="20" data-i18n="extraLarge">Extra large</option>
-          </select>
-        </div>
-      </div>
+                        <!-- Dark Mode -->
+                        <div class="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                            <div class="flex items-center gap-3">
+                                <div id="themeIconContainer" class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-base">🌙</div>
+                                <div>
+                                    <div class="font-bold text-slate-800 dark:text-slate-200" data-i18n="darkMode">Dark mode</div>
+                                    <div class="text-[10px] text-slate-500 dark:text-slate-400" data-i18n="darkDesc">Use a darker appearance.</div>
+                                </div>
+                            </div>
+                            <button id="darkToggle" class="switch" type="button" role="switch" aria-checked="true" aria-label="Dark mode"></button>
+                        </div>
 
-      <div class="setting-row">
-        <div class="setting-icon">✍️</div>
-        <div class="setting-copy">
-          <div class="setting-title" data-i18n="fontFamily">Font family</div>
-          <div class="setting-desc" data-i18n="fontFamilyDesc">Choose your preferred font.</div>
-        </div>
-        <div class="setting-control">
-          <select id="fontFamilySelect" aria-label="Font family">
-            <option value="Poppins">Poppins</option>
-            <option value="Arial">Arial</option>
-            <option value="Roboto">Roboto</option>
-            <option value="Georgia">Georgia</option>
-            <option value="system-ui">System</option>
-          </select>
-        </div>
-      </div>
+                        <!-- Font Size -->
+                        <div class="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-base">🔠</div>
+                                <div>
+                                    <div class="font-bold text-slate-800 dark:text-slate-200" data-i18n="fontSize">Font size</div>
+                                    <div class="text-[10px] text-slate-500 dark:text-slate-400" data-i18n="fontSizeDesc">Adjust text size.</div>
+                                </div>
+                            </div>
+                            <div class="w-32">
+                                <select id="fontSizeSelect" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs text-slate-800 dark:text-white outline-none">
+                                    <option value="14" data-i18n="small">Small</option>
+                                    <option value="16" data-i18n="medium">Medium</option>
+                                    <option value="18" data-i18n="large">Large</option>
+                                    <option value="20" data-i18n="extraLarge">Extra large</option>
+                                </select>
+                            </div>
+                        </div>
 
-      <div class="setting-row">
-        <div class="setting-icon">🎨</div>
-        <div class="setting-copy">
-          <div class="setting-title" data-i18n="accentColor">Accent color</div>
-          <div class="setting-desc" data-i18n="accentDesc">Choose the main highlight color.</div>
-        </div>
-        <input id="accentColor" class="color-input" type="color" value="#00ed20"
-          aria-label="Accent color">
-      </div>
-    </section>
+                        <!-- Font Family -->
+                        <div class="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-base">✍️</div>
+                                <div>
+                                    <div class="font-bold text-slate-800 dark:text-slate-200" data-i18n="fontFamily">Font family</div>
+                                    <div class="text-[10px] text-slate-500 dark:text-slate-400" data-i18n="fontFamilyDesc">Choose your preferred font.</div>
+                                </div>
+                            </div>
+                            <div class="w-32">
+                                <select id="fontFamilySelect" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs text-slate-800 dark:text-white outline-none">
+                                    <option value="Poppins">Poppins</option>
+                                    <option value="Arial">Arial</option>
+                                    <option value="Roboto">Roboto</option>
+                                    <option value="Georgia">Georgia</option>
+                                    <option value="system-ui">System</option>
+                                </select>
+                            </div>
+                        </div>
 
-    <div class="caption" data-i18n="accountHeading">Account</div>
+                        <!-- Accent Color -->
+                        <div class="flex items-center justify-between py-2">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-base">🎨</div>
+                                <div>
+                                    <div class="font-bold text-slate-800 dark:text-slate-200" data-i18n="accentColor">Accent color</div>
+                                    <div class="text-[10px] text-slate-500 dark:text-slate-400" data-i18n="accentDesc">Choose the main highlight color.</div>
+                                </div>
+                            </div>
+                            <div>
+                                <input id="accentColor" class="w-12 h-9 p-1 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg cursor-pointer" type="color" value="#00ed20" aria-label="Accent color">
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-    <section class="panel inner">
-      <div class="account-row">
-        <strong data-i18n="signedInAs">Signed in as</strong>
-        <div id="accountEmail" class="muted" style="margin-top:7px">Offline / not connected</div>
-      </div>
-      <div class="account-row">
-        <div class="between">
-          <div>
-            <strong data-i18n="cloudSync">Cloud synchronization</strong>
-            <p class="muted small" data-i18n="cloudSyncDesc">
-              Your preferences are saved locally first and synced to Firebase when available.
-            </p>
-          </div>
-          <button id="syncNowButton" type="button" data-i18n="syncNow">Sync now</button>
-        </div>
-      </div>
-      <div id="settingsStatus" class="status" data-i18n="localReady">
-        Settings are saved on this device.
-      </div>
-    </section>
+                <!-- Policy, Terms & About Section -->
+                <div class="bg-white dark:bg-slate-900 p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border border-slate-200 dark:border-slate-800 transition-colors duration-300 w-full">
+                    <h4 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-200 dark:border-slate-800 pb-3" data-i18n="policy_title">ℹ️ Policy, Terms & About</h4>
 
-    <div class="caption" data-i18n="feedbackHeading">Feedback</div>
+                    <div class="space-y-3 w-full">
+                        <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 w-full">
+                            <h5 class="font-bold text-xs text-slate-800 dark:text-slate-200" data-i18n="policy_main_title">Policy, Terms & Overview</h5>
+                            <p class="text-xs text-slate-600 dark:text-slate-400 mt-1" data-i18n="policy_main_desc">Your financial records are secured in Firebase cloud. Third-party data sharing is restricted, and users retain complete control over their accounts.</p>
+                            
+                            <div id="more-policy" class="more-text text-xs text-slate-600 dark:text-slate-400 space-y-2 mt-2 pt-2 border-t border-slate-100 dark:border-slate-700">
+                                <p class="lang-text" 
+                                   data-en="Your complete accounts, transaction records, and bills will be kept fully secure in the cloud server. We will never sell or transfer any of your personal or financial details to any third party or anyone else, ensuring your privacy remains protected at all times. To use this system, users must log in securely and will be entirely responsible for keeping their login credentials confidential. An active internet connection is fundamentally required to keep data fresh and synchronized in real-time on the server. Furthermore, users retain the full right to request the deletion of their account and all stored details from the server whenever they wish." 
+                                   data-np="तपाईँका सबै हिसाब-किताब, कारोबारका विवरण र बिलहरू क्लाउड सर्भरमा पूर्ण रूपमा सुरक्षित रूपमा राखिनेछन्। हामी तपाईँको कुनै पनि व्यक्तिगत वा वित्तीय विवरणहरू तेस्रो पक्ष वा अन्य कसैलाई पनि बिक्री गर्ने वा हस्तान्तरण गर्ने छैनौं, जसले गर्दा तपाईँको गोपनीयता सधैं सुरक्षित रहन्छ। यो प्रणाली प्रयोग गर्नका लागि प्रयोगकर्ताहरूले सुरक्षित रूपमा लगइन गर्नुपर्ने हुन्छ र आफ्ना लगइन विवरणहरू गोप्य राख्ने पूर्ण जिम्मेवारी स्वयम् प्रयोगकर्ताकै हुनेछ। सर्भरमा डाटालाई वास्तविक समयमै ताजा राख्न र सिंक गर्नका लागि सक्रिय इन्टरनेट जडान अनिवार्य रूपमा आवश्यक पर्दछ। यसबाहेक, प्रयोगकर्ताहरूसँग पूर्ण अधिकार हुन्छ कि उनीहरूले सर्भरमा सुरक्षित राखिएको आफ्नो खाता तथा सम्पूर्ण विवरणहरू जुनसुकै बेला चाहेको बखत मेटाउनका लागि अनुरोध गर्न सक्नेछन्।">
+                                   तपाईँका सबै हिसाब-किताब, कारोबारका विवरण र बिलहरू क्लाउड सर्भरमा पूर्ण रूपमा सुरक्षित रूपमा राखिनेछन्। हामी तपाईँको कुनै पनि व्यक्तिगत वा वित्तीय विवरणहरू तेस्रो पक्ष वा अन्य कसैलाई पनि बिक्री गर्ने वा हस्तान्तरण गर्ने छैनौं, जसले गर्दा तपाईँको गोपनीयता सधैं सुरक्षित रहन्छ। यो प्रणाली प्रयोग गर्नका लागि प्रयोगकर्ताहरूले सुरक्षित रूपमा लगइन गर्नुपर्ने हुन्छ र आफ्ना लगइन विवरणहरू गोप्य राख्ने पूर्ण जिम्मेवारी स्वयम् प्रयोगकर्ताकै हुनेछ। सर्भरमा डाटालाई वास्तविक समयमै ताजा राख्न र सिंक गर्नका लागि सक्रिय इन्टरनेट जडान अनिवार्य रूपमा आवश्यक पर्दछ। यसबाहेक, प्रयोगकर्ताहरूसँग पूर्ण अधिकार हुन्छ कि उनीहरूले सर्भरमा सुरक्षित राखिएको आफ्नो खाता तथा सम्पूर्ण विवरणहरू जुनसुकै बेला चाहेको बखत मेटाउनका लागि अनुरोध गर्न सक्नेछन्।
+                                </p>
+                            </div>
 
-    <section class="panel inner">
-      <h2 data-i18n="sendFeedback">Send feedback</h2>
-      <p class="muted" data-i18n="feedbackDesc">Share a suggestion or report a problem with Digital NoteBook.</p>
+                            <button onclick="toggleText('policy')" id="toggle-btn-policy" class="text-emerald-600 dark:text-emerald-400 font-bold text-xs mt-3 block hover:underline" data-i18n="see_more">See More</button>
+                        </div>
+                    </div>
+                    
+                    <div class="pt-2 text-center border-t border-slate-100 dark:border-slate-800 w-full">
+                        <button onclick="checkForUpdates()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-3 py-1.5 rounded-xl text-xs shadow-md shadow-emerald-600/20 transition">
+                            <i class="fa-solid fa-rotate"></i> Version 6.7 <span id="update-status-text" class="text-[9px] font-normal opacity-80" data-i18n="check_update">(Check Update)</span>
+                        </button>
+                    </div>
+                </div>
 
-      <form id="feedbackForm">
-        <label>
-          <span data-i18n="yourName">Your name (optional)</span>
-          <input id="feedbackName" type="text" autocomplete="name">
-        </label>
+                <!-- Feedback & Suggestions -->
+                <div class="bg-white dark:bg-slate-900 p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border border-slate-200 dark:border-slate-800 transition-colors duration-300 w-full">
+                    <h3 class="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                        <i class="fa-solid fa-comments text-emerald-500"></i> <span data-i18n="feedback_title">Feedback & Suggestions</span>
+                    </h3>
+                    <form id="feedback-form" onsubmit="handleFeedback(event)" class="space-y-3 w-full">
+                        <div class="w-full">
+                            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1" data-i18n="your_name">Your Name:</label>
+                            <input type="text" id="fb-name" required placeholder="Enter your name" class="w-full border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 rounded-xl text-xs outline-none">
+                        </div>
+                        <div class="w-full">
+                            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1" data-i18n="your_message">Message or Feedback:</label>
+                            <textarea id="fb-msg" rows="3" required placeholder="Write your feedback..." class="w-full border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 rounded-xl text-xs outline-none"></textarea>
+                        </div>
+                        <button type="submit" id="fb-submit-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium p-2.5 rounded-xl text-xs transition" data-i18n="btn_submit">Submit</button>
+                    </form>
+                </div>
 
-        <label>
-          <span data-i18n="yourEmail">Email</span>
-          <input id="feedbackEmail" type="email" autocomplete="email">
-        </label>
+                <!-- DELETE ACCOUNT SECTION -->
+                <div class="bg-white dark:bg-slate-900 border border-rose-900/40 p-5 rounded-2xl shadow-sm space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-sm font-bold text-rose-600 dark:text-rose-400 lang-text" data-en="Danger Zone" data-np="Danger Zone">Danger Zone</h2>
+                            <p class="text-[10px] text-slate-500 dark:text-slate-400 lang-text" data-en="Permanently delete your account" data-np="Permanently delete your account">Permanently delete your account</p>
+                        </div>
+                        <button onclick="toggleDeleteAccountSection()" id="delete-toggle-btn" class="px-3 py-1.5 bg-rose-600/10 hover:bg-rose-600 hover:text-white text-rose-600 border border-rose-600/30 rounded-xl font-bold text-xs transition lang-text" data-en="Delete Account" data-np="Delete Account">
+                            Delete Account
+                        </button>
+                    </div>
 
-        <label>
-          <span data-i18n="yourMessage">Message</span>
-          <textarea id="feedbackMessage" required></textarea>
-        </label>
+                    <!-- Hidden Delete Form -->
+                    <div id="delete-form-box" class="hidden space-y-3 pt-3 border-t border-slate-200 dark:border-slate-800 text-xs">
+                        <p class="font-semibold text-slate-700 dark:text-slate-300 lang-text" data-en="Please select a reason for deletion (Mandatory):" data-np="Please select a reason for deletion (Mandatory):">Please select a reason for deletion (Mandatory):</p>
+                        <div class="space-y-1.5 text-slate-600 dark:text-slate-400">
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="del_reason" value="No longer using the app" class="accent-rose-600"> <span class="lang-text" data-en="No longer using the app" data-np="No longer using the app">No longer using the app</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="del_reason" value="Privacy concerns" class="accent-rose-600"> <span class="lang-text" data-en="Privacy concerns" data-np="Privacy concerns">Privacy concerns</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="del_reason" value="Found a better alternative" class="accent-rose-600"> <span class="lang-text" data-en="Found a better alternative" data-np="Found a better alternative">Found a better alternative</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="del_reason" value="Other reason" class="accent-rose-600"> <span class="lang-text" data-en="Other reason" data-np="Other reason">Other reason</span></label>
+                        </div>
+                        <textarea id="delete-custom-reason" class="lang-placeholder w-full p-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-rose-500 resize-none" placeholder="Write additional reasons (optional)..." rows="2"></textarea>
+                        
+                        <div class="relative">
+                            <input type="password" id="delete-confirm-password" class="w-full p-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none pr-10" placeholder="Enter your current password to confirm">
+                            <button type="button" onclick="togglePasswordVisibility('delete-confirm-password', 'del-eye')" class="absolute right-3 top-3 text-slate-400 hover:text-slate-200"><i id="del-eye" class="fa-solid fa-eye"></i></button>
+                        </div>
 
-        <button class="primary" type="submit" data-i18n="sendFeedback">Send feedback</button>
-        <div id="feedbackStatus" class="status hidden"></div>
-      </form>
-      <p class="muted small" data-i18n="feedbackOffline">
-        Sending feedback requires an internet connection.
-      </p>
-    </section>
+                        <button onclick="submitDeleteAccountRequest()" class="w-full py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl font-bold transition lang-text" data-en="Submit & Delete Account" data-np="Submit & Delete Account">
+                            Submit & Delete Account
+                        </button>
+                    </div>
+                </div>
 
-    <div class="caption" data-i18n="aboutHeading">About</div>
+            </div>
+        </main>
+    </div>
+</div>
 
-    <section class="panel inner">
-      <h2>Digital NoteBook</h2>
-      <p class="muted" data-i18n="aboutText">A personal notebook for managing your records.</p>
-      <p class="small muted">Version 1.0</p>
-      <div class="row">
-        <button type="button" id="privacyButton" data-i18n="privacy">Privacy</button>
-        <button type="button" id="termsButton" data-i18n="terms">Terms</button>
-      </div>
-      <div id="infoPanel" class="status hidden"></div>
-    </section>
-  </main>
+<script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDDY_v7RHnkCTI6uyV4DNDjqoaIBGweg8c",
+      authDomain: "digital-a2552.firebaseapp.com",
+      projectId: "digital-a2552",
+      storageBucket: "digital-a2552.firebasestorage.app",
+      messagingSenderId: "218135618179",
+      appId: "1:218135618179:web:821b76920d3e5669ac31b6"
+    };
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const auth = firebase.auth();
 
-  <footer class="footer">Digital NoteBook</footer>
-
-  <script>
-  (() => {
-    "use strict";
-
-    const $ = id => document.getElementById(id);
     const STORAGE_KEY = "digital_notebook_settings";
-    const OLD_THEME_KEY = "theme";
-
     const DEFAULTS = {
       lang: "en",
       theme: "dark",
@@ -391,158 +392,23 @@
       accentColor: "#00ed20"
     };
 
-    const TEXT = {
-      en: {
-        headerSubtitle: "Display & Preferences",
-        settingsTitle: "Settings",
-        settingsIntro: "Personalize your notebook. Your preferences are saved on this device first.",
-        displayHeading: "Display & Preferences",
-        language: "Language",
-        languageDesc: "Choose the language used by this page.",
-        darkMode: "Dark mode",
-        darkDesc: "Use a darker appearance.",
-        fontSize: "Font size",
-        fontSizeDesc: "Adjust text size.",
-        fontFamily: "Font family",
-        fontFamilyDesc: "Choose your preferred font.",
-        accentColor: "Accent color",
-        accentDesc: "Choose the main highlight color.",
-        small: "Small",
-        medium: "Medium",
-        large: "Large",
-        extraLarge: "Extra large",
-        accountHeading: "Account",
-        signedInAs: "Signed in as",
-        cloudSync: "Cloud synchronization",
-        cloudSyncDesc: "Your preferences are saved locally first and synced to Firebase when available.",
-        syncNow: "Sync now",
-        localReady: "Settings are saved on this device.",
-        feedbackHeading: "Feedback",
-        sendFeedback: "Send feedback",
-        feedbackDesc: "Share a suggestion or report a problem with Digital NoteBook.",
-        yourName: "Your name (optional)",
-        yourEmail: "Email",
-        yourMessage: "Message",
-        feedbackOffline: "Sending feedback requires an internet connection.",
-        aboutHeading: "About",
-        aboutText: "A personal notebook for managing your records.",
-        privacy: "Privacy",
-        terms: "Terms",
-        darkOn: "Dark mode is on",
-        darkOff: "Light mode is on",
-        savedLocal: "Saved on this device.",
-        synced: "Saved on this device and synced to Firebase.",
-        offline: "Offline — changes are saved locally and will sync when connection returns.",
-        notLoggedIn: "Local settings work. Sign in to sync settings between devices.",
-        syncFailed: "Local settings saved. Cloud sync failed: ",
-        syncNeedLogin: "Local settings saved. Sign in to sync between devices.",
-        feedbackNeedMessage: "Please enter a message.",
-        feedbackNoService: "Feedback sending is not configured in this offline-first settings page.",
-        privacyText: "Your records should only be accessible to your Firebase account. Keep your device secure and do not share your password.",
-        termsText: "Use this application responsibly. Keep backups of important records. Cloud availability depends on Firebase configuration and network access."
-      },
-      ne: {
-        headerSubtitle: "देखावट र प्राथमिकताहरू",
-        settingsTitle: "सेटिङहरू",
-        settingsIntro: "आफ्नो नोटबुक अनुकूल बनाउनुहोस्। सेटिङ पहिले यही फोनमा सुरक्षित हुन्छ।",
-        displayHeading: "देखावट र प्राथमिकताहरू",
-        language: "भाषा",
-        languageDesc: "यो पेजमा प्रयोग हुने भाषा छान्नुहोस्।",
-        darkMode: "डार्क मोड",
-        darkDesc: "गाढा देखावट प्रयोग गर्नुहोस्।",
-        fontSize: "अक्षरको आकार",
-        fontSizeDesc: "अक्षरको आकार परिवर्तन गर्नुहोस्।",
-        fontFamily: "फन्ट शैली",
-        fontFamilyDesc: "आफूलाई मन पर्ने फन्ट छान्नुहोस्।",
-        accentColor: "मुख्य रङ",
-        accentDesc: "बटन र हाइलाइटको रङ छान्नुहोस्।",
-        small: "सानो",
-        medium: "मध्यम",
-        large: "ठूलो",
-        extraLarge: "अझ ठूलो",
-        accountHeading: "खाता",
-        signedInAs: "लगइन भएको खाता",
-        cloudSync: "क्लाउड सिङ्क",
-        cloudSyncDesc: "सेटिङ पहिले फोनमा सुरक्षित हुन्छ र इन्टरनेट हुँदा Firebase मा सिङ्क हुन्छ।",
-        syncNow: "अहिले सिङ्क",
-        localReady: "सेटिङ यो फोनमा सुरक्षित छ।",
-        feedbackHeading: "प्रतिक्रिया",
-        sendFeedback: "प्रतिक्रिया पठाउनुहोस्",
-        feedbackDesc: "सुझाव दिनुहोस् वा Digital NoteBook को समस्या रिपोर्ट गर्नुहोस्।",
-        yourName: "तपाईंको नाम (वैकल्पिक)",
-        yourEmail: "इमेल",
-        yourMessage: "सन्देश",
-        feedbackOffline: "प्रतिक्रिया पठाउन इन्टरनेट आवश्यक हुन्छ।",
-        aboutHeading: "हाम्रो बारेमा",
-        aboutText: "आफ्ना रेकर्ड व्यवस्थापन गर्न बनाइएको व्यक्तिगत नोटबुक।",
-        privacy: "गोपनीयता",
-        terms: "सर्तहरू",
-        darkOn: "डार्क मोड चालु छ",
-        darkOff: "लाइट मोड चालु छ",
-        savedLocal: "यो फोनमा सुरक्षित भयो।",
-        synced: "फोनमा सुरक्षित भयो र Firebase मा सिङ्क भयो।",
-        offline: "अफलाइन — परिवर्तन फोनमा सुरक्षित भयो। इन्टरनेट फर्केपछि सिङ्क हुनेछ।",
-        notLoggedIn: "फोनमा सेटिङ काम गर्छ। फोनहरूबीच सिङ्क गर्न लगइन गर्नुहोस्।",
-        syncFailed: "फोनमा सेटिङ सुरक्षित भयो। क्लाउड सिङ्क भएन: ",
-        syncNeedLogin: "फोनमा सेटिङ सुरक्षित भयो। फोनहरूबीच सिङ्क गर्न लगइन गर्नुहोस्।",
-        feedbackNeedMessage: "कृपया सन्देश लेख्नुहोस्।",
-        feedbackNoService: "यस पेजमा प्रतिक्रिया पठाउने सेवा सेट गरिएको छैन।",
-        privacyText: "तपाईंका रेकर्ड तपाईंको Firebase खाताबाट मात्र पहुँच गर्न मिल्ने गरी नियम राख्नुहोस्। आफ्नो फोन सुरक्षित राख्नुहोस् र पासवर्ड अरूलाई नदिनुहोस्।",
-        termsText: "यो एप जिम्मेवारीपूर्वक प्रयोग गर्नुहोस्। महत्त्वपूर्ण रेकर्डको ब्याकअप राख्नुहोस्। क्लाउड सेवा Firebase र इन्टरनेटमा निर्भर हुन्छ।"
-      }
-    };
-
     let settings = loadLocalSettings();
-    let firebaseAuth = null;
-    let firebaseDb = null;
-    let currentUser = null;
-    let settingsRef = null;
-    let remoteListener = null;
-    let isApplyingRemote = false;
-    let firebaseReady = false;
-    let saveTimer = null;
 
     function loadLocalSettings() {
       let saved = {};
-
       try {
         saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
       } catch (_) {}
-
-      // Support older pages which saved theme separately.
       if (!saved.theme) {
-        try {
-          saved.theme = localStorage.getItem(OLD_THEME_KEY) || DEFAULTS.theme;
-        } catch (_) {
-          saved.theme = DEFAULTS.theme;
-        }
+        saved.theme = localStorage.getItem('theme') || DEFAULTS.theme;
       }
-
-      const merged = { ...DEFAULTS, ...saved };
-
-      if (!["en", "ne"].includes(merged.lang)) merged.lang = "en";
-      if (!["light", "dark"].includes(merged.theme)) merged.theme = "dark";
-
-      if (!["14", "16", "18", "20"].includes(String(merged.font_size))) {
-        merged.font_size = DEFAULTS.font_size;
-      }
-
-      if (!["Poppins", "Arial", "Roboto", "Georgia", "system-ui"].includes(merged.font_family)) {
-        merged.font_family = DEFAULTS.font_family;
-      }
-
-      if (!/^#[0-9a-fA-F]{6}$/.test(merged.accentColor)) {
-        merged.accentColor = DEFAULTS.accentColor;
-      }
-
-      merged.font_size = String(merged.font_size);
-      return merged;
+      return { ...DEFAULTS, ...saved };
     }
 
     function saveLocalSettings() {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-        localStorage.setItem(OLD_THEME_KEY, settings.theme);
+        localStorage.setItem('theme', settings.theme);
         return true;
       } catch (error) {
         console.error("Local settings save failed:", error);
@@ -550,329 +416,390 @@
       }
     }
 
-    function t(key) {
-      return (TEXT[settings.lang] && TEXT[settings.lang][key]) ||
-        TEXT.en[key] || key;
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) sidebar.classList.toggle('-translate-x-full');
     }
 
-    function translatePage() {
-      document.documentElement.lang = settings.lang === "ne" ? "ne" : "en";
-      document.title = settings.lang === "ne"
-        ? "सेटिङहरू — Digital NoteBook"
-        : "Settings — Digital NoteBook";
+    let currentLang = settings.lang === 'ne' ? 'NEP' : 'EN';
 
-      document.querySelectorAll("[data-i18n]").forEach(el => {
-        const key = el.getAttribute("data-i18n");
-        if (key && t(key)) el.textContent = t(key);
-      });
+    const translations = {
+        EN: {
+            displayHeading: "🎨 Display & Preferences",
+            language: "Language",
+            languageDesc: "Choose the language used by this page.",
+            darkMode: "Dark mode",
+            darkDesc: "Use a darker appearance.",
+            fontSize: "Font size",
+            fontSizeDesc: "Adjust text size.",
+            fontFamily: "Font family",
+            fontFamilyDesc: "Choose your preferred font.",
+            accentColor: "Accent color",
+            accentDesc: "Choose the main highlight color.",
+            small: "Small",
+            medium: "Medium",
+            large: "Large",
+            extraLarge: "Extra large",
+            policy_title: "ℹ️ Policy, Terms & About",
+            policy_main_title: "Policy, Terms & Overview",
+            policy_main_desc: "Your financial records are secured in Firebase cloud. Third-party data sharing is restricted, and users retain complete control over their accounts.",
+            see_more: "See More",
+            see_less: "See Less",
+            check_update: "(Check Update)",
+            feedback_title: "Feedback & Suggestions",
+            your_name: "Your Name:",
+            your_message: "Message or Feedback:",
+            btn_submit: "Submit"
+        },
+        NEP: {
+            displayHeading: "🎨 देखावट र प्राथमिकताहरू",
+            language: "भाषा",
+            languageDesc: "यो पेजमा प्रयोग हुने भाषा छान्नुहोस्।",
+            darkMode: "डार्क मोड",
+            darkDesc: "गाढा देखावट प्रयोग गर्नुहोस्।",
+            fontSize: "अक्षरको आकार",
+            fontSizeDesc: "अक्षरको आकार परिवर्तन गर्नुहोस्।",
+            fontFamily: "फन्ट शैली",
+            fontFamilyDesc: "आफूलाई मन पर्ने फन्ट छान्नुहोस्।",
+            accentColor: "मुख्य रङ",
+            accentDesc: "बटन र हाइलाइटको रङ छान्नुहोस्।",
+            small: "सानो",
+            medium: "मध्यम",
+            large: "ठूलो",
+            extraLarge: "अझ ठूलो",
+            policy_title: "ℹ️ नीति, सर्तहरू र बारेमा",
+            policy_main_title: "गोपनीयता नीति र सर्तहरू",
+            policy_main_desc: "तपाईँका हिसाब-किताब फायरबेस क्लाउडमा सुरक्षित छन्। तेस्रो पक्षलाई डाटा共享 गरिंदैन।",
+            see_more: "थप हेर्नुहोस्",
+            see_less: "कम देखाउनुहोस्",
+            check_update: "(अपडेट जाँच गर्नुहोस्)",
+            feedback_title: "Feedback & Suggestions",
+            your_name: "Your Name:",
+            your_message: "Message or Feedback:",
+            btn_submit: "Submit"
+        }
+    };
 
-      $("darkToggle").setAttribute(
-        "aria-label",
-        settings.lang === "ne" ? "डार्क मोड" : "Dark mode"
-      );
+    function updateLanguageUI() {
+        const btn = document.getElementById('lang-toggle-btn');
+        if(btn) btn.innerText = currentLang;
 
-      $("languageSelect").value = settings.lang;
+        document.querySelectorAll('.lang-text').forEach(el => {
+            const text = currentLang === 'NEP' ? el.getAttribute('data-np') : el.getAttribute('data-en');
+            if(text) el.innerText = text;
+        });
+
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (translations[currentLang] && translations[currentLang][key]) {
+                el.innerText = translations[currentLang][key];
+            }
+        });
+
+        const toggleBtn = document.getElementById('toggle-btn-policy');
+        if (toggleBtn) {
+            const el = document.getElementById('more-policy');
+            const isShown = el && el.classList.contains('show');
+            toggleBtn.innerText = isShown ? (translations[currentLang]['see_less'] || 'See Less') : (translations[currentLang]['see_more'] || 'See More');
+        }
+    }
+
+    function toggleLanguage() {
+        currentLang = currentLang === 'EN' ? 'NEP' : 'EN';
+        settings.lang = currentLang === 'NEP' ? 'ne' : 'en';
+        saveLocalSettings();
+        updateLanguageUI();
+        updateDynamicHeader();
+        document.getElementById('languageSelect').value = settings.lang;
     }
 
     function applySettingsToPage() {
-      const light = settings.theme === "light";
+        const light = settings.theme === "light";
+        const htmlEl = document.documentElement;
+        
+        if (light) {
+            htmlEl.classList.remove('dark');
+        } else {
+            htmlEl.classList.add('dark');
+        }
 
-      const palette = light ? {
-        bg: "#f3f5fa",
-        surface: "#ffffff",
-        surface2: "#f7f8fc",
-        text: "#172033",
-        muted: "#697386",
-        border: "#dfe4ee"
-      } : {
-        bg: "#101521",
-        surface: "#1b2336",
-        surface2: "#171e2e",
-        text: "#eef2ff",
-        muted: "#a5afc3",
-        border: "#303a50"
-      };
+        document.documentElement.style.setProperty("--accent", settings.accentColor);
+        document.body.style.fontSize = settings.font_size + "px";
+        document.body.style.fontFamily = settings.font_family + ", Arial, sans-serif";
 
-      Object.entries(palette).forEach(([key, value]) => {
-        document.documentElement.style.setProperty("--" + key, value);
-      });
+        const fontSizeSelect = document.getElementById('fontSizeSelect');
+        const fontFamilySelect = document.getElementById('fontFamilySelect');
+        const accentColorInput = document.getElementById('accentColor');
+        const darkToggle = document.getElementById('darkToggle');
+        const themeIcon = document.getElementById('themeIconContainer');
+        const languageSelect = document.getElementById('languageSelect');
 
-      document.documentElement.style.setProperty("--accent", settings.accentColor);
-      document.body.style.fontSize = settings.font_size + "px";
-      document.body.style.fontFamily = settings.font_family + ", Arial, sans-serif";
+        if(fontSizeSelect) fontSizeSelect.value = settings.font_size;
+        if(fontFamilySelect) fontFamilySelect.value = settings.font_family;
+        if(accentColorInput) accentColorInput.value = settings.accentColor;
+        if(darkToggle) darkToggle.setAttribute("aria-checked", String(!light));
+        if(themeIcon) themeIcon.textContent = light ? "☀️" : "🌙";
+        if(languageSelect) languageSelect.value = settings.lang;
 
-      $("fontSizeSelect").value = settings.font_size;
-      $("fontFamilySelect").value = settings.font_family;
-      $("accentColor").value = settings.accentColor;
-      $("darkToggle").setAttribute("aria-checked", String(!light));
-      $("themeIcon").textContent = light ? "☀️" : "🌙";
-
-      translatePage();
+        updateThemeUI();
+        updateLanguageUI();
     }
 
-    function setSyncLabel(text) {
-      $("syncStatus").textContent = text;
+    function updateThemeUI() {
+        const isDark = document.documentElement.classList.contains('dark');
+        const themeBtn = document.getElementById('theme-toggle-btn');
+        if(themeBtn) themeBtn.innerText = isDark ? '🌛' : '🌞';
     }
 
-    function showStatus(message, kind = "") {
-      const el = $("settingsStatus");
-      el.textContent = message;
-      el.className = "status" + (kind ? " " + kind : "");
+    function toggleTheme() {
+        settings.theme = settings.theme === 'dark' ? 'light' : 'dark';
+        saveLocalSettings();
+        applySettingsToPage();
     }
 
     function updateOneSetting(key, value) {
-      settings[key] = value;
-
-      // Immediate local persistence: do not wait for Firebase or network.
-      const saved = saveLocalSettings();
-      applySettingsToPage();
-
-      if (!saved) {
-        showStatus("Could not save local settings. Check device storage.", "error");
-        return;
-      }
-
-      if (!navigator.onLine) {
-        showStatus(t("offline"));
-        setSyncLabel("Offline");
-        return;
-      }
-
-      showStatus(t("savedLocal"));
-      scheduleCloudSync();
+        settings[key] = value;
+        saveLocalSettings();
+        applySettingsToPage();
     }
 
-    function scheduleCloudSync() {
-      clearTimeout(saveTimer);
-      saveTimer = setTimeout(syncSettingsToCloud, 350);
+    document.getElementById('languageSelect').addEventListener("change", event => {
+        settings.lang = event.target.value;
+        currentLang = settings.lang === 'ne' ? 'NEP' : 'EN';
+        saveLocalSettings();
+        updateLanguageUI();
+    });
+
+    document.getElementById('darkToggle').addEventListener("click", () => {
+        toggleTheme();
+    });
+
+    document.getElementById('fontSizeSelect').addEventListener("change", event => {
+        updateOneSetting("font_size", event.target.value);
+    });
+
+    document.getElementById('fontFamilySelect').addEventListener("change", event => {
+        updateOneSetting("font_family", event.target.value);
+    });
+
+    document.getElementById('accentColor').addEventListener("input", event => {
+        updateOneSetting("accentColor", event.target.value);
+    });
+
+    function updateDynamicHeader() {
+        const now = new Date();
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const dateString = now.toLocaleDateString(currentLang === 'NEP' ? 'ne-NP' : 'en-US', options).toUpperCase();
+        const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
+        const timeString = now.toLocaleTimeString('en-US', timeOptions);
+
+        const dateEl = document.getElementById('dynamic-date');
+        if (dateEl) dateEl.innerText = `${dateString} | ${timeString}`;
     }
 
-    async function syncSettingsToCloud() {
-      if (!currentUser || !settingsRef || !navigator.onLine) {
-        if (!currentUser) showStatus(t("syncNeedLogin"));
-        else showStatus(t("offline"));
-        return;
-      }
+    setInterval(updateDynamicHeader, 1000);
 
-      try {
-        // Update only the settings child keys; never replace users/{uid}.
-        await settingsRef.update({
-          lang: settings.lang,
-          theme: settings.theme,
-          font_size: settings.font_size,
-          font_family: settings.font_family,
-          accentColor: settings.accentColor
-        });
-
-        setSyncLabel("Synced");
-        showStatus(t("synced"), "good");
-      } catch (error) {
-        console.error("Cloud settings sync failed:", error);
-        setSyncLabel("Local");
-        showStatus(t("syncFailed") + error.message, "error");
-      }
+    function showToast(message, type = 'success') {
+        const container = document.getElementById('toast-container');
+        if(!container) return;
+        const toast = document.createElement('div');
+        const bgColor = type === 'success' ? 'bg-emerald-600' : 'bg-rose-600';
+        
+        toast.className = `${bgColor} text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-semibold transform transition-all duration-100 translate-y-2 opacity-0 flex items-center gap-2`;
+        toast.innerHTML = `<span>${type === 'success' ? '✅' : '⚠️'}</span> <span>${message}</span>`;
+        container.appendChild(toast);
+        
+        setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 20);
+        
+        setTimeout(() => {
+            toast.classList.add('translate-y-2', 'opacity-0');
+            setTimeout(() => toast.remove(), 100);
+        }, 1500);
     }
 
-    function mergeRemoteSettings(remote) {
-      if (!remote || typeof remote !== "object") return;
-
-      // Local preferences are preserved if a remote key is missing.
-      const merged = { ...settings };
-
-      ["lang", "theme", "font_size", "font_family", "accentColor"].forEach(key => {
-        if (remote[key] !== undefined && remote[key] !== null) {
-          merged[key] = String(remote[key]);
+    function toggleText(id) {
+        const el = document.getElementById(`more-${id}`);
+        const btn = document.getElementById(`toggle-btn-${id}`);
+        if (el && btn) {
+            el.classList.toggle('show');
+            const isShown = el.classList.contains('show');
+            if (currentLang === 'NEP') {
+                btn.innerText = isShown ? 'कम देखाउनुहोस्' : 'थप हेर्नुहोस्';
+            } else {
+                btn.innerText = isShown ? 'See Less' : 'See More';
+            }
         }
-      });
-
-      isApplyingRemote = true;
-      settings = { ...DEFAULTS, ...merged };
-
-      if (!["en", "ne"].includes(settings.lang)) settings.lang = "en";
-      if (!["light", "dark"].includes(settings.theme)) settings.theme = "dark";
-      if (!["14", "16", "18", "20"].includes(settings.font_size)) settings.font_size = "16";
-      if (!["Poppins", "Arial", "Roboto", "Georgia", "system-ui"].includes(settings.font_family)) {
-        settings.font_family = "Poppins";
-      }
-      if (!/^#[0-9a-fA-F]{6}$/.test(settings.accentColor)) settings.accentColor = "#00ed20";
-
-      saveLocalSettings();
-      applySettingsToPage();
-      isApplyingRemote = false;
-      setSyncLabel("Synced");
     }
 
-    function attachSettingsListener() {
-      if (!settingsRef) return;
-
-      if (remoteListener) settingsRef.off("value", remoteListener);
-
-      remoteListener = snapshot => {
-        mergeRemoteSettings(snapshot.val() || {});
-      };
-
-      settingsRef.on("value", remoteListener, error => {
-        console.error("Settings listener error:", error);
-        setSyncLabel("Local");
-        showStatus(t("syncFailed") + error.message, "error");
-      });
+    function checkForUpdates() {
+        showToast(currentLang === 'NEP' ? 'तपाईंसँग नवीनतम संस्करण (Version 6.7) छ!' : 'You are running the latest version (6.7)!', 'success');
     }
 
-    function detachSettingsListener() {
-      if (settingsRef && remoteListener) {
-        settingsRef.off("value", remoteListener);
-      }
-      remoteListener = null;
+    function toggleDeleteAccountSection() {
+        const box = document.getElementById('delete-form-box');
+        if (box) box.classList.toggle('hidden');
     }
 
-    function initialiseFirebaseIfAvailable() {
-      // The settings UI already works before Firebase is ready.
-      if (!window.firebase || !firebase.apps) {
-        setSyncLabel(navigator.onLine ? "Local" : "Offline");
-        showStatus(t("notLoggedIn"));
-        return;
-      }
-
-      try {
-        if (!firebase.apps.length) {
-          firebase.initializeApp({
-            apiKey: "AIzaSyDDY_v7RHnkCTI6uyV4DNDjqoaIBGweg8c",
-            authDomain: "digital-a2552.firebaseapp.com",
-            databaseURL: "https://digital-a2552-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "digital-a2552",
-            storageBucket: "digital-a2552.firebasestorage.app",
-            messagingSenderId: "218135618179",
-            appId: "1:218135618179:web:821b76920d3e5669ac31b6"
-          });
+    function togglePasswordVisibility(fieldId, iconId) {
+        const field = document.getElementById(fieldId);
+        const icon = document.getElementById(iconId);
+        if (field.type === "password") {
+            field.type = "text";
+            icon.classList.remove("fa-eye");
+            icon.classList.add("fa-eye-slash");
+        } else {
+            field.type = "password";
+            icon.classList.remove("fa-eye-slash");
+            icon.classList.add("fa-eye");
         }
+    }
 
-        firebaseAuth = firebase.auth();
-        firebaseDb = firebase.database();
+    // EmailJS Feedback Handler
+    function handleFeedback(event) {
+        event.preventDefault();
+        const name = document.getElementById('fb-name').value;
+        const msg = document.getElementById('fb-msg').value;
+        const submitBtn = document.getElementById('fb-submit-btn');
 
-        firebaseAuth.onAuthStateChanged(account => {
-          currentUser = account || null;
+        if(name && msg) {
+            submitBtn.disabled = true;
+            submitBtn.innerText = currentLang === 'NEP' ? 'Sending...' : 'Sending...';
 
-          if (!currentUser) {
-            detachSettingsListener();
-            settingsRef = null;
-            firebaseReady = false;
-            $("accountEmail").textContent = t("notLoggedIn");
-            setSyncLabel(navigator.onLine ? "Local" : "Offline");
-            showStatus(t("notLoggedIn"));
+            const now = new Date();
+            const timeString = now.toLocaleString();
+
+            const templateParams = {
+                name: name,
+                email: 'gckamal67@gmail.com',
+                title: 'Digital NoteBook Feedback',
+                message: msg,
+                time: timeString
+            };
+
+            emailjs.send('service_8zfv1vu', 'template_36j91tf', templateParams)
+                .then(function(response) {
+                    showToast(currentLang === 'NEP' ? 'Feedback sent successfully!' : 'Feedback sent successfully!', 'success');
+                    document.getElementById('feedback-form').reset();
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = currentLang === 'NEP' ? 'Submit' : 'Submit';
+                }, function(error) {
+                    console.log('FAILED...', error);
+                    showToast(currentLang === 'NEP' ? 'Failed to send email.' : 'Failed to send email.', 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = currentLang === 'NEP' ? 'Submit' : 'Submit';
+                });
+        }
+    }
+
+    // Delete Account Handler with EmailJS notification
+    function submitDeleteAccountRequest() {
+        const checkboxes = document.querySelectorAll('input[name="del_reason"]:checked');
+        let reasons = Array.from(checkboxes).map(cb => cb.value).join(', ');
+        const customReason = document.getElementById('delete-custom-reason').value;
+        if (customReason) reasons += (reasons ? '; ' : '') + customReason;
+        
+        const password = document.getElementById('delete-confirm-password').value;
+        const user = auth.currentUser;
+
+        if (!reasons) {
+            showToast("Please select at least one reason for deletion.", 'error');
             return;
-          }
+        }
+        if (!password) {
+            showToast("Please confirm your password.", 'error');
+            return;
+        }
 
-          $("accountEmail").textContent = currentUser.email || currentUser.uid;
-          settingsRef = firebaseDb.ref("users/" + currentUser.uid + "/settings");
-          firebaseReady = true;
-          attachSettingsListener();
+        if (!user) {
+            showToast("No user logged in.", 'error');
+            return;
+        }
 
-          if (navigator.onLine) scheduleCloudSync();
-        }, error => {
-          console.error("Firebase Auth state error:", error);
-          setSyncLabel("Local");
-          showStatus(t("syncFailed") + error.message, "error");
+        const credential = firebase.auth.EmailAuthProvider.credential(user.email, password);
+
+        user.reauthenticateWithCredential(credential).then(() => {
+            const now = new Date();
+            const timeString = now.toLocaleString();
+            const deleteParams = {
+                name: user.email,
+                email: user.email,
+                title: 'Digital NoteBook - Account Deletion Alert',
+                message: `User Account Deleted.\nEmail: ${user.email}\nReasons: ${reasons}`,
+                time: timeString
+            };
+
+            emailjs.send('service_8zfv1vu', 'template_36j91tf', deleteParams)
+                .then(function(response) {
+                    console.log('Deletion email sent successfully', response);
+                }, function(error) {
+                    console.log('Failed to send deletion email', error);
+                });
+
+            user.delete().then(() => {
+                showToast("Account successfully deleted.");
+                window.location.href = 'index.html';
+            }).catch((error) => {
+                showToast("Error: " + error.message, 'error');
+            });
+        }).catch((error) => {
+            showToast("Incorrect password. Please try again.", 'error');
         });
-      } catch (error) {
-        console.error("Firebase setup error:", error);
-        setSyncLabel(navigator.onLine ? "Local" : "Offline");
-        showStatus(t("notLoggedIn"));
-      }
     }
 
-    $("languageSelect").addEventListener("change", event => {
-      updateOneSetting("lang", event.target.value);
+    function saveProfileDetails() {
+        const name = document.getElementById('input-full-name').value;
+        const address = document.getElementById('input-address').value;
+        const mobile = document.getElementById('input-mobile').value;
+
+        if(name) localStorage.setItem('profile_name', name);
+        localStorage.setItem('profile_address', address);
+        localStorage.setItem('profile_mobile', mobile);
+
+        loadUserData();
+        showToast(currentLang === 'NEP' ? 'Details saved successfully!' : 'Details saved successfully!', 'success');
+    }
+
+    function loadUserData() {
+        const savedName = localStorage.getItem('profile_name') || '';
+        const savedAddress = localStorage.getItem('profile_address') || '';
+        const savedMobile = localStorage.getItem('profile_mobile') || '';
+
+        if(document.getElementById('input-full-name')) document.getElementById('input-full-name').value = savedName;
+        if(document.getElementById('input-address')) document.getElementById('input-address').value = savedAddress;
+        if(document.getElementById('input-mobile')) document.getElementById('input-mobile').value = savedMobile;
+
+        const nameEl = document.getElementById('sidebar-profile-name');
+        if(nameEl) nameEl.innerText = savedName;
+    }
+
+    function handleAvatarUpload(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64Image = e.target.result;
+                localStorage.setItem('profile_avatar', base64Image);
+                loadAvatar();
+                showToast(currentLang === 'NEP' ? 'Profile photo updated!' : 'Profile photo updated!', 'success');
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function loadAvatar() {
+        const savedImage = localStorage.getItem('profile_avatar') || 'N1024.png';
+        ['sidebar-avatar-img', 'header-avatar-img'].forEach(id => {
+            const img = document.getElementById(id);
+            if(img) img.src = savedImage;
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        applySettingsToPage();
+        updateDynamicHeader();
+        loadUserData();
+        loadAvatar();
     });
-
-    $("darkToggle").addEventListener("click", () => {
-      updateOneSetting("theme", settings.theme === "dark" ? "light" : "dark");
-    });
-
-    $("fontSizeSelect").addEventListener("change", event => {
-      updateOneSetting("font_size", event.target.value);
-    });
-
-    $("fontFamilySelect").addEventListener("change", event => {
-      updateOneSetting("font_family", event.target.value);
-    });
-
-    $("accentColor").addEventListener("input", event => {
-      updateOneSetting("accentColor", event.target.value);
-    });
-
-    $("syncNowButton").addEventListener("click", async () => {
-      if (!navigator.onLine) {
-        showStatus(t("offline"));
-        setSyncLabel("Offline");
-        return;
-      }
-
-      if (!currentUser) {
-        showStatus(t("syncNeedLogin"));
-        setSyncLabel("Local");
-        return;
-      }
-
-      await syncSettingsToCloud();
-    });
-
-    $("backButton").addEventListener("click", () => {
-      if (history.length > 1) history.back();
-      else location.href = "index.html";
-    });
-
-    window.addEventListener("offline", () => {
-      setSyncLabel("Offline");
-      showStatus(t("offline"));
-    });
-
-    window.addEventListener("online", () => {
-      setSyncLabel(currentUser ? "Syncing…" : "Local");
-      if (currentUser) scheduleCloudSync();
-      else showStatus(t("notLoggedIn"));
-    });
-
-    $("feedbackForm").addEventListener("submit", event => {
-      event.preventDefault();
-
-      if (!$("feedbackMessage").value.trim()) {
-        $("feedbackStatus").classList.remove("hidden");
-        $("feedbackStatus").textContent = t("feedbackNeedMessage");
-        return;
-      }
-
-      $("feedbackStatus").classList.remove("hidden");
-      $("feedbackStatus").textContent = t("feedbackNoService");
-    });
-
-    $("privacyButton").addEventListener("click", () => {
-      const box = $("infoPanel");
-      box.classList.remove("hidden");
-      box.textContent = t("privacyText");
-    });
-
-    $("termsButton").addEventListener("click", () => {
-      const box = $("infoPanel");
-      box.classList.remove("hidden");
-      box.textContent = t("termsText");
-    });
-
-    // Apply saved local settings before attempting Firebase.
-    applySettingsToPage();
-    saveLocalSettings();
-
-    $("accountEmail").textContent = t("notLoggedIn");
-    setSyncLabel(navigator.onLine ? "Local" : "Offline");
-
-    // Firebase is optional for local display preferences.
-    initialiseFirebaseIfAvailable();
-  })();
-  </script>
-
-  <!-- Firebase SDK: settings are local-first, but first-time offline page loading
-       still requires these scripts to have been cached by the browser/service worker. -->
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+</script>
 </body>
 </html>
