@@ -1,463 +1,1123 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Digital NoteBook - Settings & Preferences</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<!-- Firebase App (core) and Firebase Auth -->
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-<!-- EmailJS SDK -->
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-<script type="text/javascript">
-    (function(){
-        emailjs.init("K1o1WC9jydWnUnUl7");
-    })();
-</script>
-<script>
-tailwind.config = {
-    darkMode: 'class',
-    theme: {
-        extend: {
-            fontFamily: {
-                sans: ['Poppins', 'sans-serif'],
-                inter: ['Inter', 'sans-serif'],
-                roboto: ['Roboto', 'sans-serif']
-            }
-        }
-    }
-}
-</script>
-<script>
-    const savedTheme = localStorage.getItem('theme') || 'dark';
-    if (savedTheme === 'light') {
-        document.documentElement.classList.remove('dark');
-    } else {
-        document.documentElement.classList.add('dark');
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#4f46e5">
+  <title>Settings | Digital NoteBook</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --accent: #4f46e5;
+      --accent-soft: #eef2ff;
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #172033;
+      --muted: #697386;
+      --border: #e3e7ef;
+      --danger: #dc2626;
+      --success: #15803d;
+      --radius: 18px;
+      --font: 'Poppins', sans-serif;
+      --base-size: 15px;
     }
 
-    const savedFontSize = localStorage.getItem('font_size') || 'text-sm';
-    const savedFontFamily = localStorage.getItem('font_family') || 'font-sans';
-    document.documentElement.className += ` ${savedFontSize} ${savedFontFamily}`;
-</script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-<style>
-    .more-text {
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        text-overflow: ellipsis;
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: var(--base-size);
+      transition: background .2s, color .2s;
     }
-    .more-text.show {
-        display: block;
-        overflow: visible;
+
+    body.dark {
+      --bg: #101522;
+      --card: #192132;
+      --text: #edf1fa;
+      --muted: #aab4c7;
+      --border: #303b50;
+      --accent-soft: #292b52;
     }
-</style>
+
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    a { color: var(--accent); }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .back {
+      width: 42px;
+      height: 42px;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      background: var(--card);
+      color: var(--text);
+      font-size: 21px;
+    }
+
+    .brand { flex: 1; min-width: 0; }
+    .brand h1 { margin: 0; font-size: 18px; }
+    .brand p { margin: 3px 0 0; font-size: 12px; color: var(--muted); }
+
+    .status {
+      font-size: 11px;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 6px 9px;
+      white-space: nowrap;
+    }
+
+    .container { max-width: 850px; margin: 0 auto; padding: 20px 15px 45px; }
+
+    .intro { margin: 3px 2px 20px; }
+    .intro h2 { margin: 0 0 6px; font-size: 23px; }
+    .intro p { margin: 0; color: var(--muted); line-height: 1.6; font-size: 13px; }
+
+    .section-title {
+      margin: 23px 3px 10px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .7px;
+      text-transform: uppercase;
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+
+    .setting-row {
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .setting-row:last-child { border-bottom: 0; }
+
+    .setting-icon {
+      flex: 0 0 42px;
+      height: 42px;
+      border-radius: 13px;
+      display: grid;
+      place-items: center;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 20px;
+    }
+
+    .setting-info { flex: 1; min-width: 0; }
+    .setting-info h3 { margin: 0 0 4px; font-size: 14px; font-weight: 600; }
+    .setting-info p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
+
+    .control { min-width: 125px; max-width: 48%; }
+
+    select, input[type="text"], input[type="email"], input[type="password"], textarea {
+      width: 100%;
+      color: var(--text);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 10px 11px;
+      outline: none;
+    }
+
+    select:focus, input:focus, textarea:focus { border-color: var(--accent); }
+    textarea { min-height: 100px; resize: vertical; }
+
+    .switch {
+      position: relative;
+      width: 48px;
+      height: 27px;
+      flex-shrink: 0;
+    }
+
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute;
+      inset: 0;
+      border-radius: 30px;
+      background: #aab2c0;
+      transition: .2s;
+    }
+
+    .slider::before {
+      content: "";
+      position: absolute;
+      width: 21px;
+      height: 21px;
+      top: 3px;
+      left: 3px;
+      background: white;
+      border-radius: 50%;
+      transition: .2s;
+    }
+
+    .switch input:checked + .slider { background: var(--accent); }
+    .switch input:checked + .slider::before { transform: translateX(21px); }
+
+    .button {
+      border: 0;
+      border-radius: 11px;
+      padding: 10px 14px;
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    .button.secondary {
+      color: var(--text);
+      background: var(--bg);
+      border: 1px solid var(--border);
+    }
+
+    .button.danger { background: var(--danger); }
+    .button:disabled { opacity: .55; cursor: not-allowed; }
+
+    .color-control { display: flex; align-items: center; gap: 9px; }
+    input[type="color"] {
+      width: 42px;
+      height: 38px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 3px;
+      background: var(--card);
+      cursor: pointer;
+    }
+
+    .form-panel { padding: 17px; }
+    .form-panel h3 { margin: 0 0 6px; font-size: 15px; }
+    .form-panel > p { margin: 0 0 14px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .field { margin-bottom: 12px; }
+    .field label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; }
+    .form-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .message {
+      display: none;
+      margin: 0 0 14px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 12px;
+      line-height: 1.6;
+      background: var(--card);
+    }
+
+    .message.show { display: block; }
+    .message.success { color: var(--success); }
+    .message.error { color: var(--danger); }
+
+    .account-email { overflow-wrap: anywhere; }
+    .footer { text-align: center; color: var(--muted); font-size: 11px; padding: 20px 0 0; line-height: 1.8; }
+
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      background: #0009;
+      padding: 18px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-backdrop.show { display: flex; }
+    .modal {
+      max-width: 470px;
+      width: 100%;
+      background: var(--card);
+      color: var(--text);
+      border-radius: 18px;
+      padding: 22px;
+      border: 1px solid var(--border);
+      max-height: 85vh;
+      overflow: auto;
+    }
+
+    .modal h2 { margin: 0 0 12px; font-size: 19px; }
+    .modal p, .modal li { font-size: 13px; line-height: 1.75; color: var(--muted); }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 17px; }
+
+    @media (max-width: 560px) {
+      .topbar { padding: 12px; }
+      .container { padding: 16px 11px 35px; }
+      .intro h2 { font-size: 21px; }
+      .setting-row { padding: 13px 11px; gap: 10px; }
+      .setting-icon { flex-basis: 36px; height: 36px; font-size: 17px; }
+      .control { min-width: 112px; }
+      .setting-info h3 { font-size: 13px; }
+      .setting-info p { font-size: 11px; }
+      .status { font-size: 10px; padding: 5px 7px; }
+    }
+  </style>
 </head>
-<body id="main-body" class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-300">
 
-<!-- TOAST NOTIFICATION CONTAINER -->
-<div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2"></div>
+<body>
+  <header class="topbar">
+    <button class="back" id="backButton" aria-label="Go back">‹</button>
+    <div class="brand">
+      <h1 data-i18n="appName">Digital NoteBook</h1>
+      <p data-i18n="settingsSubtitle">Display & Preferences</p>
+    </div>
+    <div class="status" id="syncStatus" data-i18n="connecting">Connecting…</div>
+  </header>
 
-<main class="p-4 md:p-8 space-y-6 w-full max-w-4xl mx-auto">
-
-    <!-- HEADER TITLE -->
-    <div class="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800">
-        <h2 class="text-xl md:text-2xl font-bold tracking-tight flex items-center gap-3 text-slate-900 dark:text-white">
-            <span class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 text-lg">
-                <i class="fa-solid fa-sliders"></i>
-            </span>
-            <span class="lang-text" data-en="Settings & Preferences" data-np="सेटिङ र प्राथमिकताहरू">Settings & Preferences</span>
-        </h2>
+  <main class="container">
+    <div class="intro">
+      <h2 data-i18n="pageTitle">Settings</h2>
+      <p data-i18n="pageIntro">Personalize your notebook. Your preferences sync with your account.</p>
     </div>
 
-    <!-- DISPLAY & LANGUAGE CONTROLS (Clean Grid without heavy boxes) -->
-    <div class="bg-white dark:bg-slate-900/60 backdrop-blur-md p-5 rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-200/80 dark:border-slate-800 space-y-4">
-        <div class="flex items-center gap-2 text-slate-900 dark:text-white font-semibold text-sm uppercase tracking-wider">
-            <i class="fa-solid fa-wand-magic-sparkles text-emerald-500"></i>
-            <span class="lang-text" data-en="Display & Preferences" data-np="डिस्प्ले र प्राथमिकताहरू">Display & Preferences</span>
+    <div id="globalMessage" class="message" role="status" aria-live="polite"></div>
+
+    <div class="section-title" data-i18n="displayPreferences">Display & Preferences</div>
+    <section class="panel">
+      <div class="setting-row">
+        <div class="setting-icon">🌐</div>
+        <div class="setting-info">
+          <h3 data-i18n="language">Language</h3>
+          <p data-i18n="languageDesc">Choose the language used by this page.</p>
         </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            <!-- Language Toggle -->
-            <div class="space-y-1.5">
-                <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 lang-text" data-en="Language" data-np="भाषा">Language</label>
-                <button onclick="toggleLanguage()" id="lang-toggle-btn" class="w-full py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 font-semibold text-slate-700 dark:text-slate-200 hover:border-emerald-500 dark:hover:border-emerald-500 transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-globe text-emerald-500"></i> <span>ENG</span>
-                </button>
-            </div>
-
-            <!-- Theme Toggle -->
-            <div class="space-y-1.5">
-                <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 lang-text" data-en="Theme Mode" data-np="थिम मोड">Theme Mode</label>
-                <button onclick="toggleTheme()" id="theme-toggle-btn" class="w-full py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 font-semibold text-slate-700 dark:text-slate-200 hover:border-emerald-500 dark:hover:border-emerald-500 transition flex items-center justify-center gap-2">
-                    <span id="theme-icon">🌙</span> <span id="theme-text">Dark</span>
-                </button>
-            </div>
-
-            <!-- Font Size Selector -->
-            <div class="space-y-1.5">
-                <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 lang-text" data-en="Font Size" data-np="फन्ट साइज">Font Size</label>
-                <select id="font-size-selector" onchange="changeFontSize(this.value)" class="w-full py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:border-emerald-500 transition">
-                    <option value="text-xs">Compact (Small)</option>
-                    <option value="text-sm">Standard (Medium)</option>
-                    <option value="text-base">Comfortable (Large)</option>
-                </select>
-            </div>
-
-            <!-- Font Family Selector -->
-            <div class="space-y-1.5">
-                <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 lang-text" data-en="Font Style" data-np="फन्ट शैली">Font Style</label>
-                <select id="font-family-selector" onchange="changeFontFamily(this.value)" class="w-full py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:border-emerald-500 transition">
-                    <option value="font-sans">Poppins</option>
-                    <option value="font-inter">Inter</option>
-                    <option value="font-roboto">Roboto</option>
-                </select>
-            </div>
+        <div class="control">
+          <select id="languageSelect" aria-label="Language">
+            <option value="EN">English</option>
+            <option value="NEP">नेपाली</option>
+          </select>
         </div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-icon">🌙</div>
+        <div class="setting-info">
+          <h3 data-i18n="darkMode">Dark mode</h3>
+          <p data-i18n="darkModeDesc">Use a darker appearance.</p>
+        </div>
+        <label class="switch">
+          <input id="themeToggle" type="checkbox" aria-label="Dark mode">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-icon">🔠</div>
+        <div class="setting-info">
+          <h3 data-i18n="fontSize">Font size</h3>
+          <p data-i18n="fontSizeDesc">Adjust text size.</p>
+        </div>
+        <div class="control">
+          <select id="fontSizeSelect" aria-label="Font size">
+            <option value="text-xs">Small</option>
+            <option value="text-sm">Medium</option>
+            <option value="text-base">Large</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-icon">✍️</div>
+        <div class="setting-info">
+          <h3 data-i18n="fontFamily">Font family</h3>
+          <p data-i18n="fontFamilyDesc">Choose your preferred font.</p>
+        </div>
+        <div class="control">
+          <select id="fontFamilySelect" aria-label="Font family">
+            <option value="font-sans">Poppins</option>
+            <option value="font-inter">Inter</option>
+            <option value="font-roboto">Roboto</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-icon">🎨</div>
+        <div class="setting-info">
+          <h3 data-i18n="accentColor">Accent color</h3>
+          <p data-i18n="accentColorDesc">Choose the main highlight color.</p>
+        </div>
+        <div class="control color-control">
+          <input type="color" id="accentColor" value="#4f46e5" aria-label="Accent color">
+        </div>
+      </div>
+    </section>
+
+    <div class="section-title" data-i18n="accountSection">Account</div>
+    <section class="panel">
+      <div class="setting-row">
+        <div class="setting-icon">👤</div>
+        <div class="setting-info">
+          <h3 data-i18n="signedInAs">Signed in as</h3>
+          <p id="accountEmail" class="account-email">Checking account…</p>
+        </div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-icon">🔄</div>
+        <div class="setting-info">
+          <h3 data-i18n="syncTitle">Cloud synchronization</h3>
+          <p data-i18n="syncDesc">Your preferences are saved to your Firebase account.</p>
+        </div>
+        <button class="button secondary" id="syncNowButton" data-i18n="syncNow">Sync now</button>
+      </div>
+    </section>
+
+    <div class="section-title" data-i18n="feedbackSection">Feedback</div>
+    <section class="panel form-panel">
+      <h3 data-i18n="feedbackTitle">Send feedback</h3>
+      <p data-i18n="feedbackDesc">Share a suggestion or report a problem with Digital NoteBook.</p>
+      <form id="feedbackForm">
+        <div class="field">
+          <label for="feedbackName" data-i18n="yourName">Your name (optional)</label>
+          <input id="feedbackName" type="text" maxlength="100" autocomplete="name">
+        </div>
+        <div class="field">
+          <label for="feedbackEmail" data-i18n="yourEmail">Email</label>
+          <input id="feedbackEmail" type="email" maxlength="200" autocomplete="email">
+        </div>
+        <div class="field">
+          <label for="feedbackType" data-i18n="feedbackType">Feedback type</label>
+          <select id="feedbackType">
+            <option value="Suggestion" data-i18n="suggestion">Suggestion</option>
+            <option value="Bug report" data-i18n="bugReport">Bug report</option>
+            <option value="Other" data-i18n="other">Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="feedbackMessage" data-i18n="yourMessage">Message</label>
+          <textarea id="feedbackMessage" maxlength="4000" required></textarea>
+        </div>
+        <div class="form-actions">
+          <button class="button" id="sendFeedbackButton" type="submit" data-i18n="sendFeedback">Send feedback</button>
+        </div>
+      </form>
+      <p id="feedbackStatus" style="margin:12px 0 0" aria-live="polite"></p>
+    </section>
+
+    <div class="section-title" data-i18n="privacySection">Privacy & Information</div>
+    <section class="panel">
+      <div class="setting-row">
+        <div class="setting-icon">🔒</div>
+        <div class="setting-info">
+          <h3 data-i18n="privacyTitle">Privacy policy</h3>
+          <p data-i18n="privacyDesc">Learn how account data and preferences are handled.</p>
+        </div>
+        <button class="button secondary" data-open-modal="privacyModal" data-i18n="view">View</button>
+      </div>
+      <div class="setting-row">
+        <div class="setting-icon">📄</div>
+        <div class="setting-info">
+          <h3 data-i18n="termsTitle">Terms of use</h3>
+          <p data-i18n="termsDesc">Information about using this application.</p>
+        </div>
+        <button class="button secondary" data-open-modal="termsModal" data-i18n="view">View</button>
+      </div>
+      <div class="setting-row">
+        <div class="setting-icon">ℹ️</div>
+        <div class="setting-info">
+          <h3 data-i18n="aboutTitle">About Digital NoteBook</h3>
+          <p data-i18n="aboutDesc">Application information and version.</p>
+        </div>
+        <button class="button secondary" data-open-modal="aboutModal" data-i18n="view">View</button>
+      </div>
+      <div class="setting-row">
+        <div class="setting-icon">🗑️</div>
+        <div class="setting-info">
+          <h3 data-i18n="deleteRequestTitle">Account deletion request</h3>
+          <p data-i18n="deleteRequestDesc">Request removal of your account and associated cloud data.</p>
+        </div>
+        <button class="button danger" id="deleteRequestButton" data-i18n="request">Request</button>
+      </div>
+    </section>
+
+    <div class="footer">
+      <span data-i18n="footerText">Digital NoteBook · Display & Preferences</span><br>
+      <span>Version 6.7</span>
     </div>
+  </main>
 
-    <!-- POLICY, TERMS & ABOUT SECTION -->
-    <div class="bg-white dark:bg-slate-900/60 backdrop-blur-md p-6 rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-200/80 dark:border-slate-800 space-y-4">
-        <h3 class="font-bold text-slate-900 dark:text-white text-sm uppercase tracking-wider flex items-center gap-2">
-            <i class="fa-solid fa-shield-halved text-emerald-500"></i> <span data-i18n="policy_title">Policy, Terms & About</span>
-        </h3>
-
-        <div class="space-y-3">
-            <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
-                <h5 class="font-semibold text-slate-800 dark:text-slate-200 text-sm" data-i18n="policy_main_title">Policy, Terms & Overview</h5>
-                <p class="text-slate-500 dark:text-slate-400 text-xs mt-1 leading-relaxed" data-i18n="policy_main_desc">Your financial records are secured in Firebase cloud. Third-party data sharing is restricted, and users retain complete control over their accounts.</p>
-                
-                <div id="more-policy" class="more-text text-slate-500 dark:text-slate-400 text-xs space-y-2 mt-2 pt-2 border-t border-slate-200 dark:border-slate-700/50 leading-relaxed">
-                    <p class="lang-text" 
-                       data-en="Your complete accounts, transaction records, and bills will be kept fully secure in the cloud server. We will never sell or transfer any of your personal or financial details to any third party or anyone else, ensuring your privacy remains protected at all times. To use this system, users must log in securely and will be entirely responsible for keeping their login credentials confidential. An active internet connection is fundamentally required to keep data fresh and synchronized in real-time on the server. Furthermore, users retain the full right to request the deletion of their account and all stored details from the server whenever they wish." 
-                       data-np="तपाईँका सबै हिसाब-किताब, कारोबारका विवरण र बिलहरू क्लाउड सर्भरमा पूर्ण रूपमा सुरक्षित रूपमा राखिनेछन्। हामी तपाईँको कुनै पनि व्यक्तिगत वा वित्तीय विवरणहरू तेस्रो पक्ष वा अन्य कसैलाई पनि बिक्री गर्ने वा हस्तान्तरण गर्ने छैनौं, जसले गर्दा तपाईँको गोपनीयता सधैं सुरक्षित रहन्छ। यो प्रणाली प्रयोग गर्नका लागि प्रयोगकर्ताहरूले सुरक्षित रूपमा लगइन गर्नुपर्ने हुन्छ र आफ्ना लगइन विवरणहरू गोप्य राख्ने पूर्ण जिम्मेवारी स्वयम् प्रयोगकर्ताकै हुनेछ। सर्भरमा डाटालाई वास्तविक समयमै ताजा राख्न र सिंक गर्नका लागि सक्रिय इन्टरनेट जडान अनिवार्य रूपमा आवश्यक पर्दछ। यसबाहेक, प्रयोगकर्ताहरूसँग पूर्ण अधिकार हुन्छ कि उनीहरूले सर्भरमा सुरक्षित राखिएको आफ्नो खाता तथा सम्पूर्ण विवरणहरू जुनसुकै बेला चाहेको बखत मेटाउनका लागि अनुरोध गर्न सक्नेछन्।">
-                       तपाईँका सबै हिसाब-किताब, कारोबारका विवरण र बिलहरू क्लाउड सर्भरमा पूर्ण रूपमा सुरक्षित रूपमा राखिनेछन्। हामी तपाईँको कुनै पनि व्यक्तिगत वा वित्तीय विवरणहरू तेस्रो पक्ष वा अन्य कसैलाई पनि बिक्री गर्ने वा हस्तान्तरण गर्ने छैनौं, जसले गर्दा तपाईँको गोपनीयता सधैं सुरक्षित रहन्छ। यो प्रणाली प्रयोग गर्नका लागि प्रयोगकर्ताहरूले सुरक्षित रूपमा लगइन गर्नुपर्ने हुन्छ र आफ्ना लगइन विवरणहरू गोप्य राख्ने पूर्ण जिम्मेवारी स्वयम् प्रयोगकर्ताकै हुनेछ। सर्भरमा डाटालाई वास्तविक समयमै ताजा राख्न र सिंक गर्नका लागि सक्रिय इन्टरनेट जडान अनिवार्य रूपमा आवश्यक पर्दछ। यसबाहेक, प्रयोगकर्ताहरूसँग पूर्ण अधिकार हुन्छ कि उनीहरूले सर्भरमा सुरक्षित राखिएको आफ्नो खाता तथा सम्पूर्ण विवरणहरू जुनसुकै बेला चाहेको बखत मेटाउनका लागि अनुरोध गर्न सक्नेछन्।
-                    </p>
-                </div>
-
-                <button onclick="toggleText('policy')" id="toggle-btn-policy" class="text-emerald-600 dark:text-emerald-400 font-semibold text-xs mt-3 block hover:underline" data-i18n="see_more">See More</button>
-            </div>
-        </div>
-        
-        <div class="pt-2 text-center">
-            <button onclick="checkForUpdates()" class="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium px-4 py-2 rounded-xl text-xs transition">
-                <i class="fa-solid fa-rotate text-emerald-500"></i> Version 6.7 <span id="update-status-text" class="opacity-70" data-i18n="check_update">(Check Update)</span>
-            </button>
-        </div>
+  <div class="modal-backdrop" id="privacyModal" role="dialog" aria-modal="true" aria-labelledby="privacyHeading">
+    <div class="modal">
+      <h2 id="privacyHeading" data-i18n="privacyTitle">Privacy policy</h2>
+      <div data-i18n="privacyBody">
+        <p>Your data is associated with your signed-in Firebase account. Access depends on the application's Firebase security rules.</p>
+        <p>Do not store passwords, payment card details, or other highly sensitive information in notes. Settings are stored in your account so they can synchronize across devices.</p>
+        <p>When you send feedback, the information you enter is sent to the configured feedback service.</p>
+      </div>
+      <div class="modal-actions"><button class="button" data-close-modal data-i18n="close">Close</button></div>
     </div>
+  </div>
 
-    <!-- FEEDBACK & SUGGESTIONS SECTION -->
-    <div class="bg-white dark:bg-slate-900/60 backdrop-blur-md p-6 rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-200/80 dark:border-slate-800 space-y-4">
-        <h3 class="font-bold text-slate-900 dark:text-white text-sm uppercase tracking-wider flex items-center gap-2">
-            <i class="fa-solid fa-comments text-emerald-500"></i> <span data-i18n="feedback_title">Feedback & Suggestions</span>
-        </h3>
-        <form id="feedback-form" onsubmit="handleFeedback(event)" class="space-y-3">
-            <div>
-                <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1" data-i18n="your_name">Your Name:</label>
-                <input type="text" id="fb-name" required placeholder="Enter your name" class="w-full border border-slate-200 dark:border-slate-700/60 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white p-3 rounded-xl text-xs focus:outline-none focus:border-emerald-500 transition">
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1" data-i18n="your_message">Message or Feedback:</label>
-                <textarea id="fb-msg" rows="3" required placeholder="Write your feedback..." class="w-full border border-slate-200 dark:border-slate-700/60 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white p-3 rounded-xl text-xs focus:outline-none focus:border-emerald-500 transition resize-none"></textarea>
-            </div>
-            <button type="submit" id="fb-submit-btn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-3 rounded-xl text-xs transition shadow-lg shadow-emerald-600/20" data-i18n="btn_submit">Submit</button>
-        </form>
+  <div class="modal-backdrop" id="termsModal" role="dialog" aria-modal="true" aria-labelledby="termsHeading">
+    <div class="modal">
+      <h2 id="termsHeading" data-i18n="termsTitle">Terms of use</h2>
+      <div data-i18n="termsBody">
+        <p>Use this application lawfully and keep your account credentials secure.</p>
+        <p>Cloud synchronization requires an internet connection, a valid Firebase configuration, and suitable database rules. Keep independent backups of important information.</p>
+        <p>Features may depend on the configuration and deployment of the application.</p>
+      </div>
+      <div class="modal-actions"><button class="button" data-close-modal data-i18n="close">Close</button></div>
     </div>
+  </div>
 
-    <!-- DELETE ACCOUNT SECTION (Danger Zone) -->
-    <div class="bg-white dark:bg-slate-900/60 backdrop-blur-md p-6 rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-rose-200/40 dark:border-rose-900/30 space-y-4">
-        <div class="flex items-center justify-between">
-            <div>
-                <h3 class="font-bold text-rose-600 dark:text-rose-400 text-sm lang-text" data-en="Danger Zone" data-np="Danger Zone">Danger Zone</h3>
-                <p class="text-slate-500 dark:text-slate-400 text-xs lang-text" data-en="Permanently delete your account and data" data-np="Permanently delete your account and data">Permanently delete your account and data</p>
-            </div>
-            <button onclick="toggleDeleteAccountSection()" id="delete-toggle-btn" class="px-4 py-2 bg-rose-500/10 hover:bg-rose-600 hover:text-white text-rose-600 border border-rose-500/20 rounded-xl font-semibold text-xs transition lang-text" data-en="Delete Account" data-np="Delete Account">
-                Delete Account
-            </button>
-        </div>
-
-        <!-- Hidden Delete Form -->
-        <div id="delete-form-box" class="hidden space-y-3 pt-4 border-t border-slate-200 dark:border-slate-800">
-            <p class="font-medium text-slate-700 dark:text-slate-300 text-xs lang-text" data-en="Please select a reason for deletion (Mandatory):" data-np="Please select a reason for deletion (Mandatory):">Please select a reason for deletion (Mandatory):</p>
-            <div class="space-y-2 text-slate-600 dark:text-slate-400 text-xs">
-                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="del_reason" value="No longer using the app" class="accent-rose-600 rounded"> <span class="lang-text" data-en="No longer using the app" data-np="No longer using the app">No longer using the app</span></label>
-                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="del_reason" value="Privacy concerns" class="accent-rose-600 rounded"> <span class="lang-text" data-en="Privacy concerns" data-np="Privacy concerns">Privacy concerns</span></label>
-                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="del_reason" value="Found a better alternative" class="accent-rose-600 rounded"> <span class="lang-text" data-en="Found a better alternative" data-np="Found a better alternative">Found a better alternative</span></label>
-                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="del_reason" value="Other reason" class="accent-rose-600 rounded"> <span class="lang-text" data-en="Other reason" data-np="Other reason">Other reason</span></label>
-            </div>
-            <textarea id="delete-custom-reason" class="lang-placeholder w-full p-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 rounded-xl text-slate-900 dark:text-white text-xs focus:outline-none focus:border-rose-500 resize-none" placeholder="Write additional reasons (optional)..." rows="2"></textarea>
-            
-            <div class="relative">
-                <input type="password" id="delete-confirm-password" class="w-full p-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 rounded-xl text-slate-900 dark:text-white text-xs focus:outline-none pr-10 focus:border-rose-500" placeholder="Enter your current password to confirm">
-                <button type="button" onclick="togglePasswordVisibility('delete-confirm-password', 'del-eye')" class="absolute right-3 top-3.5 text-slate-400 hover:text-slate-200"><i id="del-eye" class="fa-solid fa-eye"></i></button>
-            </div>
-
-            <button onclick="submitDeleteAccountRequest()" class="w-full py-3 bg-rose-600 hover:bg-rose-500 text-white rounded-xl font-bold text-xs transition shadow-lg shadow-rose-600/20 lang-text" data-en="Submit & Delete Account" data-np="Submit & Delete Account">
-                Submit & Delete Account
-            </button>
-        </div>
+  <div class="modal-backdrop" id="aboutModal" role="dialog" aria-modal="true" aria-labelledby="aboutHeading">
+    <div class="modal">
+      <h2 id="aboutHeading" data-i18n="aboutTitle">About Digital NoteBook</h2>
+      <p data-i18n="aboutBody">Digital NoteBook helps you manage your personal notes and records.</p>
+      <p><strong data-i18n="versionLabel">Version:</strong> 6.7</p>
+      <p id="versionStatus" aria-live="polite"></p>
+      <div class="modal-actions">
+        <button class="button secondary" id="checkVersionButton" data-i18n="checkVersion">Check version</button>
+        <button class="button" data-close-modal data-i18n="close">Close</button>
+      </div>
     </div>
+  </div>
 
-</main>
+  <div class="modal-backdrop" id="deleteModal" role="dialog" aria-modal="true" aria-labelledby="deleteHeading">
+    <div class="modal">
+      <h2 id="deleteHeading" data-i18n="deleteConfirmTitle">Request account deletion</h2>
+      <p data-i18n="deleteConfirmBody">This sends a deletion request for review. It does not immediately delete your Firebase account or cloud records. Do not enter your password here.</p>
+      <div class="field">
+        <label for="deleteReason" data-i18n="deleteReasonLabel">Reason (optional)</label>
+        <textarea id="deleteReason" maxlength="1000"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="button secondary" data-close-modal data-i18n="cancel">Cancel</button>
+        <button class="button danger" id="confirmDeleteRequestButton" data-i18n="sendRequest">Send request</button>
+      </div>
+      <p id="deleteRequestStatus" aria-live="polite"></p>
+    </div>
+  </div>
 
-<script>
+  <!-- Firebase compat SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
+  <!-- EmailJS feedback service -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+  <script>
+    'use strict';
+
+    // ------------------------------------------------------------
+    // FIREBASE CONFIGURATION
+    // ------------------------------------------------------------
     const firebaseConfig = {
       apiKey: "AIzaSyDDY_v7RHnkCTI6uyV4DNDjqoaIBGweg8c",
       authDomain: "digital-a2552.firebaseapp.com",
+      databaseURL: "https://digital-a2552-default-rtdb.asia-southeast1.firebasedatabase.app",
       projectId: "digital-a2552",
       storageBucket: "digital-a2552.firebasestorage.app",
       messagingSenderId: "218135618179",
       appId: "1:218135618179:web:821b76920d3e5669ac31b6"
     };
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
-    const auth = firebase.auth();
 
-    let currentLang = localStorage.getItem('lang') || 'EN';
+    // Existing EmailJS configuration
+    const EMAILJS_PUBLIC_KEY = "K1o1WC9jydWnUnUl7";
+    const EMAILJS_SERVICE_ID = "service_8zfv1vu";
+    const EMAILJS_FEEDBACK_TEMPLATE_ID = "template_36j91tf";
 
-    const translations = {
-        EN: {
-            policy_title: "Policy, Terms & About",
-            policy_main_title: "Policy, Terms & Overview",
-            policy_main_desc: "Your financial records are secured in Firebase cloud. Third-party data sharing is restricted, and users retain complete control over their accounts.",
-            see_more: "See More",
-            see_less: "See Less",
-            check_update: "(Check Update)",
-            feedback_title: "Feedback & Suggestions",
-            your_name: "Your Name:",
-            your_message: "Message or Feedback:",
-            btn_submit: "Submit"
-        },
-        NEP: {
-            policy_title: "नीति, सर्तहरू र बारेमा",
-            policy_main_title: "गोपनीयता नीति र सर्तहरू",
-            policy_main_desc: "तपाईँका हिसाब-किताब फायरबेस क्लाउडमा सुरक्षित छन्। तेस्रो पक्षलाई डाटा शेयर गरिंदैन।",
-            see_more: "थप हेर्नुहोस्",
-            see_less: "कम देखाउनुहोस्",
-            check_update: "(अपडेट जाँच गर्नुहोस्)",
-            feedback_title: "प्रतिक्रिया तथा सुझावहरू",
-            your_name: "तपाईँको नाम:",
-            your_message: "सन्देश वा प्रतिक्रिया:",
-            btn_submit: "पेश गर्नुहोस्"
-        }
+    const APP_VERSION = "6.7";
+    const DEFAULT_SETTINGS = {
+      theme: "light",
+      lang: "EN",
+      font_size: "text-sm",
+      font_family: "font-sans",
+      accentColor: "#4f46e5"
     };
 
-    function updateLanguageUI() {
-        const btn = document.getElementById('lang-toggle-btn');
-        if(btn) btn.innerHTML = `<i class="fa-solid fa-globe text-emerald-500"></i> <span>${currentLang === 'EN' ? 'ENG' : 'नेपाली'}</span>`;
+    let auth = null;
+    let db = null;
+    let currentUser = null;
+    let settingsRef = null;
+    let authListener = null;
+    let settingsListener = null;
+    let settingsReady = false;
+    let saveTimer = null;
+    let isApplyingRemoteSettings = false;
+    let pendingSettings = {};
+    let lastRemoteSettings = {};
+    let emailJsReady = false;
 
-        document.querySelectorAll('.lang-text').forEach(el => {
-            const text = currentLang === 'NEP' ? el.getAttribute('data-np') : el.getAttribute('data-en');
-            if(text) el.innerText = text;
+    const $ = id => document.getElementById(id);
+
+    const translations = {
+      EN: {
+        appName:"Digital NoteBook", settingsSubtitle:"Display & Preferences",
+        connecting:"Connecting…", loading:"Loading…", synced:"Synced",
+        saved:"Saved", saving:"Saving…", offline:"Offline / not synced",
+        syncError:"Sync error", pageTitle:"Settings",
+        pageIntro:"Personalize your notebook. Your preferences sync with your account.",
+        displayPreferences:"Display & Preferences", language:"Language",
+        languageDesc:"Choose the language used by this page.", darkMode:"Dark mode",
+        darkModeDesc:"Use a darker appearance.", fontSize:"Font size",
+        fontSizeDesc:"Adjust text size.", fontFamily:"Font family",
+        fontFamilyDesc:"Choose your preferred font.", accentColor:"Accent color",
+        accentColorDesc:"Choose the main highlight color.", accountSection:"Account",
+        signedInAs:"Signed in as", syncTitle:"Cloud synchronization",
+        syncDesc:"Your preferences are saved to your Firebase account.", syncNow:"Sync now",
+        feedbackSection:"Feedback", feedbackTitle:"Send feedback",
+        feedbackDesc:"Share a suggestion or report a problem with Digital NoteBook.",
+        yourName:"Your name (optional)", yourEmail:"Email", feedbackType:"Feedback type",
+        suggestion:"Suggestion", bugReport:"Bug report", other:"Other",
+        yourMessage:"Message", sendFeedback:"Send feedback", sending:"Sending…",
+        feedbackSent:"Feedback sent successfully.", feedbackFailed:"Could not send feedback. Check your internet connection and EmailJS template configuration.",
+        privacySection:"Privacy & Information", privacyTitle:"Privacy policy",
+        privacyDesc:"Learn how account data and preferences are handled.",
+        termsTitle:"Terms of use", termsDesc:"Information about using this application.",
+        aboutTitle:"About Digital NoteBook", aboutDesc:"Application information and version.",
+        view:"View", deleteRequestTitle:"Account deletion request",
+        deleteRequestDesc:"Request removal of your account and associated cloud data.",
+        request:"Request", footerText:"Digital NoteBook · Display & Preferences",
+        privacyBody:"", termsBody:"", aboutBody:"", versionLabel:"Version:",
+        checkVersion:"Check version", close:"Close",
+        deleteConfirmTitle:"Request account deletion",
+        deleteConfirmBody:"This sends a deletion request for review. It does not immediately delete your Firebase account or cloud records. Do not enter your password here.",
+        deleteReasonLabel:"Reason (optional)", cancel:"Cancel", sendRequest:"Send request",
+        requestSent:"Your request was sent. Your account and data have not been deleted automatically.",
+        requestFailed:"Could not send the request. Please try again later.",
+        enterMessage:"Please enter a message.", enterEmail:"Please enter a valid email address.",
+        settingsSaved:"Settings saved to your account.", settingsSaveFailed:"Could not save settings. Check your Firebase database rules and connection.",
+        settingsLoaded:"Settings loaded.", authRequired:"Please sign in first.",
+        versionCurrent:"You are using version " + APP_VERSION + ".",
+        versionNoAuto:"Automatic online version checking is not configured.",
+        backConfirm:"Go back to the previous page?",
+        privacyBodyText:"Your data is associated with your signed-in Firebase account. Access depends on the application's Firebase security rules. Do not store passwords, payment card details, or other highly sensitive information in notes. Settings are stored in your account so they can synchronize across devices. When you send feedback, the information you enter is sent to the configured feedback service.",
+        termsBodyText:"Use this application lawfully and keep your account credentials secure. Cloud synchronization requires an internet connection, a valid Firebase configuration, and suitable database rules. Keep independent backups of important information. Features may depend on the configuration and deployment of the application.",
+        aboutBodyText:"Digital NoteBook helps you manage your personal notes and records."
+      },
+      NEP: {
+        appName:"डिजिटल नोटबुक", settingsSubtitle:"प्रदर्शन र प्राथमिकता",
+        connecting:"जडान हुँदैछ…", loading:"लोड हुँदैछ…", synced:"सिंक भयो",
+        saved:"सेभ भयो", saving:"सेभ हुँदैछ…", offline:"अफलाइन / सिंक भएको छैन",
+        syncError:"सिंक त्रुटि", pageTitle:"सेटिङहरू",
+        pageIntro:"आफ्नो नोटबुक अनुकूल बनाउनुहोस्। सेटिङहरू तपाईंको खातासँग सिंक हुन्छन्।",
+        displayPreferences:"प्रदर्शन र प्राथमिकता", language:"भाषा",
+        languageDesc:"यो पेजमा प्रयोग हुने भाषा छान्नुहोस्।", darkMode:"डार्क मोड",
+        darkModeDesc:"गाढा रङको स्वरूप प्रयोग गर्नुहोस्।", fontSize:"फन्ट आकार",
+        fontSizeDesc:"अक्षरको आकार मिलाउनुहोस्।", fontFamily:"फन्ट परिवार",
+        fontFamilyDesc:"आफूलाई मन पर्ने फन्ट छान्नुहोस्।", accentColor:"मुख्य रङ",
+        accentColorDesc:"मुख्य हाइलाइट रङ छान्नुहोस्।", accountSection:"खाता",
+        signedInAs:"लगइन भएको खाता", syncTitle:"क्लाउड सिंक्रोनाइजेसन",
+        syncDesc:"तपाईंका सेटिङहरू Firebase खातामा सुरक्षित हुन्छन्।", syncNow:"अहिले सिंक",
+        feedbackSection:"प्रतिक्रिया", feedbackTitle:"प्रतिक्रिया पठाउनुहोस्",
+        feedbackDesc:"सुझाव दिनुहोस् वा डिजिटल नोटबुकको समस्या जानकारी दिनुहोस्।",
+        yourName:"तपाईंको नाम (ऐच्छिक)", yourEmail:"इमेल", feedbackType:"प्रतिक्रियाको प्रकार",
+        suggestion:"सुझाव", bugReport:"समस्या रिपोर्ट", other:"अन्य",
+        yourMessage:"सन्देश", sendFeedback:"प्रतिक्रिया पठाउनुहोस्", sending:"पठाउँदै…",
+        feedbackSent:"प्रतिक्रिया सफलतापूर्वक पठाइयो।", feedbackFailed:"प्रतिक्रिया पठाउन सकिएन। इन्टरनेट र EmailJS सेटिङ जाँच्नुहोस्।",
+        privacySection:"गोपनीयता र जानकारी", privacyTitle:"गोपनीयता नीति",
+        privacyDesc:"खाताको डेटा र सेटिङ कसरी व्यवस्थापन हुन्छ भन्ने जानकारी।",
+        termsTitle:"प्रयोगका सर्तहरू", termsDesc:"यो एप प्रयोग गर्ने जानकारी।",
+        aboutTitle:"डिजिटल नोटबुकबारे", aboutDesc:"एप र संस्करणको जानकारी।",
+        view:"हेर्नुहोस्", deleteRequestTitle:"खाता हटाउने अनुरोध",
+        deleteRequestDesc:"खाता र सम्बन्धित क्लाउड डेटा हटाउन अनुरोध पठाउनुहोस्।",
+        request:"अनुरोध", footerText:"डिजिटल नोटबुक · प्रदर्शन र प्राथमिकता",
+        privacyBody:"", termsBody:"", aboutBody:"", versionLabel:"संस्करण:",
+        checkVersion:"संस्करण जाँच", close:"बन्द गर्नुहोस्",
+        deleteConfirmTitle:"खाता हटाउने अनुरोध",
+        deleteConfirmBody:"यसले समीक्षा गर्न अनुरोध पठाउँछ। Firebase खाता वा क्लाउड डेटा तुरुन्त हट्दैन। यहाँ पासवर्ड नलेख्नुहोस्।",
+        deleteReasonLabel:"कारण (ऐच्छिक)", cancel:"रद्द गर्नुहोस्", sendRequest:"अनुरोध पठाउनुहोस्",
+        requestSent:"अनुरोध पठाइयो। तपाईंको खाता र डेटा स्वतः हटाइएको छैन।",
+        requestFailed:"अनुरोध पठाउन सकिएन। पछि फेरि प्रयास गर्नुहोस्।",
+        enterMessage:"कृपया सन्देश लेख्नुहोस्।", enterEmail:"कृपया सही इमेल ठेगाना लेख्नुहोस्।",
+        settingsSaved:"सेटिङहरू तपाईंको खातामा सुरक्षित भए।", settingsSaveFailed:"सेटिङ सेभ भएन। Firebase database rules र इन्टरनेट जाँच्नुहोस्।",
+        settingsLoaded:"सेटिङहरू लोड भए।", authRequired:"पहिले लगइन गर्नुहोस्।",
+        versionCurrent:"तपाईं संस्करण " + APP_VERSION + " प्रयोग गर्दै हुनुहुन्छ।",
+        versionNoAuto:"अनलाइन संस्करण जाँच सुविधा सेट गरिएको छैन।",
+        backConfirm:"अघिल्लो पेजमा फर्कने?",
+        privacyBodyText:"तपाईंको डेटा लगइन गरिएको Firebase खातासँग सम्बन्धित हुन्छ। पहुँच Firebase security rules मा निर्भर हुन्छ। पासवर्ड, बैंक कार्ड वा अत्यन्त संवेदनशील विवरण नोटमा नराख्नुहोस्। सेटिङहरू विभिन्न डिभाइसमा सिंक गर्न खातामा राखिन्छन्। प्रतिक्रिया पठाउँदा तपाईंले लेखेको जानकारी सेट गरिएको प्रतिक्रिया सेवामा पठाइन्छ।",
+        termsBodyText:"यो एप कानुनी रूपमा प्रयोग गर्नुहोस् र आफ्नो खाता सुरक्षित राख्नुहोस्। क्लाउड सिंकका लागि इन्टरनेट, सही Firebase configuration र database rules चाहिन्छ। महत्त्वपूर्ण जानकारीको छुट्टै backup राख्नुहोस्। केही सुविधा एपको configuration र deployment मा निर्भर हुन सक्छन्।",
+        aboutBodyText:"डिजिटल नोटबुकले व्यक्तिगत नोट र रेकर्ड व्यवस्थापन गर्न सहयोग गर्छ।"
+      }
+    };
+
+    function t(key) {
+      const lang = getCurrentLanguage();
+      return (translations[lang] && translations[lang][key]) ||
+             translations.EN[key] || key;
+    }
+
+    function getCurrentLanguage() {
+      return $("languageSelect")?.value ||
+             localStorage.getItem("lang") ||
+             DEFAULT_SETTINGS.lang;
+    }
+
+    function safeAccent(value) {
+      return typeof value === "string" && /^#[0-9a-fA-F]{6}$/.test(value)
+        ? value : DEFAULT_SETTINGS.accentColor;
+    }
+
+    function normalizeSettings(raw = {}) {
+      const out = { ...DEFAULT_SETTINGS };
+      if (raw.theme === "dark" || raw.theme === "light") out.theme = raw.theme;
+      if (raw.lang === "EN" || raw.lang === "NEP") out.lang = raw.lang;
+      if (["text-xs", "text-sm", "text-base"].includes(raw.font_size)) out.font_size = raw.font_size;
+      if (["font-sans", "font-inter", "font-roboto"].includes(raw.font_family)) out.font_family = raw.font_family;
+      out.accentColor = safeAccent(raw.accentColor);
+      return out;
+    }
+
+    function getSettingsFromControls() {
+      return normalizeSettings({
+        theme: $("themeToggle").checked ? "dark" : "light",
+        lang: $("languageSelect").value,
+        font_size: $("fontSizeSelect").value,
+        font_family: $("fontFamilySelect").value,
+        accentColor: $("accentColor").value
+      });
+    }
+
+    function applySettings(raw, updateControls = true) {
+      const s = normalizeSettings(raw);
+      isApplyingRemoteSettings = true;
+
+      document.body.classList.toggle("dark", s.theme === "dark");
+      document.documentElement.lang = s.lang === "NEP" ? "ne" : "en";
+      document.documentElement.style.setProperty("--accent", s.accentColor);
+      document.documentElement.style.setProperty("--accent-soft", hexToRgba(s.accentColor, .12));
+
+      const fontMap = {
+        "font-sans": "'Poppins', sans-serif",
+        "font-inter": "'Inter', sans-serif",
+        "font-roboto": "'Roboto', sans-serif"
+      };
+      document.documentElement.style.setProperty("--font", fontMap[s.font_family] || fontMap["font-sans"]);
+
+      const sizeMap = { "text-xs": "13px", "text-sm": "15px", "text-base": "17px" };
+      document.documentElement.style.setProperty("--base-size", sizeMap[s.font_size] || "15px");
+
+      if (updateControls) {
+        $("themeToggle").checked = s.theme === "dark";
+        $("languageSelect").value = s.lang;
+        $("fontSizeSelect").value = s.font_size;
+        $("fontFamilySelect").value = s.font_family;
+        $("accentColor").value = s.accentColor;
+      }
+
+      localStorage.setItem("theme", s.theme);
+      localStorage.setItem("lang", s.lang);
+      localStorage.setItem("font_size", s.font_size);
+      localStorage.setItem("font_family", s.font_family);
+      localStorage.setItem("accentColor", s.accentColor);
+
+      translatePage();
+      isApplyingRemoteSettings = false;
+    }
+
+    function hexToRgba(hex, alpha) {
+      const h = safeAccent(hex).slice(1);
+      const n = parseInt(h, 16);
+      return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
+    }
+
+    function translatePage() {
+      const lang = getCurrentLanguage();
+      document.querySelectorAll("[data-i18n]").forEach(el => {
+        const key = el.getAttribute("data-i18n");
+        const value = translations[lang]?.[key];
+        if (typeof value === "string" && value !== "") {
+          // These elements contain text only, not user-provided HTML.
+          if (["privacyBody", "termsBody", "aboutBody"].includes(key)) return;
+          el.textContent = value;
+        }
+      });
+
+      $("privacyHeading").textContent = t("privacyTitle");
+      $("termsHeading").textContent = t("termsTitle");
+      $("aboutHeading").textContent = t("aboutTitle");
+
+      $("privacyModal").querySelector("[data-i18n='privacyBody']").innerHTML =
+        `<p>${escapeHtml(t("privacyBodyText"))}</p>`;
+      $("termsModal").querySelector("[data-i18n='termsBody']").innerHTML =
+        `<p>${escapeHtml(t("termsBodyText"))}</p>`;
+      $("aboutModal").querySelector("[data-i18n='aboutBody']").textContent =
+        t("aboutBodyText");
+
+      $("syncStatus").textContent = settingsReady ? t("synced") : $("syncStatus").textContent;
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, ch => ({
+        "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+      }[ch]));
+    }
+
+    function showMessage(message, type = "") {
+      const el = $("globalMessage");
+      el.textContent = message;
+      el.className = "message show" + (type ? " " + type : "");
+    }
+
+    function setSyncStatus(key) {
+      $("syncStatus").textContent = t(key);
+    }
+
+    function cacheSettings(s) {
+      Object.entries(s).forEach(([key, value]) => {
+        localStorage.setItem(key, String(value));
+      });
+    }
+
+    function scheduleSave() {
+      if (isApplyingRemoteSettings || !currentUser || !settingsRef) return;
+      pendingSettings = getSettingsFromControls();
+      applySettings(pendingSettings, false);
+      setSyncStatus("saving");
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(saveSettingsToFirebase, 350);
+    }
+
+    async function saveSettingsToFirebase() {
+      if (!currentUser || !settingsRef) return;
+      const toSave = normalizeSettings(pendingSettings);
+      try {
+        // Update only the settings child; never overwrite the entire user record.
+        await settingsRef.update({
+          ...toSave,
+          updatedAt: firebase.database.ServerValue.TIMESTAMP
+        });
+        lastRemoteSettings = toSave;
+        cacheSettings(toSave);
+        settingsReady = true;
+        setSyncStatus("synced");
+        showMessage(t("settingsSaved"), "success");
+      } catch (error) {
+        console.error("Settings save failed:", error);
+        setSyncStatus(navigator.onLine ? "syncError" : "offline");
+        showMessage(t("settingsSaveFailed"), "error");
+      }
+    }
+
+    async function syncNow() {
+      if (!currentUser || !settingsRef) {
+        showMessage(t("authRequired"), "error");
+        return;
+      }
+
+      $("syncNowButton").disabled = true;
+      setSyncStatus("saving");
+
+      try {
+        const snap = await settingsRef.once("value");
+        const remote = snap.val();
+
+        if (remote && typeof remote === "object") {
+          const normalized = normalizeSettings(remote);
+          lastRemoteSettings = normalized;
+          applySettings(normalized, true);
+          cacheSettings(normalized);
+          settingsReady = true;
+          setSyncStatus("synced");
+          showMessage(t("settingsLoaded"), "success");
+        } else {
+          // Seed only the settings node if it is empty; do not overwrite user data.
+          const initial = getSettingsFromControls();
+          await settingsRef.update({
+            ...initial,
+            updatedAt: firebase.database.ServerValue.TIMESTAMP
+          });
+          lastRemoteSettings = initial;
+          settingsReady = true;
+          setSyncStatus("synced");
+          showMessage(t("settingsSaved"), "success");
+        }
+      } catch (error) {
+        console.error("Manual sync failed:", error);
+        setSyncStatus(navigator.onLine ? "syncError" : "offline");
+        showMessage(t("settingsSaveFailed"), "error");
+      } finally {
+        $("syncNowButton").disabled = false;
+      }
+    }
+
+    function startSettingsListener(user) {
+      stopSettingsListener();
+      settingsRef = db.ref(`users/${user.uid}/settings`);
+
+      settingsListener = snapshot => {
+        const remote = snapshot.val();
+
+        if (remote && typeof remote === "object") {
+          const normalized = normalizeSettings(remote);
+          lastRemoteSettings = normalized;
+          applySettings(normalized, true);
+          cacheSettings(normalized);
+          settingsReady = true;
+          setSyncStatus("synced");
+        } else if (!settingsReady) {
+          // Preserve local preferences when the cloud node is empty.
+          // The first sync creates only users/{uid}/settings.
+          const local = normalizeSettings({
+            theme: localStorage.getItem("theme"),
+            lang: localStorage.getItem("lang"),
+            font_size: localStorage.getItem("font_size"),
+            font_family: localStorage.getItem("font_family"),
+            accentColor: localStorage.getItem("accentColor")
+          });
+          applySettings(local, true);
+          pendingSettings = local;
+          saveSettingsToFirebase();
+        }
+      };
+
+      settingsRef.on("value", settingsListener, error => {
+        console.error("Settings listener error:", error);
+        setSyncStatus("syncError");
+        showMessage(t("settingsSaveFailed"), "error");
+      });
+    }
+
+    function stopSettingsListener() {
+      if (settingsRef && settingsListener) {
+        settingsRef.off("value", settingsListener);
+      }
+      settingsRef = null;
+      settingsListener = null;
+    }
+
+    function stopAuthListener() {
+      if (auth && authListener) authListener();
+      authListener = null;
+    }
+
+    function showModal(id) {
+      $(id).classList.add("show");
+    }
+
+    function closeModal(modal) {
+      modal.classList.remove("show");
+    }
+
+    function initEmailJS() {
+      try {
+        if (window.emailjs && EMAILJS_PUBLIC_KEY) {
+          emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+          emailJsReady = true;
+        }
+      } catch (error) {
+        console.warn("EmailJS could not initialize:", error);
+        emailJsReady = false;
+      }
+    }
+
+    async function sendEmailTemplate(templateId, params) {
+      if (!emailJsReady) throw new Error("EmailJS is not initialized.");
+      return emailjs.send(EMAILJS_SERVICE_ID, templateId, params);
+    }
+
+    async function handleFeedbackSubmit(event) {
+      event.preventDefault();
+
+      const message = $("feedbackMessage").value.trim();
+      const email = $("feedbackEmail").value.trim();
+      if (!message) {
+        $("feedbackStatus").textContent = t("enterMessage");
+        return;
+      }
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        $("feedbackStatus").textContent = t("enterEmail");
+        return;
+      }
+
+      const button = $("sendFeedbackButton");
+      button.disabled = true;
+      button.textContent = t("sending");
+      $("feedbackStatus").textContent = "";
+
+      try {
+        await sendEmailTemplate(EMAILJS_FEEDBACK_TEMPLATE_ID, {
+          name: $("feedbackName").value.trim() || "Not provided",
+          email: email || currentUser?.email || "Not provided",
+          feedback_type: $("feedbackType").value,
+          message: message,
+          user_uid: currentUser?.uid || "Not signed in",
+          app_version: APP_VERSION,
+          page: "setting.html"
         });
 
-        document.querySelectorAll('[data-i18n]').forEach(el => {
-            const key = el.getAttribute('data-i18n');
-            if (translations[currentLang] && translations[currentLang][key]) {
-                el.innerText = translations[currentLang][key];
-            }
+        $("feedbackForm").reset();
+        $("feedbackStatus").textContent = t("feedbackSent");
+        $("feedbackStatus").style.color = "var(--success)";
+      } catch (error) {
+        console.error("Feedback email failed:", error);
+        $("feedbackStatus").textContent = t("feedbackFailed");
+        $("feedbackStatus").style.color = "var(--danger)";
+      } finally {
+        button.disabled = false;
+        button.textContent = t("sendFeedback");
+      }
+    }
+
+    function openDeleteRequest() {
+      $("deleteReason").value = "";
+      $("deleteRequestStatus").textContent = "";
+      showModal("deleteModal");
+    }
+
+    async function sendDeleteRequest() {
+      const button = $("confirmDeleteRequestButton");
+      const status = $("deleteRequestStatus");
+      if (!currentUser) {
+        status.textContent = t("authRequired");
+        return;
+      }
+
+      if (!emailJsReady) {
+        status.textContent = t("requestFailed");
+        return;
+      }
+
+      button.disabled = true;
+      status.textContent = t("sending");
+
+      try {
+        // This is a request notification only. It does not delete Firebase Auth
+        // or Realtime Database records. Actual deletion should be performed
+        // by a secured server-side process after identity verification.
+        await sendEmailTemplate(EMAILJS_FEEDBACK_TEMPLATE_ID, {
+          name: currentUser.displayName || "Account deletion request",
+          email: currentUser.email || "Not provided",
+          feedback_type: "Account deletion request",
+          message: $("deleteReason").value.trim() || "No reason provided",
+          user_uid: currentUser.uid,
+          app_version: APP_VERSION,
+          page: "setting.html"
         });
 
-        const toggleBtn = document.getElementById('toggle-btn-policy');
-        if (toggleBtn) {
-            const el = document.getElementById('more-policy');
-            const isShown = el && el.classList.contains('show');
-            toggleBtn.innerText = isShown ? (translations[currentLang]['see_less'] || 'See Less') : (translations[currentLang]['see_more'] || 'See More');
-        }
+        status.textContent = t("requestSent");
+        status.style.color = "var(--success)";
+      } catch (error) {
+        console.error("Deletion request failed:", error);
+        status.textContent = t("requestFailed");
+        status.style.color = "var(--danger)";
+      } finally {
+        button.disabled = false;
+      }
     }
 
-    function toggleLanguage() {
-        currentLang = currentLang === 'EN' ? 'NEP' : 'EN';
-        localStorage.setItem('lang', currentLang);
-        updateLanguageUI();
-    }
+    function initFirebase() {
+      try {
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        auth = firebase.auth();
+        db = firebase.database();
+      } catch (error) {
+        console.error("Firebase initialization failed:", error);
+        setSyncStatus("syncError");
+        showMessage("Firebase initialization failed. Check the Firebase configuration.", "error");
+        return;
+      }
 
-    function updateThemeUI() {
-        const isDark = document.documentElement.classList.contains('dark');
-        const themeIcon = document.getElementById('theme-icon');
-        const themeText = document.getElementById('theme-text');
-        if(themeIcon && themeText) {
-            themeIcon.innerText = isDark ? '🌙' : '☀️';
-            themeText.innerText = isDark ? 'Dark' : 'Light';
-        }
-    }
-
-    function toggleTheme() {
-        const htmlEl = document.documentElement;
-        if (htmlEl.classList.contains('dark')) {
-            htmlEl.classList.remove('dark');
-            localStorage.setItem('theme', 'light');
-        } else {
-            htmlEl.classList.add('dark');
-            localStorage.setItem('theme', 'dark');
-        }
-        updateThemeUI();
-    }
-
-    function changeFontSize(sizeClass) {
-        const htmlEl = document.documentElement;
-        htmlEl.classList.remove('text-xs', 'text-sm', 'text-base');
-        htmlEl.classList.add(sizeClass);
-        localStorage.setItem('font_size', sizeClass);
-    }
-
-    function changeFontFamily(fontClass) {
-        const htmlEl = document.documentElement;
-        htmlEl.classList.remove('font-sans', 'font-inter', 'font-roboto');
-        htmlEl.classList.add(fontClass);
-        localStorage.setItem('font_family', fontClass);
-    }
-
-    function showToast(message, type = 'success') {
-        const container = document.getElementById('toast-container');
-        if(!container) return;
-        const toast = document.createElement('div');
-        const bgColor = type === 'success' ? 'bg-emerald-600' : 'bg-rose-600';
-        
-        toast.className = `${bgColor} text-white px-4 py-3 rounded-2xl shadow-xl font-medium transform transition-all duration-200 translate-y-2 opacity-0 flex items-center gap-2 text-xs`;
-        toast.innerHTML = `<span>${type === 'success' ? '✅' : '⚠️'}</span> <span>${message}</span>`;
-        container.appendChild(toast);
-        
-        setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 20);
-        
-        setTimeout(() => {
-            toast.classList.add('translate-y-2', 'opacity-0');
-            setTimeout(() => toast.remove(), 200);
-        }, 2000);
-    }
-
-    function toggleText(id) {
-        const el = document.getElementById(`more-${id}`);
-        const btn = document.getElementById(`toggle-btn-${id}`);
-        if (el && btn) {
-            el.classList.toggle('show');
-            const isShown = el.classList.contains('show');
-            btn.innerText = isShown ? (translations[currentLang]['see_less'] || 'See Less') : (translations[currentLang]['see_more'] || 'See More');
-        }
-    }
-
-    function checkForUpdates() {
-        showToast(currentLang === 'NEP' ? 'तपाईंसँग नवीनतम संस्करण (Version 6.7) छ!' : 'You are running the latest version (6.7)!', 'success');
-    }
-
-    function toggleDeleteAccountSection() {
-        const box = document.getElementById('delete-form-box');
-        if (box) box.classList.toggle('hidden');
-    }
-
-    function togglePasswordVisibility(fieldId, iconId) {
-        const field = document.getElementById(fieldId);
-        const icon = document.getElementById(iconId);
-        if (field.type === "password") {
-            field.type = "text";
-            icon.classList.remove("fa-eye");
-            icon.classList.add("fa-eye-slash");
-        } else {
-            field.type = "password";
-            icon.classList.remove("fa-eye-slash");
-            icon.classList.add("fa-eye");
-        }
-    }
-
-    function handleFeedback(event) {
-        event.preventDefault();
-        const name = document.getElementById('fb-name').value;
-        const msg = document.getElementById('fb-msg').value;
-        const submitBtn = document.getElementById('fb-submit-btn');
-
-        if(name && msg) {
-            submitBtn.disabled = true;
-            submitBtn.innerText = currentLang === 'NEP' ? 'पठाउँदैछ...' : 'Sending...';
-
-            const now = new Date();
-            const timeString = now.toLocaleString();
-
-            const templateParams = {
-                name: name,
-                email: 'gckamal67@gmail.com',
-                title: 'Digital NoteBook Feedback',
-                message: msg,
-                time: timeString
-            };
-
-            emailjs.send('service_8zfv1vu', 'template_36j91tf', templateParams)
-                .then(function(response) {
-                    showToast(currentLang === 'NEP' ? 'प्रतिक्रिया सफलतापूर्वक पठाइयो!' : 'Feedback sent successfully!', 'success');
-                    document.getElementById('feedback-form').reset();
-                    submitBtn.disabled = false;
-                    submitBtn.innerText = currentLang === 'NEP' ? 'पेश गर्नुहोस्' : 'Submit';
-                }, function(error) {
-                    showToast('Failed to send email.', 'error');
-                    submitBtn.disabled = false;
-                    submitBtn.innerText = currentLang === 'NEP' ? 'पेश गर्नुहोस्' : 'Submit';
-                });
-        }
-    }
-
-    function submitDeleteAccountRequest() {
-        const checkboxes = document.querySelectorAll('input[name="del_reason"]:checked');
-        let reasons = Array.from(checkboxes).map(cb => cb.value).join(', ');
-        const customReason = document.getElementById('delete-custom-reason').value;
-        if (customReason) reasons += (reasons ? '; ' : '') + customReason;
-        
-        const password = document.getElementById('delete-confirm-password').value;
-        const user = auth.currentUser;
-
-        if (!reasons) {
-            showToast("Please select at least one reason for deletion.", 'error');
-            return;
-        }
-        if (!password) {
-            showToast("Please confirm your password.", 'error');
-            return;
-        }
-
+      authListener = auth.onAuthStateChanged(user => {
         if (!user) {
-            showToast("No user logged in.", 'error');
-            return;
+          stopSettingsListener();
+          currentUser = null;
+          setSyncStatus("authRequired");
+          // Keep the original login gate used by this application.
+          window.location.replace("index.html");
+          return;
         }
 
-        const credential = firebase.auth.EmailAuthProvider.credential(user.email, password);
+        currentUser = user;
+        $("accountEmail").textContent = user.email || user.displayName || user.uid;
+        setSyncStatus("loading");
+        startSettingsListener(user);
+      });
+    }
 
-        user.reauthenticateWithCredential(credential).then(() => {
-            const now = new Date();
-            const timeString = now.toLocaleString();
-            const deleteParams = {
-                name: user.email,
-                email: user.email,
-                title: 'Digital NoteBook - Account Deletion Alert',
-                message: `User Account Deleted.\nEmail: ${user.email}\nReasons: ${reasons}`,
-                time: timeString
-            };
+    function initLocalPreferences() {
+      const local = normalizeSettings({
+        theme: localStorage.getItem("theme"),
+        lang: localStorage.getItem("lang"),
+        font_size: localStorage.getItem("font_size"),
+        font_family: localStorage.getItem("font_family"),
+        accentColor: localStorage.getItem("accentColor")
+      });
+      applySettings(local, true);
+    }
 
-            emailjs.send('service_8zfv1vu', 'template_36j91tf', deleteParams).catch(() => {});
-
-            user.delete().then(() => {
-                showToast("Account successfully deleted.");
-                window.location.href = 'index.html';
-            }).catch((error) => {
-                showToast("Error: " + error.message, 'error');
-            });
-        }).catch(() => {
-            showToast("Incorrect password. Please try again.", 'error');
+    function bindEvents() {
+      ["themeToggle", "languageSelect", "fontSizeSelect", "fontFamilySelect", "accentColor"]
+        .forEach(id => {
+          $(id).addEventListener("change", scheduleSave);
+          if (id === "accentColor") $(id).addEventListener("input", scheduleSave);
         });
+
+      $("syncNowButton").addEventListener("click", syncNow);
+      $("feedbackForm").addEventListener("submit", handleFeedbackSubmit);
+      $("deleteRequestButton").addEventListener("click", openDeleteRequest);
+      $("confirmDeleteRequestButton").addEventListener("click", sendDeleteRequest);
+
+      $("backButton").addEventListener("click", () => {
+        if (history.length > 1) history.back();
+        else window.location.href = "index.html";
+      });
+
+      document.querySelectorAll("[data-open-modal]").forEach(button => {
+        button.addEventListener("click", () => showModal(button.dataset.openModal));
+      });
+
+      document.querySelectorAll("[data-close-modal]").forEach(button => {
+        button.addEventListener("click", () => {
+          const modal = button.closest(".modal-backdrop");
+          if (modal) closeModal(modal);
+        });
+      });
+
+      document.querySelectorAll(".modal-backdrop").forEach(backdrop => {
+        backdrop.addEventListener("click", event => {
+          if (event.target === backdrop) closeModal(backdrop);
+        });
+      });
+
+      $("checkVersionButton").addEventListener("click", () => {
+        $("versionStatus").textContent = t("versionCurrent") + " " + t("versionNoAuto");
+      });
+
+      window.addEventListener("online", () => {
+        if (currentUser) syncNow();
+      });
+
+      window.addEventListener("offline", () => {
+        setSyncStatus("offline");
+      });
+
+      window.addEventListener("beforeunload", () => {
+        if (saveTimer) clearTimeout(saveTimer);
+        stopSettingsListener();
+        stopAuthListener();
+      });
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-        updateLanguageUI();
-        updateThemeUI();
-
-        const fontSizeSel = document.getElementById('font-size-selector');
-        if(fontSizeSel) fontSizeSel.value = savedFontSize;
-
-        const fontFamilySel = document.getElementById('font-family-selector');
-        if(fontFamilySel) fontFamilySel.value = savedFontFamily;
+      initLocalPreferences();
+      bindEvents();
+      initEmailJS();
+      initFirebase();
     });
-</script>
+  </script>
 </body>
 </html>
