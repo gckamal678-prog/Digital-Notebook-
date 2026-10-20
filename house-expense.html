@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ne">
 <head>
@@ -6,151 +7,61 @@
 <meta name="theme-color" content="#0b1220">
 <title>घर खर्च | Digital Notebook</title>
 
-<!-- FontAwesome & Chart.js -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 :root{
-  color-scheme:dark;
-  --bg:#0b1220;
-  --card:#151f30;
-  --input:#0e1726;
-  --border:#29374c;
-  --text:#e5edf8;
-  --muted:#98a8bd;
-  --green:#16a34a;
-  --red:#f87171;
-  --blue:#0369a1;
+  color-scheme:dark;--bg:#0b1220;--card:#151f30;--input:#0e1726;
+  --border:#29374c;--text:#e5edf8;--muted:#98a8bd;
+  --green:#16a34a;--red:#f87171;--blue:#0369a1
 }
 *{box-sizing:border-box}
-body{
-  margin:0;padding:14px;font-family:Arial,sans-serif;
-  background:var(--bg);color:var(--text)
-}
+body{margin:0;padding:14px;font-family:Arial,sans-serif;background:var(--bg);color:var(--text)}
 .container{max-width:700px;margin:auto}
-
-/* Header Design (Clean & Compact) */
-.header{
-  background:linear-gradient(135deg,#14532d,#166534);
-  padding:16px 20px;border-radius:16px;margin-bottom:16px;
-  display:flex; justify-content:space-between; align-items:center;
-}
-.header h2{margin:0 0 4px; font-size: 20px;}
-.header p{margin:0;color:#dcfce7; font-size:12px;}
-
-.target-icon-btn {
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  width: 45px; height: 45px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  color: #facc15; font-size: 20px; cursor: pointer;
-  transition: background 0.2s;
-  flex-shrink: 0;
-}
-.target-icon-btn:hover {
-  background: rgba(255, 255, 255, 0.35);
-}
-
-#status{
-  margin-top:8px;font-size:13px;line-height:1.6;
-  overflow-wrap:anywhere
-}
-.card{
-  background:var(--card);border:1px solid var(--border);
-  padding:16px;border-radius:14px;margin-bottom:15px;
-  box-shadow:0 5px 20px #0002
-}
+.header{background:linear-gradient(135deg,#14532d,#166534);padding:16px 20px;border-radius:16px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.header h2{margin:0 0 4px;font-size:20px}
+.header p{margin:0;color:#dcfce7;font-size:12px}
+.target-icon-btn{background:#ffffff33;border:1px solid #ffffff66;width:45px;height:45px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#facc15;font-size:20px;cursor:pointer;flex-shrink:0}
+#status{margin:8px 0 12px;font-size:13px;line-height:1.6;overflow-wrap:anywhere}
+.card{background:var(--card);border:1px solid var(--border);padding:16px;border-radius:14px;margin-bottom:15px;box-shadow:0 5px 20px #0002}
 h3{margin:0 0 12px}
 label{display:block;font-size:14px;font-weight:bold;margin:12px 0 6px}
-input,select,textarea,button{
-  width:100%;padding:12px;border-radius:9px;font-size:15px
-}
-input,select,textarea{
-  border:1px solid var(--border);background:var(--input);
-  color:var(--text);min-width:0
-}
-input:focus,select:focus,textarea:focus{
-  outline:2px solid #22c55e88;border-color:#22c55e
-}
-button{
-  border:0;background:var(--green);color:white;
-  font-weight:bold;cursor:pointer;margin-top:12px
-}
+input,select,textarea,button{width:100%;padding:12px;border-radius:9px;font-size:15px}
+input,select,textarea{border:1px solid var(--border);background:var(--input);color:var(--text);min-width:0}
+input:focus,select:focus,textarea:focus{outline:2px solid #22c55e88;border-color:#22c55e}
+button{border:0;background:var(--green);color:white;font-weight:bold;cursor:pointer;margin-top:12px}
 button:disabled{opacity:.5;cursor:not-allowed}
-.summary{
-  display:grid;grid-template-columns:1fr 1fr;
-  gap:12px;margin-bottom:15px
-}
+.summary{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:15px}
 .summary .card{margin:0}
-.amount{
-  font-size:21px;font-weight:bold;margin-top:8px;
-  overflow-wrap:anywhere
-}
-.green{color:#4ade80}
-.red{color:var(--red)}
-.muted{color:var(--muted)}
+.amount{font-size:21px;font-weight:bold;margin-top:8px;overflow-wrap:anywhere}
+.green{color:#4ade80}.red{color:var(--red)}.muted{color:var(--muted)}
 .form-actions{display:flex;gap:10px;margin-top:12px}
 .form-actions button{margin-top:0}
 #cancel-btn{background:#475569}
 #exportBtn{background:var(--blue)}
 #pdfBtn{background:#16a34a}
-.expense{
-  border:1px solid var(--border);padding:13px;
-  border-radius:10px;margin-top:10px;background:#101a2a
-}
-.expense-top{
-  display:flex;justify-content:space-between;
-  gap:10px;align-items:flex-start
-}
+.expense{border:1px solid var(--border);padding:13px;border-radius:10px;margin-top:10px;background:#101a2a}
+.expense-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
 .expense-name{font-weight:bold;overflow-wrap:anywhere}
-.expense-meta{
-  color:var(--muted);font-size:13px;margin-top:5px;
-  overflow-wrap:anywhere;white-space:pre-wrap
-}
+.expense-meta{color:var(--muted);font-size:13px;margin-top:5px;overflow-wrap:anywhere;white-space:pre-wrap}
 .actions{display:flex;gap:5px;flex-shrink:0}
 .small-btn{width:40px;margin:0;padding:9px 5px}
-.edit-btn{background:#2563eb}
-.delete-btn{background:#dc2626}
-.empty{
-  text-align:center;color:var(--muted);
-  padding:18px 0;line-height:1.6
-}
-
-/* Progress Bar Style */
-.progress-container {
-  width: 100%; background-color: var(--input);
-  border-radius: 8px; height: 12px; overflow: hidden; margin-top: 8px;
-  border: 1px solid var(--border);
-}
-.progress-bar {
-  height: 100%; width: 0%; transition: width 0.3s, background-color 0.3s;
-}
-
-/* Modal Style */
-.modal-overlay {
-  position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8);
-  display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 15px;
-}
-.modal-content {
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: 16px; max-width: 450px; width: 100%;
-  display: flex; flex-direction: column; overflow: hidden;
-}
-.modal-body { padding: 20px; flex: 1; }
-.modal-footer { padding: 12px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
-
-.filter-grid{
-  display:grid;grid-template-columns:1fr 1fr;gap:10px
-}
+.edit-btn{background:#2563eb}.delete-btn{background:#dc2626}.restore-btn{background:#15803d}
+.empty{text-align:center;color:var(--muted);padding:18px 0;line-height:1.6}
+.progress-container{width:100%;background:var(--input);border-radius:8px;height:12px;overflow:hidden;margin-top:8px;border:1px solid var(--border)}
+.progress-bar{height:100%;width:0%;transition:width .3s,background-color .3s}
+.modal-overlay{position:fixed;inset:0;background:#000c;display:flex;align-items:center;justify-content:center;z-index:1000;padding:15px}
+.modal-content{background:var(--card);border:1px solid var(--border);border-radius:16px;max-width:450px;width:100%;display:flex;flex-direction:column;overflow:hidden;max-height:90vh}
+.modal-body{padding:20px;overflow-y:auto;flex:1}
+.modal-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
+.filter-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .filter-grid .full{grid-column:1/-1}
-
+.secondary-btn{background:#475569}
 @media(max-width:380px){
-  body{padding:9px}
-  .summary{grid-template-columns:1fr}
-  .card{padding:13px}
-  .header{padding:14px;}
-  .filter-grid{grid-template-columns:1fr}
+ body{padding:9px}.summary{grid-template-columns:1fr}.card{padding:13px}
+ .header{padding:14px}.filter-grid{grid-template-columns:1fr}
+ .expense-top{gap:6px}.actions{gap:3px}
 }
 </style>
 </head>
@@ -158,7 +69,6 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <body>
 <div class="container">
 
-<!-- Header with Target Icon on Right -->
 <header class="header">
   <div>
     <h2>🏠 घर खर्च व्यवस्थापन</h2>
@@ -169,46 +79,31 @@ button:disabled{opacity:.5;cursor:not-allowed}
   </button>
 </header>
 
-<div id="status" role="status" aria-live="polite" style="margin-bottom:12px;">डाटा तयार हुँदैछ...</div>
+<div id="status" role="status" aria-live="polite">Firebase लगइन जाँच हुँदैछ...</div>
 
 <section class="summary">
-  <div class="card" style="margin:0;">
-    <div>छानिएको अवधिको खर्च</div>
-    <div class="amount red" id="periodTotal">रु. ०</div>
-  </div>
-  <div class="card" style="margin:0;">
-    <div>कुल जम्मा खर्च</div>
-    <div class="amount green" id="allTotal">रु. ०</div>
-  </div>
+  <div class="card"><div>छानिएको अवधिको खर्च</div><div class="amount red" id="periodTotal">रु. ०</div></div>
+  <div class="card"><div>कुल जम्मा खर्च</div><div class="amount green" id="allTotal">रु. ०</div></div>
 </section>
 
-<!-- बजेट प्रगति विवरण सेक्सन -->
 <section class="card">
-  <div style="display:flex; justify-content:space-between; align-items:center; font-size:14px; font-weight:bold;">
+  <div style="display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:bold;gap:8px">
     <span>🎯 महिनाको बजेट प्रगति</span>
-    <span id="budgetPercentText" style="color:var(--green);">0%</span>
+    <span id="budgetPercentText" style="color:var(--green)">0%</span>
   </div>
-  <div id="budgetStatusArea" style="margin-top:8px;">
-    <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--muted); margin-bottom:6px;">
-      <span id="budgetText">बजेट तोकिएको छैन (माथिको टार्गेट आइकनमा थिच्नुहोस्)</span>
-    </div>
-    <div class="progress-container">
-      <div id="budgetProgressBar" class="progress-bar"></div>
-    </div>
+  <div id="budgetStatusArea" style="margin-top:8px">
+    <div style="font-size:13px;color:var(--muted);margin-bottom:6px" id="budgetText">बजेट लोड हुँदैछ...</div>
+    <div class="progress-container"><div id="budgetProgressBar" class="progress-bar"></div></div>
   </div>
 </section>
 
-<!-- खर्चको ग्राफ (Chart.js) -->
 <section class="card">
   <h3>📊 शीर्षक अनुसार खर्च विवरण</h3>
-  <div style="max-height: 260px; display:flex; justify-content:center; align-items:center;">
-    <canvas id="expenseChart"></canvas>
-  </div>
+  <div style="height:260px;position:relative"><canvas id="expenseChart"></canvas></div>
 </section>
 
 <section class="card">
   <h3 id="form-heading">➕ नयाँ खर्च लेख्नुहोस्</h3>
-
   <form id="expenseForm">
     <input type="hidden" id="edit-id">
 
@@ -253,11 +148,10 @@ button:disabled{opacity:.5;cursor:not-allowed}
 
 <section class="card">
   <h3>📋 खर्चको विवरण</h3>
-
   <label for="search">खर्च खोज्नुहोस्</label>
   <input id="search" type="search" placeholder="नाम, प्रकार वा कैफियत">
 
-  <div class="filter-grid" style="margin-top:12px;">
+  <div class="filter-grid" style="margin-top:12px">
     <div class="full">
       <select id="filterType" aria-label="मिति फिल्टर">
         <option value="month">महिना अनुसार (स्वतः)</option>
@@ -265,536 +159,618 @@ button:disabled{opacity:.5;cursor:not-allowed}
         <option value="year">वर्ष अनुसार</option>
       </select>
     </div>
-
-    <div id="dayBox" class="full" hidden>
-      <label for="dayFilter">दिन छान्नुहोस्</label>
-      <input id="dayFilter" type="date">
-    </div>
-
-    <div id="monthBox" class="full">
-      <label for="monthFilter">महिना छान्नुहोस्</label>
-      <input id="monthFilter" type="month">
-    </div>
-
-    <div id="yearBox" class="full" hidden>
-      <label for="yearFilter">वर्ष छान्नुहोस्</label>
-      <select id="yearFilter"><option value="">वर्ष छान्नुहोस्</option></select>
-    </div>
+    <div id="dayBox" class="full" hidden><label for="dayFilter">दिन छान्नुहोस्</label><input id="dayFilter" type="date"></div>
+    <div id="monthBox" class="full"><label for="monthFilter">महिना छान्नुहोस्</label><input id="monthFilter" type="month"></div>
+    <div id="yearBox" class="full" hidden><label for="yearFilter">वर्ष छान्नुहोस्</label><select id="yearFilter"><option value="">वर्ष छान्नुहोस्</option></select></div>
   </div>
 
-  <div id="filterSummary" class="section-caption" style="margin-top:10px;"></div>
+  <div id="filterSummary" style="margin-top:10px;font-size:13px;color:var(--muted)"></div>
   <div id="expenseList"><div class="empty">डाटा लोड हुँदैछ...</div></div>
 
-  <div style="display:flex; gap:10px; margin-top:12px;">
+  <div style="display:flex;gap:10px;margin-top:12px">
     <button id="pdfBtn" type="button"><i class="fa-solid fa-file-pdf"></i> PDF रिपोर्ट</button>
     <button id="exportBtn" type="button"><i class="fa-solid fa-download"></i> JSON डाउनलोड</button>
   </div>
 </section>
 
+<section class="card">
+  <h3>🗑️ Trash / मेटाइएका खर्च</h3>
+  <p class="muted" style="font-size:13px">मेटाइएका घर खर्च ३० दिनसम्म पुनःस्थापना गर्न सकिन्छ।</p>
+  <div id="trashList"><div class="empty">Trash लोड हुँदैछ...</div></div>
+</section>
 </div>
 
-<!-- BUDGET MODAL -->
-<div id="budgetModal" class="modal-overlay" style="display:none;">
+<div id="budgetModal" class="modal-overlay" style="display:none">
   <div class="modal-content">
-    <div style="padding:15px 20px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-      <h3 style="margin:0;">🎯 महिनाको बजेट टार्गेट</h3>
-      <button onclick="closeBudgetModal()" style="width:auto; margin:0; padding:4px 10px; background:#475569;">✕</button>
+    <div style="padding:15px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+      <h3 style="margin:0">🎯 महिनाको बजेट टार्गेट</h3>
+      <button onclick="closeBudgetModal()" style="width:auto;margin:0;padding:4px 10px;background:#475569">✕</button>
     </div>
     <div class="modal-body">
       <label for="modalBudgetInput">मासिक खर्च सीमा (रु.)</label>
-      <input type="number" id="modalBudgetInput" placeholder="जस्तै: 30000">
+      <input type="number" min="0" step="0.01" id="modalBudgetInput" placeholder="जस्तै: 30000">
     </div>
-    <div class="modal-footer">
-      <button type="button" onclick="saveBudgetFromModal()" style="width:auto; margin:0;">सेभ गर्नुहोस्</button>
-    </div>
+    <div class="modal-footer"><button type="button" onclick="saveBudgetFromModal()" style="width:auto;margin:0">सेभ गर्नुहोस्</button></div>
   </div>
 </div>
 
-<!-- PDF PREVIEW MODAL -->
-<div id="pdfModal" class="modal-overlay" style="display:none;">
-  <div class="modal-content" style="max-width:650px; max-height:90vh;">
-    <div style="padding:15px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-      <h3 style="margin:0;">📄 घर खर्च रिपोर्ट (PDF Preview)</h3>
-      <button onclick="closePdfModal()" style="width:auto; margin:0; padding:5px 10px; background:#475569;">✕</button>
+<div id="pdfModal" class="modal-overlay" style="display:none">
+  <div class="modal-content" style="max-width:650px">
+    <div style="padding:15px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+      <h3 style="margin:0">📄 घर खर्च रिपोर्ट (PDF Preview)</h3>
+      <button onclick="closePdfModal()" style="width:auto;margin:0;padding:5px 10px;background:#475569">✕</button>
     </div>
-    <div class="modal-body" id="pdfPreviewContainer" style="background:#fff; color:#333; overflow-y:auto;"></div>
-    <div class="modal-footer">
-      <button onclick="printPdfReport()" style="width:auto; margin:0; background:#16a34a;"><i class="fa-solid fa-print"></i> Print / Download PDF</button>
-    </div>
+    <div class="modal-body" id="pdfPreviewContainer" style="background:#fff;color:#333"></div>
+    <div class="modal-footer"><button onclick="printPdfReport()" style="width:auto;margin:0;background:#16a34a"><i class="fa-solid fa-print"></i> Print / Download PDF</button></div>
   </div>
 </div>
 
 <script type="module">
-import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import {initializeApp,getApps} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import {getDatabase,ref,get,set,update,remove,onValue,runTransaction} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+import {getAuth,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDDY_v7RHnkCTI6uyV4DNDjqoaIBGweg8c",
-  authDomain: "digital-a2552.firebaseapp.com",
-  projectId: "digital-a2552",
-  databaseURL: "https://digital-a2552-default-rtdb.asia-southeast1.firebasedatabase.app",
-  storageBucket: "digital-a2552.firebasestorage.app",
-  messagingSenderId: "218135618179",
-  appId: "1:218135618179:web:821b76920d3e5669ac31b6"
+const firebaseConfig={
+  apiKey:"AIzaSyDDY_v7RHnkCTI6uyV4DNDjqoaIBGweg8c",
+  authDomain:"digital-a2552.firebaseapp.com",
+  projectId:"digital-a2552",
+  databaseURL:"https://digital-a2552-default-rtdb.asia-southeast1.firebasedatabase.app",
+  storageBucket:"digital-a2552.firebasestorage.app",
+  messagingSenderId:"218135618179",
+  appId:"1:218135618179:web:821b76920d3e5669ac31b6"
 };
 
-const $ = id => document.getElementById(id);
-const LOCAL_KEY = "local_house_expenses_v2";
-const BUDGET_KEY = "local_house_budget_val";
-
-let db, auth, currentUser = null;
-let expenses = [];
-let chartInstance = null;
-
-const CATEGORY_COLORS = {
-  "तरकारी": "#22c55e",
-  "किराना पसल": "#f97316",
-  "किराना": "#f97316",
-  "बिल तथा रिचार्ज": "#06b6d4",
-  "बिजुली तथा पानी": "#06b6d4",
-  "यातायात": "#eab308",
-  "स्वास्थ्य": "#ec4899",
-  "शिक्षा": "#a855f7",
-  "कृषि": "#34d399",
-  "खनजोत तथा बिउमल": "#34d399",
-  "घरायसी सामान": "#3b82f6",
-  "मर-मसला": "#3b82f6",
-  "अन्य": "#64748b"
+const $=id=>document.getElementById(id);
+const LOCAL_KEY="local_house_expenses_v2";
+const BUDGET_KEY="local_house_budget_val";
+const TRASH_DAYS=30;
+const CATEGORY_COLORS={
+  "तरकारी":"#22c55e","किराना पसल":"#f97316","किराना":"#f97316",
+  "बिल तथा रिचार्ज":"#06b6d4","बिजुली तथा पानी":"#06b6d4",
+  "यातायात":"#eab308","स्वास्थ्य":"#ec4899","शिक्षा":"#a855f7",
+  "कृषि":"#34d399","खनजोत तथा बिउमल":"#34d399",
+  "घरायसी सामान":"#3b82f6","मर-मसला":"#3b82f6","अन्य":"#64748b"
 };
 
-function setStatus(message, error = false) {
-  $("status").textContent = message;
-  $("status").style.color = error ? "#fecaca" : "#dcfce7";
-}
+let db=null,auth=null,currentUser=null;
+let expenses=[],trashItems=[],chartInstance=null;
+let unsubscribeExpenses=null,unsubscribeBudget=null,unsubscribeTrash=null;
+let initializing=false;
 
-function localDate() {
-  const d = new Date();
-  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+function setStatus(message,error=false){
+  $("status").textContent=message;
+  $("status").style.color=error?"#fecaca":"#dcfce7";
 }
-
-function currentMonthStr() {
-  return localDate().slice(0, 7);
+function localDate(){
+  const d=new Date();
+  return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);
 }
-
-function money(value) {
-  return "रु. " + Number(value || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 });
+function currentMonthStr(){return localDate().slice(0,7)}
+function money(value){
+  return "रु. "+Number(value||0).toLocaleString("en-IN",{maximumFractionDigits:2});
 }
+function safeText(value){return String(value??"")}
+function makeId(){
+  return "exp_"+(crypto.randomUUID?crypto.randomUUID():Date.now()+"_"+Math.random().toString(36).slice(2));
+}
+function userPath(){return currentUser?`users/${currentUser.uid}`:null}
+function cloudExpensesRef(){return ref(db,`${userPath()}/house_expenses`)}
+function cloudBudgetRef(){return ref(db,`${userPath()}/house_budget`)}
+function cloudTrashRef(){return ref(db,`${userPath()}/trash`)}
 
-function loadLocal() {
-  try {
-    const raw = localStorage.getItem(LOCAL_KEY);
-    expenses = raw ? JSON.parse(raw) : [];
-  } catch (error) {
-    expenses = [];
+function loadLocal(){
+  try{
+    const raw=localStorage.getItem(LOCAL_KEY);
+    const parsed=raw?JSON.parse(raw):[];
+    expenses=Array.isArray(parsed)?parsed:[];
+  }catch(e){expenses=[]}
+}
+function saveLocal(){
+  try{localStorage.setItem(LOCAL_KEY,JSON.stringify(expenses))}
+  catch(e){setStatus("⚠️ फोनमा डाटा सेभ गर्न सकिएन। Storage खाली गर्नुहोस्।",true)}
+}
+function asExpenseObject(value){
+  const out={};
+  if(Array.isArray(value)){
+    value.forEach((item,index)=>{
+      if(!item||typeof item!=="object")return;
+      const id=String(item.id||`legacy_${index}_${Date.now()}`);
+      out[id]={...item,id};
+    });
+  }else if(value&&typeof value==="object"){
+    Object.entries(value).forEach(([key,item])=>{
+      if(!item||typeof item!=="object")return;
+      out[String(item.id||key)]={...item,id:String(item.id||key)};
+    });
   }
+  return out;
 }
-
-function saveLocal() {
-  localStorage.setItem(LOCAL_KEY, JSON.stringify(expenses));
-}
-
-async function syncToFirebase() {
-  if (!db || !currentUser || !navigator.onLine) return;
-  try {
-    const userRef = ref(db, `users/${currentUser.uid}/house_expenses`);
-    await set(userRef, expenses);
-  } catch (e) {
-    setStatus(`⚠️ स्थानीय सेभ भयो (क्लाउड सिंक त्रुटि)`, true);
-  }
-}
-
-// बजेट मोडल कन्ट्रोल
-window.openBudgetModal = function() {
-  const savedBudget = Number(localStorage.getItem(BUDGET_KEY) || 0);
-  if(savedBudget > 0) $("modalBudgetInput").value = savedBudget;
-  else $("modalBudgetInput").value = "";
-  $("budgetModal").style.display = "flex";
-}
-
-window.closeBudgetModal = function() {
-  $("budgetModal").style.display = "none";
-}
-
-window.saveBudgetFromModal = function() {
-  const val = Number($("modalBudgetInput").value);
-  if (val >= 0) {
-    localStorage.setItem(BUDGET_KEY, val);
-    updateBudgetUI();
-    closeBudgetModal();
-  }
-}
-
-function updateBudgetUI() {
-  const savedBudget = Number(localStorage.getItem(BUDGET_KEY) || 0);
-  const currentMonth = currentMonthStr();
-  const monthTotal = expenses
-    .filter(x => x.date && x.date.startsWith(currentMonth))
-    .reduce((sum, x) => sum + Number(x.amount || 0), 0);
-
-  if (savedBudget > 0) {
-    const percent = Math.min(Math.round((monthTotal / savedBudget) * 100), 100);
-    $("budgetText").textContent = `यो महिनाको खर्च: ${money(monthTotal)} / ${money(savedBudget)}`;
-    $("budgetPercentText").textContent = `${percent}%`;
-
-    const bar = $("budgetProgressBar");
-    bar.style.width = `${percent}%`;
-
-    if (percent < 50) {
-      bar.style.backgroundColor = "#22c55e";
-    } else if (percent < 85) {
-      bar.style.backgroundColor = "#eab308";
-    } else {
-      bar.style.backgroundColor = "#ef4444";
-    }
-  } else {
-    $("budgetText").textContent = "बजेट तोकिएको छैन (माथिको 🎯 आइकनमा क्लिक गरी सेट गर्नुहोस्)";
-    $("budgetPercentText").textContent = "0%";
-    $("budgetProgressBar").style.width = "0%";
-  }
-}
-
-// पाई चार्ट रेन्डर गर्ने
-function renderChart(filtered) {
-  const catMap = {};
-  filtered.forEach(x => {
-    const cat = x.category || "अन्य";
-    catMap[cat] = (catMap[cat] || 0) + Number(x.amount || 0);
+function objectToExpenses(value){
+  return Object.values(asExpenseObject(value)).sort((a,b)=>{
+    return String(b.date||"").localeCompare(String(a.date||""))||
+      Number(b.createdAt||0)-Number(a.createdAt||0);
   });
+}
+function stopListeners(){
+  [unsubscribeExpenses,unsubscribeBudget,unsubscribeTrash].forEach(fn=>{
+    if(typeof fn==="function")fn();
+  });
+  unsubscribeExpenses=unsubscribeBudget=unsubscribeTrash=null;
+}
+function localBudget(){return Number(localStorage.getItem(BUDGET_KEY)||0)}
 
-  const labels = Object.keys(catMap);
-  const data = Object.values(catMap);
-  const bgColors = labels.map(cat => CATEGORY_COLORS[cat] || "#64748b");
+async function initializeUserCloud(user){
+  if(initializing)return;
+  initializing=true;
+  try{
+    currentUser=user;
+    const expensesRef=cloudExpensesRef();
+    let snap=await get(expensesRef);
 
-  const ctx = document.getElementById('expenseChart').getContext('2d');
-  if (chartInstance) chartInstance.destroy();
+    if(snap.exists()&&Array.isArray(snap.val())){
+      // पुरानो array format लाई object-by-ID ढाँचामा बदल्ने।
+      const legacyObject=asExpenseObject(snap.val());
+      await runTransaction(expensesRef,current=>{
+        if(Array.isArray(current))return legacyObject;
+        return current;
+      });
+      snap=await get(expensesRef);
+    }
 
-  if(labels.length === 0) return;
-
-  chartInstance = new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-      labels: labels,
-      datasets: [{
-        data: data,
-        backgroundColor: bgColors
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'bottom', labels: { color: '#e5edf8', font: { size: 11 } } }
+    if(!snap.exists()){
+      // Cloud खाली हुँदा मात्र पुरानो फोनको स्थानीय डाटा seed गर्ने।
+      loadLocal();
+      if(expenses.length){
+        const seed=asExpenseObject(expenses);
+        await runTransaction(expensesRef,current=>{
+          return current==null?seed:current;
+        });
       }
     }
+
+    unsubscribeExpenses=onValue(expensesRef,snapshot=>{
+      expenses=objectToExpenses(snapshot.val());
+      saveLocal();
+      refreshView();
+      setStatus("✅ घर खर्च Cloud सँग लाइभ सिंक भइरहेको छ");
+    },error=>{
+      console.error("Expense listener:",error);
+      setStatus("⚠️ खर्चको Cloud डाटा पढ्न सकिएन। Firebase Rules जाँच गर्नुहोस्।",true);
+    });
+
+    const budgetRef=cloudBudgetRef();
+    let budgetSnap=await get(budgetRef);
+    if(!budgetSnap.exists()){
+      const oldBudget=localBudget();
+      if(oldBudget>0){
+        await runTransaction(budgetRef,current=>current==null?oldBudget:current);
+      }
+    }
+
+    unsubscribeBudget=onValue(budgetRef,snapshot=>{
+      const val=Number(snapshot.val()||0);
+      localStorage.setItem(BUDGET_KEY,String(val));
+      $("modalBudgetInput").value=val>0?String(val):"";
+      updateBudgetUI();
+    },error=>{
+      console.error("Budget listener:",error);
+      setStatus("⚠️ बजेट सिंक हुन सकेन।",true);
+    });
+
+    unsubscribeTrash=onValue(cloudTrashRef(),snapshot=>{
+      const data=snapshot.val()||{};
+      trashItems=Object.entries(data).map(([key,item])=>{
+        if(!item||typeof item!=="object")return null;
+        return {...item,id:String(item.id||key)};
+      }).filter(item=>item&&(
+        item.trashType==="house_expense"||
+        (item.deletedAt&&item.title!==undefined&&item.amount!==undefined)
+      ));
+      renderTrash();
+    },error=>{
+      console.error("Trash listener:",error);
+      setStatus("⚠️ Trash पढ्न सकिएन।",true);
+    });
+  }catch(error){
+    console.error("Cloud initialization:",error);
+    setStatus("⚠️ Cloud सुरु गर्न सकिएन। इन्टरनेट, Firebase Rules र Database जाँच गर्नुहोस्।",true);
+  }finally{
+    initializing=false;
+  }
+}
+
+async function saveExpenseToCloud(item){
+  if(!currentUser||!db)throw new Error("लगइन आवश्यक छ");
+  await set(ref(db,`${userPath()}/house_expenses/${item.id}`),item);
+}
+async function saveBudgetToCloud(value){
+  if(!currentUser||!db)throw new Error("लगइन आवश्यक छ");
+  await set(cloudBudgetRef(),value);
+}
+
+window.openBudgetModal=function(){
+  $("modalBudgetInput").value=localBudget()>0?String(localBudget()):"";
+  $("budgetModal").style.display="flex";
+};
+window.closeBudgetModal=function(){$("budgetModal").style.display="none"};
+
+window.saveBudgetFromModal=async function(){
+  const input=$("modalBudgetInput").value;
+  const val=Number(input);
+  if(input.trim()===""||!Number.isFinite(val)||val<0){
+    alert("कृपया शून्य वा सोभन्दा बढी मान्य बजेट रकम राख्नुहोस्।");
+    return;
+  }
+  if(!currentUser||!navigator.onLine){
+    alert("बजेट Cloud मा सेभ गर्न लगइन र इन्टरनेट आवश्यक छ।");
+    return;
+  }
+  try{
+    await saveBudgetToCloud(val);
+    localStorage.setItem(BUDGET_KEY,String(val));
+    updateBudgetUI();
+    closeBudgetModal();
+    setStatus("✅ मासिक बजेट सेभ भयो");
+  }catch(error){
+    console.error(error);
+    setStatus("⚠️ बजेट सेभ भएन।",true);
+  }
+};
+
+function updateBudgetUI(){
+  const budget=localBudget(),month=currentMonthStr();
+  const total=expenses.filter(x=>String(x.date||"").startsWith(month))
+    .reduce((sum,x)=>sum+Number(x.amount||0),0);
+  const percent=budget>0?Math.round(total/budget*100):0;
+  $("budgetText").textContent=budget>0
+    ?`यो महिनाको खर्च: ${money(total)} / ${money(budget)}`
+    :"बजेट तोकिएको छैन (माथिको 🎯 आइकनमा क्लिक गरी सेट गर्नुहोस्)";
+  $("budgetPercentText").textContent=budget>0?`${percent}%`:"0%";
+  const bar=$("budgetProgressBar");
+  bar.style.width=`${Math.min(percent,100)}%`;
+  bar.style.backgroundColor=percent<50?"#22c55e":percent<85?"#eab308":"#ef4444";
+}
+
+function renderChart(filtered){
+  const totals={};
+  filtered.forEach(item=>{
+    const category=item.category||"अन्य";
+    totals[category]=(totals[category]||0)+Number(item.amount||0);
+  });
+  const canvas=$("expenseChart");
+  if(chartInstance){chartInstance.destroy();chartInstance=null}
+  if(!Object.keys(totals).length)return;
+  chartInstance=new Chart(canvas.getContext("2d"),{
+    type:"doughnut",
+    data:{
+      labels:Object.keys(totals),
+      datasets:[{
+        data:Object.values(totals),
+        backgroundColor:Object.keys(totals).map(x=>CATEGORY_COLORS[x]||"#64748b")
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:"bottom",labels:{color:"#e5edf8",font:{size:11}}}}
+    }
   });
 }
 
-function getFilteredExpenses() {
-  const query = $("search").value.trim().toLocaleLowerCase();
-  const type = $("filterType").value;
-  const day = $("dayFilter").value;
-  const month = $("monthFilter").value;
-  const year = $("yearFilter").value;
-
-  return expenses.filter(item => {
-    const text = `${item.title} ${item.category} ${item.note} ${item.paymentMethod || ''}`.toLocaleLowerCase();
-    if (!text.includes(query)) return false;
-    if (type === "day") return !!day && item.date === day;
-    if (type === "month") return !!month && item.date.startsWith(month);
-    if (type === "year") return !!year && item.date.startsWith(year + "-");
+function getFilteredExpenses(){
+  const query=$("search").value.trim().toLocaleLowerCase();
+  const type=$("filterType").value;
+  const day=$("dayFilter").value,month=$("monthFilter").value,year=$("yearFilter").value;
+  return expenses.filter(item=>{
+    const text=`${item.title||""} ${item.category||""} ${item.note||""} ${item.paymentMethod||""}`.toLocaleLowerCase();
+    if(!text.includes(query))return false;
+    if(type==="day")return !!day&&item.date===day;
+    if(type==="month")return !!month&&String(item.date||"").startsWith(month);
+    if(type==="year")return !!year&&String(item.date||"").startsWith(year+"-");
     return true;
   });
 }
-
-function updateYearOptions() {
-  const select = $("yearFilter");
-  const previous = select.value;
-  const years = new Set(expenses.map(x => x.date?.slice(0, 4)).filter(Boolean));
+function updateYearOptions(){
+  const select=$("yearFilter"),previous=select.value;
+  const years=new Set(expenses.map(x=>String(x.date||"").slice(0,4)).filter(x=>/^\d{4}$/.test(x)));
   years.add(String(new Date().getFullYear()));
-
   select.replaceChildren();
-  const placeholder = document.createElement("option");
-  placeholder.value = "";
-  placeholder.textContent = "वर्ष छान्नुहोस्";
-  select.appendChild(placeholder);
-
-  [...years].sort((a, b) => b.localeCompare(a)).forEach(year => {
-    const option = document.createElement("option");
-    option.value = year;
-    option.textContent = year;
-    select.appendChild(option);
+  const placeholder=document.createElement("option");
+  placeholder.value="";placeholder.textContent="वर्ष छान्नुहोस्";select.appendChild(placeholder);
+  [...years].sort((a,b)=>b.localeCompare(a)).forEach(year=>{
+    const option=document.createElement("option");
+    option.value=year;option.textContent=year;select.appendChild(option);
   });
-
-  if (years.has(previous)) select.value = previous;
+  if(years.has(previous))select.value=previous;
 }
+function addTextElement(parent,className,text){
+  const el=document.createElement("div");
+  if(className)el.className=className;
+  el.textContent=safeText(text);
+  parent.appendChild(el);
+  return el;
+}
+function makeActionButton(label,className,handler,title){
+  const button=document.createElement("button");
+  button.type="button";button.className=`small-btn ${className}`;
+  button.title=title;button.setAttribute("aria-label",title);
+  const icon=document.createElement("i");
+  icon.className=`fa-solid ${label}`;
+  button.appendChild(icon);button.addEventListener("click",handler);
+  return button;
+}
+function renderExpenses(){
+  const filtered=getFilteredExpenses();
+  $("periodTotal").textContent=money(filtered.reduce((s,x)=>s+Number(x.amount||0),0));
+  $("allTotal").textContent=money(expenses.reduce((s,x)=>s+Number(x.amount||0),0));
+  renderChart(filtered);updateBudgetUI();
 
-function renderExpenses() {
-  const filtered = getFilteredExpenses();
-
-  $("periodTotal").textContent = money(filtered.reduce((sum, x) => sum + Number(x.amount || 0), 0));
-  $("allTotal").textContent = money(expenses.reduce((sum, x) => sum + Number(x.amount || 0), 0));
-
-  renderChart(filtered);
-  updateBudgetUI();
-
-  const type = $("filterType").value;
-  const labels = {
-    day: `दिन: ${$("dayFilter").value || "छानिएको छैन"}`,
-    month: `महिना: ${$("monthFilter").value || "छानिएको छैन"}`,
-    year: `वर्ष: ${$("yearFilter").value || "छानिएको छैन"}`
+  const type=$("filterType").value;
+  const labels={
+    day:`दिन: ${$("dayFilter").value||"छानिएको छैन"}`,
+    month:`महिना: ${$("monthFilter").value||"छानिएको छैन"}`,
+    year:`वर्ष: ${$("yearFilter").value||"छानिएको छैन"}`
   };
+  $("filterSummary").textContent=`${labels[type]} · ${filtered.length} रेकर्ड`;
 
-  $("filterSummary").textContent = `${labels[type]} · ${filtered.length} रेकर्ड`;
-
-  const list = $("expenseList");
-  list.replaceChildren();
-
-  if (!filtered.length) {
-    list.innerHTML = '<div class="empty">कुनै खर्च रेकर्ड भेटिएन।</div>';
-    return;
+  const list=$("expenseList");list.replaceChildren();
+  if(!filtered.length){
+    addTextElement(list,"empty","कुनै खर्च रेकर्ड भेटिएन।");return;
   }
 
-  for (const item of filtered) {
-    const card = document.createElement("div");
-    card.className = "expense";
-    card.innerHTML = `
-      <div class="expense-top">
-        <div>
-          <div class="expense-name">${item.title}</div>
-          <div class="amount red">${money(item.amount)}</div>
-          <div class="expense-meta">${item.date} · ${item.category} ${item.paymentMethod ? `(${item.paymentMethod})` : ''}</div>
-          ${item.note ? `<div class="expense-meta">${item.note}</div>` : ''}
-        </div>
-        <div class="actions">
-          <button type="button" class="small-btn edit-btn" onclick="editExpense('${item.id}')"><i class="fa-solid fa-pen"></i></button>
-          <button type="button" class="small-btn delete-btn" onclick="deleteExpense('${item.id}')"><i class="fa-solid fa-trash"></i></button>
-        </div>
-      </div>
-    `;
-    list.appendChild(card);
-  }
-}
-
-function refreshView() {
-  updateYearOptions();
-  renderExpenses();
-}
-
-function resetForm() {
-  $("expenseForm").reset();
-  $("edit-id").value = "";
-  $("date").value = localDate();
-  $("form-heading").textContent = "➕ नयाँ खर्च लेख्नुहोस्";
-  $("saveBtn").textContent = "💾 खर्च सेभ गर्नुहोस्";
-  $("cancel-btn").hidden = true;
-}
-
-window.editExpense = function(id) {
-  const item = expenses.find(x => x.id === id);
-  if (!item) return;
-  $("edit-id").value = id;
-  $("title").value = item.title;
-  $("amount").value = item.amount;
-  $("category").value = item.category;
-  if(item.paymentMethod) $("paymentMethod").value = item.paymentMethod;
-  $("date").value = item.date || localDate();
-  $("note").value = item.note || "";
-  $("form-heading").textContent = "✏️ खर्च सम्पादन गर्नुहोस्";
-  $("saveBtn").textContent = "अपडेट गर्नुहोस्";
-  $("cancel-btn").hidden = false;
-  window.scrollTo({ top: 0, behavior: "smooth" });
-};
-
-window.deleteExpense = async function(id) {
-  const item = expenses.find(x => x.id === id);
-  if (!item || !confirm(`"${item.title}" खर्च मेटाउने हो?`)) return;
-  expenses = expenses.filter(x => x.id !== id);
-  saveLocal();
-  refreshView();
-  await syncToFirebase();
-};
-
-$("cancel-btn").addEventListener("click", resetForm);
-
-$("expenseForm").addEventListener("submit", async event => {
-  event.preventDefault();
-  const title = $("title").value.trim();
-  const amount = Number($("amount").value);
-  const category = $("category").value;
-  const paymentMethod = $("paymentMethod").value;
-  const date = $("date").value;
-  const note = $("note").value.trim();
-  const editId = $("edit-id").value;
-
-  if (!title || !Number.isFinite(amount) || amount <= 0 || !date) return;
-
-  if (editId) {
-    const idx = expenses.findIndex(x => x.id === editId);
-    if (idx !== -1) expenses[idx] = { id: editId, title, amount, category, paymentMethod, date, note };
-  } else {
-    const id = "exp_" + Date.now();
-    expenses.unshift({ id, title, amount, category, paymentMethod, date, note });
-  }
-
-  saveLocal();
-  refreshView();
-  resetForm();
-  await syncToFirebase();
-});
-
-function generateHouseExpensePDF() {
-  const filtered = getFilteredExpenses();
-  if (filtered.length === 0) {
-    alert("कुनै खर्च रेकर्ड फेला परेन।");
-    return;
-  }
-
-  const profileName = localStorage.getItem('profile_name') || 'Digital NoteBook';
-  const profileAddress = localStorage.getItem('profile_address') || '';
-  const profileMobile = localStorage.getItem('profile_mobile') || '';
-  const profileEmail = localStorage.getItem('profile_email') || '';
-  const profileAvatar = localStorage.getItem('profile_avatar') || 'N1024.png';
-
-  let totalExpense = 0;
-
-  let html = `
-  <div id="pdf-printable-content" style="background-color: #ffffff; color: #333333; font-family: sans-serif; width: 100%; max-width: 650px; padding: 20px; border-radius: 12px; margin:auto;">
-      <table style="width: 100%; border-bottom: 2px solid #16a34a; padding-bottom: 15px; margin-bottom: 20px; border-collapse: collapse;">
-          <tr>
-              <td style="vertical-align: middle; width: 20%; text-align: center;">
-                  <div style="display: inline-block; text-align: center;">
-                      <div style="width: 55px; height: 55px; border-radius: 50%; overflow: hidden; border: 2px solid #16a34a; margin: 0 auto 4px auto;">
-                          <img src="${profileAvatar}" style="width: 100%; height: 100%; object-fit: cover;">
-                      </div>
-                      <div style="font-size: 11px; font-weight: 700; color: #1f2937;">${profileName}</div>
-                  </div>
-              </td>
-              <td style="vertical-align: middle; text-align: center; width: 55%; padding: 0 10px;">
-                  <h3 style="margin:5px 0 0 0; color:#16a34a;">घर खर्च रिपोर्ट (House Expense)</h3>
-              </td>
-              <td style="vertical-align: middle; text-align: left; font-size: 10px; color: #555; line-height: 1.4; width: 25%; padding-left: 10px;">
-                  <div>📍 Address: ${profileAddress}</div>
-                  <div>📞 Contact: ${profileMobile}</div>
-                  <div>✉️ Email: ${profileEmail}</div>
-              </td>
-          </tr>
-      </table>
-
-      <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
-          <thead>
-              <tr style="background-color: #f3f4f6; color: #374151;">
-                  <th style="padding: 8px; text-align: left; border-bottom: 1px solid #d1d5db;">मिति</th>
-                  <th style="padding: 8px; text-align: left; border-bottom: 1px solid #d1d5db;">खर्चको नाम</th>
-                  <th style="padding: 8px; text-align: left; border-bottom: 1px solid #d1d5db;">प्रकार / माध्यम</th>
-                  <th style="padding: 8px; text-align: right; border-bottom: 1px solid #d1d5db;">रकम (रु.)</th>
-              </tr>
-          </thead>
-          <tbody>`;
-
-  filtered.forEach(item => {
-    totalExpense += Number(item.amount || 0);
-    html += `
-        <tr style="border-bottom: 1px solid #e5e7eb;">
-            <td style="padding: 8px;">${item.date}</td>
-            <td style="padding: 8px; font-weight: bold;">${item.title}</td>
-            <td style="padding: 8px; color: #6b7280;">${item.category} ${item.paymentMethod ? `(${item.paymentMethod})` : ''}</td>
-            <td style="padding: 8px; text-align: right; font-weight: bold; color: #dc2626;">${money(item.amount)}</td>
-        </tr>`;
+  filtered.forEach(item=>{
+    const card=document.createElement("div");card.className="expense";
+    const top=document.createElement("div");top.className="expense-top";
+    const details=document.createElement("div");details.style.minWidth="0";
+    addTextElement(details,"expense-name",item.title);
+    addTextElement(details,"amount red",money(item.amount));
+    addTextElement(details,"expense-meta",
+      `${item.date||"मिति छैन"} · ${item.category||"अन्य"}${item.paymentMethod?" ("+item.paymentMethod+")":""}`);
+    if(item.note)addTextElement(details,"expense-meta",item.note);
+    const actions=document.createElement("div");actions.className="actions";
+    actions.appendChild(makeActionButton("fa-pen","edit-btn",()=>window.editExpense(item.id),"सम्पादन"));
+    actions.appendChild(makeActionButton("fa-trash","delete-btn",()=>window.deleteExpense(item.id),"Trash मा पठाउनुहोस्"));
+    top.append(details,actions);card.appendChild(top);list.appendChild(card);
   });
-
-  html += `
-          </tbody>
-      </table>
-
-      <div style="margin-top: 20px; text-align: right; font-size: 14px; font-weight: bold; color: #dc2626; border-top: 2px solid #16a34a; padding-top: 10px;">
-          जम्मा खर्च: ${money(totalExpense)}
-      </div>
-
-      <div style="text-align: center; font-size: 10px; color: #9ca3af; margin-top: 25px; border-top: 1px solid #e5e7eb; padding-top: 10px;">
-          Generated by Digital NoteBook | ${new Date().toLocaleDateString('en-NP')}
-      </div>
-  </div>`;
-
-  $("pdfPreviewContainer").innerHTML = html;
-  $("pdfModal").style.display = "flex";
 }
-
-window.closePdfModal = function() {
-  $("pdfModal").style.display = "none";
+function refreshView(){updateYearOptions();renderExpenses()}
+function resetForm(){
+  $("expenseForm").reset();$("edit-id").value="";
+  $("date").value=localDate();
+  $("form-heading").textContent="➕ नयाँ खर्च लेख्नुहोस्";
+  $("saveBtn").textContent="💾 खर्च सेभ गर्नुहोस्";
+  $("cancel-btn").hidden=true;
 }
+window.editExpense=function(id){
+  const item=expenses.find(x=>String(x.id)===String(id));
+  if(!item)return;
+  $("edit-id").value=item.id;$("title").value=item.title||"";
+  $("amount").value=item.amount??"";$("category").value=item.category||"अन्य";
+  $("paymentMethod").value=item.paymentMethod||"नगद (Cash)";
+  $("date").value=item.date||localDate();$("note").value=item.note||"";
+  $("form-heading").textContent="✏️ खर्च सम्पादन गर्नुहोस्";
+  $("saveBtn").textContent="अपडेट गर्नुहोस्";$("cancel-btn").hidden=false;
+  window.scrollTo({top:0,behavior:"smooth"});
+};
 
-window.printPdfReport = function() {
-  const content = document.getElementById('pdf-printable-content');
-  const printWindow = window.open('', '_blank');
-  printWindow.document.write('<html><head><title>घर खर्च रिपोर्ट</title></head><body>');
-  printWindow.document.write(content.innerHTML);
-  printWindow.document.write('</body></html>');
-  printWindow.document.close();
-  setTimeout(() => { printWindow.print(); }, 500);
-}
+$("cancel-btn").addEventListener("click",resetForm);
 
-$("pdfBtn").addEventListener("click", generateHouseExpensePDF);
+$("expenseForm").addEventListener("submit",async event=>{
+  event.preventDefault();
+  if(!currentUser){alert("पहिले लगइन गर्नुहोस्।");return}
+  if(!navigator.onLine){alert("खर्च Cloud मा सुरक्षित गर्न इन्टरनेट आवश्यक छ।");return}
 
-$("exportBtn").addEventListener("click", () => {
-  const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), expenses }, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "house-expenses-report.json";
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  const title=$("title").value.trim(),amount=Number($("amount").value);
+  const category=$("category").value,paymentMethod=$("paymentMethod").value;
+  const date=$("date").value,note=$("note").value.trim(),editId=$("edit-id").value;
+  if(!title||!Number.isFinite(amount)||amount<=0||!date){
+    alert("कृपया खर्चको नाम, सही रकम र मिति भर्नुहोस्।");return;
+  }
+
+  const saveBtn=$("saveBtn");saveBtn.disabled=true;
+  try{
+    let item;
+    if(editId){
+      const old=expenses.find(x=>String(x.id)===String(editId));
+      if(!old)throw new Error("सम्पादन गर्न खोजिएको खर्च भेटिएन।");
+      item={...old,title,amount,category,paymentMethod,date,note,updatedAt:Date.now()};
+    }else{
+      item={id:makeId(),title,amount,category,paymentMethod,date,note,createdAt:Date.now()};
+    }
+    await saveExpenseToCloud(item);
+    setStatus("✅ खर्च Cloud मा सेभ भयो");
+    resetForm();
+  }catch(error){
+    console.error("Save expense:",error);
+    setStatus("⚠️ खर्च Cloud मा सेभ भएन। तपाईंको विवरण फारममा सुरक्षित राखिएको छ।",true);
+    alert("खर्च Cloud मा सेभ हुन सकेन। विवरण नहटाई राखिएको छ। इन्टरनेट र Firebase Rules जाँच गरी फेरि प्रयास गर्नुहोस्।");
+  }finally{saveBtn.disabled=false}
 });
 
-$("search").addEventListener("input", renderExpenses);
-$("filterType").addEventListener("change", () => {
-  const type = $("filterType").value;
-  $("dayBox").hidden = type !== "day";
-  $("monthBox").hidden = type !== "month";
-  $("yearBox").hidden = type !== "year";
+window.deleteExpense=async function(id){
+  const item=expenses.find(x=>String(x.id)===String(id));
+  if(!item||!currentUser)return;
+  if(!navigator.onLine){alert("Trash मा सुरक्षित गर्न इन्टरनेट आवश्यक छ।");return}
+  if(!confirm(`"${item.title}" खर्च Trash मा पठाउने हो?`))return;
+
+  const deletedItem={...item,deletedAt:Date.now(),trashType:"house_expense"};
+  try{
+    // एउटै atomic update: Trash मा सार्ने र सक्रिय सूचीबाट हटाउने।
+    await update(ref(db,userPath()),{
+      [`trash/${item.id}`]:deletedItem,
+      [`house_expenses/${item.id}`]:null
+    });
+    setStatus("🗑️ खर्च Trash मा सारियो। ३० दिनभित्र Restore गर्न सकिन्छ।");
+  }catch(error){
+    console.error("Delete expense:",error);
+    setStatus("⚠️ खर्च Trash मा सार्न सकिएन। मूल रेकर्ड सुरक्षित छ।",true);
+  }
+};
+
+window.restoreHouseExpense=async function(id){
+  const item=trashItems.find(x=>String(x.id)===String(id));
+  if(!item||!currentUser)return;
+  const deletedAt=Number(item.deletedAt||0);
+  const age=Date.now()-deletedAt;
+  if(!deletedAt||age>TRASH_DAYS*24*60*60*1000){
+    alert("यो रेकर्ड ३० दिनको Restore अवधिभन्दा बाहिर छ।");
+    return;
+  }
+  if(!navigator.onLine){alert("Restore गर्न इन्टरनेट आवश्यक छ।");return}
+  if(!confirm(`"${item.title}" खर्च पुनःस्थापना गर्ने हो?`))return;
+
+  try{
+    const restored={...item};
+    delete restored.deletedAt;delete restored.trashType;
+    restored.restoredAt=Date.now();
+    await update(ref(db,userPath()),{
+      [`house_expenses/${item.id}`]:restored,
+      [`trash/${item.id}`]:null
+    });
+    setStatus("✅ खर्च पुनःस्थापना भयो");
+  }catch(error){
+    console.error("Restore expense:",error);
+    setStatus("⚠️ खर्च Restore हुन सकेन।",true);
+  }
+};
+
+function renderTrash(){
+  const list=$("trashList");list.replaceChildren();
+  const now=Date.now();
+  trashItems.sort((a,b)=>Number(b.deletedAt||0)-Number(a.deletedAt||0));
+  if(!trashItems.length){
+    addTextElement(list,"empty","Trash खाली छ।");return;
+  }
+  trashItems.forEach(item=>{
+    const card=document.createElement("div");card.className="expense";
+    const top=document.createElement("div");top.className="expense-top";
+    const details=document.createElement("div");details.style.minWidth="0";
+    addTextElement(details,"expense-name",item.title||"नाम नभएको खर्च");
+    addTextElement(details,"amount red",money(item.amount));
+    addTextElement(details,"expense-meta",`${item.date||"मिति छैन"} · ${item.category||"अन्य"}`);
+    const remaining=TRASH_DAYS*86400000-(now-Number(item.deletedAt||0));
+    const expired=!item.deletedAt||remaining<=0;
+    addTextElement(details,"expense-meta",expired
+      ?"Restore अवधि सकिएको छ; server cleanup आवश्यक छ।"
+      :`Restore गर्न बाँकी: करिब ${Math.ceil(remaining/86400000)} दिन`);
+    const actions=document.createElement("div");actions.className="actions";
+    const btn=document.createElement("button");
+    btn.type="button";btn.className="small-btn restore-btn";btn.textContent="↩";
+    btn.title="Restore";btn.setAttribute("aria-label","Restore");
+    btn.disabled=expired;
+    btn.addEventListener("click",()=>window.restoreHouseExpense(item.id));
+    actions.appendChild(btn);top.append(details,actions);card.appendChild(top);list.appendChild(card);
+  });
+}
+
+function generateHouseExpensePDF(){
+  const filtered=getFilteredExpenses();
+  if(!filtered.length){alert("कुनै खर्च रेकर्ड फेला परेन।");return}
+  const esc=value=>safeText(value).replace(/[&<>"']/g,c=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  })[c]);
+  const profileName=localStorage.getItem("profile_name")||"Digital NoteBook";
+  const profileAddress=localStorage.getItem("profile_address")||"";
+  const profileMobile=localStorage.getItem("profile_mobile")||"";
+  const profileEmail=localStorage.getItem("profile_email")||"";
+  let total=0;
+  const rows=filtered.map(item=>{
+    total+=Number(item.amount||0);
+    return `<tr>
+      <td>${esc(item.date)}</td>
+      <td><b>${esc(item.title)}</b></td>
+      <td>${esc(item.category)} ${item.paymentMethod?"("+esc(item.paymentMethod)+")":""}</td>
+      <td style="text-align:right">${esc(money(item.amount))}</td>
+    </tr>`;
+  }).join("");
+
+  $("pdfPreviewContainer").innerHTML=`
+  <div id="pdf-printable-content" style="background:#fff;color:#333;font-family:sans-serif;padding:16px;max-width:650px;margin:auto">
+    <div style="border-bottom:2px solid #16a34a;padding-bottom:12px;margin-bottom:16px">
+      <b>${esc(profileName)}</b>
+      <h3 style="color:#16a34a;margin:8px 0">घर खर्च रिपोर्ट (House Expense)</h3>
+      <div style="font-size:11px;line-height:1.6">${esc(profileAddress)}<br>${esc(profileMobile)}<br>${esc(profileEmail)}</div>
+    </div>
+    <table style="width:100%;border-collapse:collapse;font-size:11px">
+      <thead><tr style="background:#f3f4f6">
+        <th style="text-align:left;padding:8px">मिति</th>
+        <th style="text-align:left;padding:8px">खर्चको नाम</th>
+        <th style="text-align:left;padding:8px">प्रकार / माध्यम</th>
+        <th style="text-align:right;padding:8px">रकम</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div style="text-align:right;font-weight:bold;color:#dc2626;margin-top:18px">जम्मा खर्च: ${esc(money(total))}</div>
+    <div style="text-align:center;font-size:10px;color:#999;margin-top:20px">Generated by Digital NoteBook | ${new Date().toLocaleDateString("en-NP")}</div>
+  </div>`;
+  $("pdfModal").style.display="flex";
+}
+window.closePdfModal=function(){$("pdfModal").style.display="none"};
+window.printPdfReport=function(){
+  const content=$("pdf-printable-content");
+  if(!content){alert("पहिले रिपोर्ट खोल्नुहोस्।");return}
+  const printWindow=window.open("","_blank");
+  if(!printWindow){alert("Print window खोल्न सकेन। Browser popup अनुमति दिनुहोस्।");return}
+  printWindow.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>घर खर्च रिपोर्ट</title>
+  <style>body{font-family:Arial,sans-serif;margin:16px;color:#333}table{width:100%;border-collapse:collapse}th,td{border-bottom:1px solid #ddd;padding:8px;text-align:left} @media print{body{margin:0}}</style>
+  </head><body>${content.innerHTML}</body></html>`);
+  printWindow.document.close();printWindow.focus();
+  setTimeout(()=>printWindow.print(),400);
+};
+
+$("pdfBtn").addEventListener("click",generateHouseExpensePDF);
+$("exportBtn").addEventListener("click",()=>{
+  const blob=new Blob([JSON.stringify({
+    exportedAt:new Date().toISOString(),expenses
+  },null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");a.href=url;
+  a.download="house-expenses-report.json";a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+});
+
+$("search").addEventListener("input",renderExpenses);
+$("filterType").addEventListener("change",()=>{
+  const type=$("filterType").value;
+  $("dayBox").hidden=type!=="day";
+  $("monthBox").hidden=type!=="month";
+  $("yearBox").hidden=type!=="year";
   renderExpenses();
 });
+$("dayFilter").addEventListener("change",renderExpenses);
+$("monthFilter").addEventListener("change",renderExpenses);
+$("yearFilter").addEventListener("change",renderExpenses);
 
-$("dayFilter").addEventListener("change", renderExpenses);
-$("monthFilter").addEventListener("change", renderExpenses);
-$("yearFilter").addEventListener("change", renderExpenses);
-
-$("date").value = localDate();
-$("dayFilter").value = localDate();
-$("monthFilter").value = currentMonthStr();
-
+$("date").value=localDate();
+$("dayFilter").value=localDate();
+$("monthFilter").value=currentMonthStr();
 loadLocal();
 refreshView();
+renderTrash();
 
-// 🔥 REALTIME FIREBASE SYNC INITIALIZATION
-try {
-  const app = getApps().find(a => a.options.projectId === firebaseConfig.projectId) || initializeApp(firebaseConfig);
-  db = getDatabase(app);
-  auth = getAuth(app);
+try{
+  const app=getApps().find(a=>a.options.projectId===firebaseConfig.projectId)||initializeApp(firebaseConfig);
+  db=getDatabase(app);
+  auth=getAuth(app);
 
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      currentUser = user;
-      
-      // onValue ले लाइभ (Realtime) रूपमा परिवर्तनहरू ट्र्याक गर्छ
-      const userExpensesRef = ref(db, `users/${currentUser.uid}/house_expenses`);
-      onValue(userExpensesRef, (snapshot) => {
-        if (snapshot.exists()) {
-          expenses = snapshot.val() || [];
-          saveLocal();
-          refreshView();
-          setStatus(`✅ क्लाउडबाट लाइभ डाटा सिंक भयो`);
-        } else {
-          syncToFirebase();
-        }
-      });
+  onAuthStateChanged(auth,async user=>{
+    stopListeners();
+    currentUser=null;
 
-    } else {
-      setStatus("स्थानीय मोड (ड्यासबोर्डमा लगइन भएपछि स्वतः लाइभ सिंक हुन्छ)");
+    if(!user){
+      setStatus("यो पेज प्रयोग गर्न पहिले Digital Notebook मा लगइन गर्नुहोस्।",true);
+      $("expenseList").replaceChildren();
+      addTextElement($("expenseList"),"empty","लगइन पेजमा पठाइँदैछ...");
+      setTimeout(()=>window.location.replace("index.html"),700);
+      return;
     }
+
+    currentUser=user;
+    setStatus("Cloud डाटा जाँच हुँदैछ...");
+    await initializeUserCloud(user);
   });
-} catch (e) {
-  setStatus("स्थानीय मोड तयार छ");
+}catch(error){
+  console.error("Firebase startup:",error);
+  setStatus("⚠️ Firebase सुरु भएन। Firebase config र इन्टरनेट जाँच गर्नुहोस्।",true);
 }
 </script>
 </body>
