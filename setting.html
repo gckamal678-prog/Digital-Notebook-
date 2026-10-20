@@ -22,6 +22,8 @@ tailwind.config = {
         extend: {
             fontFamily: {
                 sans: ['Poppins', 'sans-serif'],
+                inter: ['Inter', 'sans-serif'],
+                roboto: ['Roboto', 'sans-serif']
             }
         }
     }
@@ -35,7 +37,7 @@ tailwind.config = {
         document.documentElement.classList.add('dark');
     }
 
-    const savedFontSize = localStorage.getItem('font_size') || 'text-xs';
+    const savedFontSize = localStorage.getItem('font_size') || 'text-sm';
     const savedFontFamily = localStorage.getItem('font_family') || 'font-sans';
     document.documentElement.className += ` ${savedFontSize} ${savedFontFamily}`;
 </script>
@@ -55,75 +57,81 @@ tailwind.config = {
     }
 </style>
 </head>
-<body id="main-body" class="bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen">
+<body id="main-body" class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-300">
 
 <!-- TOAST NOTIFICATION CONTAINER -->
 <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2"></div>
 
-<main class="p-4 md:p-6 space-y-4 w-full max-w-5xl mx-auto">
+<main class="p-4 md:p-8 space-y-6 w-full max-w-4xl mx-auto">
 
-    <!-- SETTINGS & PREFERENCES TITLE ONLY -->
-    <div class="px-1 py-1">
-        <h2 class="text-base md:text-lg font-bold text-slate-800 dark:text-white tracking-tight flex items-center gap-2">
-            <i class="fa-solid fa-sliders text-emerald-500"></i> 
+    <!-- HEADER TITLE -->
+    <div class="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800">
+        <h2 class="text-xl md:text-2xl font-bold tracking-tight flex items-center gap-3 text-slate-900 dark:text-white">
+            <span class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 text-lg">
+                <i class="fa-solid fa-sliders"></i>
+            </span>
             <span class="lang-text" data-en="Settings & Preferences" data-np="सेटिङ र प्राथमिकताहरू">Settings & Preferences</span>
         </h2>
     </div>
 
-    <!-- NEW PREFERENCES CONTROL BOX (Placed right under Settings & Preferences) -->
-    <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 space-y-3">
-        <h3 class="font-bold text-slate-900 dark:text-white flex items-center gap-2 text-xs uppercase tracking-wider">
-            ⚙️ Display & Language Controls
-        </h3>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+    <!-- DISPLAY & LANGUAGE CONTROLS (Clean Grid without heavy boxes) -->
+    <div class="bg-white dark:bg-slate-900/60 backdrop-blur-md p-5 rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-200/80 dark:border-slate-800 space-y-4">
+        <div class="flex items-center gap-2 text-slate-900 dark:text-white font-semibold text-sm uppercase tracking-wider">
+            <i class="fa-solid fa-wand-magic-sparkles text-emerald-500"></i>
+            <span class="lang-text" data-en="Display & Preferences" data-np="डिस्प्ले र प्राथमिकताहरू">Display & Preferences</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <!-- Language Toggle -->
-            <div class="space-y-1">
-                <label class="block text-slate-500 dark:text-slate-400 font-semibold">Language</label>
-                <button onclick="toggleLanguage()" id="lang-toggle-btn" class="w-full py-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 font-bold text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition">
-                    ENG
+            <div class="space-y-1.5">
+                <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 lang-text" data-en="Language" data-np="भाषा">Language</label>
+                <button onclick="toggleLanguage()" id="lang-toggle-btn" class="w-full py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 font-semibold text-slate-700 dark:text-slate-200 hover:border-emerald-500 dark:hover:border-emerald-500 transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-globe text-emerald-500"></i> <span>ENG</span>
                 </button>
             </div>
 
             <!-- Theme Toggle -->
-            <div class="space-y-1">
-                <label class="block text-slate-500 dark:text-slate-400 font-semibold">Theme</label>
-                <button onclick="toggleTheme()" id="theme-toggle-btn" class="w-full py-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 font-bold text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition flex items-center justify-center gap-2">
-                    <span id="theme-icon">🌛</span> <span id="theme-text">Dark</span>
+            <div class="space-y-1.5">
+                <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 lang-text" data-en="Theme Mode" data-np="थिम मोड">Theme Mode</label>
+                <button onclick="toggleTheme()" id="theme-toggle-btn" class="w-full py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 font-semibold text-slate-700 dark:text-slate-200 hover:border-emerald-500 dark:hover:border-emerald-500 transition flex items-center justify-center gap-2">
+                    <span id="theme-icon">🌙</span> <span id="theme-text">Dark</span>
                 </button>
             </div>
 
             <!-- Font Size Selector -->
-            <div class="space-y-1">
-                <label class="block text-slate-500 dark:text-slate-400 font-semibold">Font Size</label>
-                <select id="font-size-selector" onchange="changeFontSize(this.value)" class="w-full py-2 px-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 font-semibold text-slate-800 dark:text-slate-200 focus:outline-none">
-                    <option value="text-xs">Small</option>
-                    <option value="text-sm">Medium</option>
-                    <option value="text-base">Large</option>
+            <div class="space-y-1.5">
+                <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 lang-text" data-en="Font Size" data-np="फन्ट साइज">Font Size</label>
+                <select id="font-size-selector" onchange="changeFontSize(this.value)" class="w-full py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:border-emerald-500 transition">
+                    <option value="text-xs">Compact (Small)</option>
+                    <option value="text-sm">Standard (Medium)</option>
+                    <option value="text-base">Comfortable (Large)</option>
                 </select>
             </div>
 
             <!-- Font Family Selector -->
-            <div class="space-y-1">
-                <label class="block text-slate-500 dark:text-slate-400 font-semibold">Font Family</label>
-                <select id="font-family-selector" onchange="changeFontFamily(this.value)" class="w-full py-2 px-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 font-semibold text-slate-800 dark:text-slate-200 focus:outline-none">
+            <div class="space-y-1.5">
+                <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 lang-text" data-en="Font Style" data-np="फन्ट शैली">Font Style</label>
+                <select id="font-family-selector" onchange="changeFontFamily(this.value)" class="w-full py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:border-emerald-500 transition">
                     <option value="font-sans">Poppins</option>
-                    <option value="font-['Inter']">Inter</option>
-                    <option value="font-['Roboto']">Roboto</option>
+                    <option value="font-inter">Inter</option>
+                    <option value="font-roboto">Roboto</option>
                 </select>
             </div>
         </div>
     </div>
 
     <!-- POLICY, TERMS & ABOUT SECTION -->
-    <div class="bg-white dark:bg-slate-900 p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border border-slate-200 dark:border-slate-800 transition-colors duration-300 w-full">
-        <h4 class="font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-200 dark:border-slate-800 pb-3" data-i18n="policy_title">ℹ️ Policy, Terms & About</h4>
+    <div class="bg-white dark:bg-slate-900/60 backdrop-blur-md p-6 rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-200/80 dark:border-slate-800 space-y-4">
+        <h3 class="font-bold text-slate-900 dark:text-white text-sm uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-shield-halved text-emerald-500"></i> <span data-i18n="policy_title">Policy, Terms & About</span>
+        </h3>
 
-        <div class="space-y-3 w-full">
-            <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 w-full">
-                <h5 class="font-bold text-slate-800 dark:text-slate-200" data-i18n="policy_main_title">Policy, Terms & Overview</h5>
-                <p class="text-slate-600 dark:text-slate-400 mt-1" data-i18n="policy_main_desc">Your financial records are secured in Firebase cloud. Third-party data sharing is restricted, and users retain complete control over their accounts.</p>
+        <div class="space-y-3">
+            <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+                <h5 class="font-semibold text-slate-800 dark:text-slate-200 text-sm" data-i18n="policy_main_title">Policy, Terms & Overview</h5>
+                <p class="text-slate-500 dark:text-slate-400 text-xs mt-1 leading-relaxed" data-i18n="policy_main_desc">Your financial records are secured in Firebase cloud. Third-party data sharing is restricted, and users retain complete control over their accounts.</p>
                 
-                <div id="more-policy" class="more-text text-slate-600 dark:text-slate-400 space-y-2 mt-2 pt-2 border-t border-slate-100 dark:border-slate-700">
+                <div id="more-policy" class="more-text text-slate-500 dark:text-slate-400 text-xs space-y-2 mt-2 pt-2 border-t border-slate-200 dark:border-slate-700/50 leading-relaxed">
                     <p class="lang-text" 
                        data-en="Your complete accounts, transaction records, and bills will be kept fully secure in the cloud server. We will never sell or transfer any of your personal or financial details to any third party or anyone else, ensuring your privacy remains protected at all times. To use this system, users must log in securely and will be entirely responsible for keeping their login credentials confidential. An active internet connection is fundamentally required to keep data fresh and synchronized in real-time on the server. Furthermore, users retain the full right to request the deletion of their account and all stored details from the server whenever they wish." 
                        data-np="तपाईँका सबै हिसाब-किताब, कारोबारका विवरण र बिलहरू क्लाउड सर्भरमा पूर्ण रूपमा सुरक्षित रूपमा राखिनेछन्। हामी तपाईँको कुनै पनि व्यक्तिगत वा वित्तीय विवरणहरू तेस्रो पक्ष वा अन्य कसैलाई पनि बिक्री गर्ने वा हस्तान्तरण गर्ने छैनौं, जसले गर्दा तपाईँको गोपनीयता सधैं सुरक्षित रहन्छ। यो प्रणाली प्रयोग गर्नका लागि प्रयोगकर्ताहरूले सुरक्षित रूपमा लगइन गर्नुपर्ने हुन्छ र आफ्ना लगइन विवरणहरू गोप्य राख्ने पूर्ण जिम्मेवारी स्वयम् प्रयोगकर्ताकै हुनेछ। सर्भरमा डाटालाई वास्तविक समयमै ताजा राख्न र सिंक गर्नका लागि सक्रिय इन्टरनेट जडान अनिवार्य रूपमा आवश्यक पर्दछ। यसबाहेक, प्रयोगकर्ताहरूसँग पूर्ण अधिकार हुन्छ कि उनीहरूले सर्भरमा सुरक्षित राखिएको आफ्नो खाता तथा सम्पूर्ण विवरणहरू जुनसुकै बेला चाहेको बखत मेटाउनका लागि अनुरोध गर्न सक्नेछन्।">
@@ -131,64 +139,64 @@ tailwind.config = {
                     </p>
                 </div>
 
-                <button onclick="toggleText('policy')" id="toggle-btn-policy" class="text-emerald-600 dark:text-emerald-400 font-bold mt-3 block hover:underline" data-i18n="see_more">See More</button>
+                <button onclick="toggleText('policy')" id="toggle-btn-policy" class="text-emerald-600 dark:text-emerald-400 font-semibold text-xs mt-3 block hover:underline" data-i18n="see_more">See More</button>
             </div>
         </div>
         
-        <div class="pt-2 text-center border-t border-slate-100 dark:border-slate-800 w-full">
-            <button onclick="checkForUpdates()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-3 py-1.5 rounded-xl shadow-md shadow-emerald-600/20 transition">
-                <i class="fa-solid fa-rotate"></i> Version 6.7 <span id="update-status-text" class="opacity-80" data-i18n="check_update">(Check Update)</span>
+        <div class="pt-2 text-center">
+            <button onclick="checkForUpdates()" class="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium px-4 py-2 rounded-xl text-xs transition">
+                <i class="fa-solid fa-rotate text-emerald-500"></i> Version 6.7 <span id="update-status-text" class="opacity-70" data-i18n="check_update">(Check Update)</span>
             </button>
         </div>
     </div>
 
     <!-- FEEDBACK & SUGGESTIONS SECTION -->
-    <div class="bg-white dark:bg-slate-900 p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border border-slate-200 dark:border-slate-800 transition-colors duration-300 w-full">
-        <h3 class="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+    <div class="bg-white dark:bg-slate-900/60 backdrop-blur-md p-6 rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-200/80 dark:border-slate-800 space-y-4">
+        <h3 class="font-bold text-slate-900 dark:text-white text-sm uppercase tracking-wider flex items-center gap-2">
             <i class="fa-solid fa-comments text-emerald-500"></i> <span data-i18n="feedback_title">Feedback & Suggestions</span>
         </h3>
-        <form id="feedback-form" onsubmit="handleFeedback(event)" class="space-y-3 w-full">
-            <div class="w-full">
-                <label class="block font-semibold text-slate-500 dark:text-slate-400 mb-1" data-i18n="your_name">Your Name:</label>
-                <input type="text" id="fb-name" required placeholder="Enter your name" class="w-full border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 rounded-xl outline-none">
+        <form id="feedback-form" onsubmit="handleFeedback(event)" class="space-y-3">
+            <div>
+                <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1" data-i18n="your_name">Your Name:</label>
+                <input type="text" id="fb-name" required placeholder="Enter your name" class="w-full border border-slate-200 dark:border-slate-700/60 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white p-3 rounded-xl text-xs focus:outline-none focus:border-emerald-500 transition">
             </div>
-            <div class="w-full">
-                <label class="block font-semibold text-slate-500 dark:text-slate-400 mb-1" data-i18n="your_message">Message or Feedback:</label>
-                <textarea id="fb-msg" rows="3" required placeholder="Write your feedback..." class="w-full border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 rounded-xl outline-none"></textarea>
+            <div>
+                <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1" data-i18n="your_message">Message or Feedback:</label>
+                <textarea id="fb-msg" rows="3" required placeholder="Write your feedback..." class="w-full border border-slate-200 dark:border-slate-700/60 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white p-3 rounded-xl text-xs focus:outline-none focus:border-emerald-500 transition resize-none"></textarea>
             </div>
-            <button type="submit" id="fb-submit-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium p-2.5 rounded-xl transition" data-i18n="btn_submit">Submit</button>
+            <button type="submit" id="fb-submit-btn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-3 rounded-xl text-xs transition shadow-lg shadow-emerald-600/20" data-i18n="btn_submit">Submit</button>
         </form>
     </div>
 
-    <!-- DELETE ACCOUNT SECTION -->
-    <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm space-y-3 border border-slate-200 dark:border-slate-800">
+    <!-- DELETE ACCOUNT SECTION (Danger Zone) -->
+    <div class="bg-white dark:bg-slate-900/60 backdrop-blur-md p-6 rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-rose-200/40 dark:border-rose-900/30 space-y-4">
         <div class="flex items-center justify-between">
             <div>
-                <h2 class="font-bold text-rose-600 dark:text-rose-400 lang-text" data-en="Danger Zone" data-np="Danger Zone">Danger Zone</h2>
-                <p class="text-slate-500 dark:text-slate-400 lang-text" data-en="Permanently delete your account" data-np="Permanently delete your account">Permanently delete your account</p>
+                <h3 class="font-bold text-rose-600 dark:text-rose-400 text-sm lang-text" data-en="Danger Zone" data-np="Danger Zone">Danger Zone</h3>
+                <p class="text-slate-500 dark:text-slate-400 text-xs lang-text" data-en="Permanently delete your account and data" data-np="Permanently delete your account and data">Permanently delete your account and data</p>
             </div>
-            <button onclick="toggleDeleteAccountSection()" id="delete-toggle-btn" class="px-3 py-1.5 bg-rose-600/10 hover:bg-rose-600 hover:text-white text-rose-600 border border-rose-600/30 rounded-xl font-bold transition lang-text" data-en="Delete Account" data-np="Delete Account">
+            <button onclick="toggleDeleteAccountSection()" id="delete-toggle-btn" class="px-4 py-2 bg-rose-500/10 hover:bg-rose-600 hover:text-white text-rose-600 border border-rose-500/20 rounded-xl font-semibold text-xs transition lang-text" data-en="Delete Account" data-np="Delete Account">
                 Delete Account
             </button>
         </div>
 
         <!-- Hidden Delete Form -->
-        <div id="delete-form-box" class="hidden space-y-3 pt-3 border-t border-slate-200 dark:border-slate-800">
-            <p class="font-semibold text-slate-700 dark:text-slate-300 lang-text" data-en="Please select a reason for deletion (Mandatory):" data-np="Please select a reason for deletion (Mandatory):">Please select a reason for deletion (Mandatory):</p>
-            <div class="space-y-1.5 text-slate-600 dark:text-slate-400">
-                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="del_reason" value="No longer using the app" class="accent-rose-600"> <span class="lang-text" data-en="No longer using the app" data-np="No longer using the app">No longer using the app</span></label>
-                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="del_reason" value="Privacy concerns" class="accent-rose-600"> <span class="lang-text" data-en="Privacy concerns" data-np="Privacy concerns">Privacy concerns</span></label>
-                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="del_reason" value="Found a better alternative" class="accent-rose-600"> <span class="lang-text" data-en="Found a better alternative" data-np="Found a better alternative">Found a better alternative</span></label>
-                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="del_reason" value="Other reason" class="accent-rose-600"> <span class="lang-text" data-en="Other reason" data-np="Other reason">Other reason</span></label>
+        <div id="delete-form-box" class="hidden space-y-3 pt-4 border-t border-slate-200 dark:border-slate-800">
+            <p class="font-medium text-slate-700 dark:text-slate-300 text-xs lang-text" data-en="Please select a reason for deletion (Mandatory):" data-np="Please select a reason for deletion (Mandatory):">Please select a reason for deletion (Mandatory):</p>
+            <div class="space-y-2 text-slate-600 dark:text-slate-400 text-xs">
+                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="del_reason" value="No longer using the app" class="accent-rose-600 rounded"> <span class="lang-text" data-en="No longer using the app" data-np="No longer using the app">No longer using the app</span></label>
+                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="del_reason" value="Privacy concerns" class="accent-rose-600 rounded"> <span class="lang-text" data-en="Privacy concerns" data-np="Privacy concerns">Privacy concerns</span></label>
+                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="del_reason" value="Found a better alternative" class="accent-rose-600 rounded"> <span class="lang-text" data-en="Found a better alternative" data-np="Found a better alternative">Found a better alternative</span></label>
+                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="del_reason" value="Other reason" class="accent-rose-600 rounded"> <span class="lang-text" data-en="Other reason" data-np="Other reason">Other reason</span></label>
             </div>
-            <textarea id="delete-custom-reason" class="lang-placeholder w-full p-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-rose-500 resize-none" placeholder="Write additional reasons (optional)..." rows="2"></textarea>
+            <textarea id="delete-custom-reason" class="lang-placeholder w-full p-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 rounded-xl text-slate-900 dark:text-white text-xs focus:outline-none focus:border-rose-500 resize-none" placeholder="Write additional reasons (optional)..." rows="2"></textarea>
             
             <div class="relative">
-                <input type="password" id="delete-confirm-password" class="w-full p-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none pr-10" placeholder="Enter your current password to confirm">
-                <button type="button" onclick="togglePasswordVisibility('delete-confirm-password', 'del-eye')" class="absolute right-3 top-3 text-slate-400 hover:text-slate-200"><i id="del-eye" class="fa-solid fa-eye"></i></button>
+                <input type="password" id="delete-confirm-password" class="w-full p-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 rounded-xl text-slate-900 dark:text-white text-xs focus:outline-none pr-10 focus:border-rose-500" placeholder="Enter your current password to confirm">
+                <button type="button" onclick="togglePasswordVisibility('delete-confirm-password', 'del-eye')" class="absolute right-3 top-3.5 text-slate-400 hover:text-slate-200"><i id="del-eye" class="fa-solid fa-eye"></i></button>
             </div>
 
-            <button onclick="submitDeleteAccountRequest()" class="w-full py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl font-bold transition lang-text" data-en="Submit & Delete Account" data-np="Submit & Delete Account">
+            <button onclick="submitDeleteAccountRequest()" class="w-full py-3 bg-rose-600 hover:bg-rose-500 text-white rounded-xl font-bold text-xs transition shadow-lg shadow-rose-600/20 lang-text" data-en="Submit & Delete Account" data-np="Submit & Delete Account">
                 Submit & Delete Account
             </button>
         </div>
@@ -214,7 +222,7 @@ tailwind.config = {
 
     const translations = {
         EN: {
-            policy_title: "ℹ️ Policy, Terms & About",
+            policy_title: "Policy, Terms & About",
             policy_main_title: "Policy, Terms & Overview",
             policy_main_desc: "Your financial records are secured in Firebase cloud. Third-party data sharing is restricted, and users retain complete control over their accounts.",
             see_more: "See More",
@@ -226,22 +234,22 @@ tailwind.config = {
             btn_submit: "Submit"
         },
         NEP: {
-            policy_title: "ℹ️ नीति, सर्तहरू र बारेमा",
+            policy_title: "नीति, सर्तहरू र बारेमा",
             policy_main_title: "गोपनीयता नीति र सर्तहरू",
             policy_main_desc: "तपाईँका हिसाब-किताब फायरबेस क्लाउडमा सुरक्षित छन्। तेस्रो पक्षलाई डाटा शेयर गरिंदैन।",
             see_more: "थप हेर्नुहोस्",
             see_less: "कम देखाउनुहोस्",
             check_update: "(अपडेट जाँच गर्नुहोस्)",
-            feedback_title: "Feedback & Suggestions",
-            your_name: "Your Name:",
-            your_message: "Message or Feedback:",
-            btn_submit: "Submit"
+            feedback_title: "प्रतिक्रिया तथा सुझावहरू",
+            your_name: "तपाईँको नाम:",
+            your_message: "सन्देश वा प्रतिक्रिया:",
+            btn_submit: "पेश गर्नुहोस्"
         }
     };
 
     function updateLanguageUI() {
         const btn = document.getElementById('lang-toggle-btn');
-        if(btn) btn.innerText = currentLang === 'EN' ? 'ENG' : 'नेपाली';
+        if(btn) btn.innerHTML = `<i class="fa-solid fa-globe text-emerald-500"></i> <span>${currentLang === 'EN' ? 'ENG' : 'नेपाली'}</span>`;
 
         document.querySelectorAll('.lang-text').forEach(el => {
             const text = currentLang === 'NEP' ? el.getAttribute('data-np') : el.getAttribute('data-en');
@@ -274,7 +282,7 @@ tailwind.config = {
         const themeIcon = document.getElementById('theme-icon');
         const themeText = document.getElementById('theme-text');
         if(themeIcon && themeText) {
-            themeIcon.innerText = isDark ? '🌛' : '🌞';
+            themeIcon.innerText = isDark ? '🌙' : '☀️';
             themeText.innerText = isDark ? 'Dark' : 'Light';
         }
     }
@@ -300,7 +308,7 @@ tailwind.config = {
 
     function changeFontFamily(fontClass) {
         const htmlEl = document.documentElement;
-        htmlEl.classList.remove('font-sans', "font-['Inter']", "font-['Roboto']");
+        htmlEl.classList.remove('font-sans', 'font-inter', 'font-roboto');
         htmlEl.classList.add(fontClass);
         localStorage.setItem('font_family', fontClass);
     }
@@ -311,7 +319,7 @@ tailwind.config = {
         const toast = document.createElement('div');
         const bgColor = type === 'success' ? 'bg-emerald-600' : 'bg-rose-600';
         
-        toast.className = `${bgColor} text-white px-4 py-2.5 rounded-xl shadow-lg font-semibold transform transition-all duration-100 translate-y-2 opacity-0 flex items-center gap-2 text-xs`;
+        toast.className = `${bgColor} text-white px-4 py-3 rounded-2xl shadow-xl font-medium transform transition-all duration-200 translate-y-2 opacity-0 flex items-center gap-2 text-xs`;
         toast.innerHTML = `<span>${type === 'success' ? '✅' : '⚠️'}</span> <span>${message}</span>`;
         container.appendChild(toast);
         
@@ -319,8 +327,8 @@ tailwind.config = {
         
         setTimeout(() => {
             toast.classList.add('translate-y-2', 'opacity-0');
-            setTimeout(() => toast.remove(), 100);
-        }, 1500);
+            setTimeout(() => toast.remove(), 200);
+        }, 2000);
     }
 
     function toggleText(id) {
@@ -329,11 +337,7 @@ tailwind.config = {
         if (el && btn) {
             el.classList.toggle('show');
             const isShown = el.classList.contains('show');
-            if (currentLang === 'NEP') {
-                btn.innerText = isShown ? 'कम देखाउनुहोस्' : 'थप हेर्नुहोस्';
-            } else {
-                btn.innerText = isShown ? 'See Less' : 'See More';
-            }
+            btn.innerText = isShown ? (translations[currentLang]['see_less'] || 'See Less') : (translations[currentLang]['see_more'] || 'See More');
         }
     }
 
@@ -368,7 +372,7 @@ tailwind.config = {
 
         if(name && msg) {
             submitBtn.disabled = true;
-            submitBtn.innerText = 'Sending...';
+            submitBtn.innerText = currentLang === 'NEP' ? 'पठाउँदैछ...' : 'Sending...';
 
             const now = new Date();
             const timeString = now.toLocaleString();
@@ -383,14 +387,14 @@ tailwind.config = {
 
             emailjs.send('service_8zfv1vu', 'template_36j91tf', templateParams)
                 .then(function(response) {
-                    showToast('Feedback sent successfully!', 'success');
+                    showToast(currentLang === 'NEP' ? 'प्रतिक्रिया सफलतापूर्वक पठाइयो!' : 'Feedback sent successfully!', 'success');
                     document.getElementById('feedback-form').reset();
                     submitBtn.disabled = false;
-                    submitBtn.innerText = 'Submit';
+                    submitBtn.innerText = currentLang === 'NEP' ? 'पेश गर्नुहोस्' : 'Submit';
                 }, function(error) {
                     showToast('Failed to send email.', 'error');
                     submitBtn.disabled = false;
-                    submitBtn.innerText = 'Submit';
+                    submitBtn.innerText = currentLang === 'NEP' ? 'पेश गर्नुहोस्' : 'Submit';
                 });
         }
     }
