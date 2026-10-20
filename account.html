@@ -1,1037 +1,1244 @@
-
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Digital NoteBook — Account & Recovery</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#2563eb">
+  <title>Account & Recovery — Digital NoteBook</title>
 
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-<script>
-tailwind.config = { darkMode: 'class' };
-</script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --accent: #2563eb;
+      --bg: #f3f6fb;
+      --surface: #ffffff;
+      --text: #172033;
+      --muted: #687386;
+      --border: #e0e6ef;
+      --danger: #dc2626;
+      --success: #15803d;
+      --shadow: 0 5px 22px rgba(25, 45, 80, .07);
+    }
 
-<style>
-:root {
-  --dn-primary: #059669;
-  --dn-bg-light: #f1f5f9;
-  --dn-card-light: #ffffff;
-  --dn-bg-dark: #020617;
-  --dn-card-dark: #0f172a;
-  --dn-font-scale: 1;
-  --dn-radius: 16px;
-}
+    * { box-sizing: border-box; }
 
-html { font-size: calc(16px * var(--dn-font-scale)); }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, sans-serif;
+      font-size: 16px;
+      transition: background .2s, color .2s;
+    }
 
-body {
-  font-family: Arial, sans-serif;
-  background: var(--dn-bg-light);
-  color: #1e293b;
-  -webkit-tap-highlight-color: transparent;
-}
+    body.dark {
+      --bg: #101521;
+      --surface: #1a2232;
+      --text: #eef3ff;
+      --muted: #a5b0c4;
+      --border: #303b50;
+      --shadow: 0 5px 22px rgba(0, 0, 0, .18);
+    }
 
-.dark body {
-  background: var(--dn-bg-dark);
-  color: #f1f5f9;
-}
+    a { color: var(--accent); }
+    button, input, select { font: inherit; }
 
-.card {
-  border: 1px solid rgb(100 116 139 / 35%);
-  border-radius: var(--dn-radius);
-  padding: 16px;
-}
+    button {
+      border: 0;
+      border-radius: 9px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-weight: 600;
+      background: var(--accent);
+      color: white;
+    }
 
-.panel { background: var(--dn-card-light); }
-.dark .panel { background: var(--dn-card-dark); }
+    button:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
 
-.field {
-  width: 100%;
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid #64748b66;
-  background: #e2e8f0;
-  color: #0f172a;
-}
+    button.secondary {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
 
-.dark .field {
-  background: #1e293b;
-  color: #f8fafc;
-  border-color: #475569;
-}
+    button.danger { background: var(--danger); }
+    button.success { background: var(--success); }
 
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: .45rem;
-  padding: 10px 12px;
-  border-radius: 10px;
-  font-weight: 600;
-  cursor: pointer;
-}
+    input, select {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 11px;
+      color: var(--text);
+      background: var(--surface);
+      margin-top: 6px;
+    }
 
-.btn:disabled { opacity: .5; cursor: not-allowed; }
-.primary { background: var(--dn-primary); color: white; }
-.blue { background: #2563eb; color: white; }
-.red { background: #dc2626; color: white; }
-.muted { background: #e2e8f0; color: #0f172a; }
-.dark .muted { background: #334155; color: white; }
-.muted-text { color: #64748b; }
-.dark .muted-text { color: #94a3b8; }
-.dn-accent { color: var(--dn-primary); }
-.dn-small { font-size: .8rem; }
-</style>
+    label {
+      display: block;
+      font-weight: 600;
+      margin: 13px 0;
+    }
+
+    .topbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .brand { font-size: 19px; font-weight: 800; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 225px minmax(0, 1fr);
+      gap: 20px;
+      max-width: 1400px;
+      margin: 22px auto;
+      padding: 0 16px;
+    }
+
+    .sidebar, .panel, .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+    }
+
+    .sidebar {
+      padding: 14px;
+      align-self: start;
+      position: sticky;
+      top: 12px;
+    }
+
+    .navlink {
+      display: block;
+      text-decoration: none;
+      color: var(--text);
+      padding: 11px;
+      border-radius: 8px;
+      margin-bottom: 4px;
+    }
+
+    .navlink:hover, .navlink.active {
+      background: var(--bg);
+      color: var(--accent);
+    }
+
+    main { min-width: 0; }
+    h1 { margin: 0 0 8px; font-size: 27px; }
+    h2 { font-size: 19px; margin: 0 0 12px; }
+    h3 { font-size: 16px; margin: 0 0 8px; }
+    p { line-height: 1.55; }
+    .muted { color: var(--muted); }
+    .small { font-size: 13px; }
+
+    .panel { padding: 20px; margin-bottom: 18px; }
+    .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .row { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+    .between { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+    .status {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 10px 12px;
+      margin: 12px 0;
+      overflow-wrap: anywhere;
+    }
+
+    .status.error { color: var(--danger); }
+    .status.good { color: var(--success); }
+
+    .card {
+      padding: 14px;
+      box-shadow: none;
+      margin: 12px 0;
+      overflow-wrap: anywhere;
+    }
+
+    .trash-record {
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 13px;
+      margin: 10px 0;
+    }
+
+    .record-meta { color: var(--muted); font-size: 13px; margin: 7px 0; }
+    .hidden { display: none !important; }
+    .danger-text { color: var(--danger); }
+    .success-text { color: var(--success); }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .65);
+      z-index: 1000;
+      display: grid;
+      place-items: center;
+      padding: 16px;
+    }
+
+    .modal-box {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px;
+      width: min(480px, 100%);
+      max-height: 90vh;
+      overflow: auto;
+    }
+
+    .record-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .badge { font-size: 12px; border: 1px solid var(--border); border-radius: 30px; padding: 4px 8px; }
+    .footer { text-align: center; color: var(--muted); padding: 20px; font-size: 12px; }
+
+    @media (max-width: 760px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { position: static; }
+      .nav-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3px; }
+      .grid2 { grid-template-columns: 1fr; }
+      h1 { font-size: 23px; }
+      .panel { padding: 15px; }
+    }
+  </style>
 </head>
 
-<body class="text-sm">
-
-<div id="toast-container"
-     class="fixed bottom-4 right-4 z-[100] space-y-2"
-     aria-live="polite"></div>
-
-<!-- LOGIN -->
-<section id="login-panel"
- class="hidden min-h-screen items-center justify-center p-5">
-
-  <div class="card panel w-full max-w-sm space-y-4">
-    <h1 class="text-xl font-bold dn-accent">Digital NoteBook</h1>
-
-    <p class="muted-text">
-      Sign in to access your account, backup and recovery.
-    </p>
-
-    <form id="login-form" class="space-y-3">
-      <input id="login-email" class="field"
-        type="email" placeholder="Email address"
-        autocomplete="username" required>
-
-      <input id="login-password" class="field"
-        type="password" placeholder="Password"
-        autocomplete="current-password" required>
-
-      <button class="btn primary w-full" type="submit">
-        Sign In
-      </button>
-    </form>
-
-    <button class="btn muted w-full" id="forgot-password">
-      Forgot password?
-    </button>
-
-    <p id="login-error" class="text-rose-500" role="alert"></p>
-  </div>
-</section>
-
-<div id="app" class="hidden min-h-screen">
-
-  <!-- रातो घेराभन्दा माथिको Header र All Pages हटाइएको छ -->
-
-  <main class="mx-auto max-w-2xl space-y-4 p-4">
-
-    <div id="sync-status"
-      class="rounded-xl border border-slate-300/50 p-3 muted-text"
-      role="status">
-      Waiting for authentication…
+<body>
+  <header class="topbar">
+    <div class="brand">📘 Digital NoteBook</div>
+    <div class="row">
+      <span id="syncStatus" class="small muted">Connecting…</span>
+      <button id="themeButton" class="secondary" type="button">🌙 Theme</button>
+      <button id="logoutButton" type="button">Log out</button>
     </div>
+  </header>
 
-    <!-- CENTRAL TRASH -->
-    <section class="card panel space-y-3">
+  <div class="layout">
+    <aside class="sidebar">
+      <h3>Navigation</h3>
+      <nav class="nav-list">
+        <a class="navlink" href="index.html">🏠 Home</a>
+        <a class="navlink active" href="account.html">👤 Account</a>
+        <a class="navlink" href="add-transaction.html">💰 Transactions</a>
+        <a class="navlink" href="add-saving.html">🏦 Add Saving</a>
+        <a class="navlink" href="savings.html">📈 Savings</a>
+        <a class="navlink" href="house-expense.html">🏡 House Expenses</a>
+        <a class="navlink" href="setting.html">⚙️ Settings</a>
+      </nav>
+      <p class="muted small">Your account data is stored under your own Firebase user ID.</p>
+    </aside>
 
-      <div class="flex items-center justify-between gap-2">
-        <h2 class="font-bold dn-accent">
-          <i class="fa-solid fa-trash-arrow-up mr-2"></i>
-          Central Trash & Recovery
-        </h2>
+    <main>
+      <h1>Account & Recovery</h1>
+      <p class="muted">Manage your account, biometric convenience unlock, Trash, and backups.</p>
 
-        <button class="btn muted" id="refresh-trash">
-          <i class="fa-solid fa-rotate"></i> Refresh
-        </button>
-      </div>
+      <div id="pageStatus" class="status">Checking account…</div>
 
-      <p class="muted-text dn-small">
-        Deleted records from connected pages appear here.
-        Restore records within 30 days.
-      </p>
-
-      <div id="trash-count" class="muted-text dn-small">
-        Loading recovery items…
-      </div>
-
-      <div id="trash-list" class="space-y-2"></div>
-
-      <p class="border-t border-slate-300/50 pt-3
-        text-amber-600 dark:text-amber-300 dn-small">
-        Automatic permanent deletion requires a deployed
-        Firebase scheduled server function.
-      </p>
-    </section>
-
-    <!-- BACKUP -->
-    <section class="card panel space-y-3">
-
-      <h2 class="font-bold dn-accent">
-        <i class="fa-solid fa-database mr-2"></i>
-        Backup & Restore
-      </h2>
-
-      <p class="muted-text dn-small">
-        Download a backup of your signed-in account.
-        Restore merges data without clearing unrelated records.
-      </p>
-
-      <button class="btn primary w-full" id="download-backup">
-        <i class="fa-solid fa-download"></i>
-        Download Cloud Backup JSON
-      </button>
-
-      <label class="btn blue w-full cursor-pointer">
-        <i class="fa-solid fa-upload"></i>
-        Restore Backup JSON
-
-        <input id="restore-file" type="file"
-          accept=".json,application/json" class="hidden">
-      </label>
-
-      <p id="backup-status" class="muted-text dn-small"></p>
-    </section>
-
-    <!-- SECURITY -->
-    <section class="card panel space-y-4">
-
-      <h2 class="font-bold dn-accent">
-        <i class="fa-solid fa-shield-halved mr-2"></i>
-        Security Settings
-      </h2>
-
-      <div>
-        <label for="mpin-input" class="mb-1 block dn-small">
-          App MPIN (4 digits)
-        </label>
-
-        <div class="flex gap-2">
-          <input id="mpin-input" class="field"
-            type="password" maxlength="4"
-            inputmode="numeric" autocomplete="off"
-            placeholder="4-digit MPIN">
-
-          <button class="btn primary" id="save-mpin">
-            Save
-          </button>
+      <section class="panel">
+        <h2>Account information</h2>
+        <div class="card">
+          <div class="muted small">Signed-in email</div>
+          <strong id="accountEmail">Loading…</strong>
+          <div class="muted small" style="margin-top:8px">Firebase UID</div>
+          <code id="accountUid" class="small">—</code>
         </div>
+        <div class="row">
+          <button id="refreshButton" class="secondary" type="button">Refresh data</button>
+          <button id="resetPasswordButton" class="secondary" type="button">Send password reset email</button>
+        </div>
+      </section>
 
-        <p class="mt-1 muted-text dn-small">
-          MPIN is stored locally on this device.
-          It is not a replacement for Firebase security.
+      <section class="panel">
+        <h2>Fingerprint / Biometric unlock</h2>
+        <p>
+          On supported devices and secure websites, your browser may offer fingerprint,
+          face recognition, or the device's screen-lock authentication through WebAuthn.
+          This is a convenience lock for this browser, not a replacement for Firebase login.
         </p>
-      </div>
+        <div id="biometricStatus" class="status">Checking browser support…</div>
+        <div class="row">
+          <button id="registerBiometricButton" type="button">Set up biometric unlock</button>
+          <button id="testBiometricButton" class="secondary" type="button">Test biometric</button>
+          <button id="removeBiometricButton" class="secondary" type="button">Remove this device's setup</button>
+        </div>
+        <p class="muted small">
+          WebAuthn credentials are device/browser-specific. This page does not send biometric
+          information or fingerprint data to Firebase. A proper server-verified WebAuthn
+          login requires a server-side challenge and verification endpoint.
+        </p>
+      </section>
 
-      <div class="flex items-center justify-between gap-3">
-        <label for="biometric-toggle">
-          Biometric unlock preference
+      <section class="panel">
+        <div class="between">
+          <div>
+            <h2>Central Trash & Recovery</h2>
+            <p class="muted small">Restore records before their 30-day expiry. Restoring never intentionally overwrites an existing record.</p>
+          </div>
+          <button id="reloadTrashButton" class="secondary" type="button">Reload Trash</button>
+        </div>
+        <div class="grid2">
+          <div class="card">
+            <div class="muted small">Trash records</div>
+            <h2 id="trashCount">0</h2>
+          </div>
+          <div class="card">
+            <div class="muted small">Expired records</div>
+            <h2 id="expiredCount">0</h2>
+          </div>
+        </div>
+        <label>
+          Search Trash
+          <input id="trashSearch" type="search" placeholder="Search title, type, or ID…">
         </label>
-        <input id="biometric-toggle" type="checkbox">
-      </div>
-
-      <p class="muted-text dn-small">
-        This preference does not itself verify a fingerprint.
-      </p>
-    </section>
-
-    <!-- CHANGE PASSWORD -->
-    <section class="card panel space-y-3">
-
-      <h2 class="font-bold dn-accent">
-        <i class="fa-solid fa-key mr-2"></i>
-        Change Password
-      </h2>
-
-      <input id="current-password" class="field"
-        type="password" autocomplete="current-password"
-        placeholder="Current password">
-
-      <input id="new-password" class="field"
-        type="password" autocomplete="new-password"
-        placeholder="New password (at least 6 characters)">
-
-      <input id="confirm-password" class="field"
-        type="password" autocomplete="new-password"
-        placeholder="Confirm new password">
-
-      <button class="btn blue w-full" id="change-password">
-        Update Password
-      </button>
-    </section>
-
-    <!-- DEVICE -->
-    <section class="card panel space-y-2">
-      <h2 class="font-bold">Device Information</h2>
-
-      <p id="device-name" class="muted-text dn-small"></p>
-
-      <button class="btn muted" id="toggle-device">
-        Show/hide full details
-      </button>
-
-      <p id="device-details"
-        class="hidden break-all muted-text dn-small"></p>
-    </section>
-
-    <!-- DANGER ZONE -->
-    <section class="card panel space-y-3 border-rose-500/50">
-
-      <h2 class="font-bold text-rose-500">Danger Zone</h2>
-
-      <button class="btn muted w-full" id="logout">
-        Log Out
-      </button>
-
-      <p class="muted-text dn-small">
-        Master Reset permanently removes cloud data,
-        including Trash. Download a backup first.
-      </p>
-
-      <input id="reset-word" class="field"
-        placeholder="Type RESET to confirm" autocomplete="off">
-
-      <input id="reset-mpin" class="field"
-        type="password" inputmode="numeric" maxlength="4"
-        placeholder="Enter your saved MPIN" autocomplete="off">
-
-      <button class="btn red w-full" id="master-reset">
-        Permanently Reset Account Data
-      </button>
-    </section>
-
-    <footer class="pb-4 text-center muted-text dn-small">
-      Digital NoteBook · Account & Recovery
-    </footer>
-
-  </main>
-</div>
-
-<script>
-'use strict';
-
-/* Firebase configuration */
-const firebaseConfig = {
-  apiKey: "AIzaSyDDY_v7RHnkCTI6uyV4DNDjqoaIBGweg8c",
-  authDomain: "digital-a2555.firebaseapp.com",
-  databaseURL: "https://digital-a2555-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "digital-a2555",
-  storageBucket: "digital-a2555.firebasestorage.app",
-  messagingSenderId: "218135618179",
-  appId: "1:135618179:web:821b76920d3e5669ac31b6"
-};
-
-if (!firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig);
-}
-
-const auth = firebase.auth();
-const db = firebase.database();
-const $ = id => document.getElementById(id);
-
-let currentUser = null;
-let trashRef = null;
-let trashListener = null;
-let settingsRef = null;
-let settingsListener = null;
-let trashTree = {};
-
-const DAY = 86400000;
-
-const TRASH_CATEGORIES = new Set([
-  'transactions',
-  'incomes',
-  'savings',
-  'house_expenses',
-  'notes',
-  'cashflow'
-]);
-
-function rootPath() {
-  if (!currentUser) throw new Error('Not signed in');
-  return `users/${currentUser.uid}`;
-}
-
-function toast(message, error = false) {
-  const el = document.createElement('div');
-  el.className =
-    `rounded-xl px-4 py-3 text-white shadow-lg ${
-      error ? 'bg-rose-600' : 'bg-emerald-600'
-    }`;
-
-  el.textContent = message;
-  $('toast-container').appendChild(el);
-
-  setTimeout(() => el.remove(), 4000);
-}
-
-function setSync(message, error = false) {
-  $('sync-status').textContent = message;
-  $('sync-status').className =
-    'rounded-xl border p-3 ' +
-    (error
-      ? 'border-rose-500/40 text-rose-500'
-      : 'border-slate-300/50 muted-text');
-}
-
-function friendlyError(e) {
-  const messages = {
-    'auth/wrong-password': 'Incorrect password.',
-    'auth/invalid-credential': 'Email or password is incorrect.',
-    'auth/user-not-found': 'No account found for this email.',
-    'auth/invalid-email': 'Please check the email address.',
-    'auth/weak-password': 'Use a stronger password.',
-    'auth/requires-recent-login': 'Please sign in again and retry.',
-    'auth/network-request-failed': 'Check your internet connection.'
-  };
-
-  return messages[e.code] || e.message || 'Something went wrong.';
-}
-
-/* LOGIN */
-$('login-form').addEventListener('submit', async event => {
-  event.preventDefault();
-  $('login-error').textContent = '';
-
-  try {
-    await auth.signInWithEmailAndPassword(
-      $('login-email').value.trim(),
-      $('login-password').value
-    );
-  } catch (e) {
-    $('login-error').textContent = friendlyError(e);
-  }
-});
-
-$('forgot-password').addEventListener('click', async () => {
-  const email = $('login-email').value.trim();
-
-  if (!email) {
-    return toast('Enter your email address first.', true);
-  }
-
-  try {
-    await auth.sendPasswordResetEmail(email);
-    toast('Password reset email sent.');
-  } catch (e) {
-    toast(friendlyError(e), true);
-  }
-});
-
-/* AUTH GATE */
-auth.onAuthStateChanged(user => {
-  currentUser = user;
-
-  if (!user) {
-    stopListeners();
-
-    $('app').classList.add('hidden');
-    $('login-panel').classList.remove('hidden');
-    $('login-panel').classList.add('flex');
-
-    setSync('Signed out. Sign in to access private data.');
-    return;
-  }
-
-  $('login-panel').classList.add('hidden');
-  $('app').classList.remove('hidden');
-
-  $('mpin-input').value = localStorage.getItem('app_mpin') || '';
-  $('biometric-toggle').checked =
-    localStorage.getItem('app_biometric') === 'enabled';
-
-  const ua = navigator.userAgent;
-
-  $('device-name').textContent =
-    /Android/i.test(ua) ? 'Browser on Android' :
-    /iPhone|iPad/i.test(ua) ? 'Browser on iPhone/iPad' :
-    /Windows/i.test(ua) ? 'Browser on Windows' :
-    'Web browser';
-
-  $('device-details').textContent = ua;
-
-  startListeners();
-});
-
-function stopListeners() {
-  if (trashRef && trashListener) {
-    trashRef.off('value', trashListener);
-  }
-
-  if (settingsRef && settingsListener) {
-    settingsRef.off('value', settingsListener);
-  }
-
-  trashRef = trashListener = settingsRef = settingsListener = null;
-}
-
-/* REALTIME TRASH AND SETTINGS */
-function startListeners() {
-  stopListeners();
-
-  if (!currentUser) return;
-
-  setSync('Connecting to Firebase…');
-
-  trashRef = db.ref(`${rootPath()}/trash`);
-
-  trashListener = snapshot => {
-    trashTree = snapshot.val() || {};
-    renderTrash();
-    setSync('Connected · Trash syncing in realtime');
-  };
-
-  trashRef.on('value', trashListener, error => {
-    setSync('Trash sync failed: ' + error.message, true);
-  });
-
-  // Settings are read-only on this page.
-  settingsRef = db.ref(`${rootPath()}/settings`);
-
-  settingsListener = snapshot => {
-    applySharedSettings(snapshot.val() || {});
-  };
-
-  settingsRef.on('value', settingsListener, error => {
-    setSync('Settings sync failed: ' + error.message, true);
-  });
-}
-
-/* SHARED DISPLAY PREFERENCES */
-function applySharedSettings(settings) {
-  const theme = String(
-    settings.theme ||
-    settings.appearance?.theme ||
-    localStorage.getItem('theme') ||
-    'dark'
-  ).toLowerCase();
-
-  document.documentElement.classList.toggle('dark', theme === 'dark');
-
-  const color =
-    settings.primaryColor ||
-    settings.color ||
-    settings.accentColor;
-
-  if (
-    typeof color === 'string' &&
-    /^#[0-9a-f]{3}([0-9a-f]{3})?$/i.test(color)
-  ) {
-    document.documentElement.style.setProperty('--dn-primary', color);
-  }
-
-  const scale = Number(settings.fontScale || settings.textScale || 1);
-
-  if (Number.isFinite(scale) && scale >= 0.85 && scale <= 1.3) {
-    document.documentElement.style.setProperty(
-      '--dn-font-scale',
-      String(scale)
-    );
-  }
-
-  const radius = Number(settings.radius);
-
-  if (Number.isFinite(radius) && radius >= 0 && radius <= 28) {
-    document.documentElement.style.setProperty(
-      '--dn-radius',
-      radius + 'px'
-    );
-  }
-
-  document.documentElement.lang = String(settings.language || 'en');
-}
-
-/* TRASH RENDERING */
-function flattenTrash(tree) {
-  const result = [];
-
-  if (!tree || typeof tree !== 'object') return result;
-
-  Object.entries(tree).forEach(([type, entries]) => {
-    if (
-      !TRASH_CATEGORIES.has(type) ||
-      !entries ||
-      typeof entries !== 'object'
-    ) return;
-
-    Object.entries(entries).forEach(([id, item]) => {
-      if (item && typeof item === 'object') {
-        result.push({
-          recordType: type,
-          recordId: id,
-          ...item
-        });
-      }
-    });
-  });
-
-  return result;
-}
-
-function escapeHTML(value) {
-  return String(value ?? '').replace(/[&<>"']/g, char => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#39;'
-  })[char]);
-}
-
-function labelFor(type) {
-  return ({
-    transactions: 'Transaction',
-    incomes: 'Income',
-    savings: 'Savings',
-    house_expenses: 'House expense',
-    notes: 'Note',
-    cashflow: 'Cash flow'
-  })[type] || type.replaceAll('_', ' ');
-}
-
-function renderTrash() {
-  const items = flattenTrash(trashTree).sort(
-    (a, b) => Number(b.deletedAt || 0) - Number(a.deletedAt || 0)
-  );
-
-  $('trash-count').textContent =
-    `${items.length} item(s) in central Trash`;
-
-  const list = $('trash-list');
-  list.replaceChildren();
-
-  if (!items.length) {
-    const empty = document.createElement('p');
-
-    empty.className =
-      'rounded-xl bg-slate-100 dark:bg-slate-800 p-4 text-center muted-text dn-small';
-
-    empty.textContent =
-      'Trash is empty. Other pages must use the shared delete-to-trash structure.';
-
-    list.appendChild(empty);
-    return;
-  }
-
-  items.forEach(item => {
-    const deletedAt = Number(item.deletedAt || 0);
-    const expiresAt = Number(
-      item.expiresAt || deletedAt + 30 * DAY
-    );
-
-    const data = item.data || {};
-
-    const title =
-      data.title ||
-      data.name ||
-      data.description ||
-      data.partyName ||
-      data.party ||
-      data.note ||
-      labelFor(item.recordType) + ' record';
-
-    const row = document.createElement('article');
-    row.className =
-      'rounded-xl border border-slate-300/50 p-3 dark:border-slate-700';
-
-    const info = document.createElement('div');
-    info.className = 'mb-3';
-
-    info.innerHTML = `
-      <p class="font-semibold">${escapeHTML(title)}</p>
-      <p class="mt-1 muted-text dn-small">
-        ${escapeHTML(labelFor(item.recordType))}
-        · ID: ${escapeHTML(item.recordId)}
-      </p>
-      <p class="mt-1 muted-text dn-small">
-        Deleted: ${
-          deletedAt
-            ? escapeHTML(new Date(deletedAt).toLocaleString())
-            : 'Unknown date'
-        }
-      </p>
-      <p class="mt-1 text-amber-600 dn-small">
-        Expires: ${
-          deletedAt
-            ? escapeHTML(new Date(expiresAt).toLocaleString())
-            : 'Unknown'
-        }
-      </p>
-    `;
-
-    const actions = document.createElement('div');
-    actions.className = 'flex flex-wrap gap-2';
-
-    const restore = document.createElement('button');
-    restore.className = 'btn primary flex-1';
-    restore.textContent = 'Restore';
-    restore.disabled = !deletedAt || expiresAt <= Date.now();
-    restore.addEventListener('click', () => restoreItem(item));
-
-    const remove = document.createElement('button');
-    remove.className = 'btn red';
-    remove.textContent = 'Delete permanently';
-    remove.addEventListener('click', () => permanentDelete(item));
-
-    actions.append(restore, remove);
-    row.append(info, actions);
-    list.appendChild(row);
-  });
-}
-
-/* VALIDATE RESTORE PATH */
-function safeKey(value) {
-  return typeof value === 'string' &&
-    value.length > 0 &&
-    !/[.#$\[\]/]/.test(value);
-}
-
-function validateOriginalPath(item) {
-  const path = String(item.originalPath || '')
-    .replace(/^\/+|\/+$/g, '');
-
-  if (!path.startsWith(rootPath() + '/')) return null;
-
-  const parts = path.split('/');
-
-  if (parts.some(part => !safeKey(part))) return null;
-
-  if (
-    parts.length !== 4 ||
-    parts[0] !== 'users' ||
-    parts[1] !== currentUser.uid ||
-    !TRASH_CATEGORIES.has(parts[2]) ||
-    parts[3] !== item.recordId
-  ) return null;
-
-  return path;
-}
-
-/* RESTORE WITHOUT OVERWRITING AN EXISTING RECORD */
-async function restoreItem(item) {
-  if (!currentUser) return;
-
-  const deletedAt = Number(item.deletedAt || 0);
-  const expiresAt = Number(item.expiresAt || deletedAt + 30 * DAY);
-
-  if (!deletedAt || Date.now() >= expiresAt) {
-    return toast('This item has expired or has an invalid date.', true);
-  }
-
-  const path = validateOriginalPath(item);
-
-  if (!path || !item.data || typeof item.data !== 'object') {
-    return toast('Invalid Trash item. No changes made.', true);
-  }
-
-  const trashPath =
-    `${rootPath()}/trash/${item.recordType}/${item.recordId}`;
-
-  try {
-    const [original, trash] = await Promise.all([
-      db.ref(path).once('value'),
-      db.ref(trashPath).once('value')
-    ]);
-
-    if (original.exists()) {
-      return toast(
-        'A record already exists at the original location. Nothing overwritten.',
-        true
-      );
-    }
-
-    if (!trash.exists()) {
-      return toast('Trash item has changed. Refresh and retry.', true);
-    }
-
-    const fresh = trash.val();
-    const expiry = Number(
-      fresh.expiresAt ||
-      Number(fresh.deletedAt || 0) + 30 * DAY
-    );
-
-    if (Date.now() >= expiry) {
-      return toast('This item has expired.', true);
-    }
-
-    const updates = {};
-    updates[path] = fresh.data;
-    updates[trashPath] = null;
-
-    await db.ref().update(updates);
-    toast('Record restored.');
-  } catch (e) {
-    toast('Restore failed: ' + friendlyError(e), true);
-  }
-}
-
-/* PERMANENT DELETE FROM TRASH */
-async function permanentDelete(item) {
-  if (!currentUser) return;
-
-  if (!confirm('Permanently delete this Trash item? This cannot be undone.')) {
-    return;
-  }
-
-  try {
-    await db.ref(
-      `${rootPath()}/trash/${item.recordType}/${item.recordId}`
-    ).remove();
-
-    toast('Trash item permanently deleted.');
-  } catch (e) {
-    toast('Delete failed: ' + friendlyError(e), true);
-  }
-}
-
-$('refresh-trash').addEventListener('click', async () => {
-  if (!currentUser) return;
-
-  try {
-    const snapshot = await db.ref(`${rootPath()}/trash`).once('value');
-    trashTree = snapshot.val() || {};
-    renderTrash();
-    toast('Trash refreshed.');
-  } catch (e) {
-    toast('Refresh failed: ' + friendlyError(e), true);
-  }
-});
-
-/* BACKUP */
-function isObject(value) {
-  return value !== null &&
-    typeof value === 'object' &&
-    !Array.isArray(value);
-}
-
-function validateTree(value) {
-  if (Array.isArray(value)) {
-    value.forEach(validateTree);
-    return;
-  }
-
-  if (isObject(value)) {
-    for (const [key, child] of Object.entries(value)) {
-      if (!safeKey(key)) {
-        throw new Error('Backup contains an invalid Firebase key.');
-      }
-      validateTree(child);
-    }
-  }
-}
-
-$('download-backup').addEventListener('click', async () => {
-  if (!currentUser) return;
-
-  try {
-    const snapshot = await db.ref(rootPath()).once('value');
-
-    const backup = {
-      format: 'digital-notebook-backup-v1',
-      uid: currentUser.uid,
-      exportedAt: new Date().toISOString(),
-      data: snapshot.val() || {}
+        <div id="trashList"></div>
+        <p class="muted small">
+          Permanent cleanup after 30 days must be configured with a scheduled Firebase Cloud Function.
+          This page displays expiry and allows manual deletion, but a browser timer is not a reliable
+          server-side cleanup system.
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>Backup & Recovery</h2>
+        <p>Export your account data to a JSON backup. Importing a backup adds only missing top-level sections and does not replace sections that already exist.</p>
+        <div class="row">
+          <button id="exportButton" type="button">Export backup JSON</button>
+          <button id="chooseBackupButton" class="secondary" type="button">Choose backup to restore</button>
+          <input id="backupFile" class="hidden" type="file" accept=".json,application/json">
+        </div>
+        <div id="backupStatus" class="status">Backups stay on your device unless you choose to store them elsewhere.</div>
+      </section>
+
+      <section class="panel">
+        <h2>Change password</h2>
+        <p class="muted small">Firebase may require you to sign in again before a sensitive account operation.</p>
+        <label>
+          Current password
+          <input id="currentPassword" type="password" autocomplete="current-password" placeholder="Current password">
+        </label>
+        <label>
+          New password
+          <input id="newPassword" type="password" autocomplete="new-password" minlength="6" placeholder="At least 6 characters">
+        </label>
+        <button id="changePasswordButton" type="button">Change password</button>
+        <div id="passwordStatus" class="status hidden"></div>
+      </section>
+
+      <section class="panel">
+        <h2>Security notes</h2>
+        <ul>
+          <li>Use a strong Firebase password and never share it.</li>
+          <li>Biometric convenience unlock is not a substitute for server-side authentication.</li>
+          <li>Firebase Realtime Database rules must restrict each user to their own data.</li>
+          <li>Do not deploy production rules that allow public read/write access.</li>
+        </ul>
+      </section>
+    </main>
+  </div>
+
+  <footer class="footer">Digital NoteBook Web App</footer>
+
+  <div id="busyModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="busyTitle">
+    <div class="modal-box">
+      <h2 id="busyTitle">Please wait</h2>
+      <p id="busyText">Working…</p>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
+  <script>
+  (() => {
+    "use strict";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDDY_v7RHnkCTI6uyV4DNDjqoaIBGweg8c",
+      authDomain: "digital-a2552.firebaseapp.com",
+      databaseURL: "https://digital-a2552-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "digital-a2552",
+      storageBucket: "digital-a2552.firebasestorage.app",
+      messagingSenderId: "218135618179",
+      appId: "1:218135618179:web:821b76920d3e5669ac31b6"
     };
 
-    const blob = new Blob(
-      [JSON.stringify(backup, null, 2)],
-      { type: 'application/json' }
-    );
+    const $ = id => document.getElementById(id);
+    const DAY_MS = 24 * 60 * 60 * 1000;
+    const TRASH_DAYS = 30;
 
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
+    let auth = null;
+    let db = null;
+    let user = null;
+    let userRef = null;
+    let trashRef = null;
+    let settingsRef = null;
+    let trashSnapshot = {};
+    let settingsListener = null;
+    let trashListener = null;
+    let isReady = false;
 
-    link.href = url;
-    link.download =
-      `digital_notebook_backup_${new Date().toISOString().slice(0, 10)}.json`;
-
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-
-    $('backup-status').textContent = 'Cloud backup downloaded.';
-    toast('Backup downloaded.');
-  } catch (e) {
-    toast('Backup failed: ' + friendlyError(e), true);
-  }
-});
-
-/* RESTORE BACKUP BY MERGING LEAF PATHS */
-$('restore-file').addEventListener('change', async event => {
-  const file = event.target.files && event.target.files[0];
-
-  if (!file || !currentUser) return;
-
-  try {
-    if (file.size > 20 * 1024 * 1024) {
-      throw new Error('Backup file is larger than 20 MB.');
+    function setStatus(message, kind = "") {
+      const el = $("pageStatus");
+      el.textContent = message;
+      el.className = "status" + (kind ? " " + kind : "");
     }
 
-    const backup = JSON.parse(await file.text());
-
-    if (
-      backup.format !== 'digital-notebook-backup-v1' ||
-      backup.uid !== currentUser.uid ||
-      !isObject(backup.data)
-    ) {
-      throw new Error(
-        'Unsupported backup or backup belongs to another account.'
-      );
+    function setSyncStatus(message) {
+      $("syncStatus").textContent = message;
     }
 
-    validateTree(backup.data);
+    function setBoxStatus(id, message, kind = "") {
+      const el = $(id);
+      el.textContent = message;
+      el.className = "status" + (kind ? " " + kind : "");
+      el.classList.remove("hidden");
+    }
 
-    if (!confirm('Merge this backup into your cloud data?')) return;
+    function showBusy(title, text) {
+      $("busyTitle").textContent = title;
+      $("busyText").textContent = text;
+      $("busyModal").classList.remove("hidden");
+    }
 
-    const updates = {};
+    function hideBusy() {
+      $("busyModal").classList.add("hidden");
+    }
 
-    function walk(value, path) {
-      if (isObject(value)) {
-        const entries = Object.entries(value);
+    function safeJson(value) {
+      try { return JSON.stringify(value, null, 2); }
+      catch (_) { return "{}"; }
+    }
 
-        if (!entries.length) {
-          updates[path] = {};
-        } else {
-          for (const [key, child] of entries) {
-            walk(child, path + '/' + key);
-          }
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      })[char]);
+    }
+
+    function formatDate(value) {
+      const n = Number(value);
+      if (!Number.isFinite(n) || n <= 0) return "Unknown";
+      try { return new Date(n).toLocaleString(); }
+      catch (_) { return "Unknown"; }
+    }
+
+    function makeId() {
+      if (window.crypto && typeof crypto.randomUUID === "function") {
+        return crypto.randomUUID();
+      }
+      const bytes = new Uint8Array(16);
+      crypto.getRandomValues(bytes);
+      return Array.from(bytes, b => b.toString(16).padStart(2, "0")).join("");
+    }
+
+    function applyTheme(theme) {
+      document.body.classList.toggle("dark", theme === "dark");
+      $("themeButton").textContent = theme === "dark" ? "☀️ Light theme" : "🌙 Dark theme";
+    }
+
+    function applySettings(settings) {
+      if (!settings || typeof settings !== "object") return;
+
+      if (settings.theme === "dark" || settings.theme === "light") {
+        applyTheme(settings.theme);
+        try { localStorage.setItem("theme", settings.theme); } catch (_) {}
+      }
+
+      if (settings.accentColor && /^#[0-9a-fA-F]{6}$/.test(settings.accentColor)) {
+        document.documentElement.style.setProperty("--accent", settings.accentColor);
+      }
+
+      if (settings.font_size) {
+        const size = Number(settings.font_size);
+        if (Number.isFinite(size) && size >= 12 && size <= 24) {
+          document.body.style.fontSize = size + "px";
         }
-      } else {
-        updates[path] = value;
+      }
+
+      if (settings.font_family) {
+        const allowedFonts = ["Arial", "Roboto", "Poppins", "Inter", "Georgia", "system-ui"];
+        if (allowedFonts.includes(settings.font_family)) {
+          document.body.style.fontFamily = settings.font_family + ", sans-serif";
+        }
       }
     }
 
-    walk(backup.data, rootPath());
+    async function saveSetting(key, value) {
+      if (!user || !settingsRef) return;
+      try {
+        await settingsRef.child(key).set(value);
+        try {
+          const cache = JSON.parse(localStorage.getItem("digital_notebook_settings") || "{}");
+          cache[key] = value;
+          localStorage.setItem("digital_notebook_settings", JSON.stringify(cache));
+        } catch (_) {}
+      } catch (error) {
+        console.error(error);
+        setStatus("Setting could not be saved: " + error.message, "error");
+      }
+    }
 
-    if (Object.keys(updates).length > 5000) {
-      throw new Error(
-        'Backup contains too many fields for browser restore.'
+    function listenForSettings() {
+      if (settingsRef && settingsListener) {
+        settingsRef.off("value", settingsListener);
+      }
+
+      settingsRef = userRef.child("settings");
+      settingsListener = snapshot => {
+        const settings = snapshot.val() || {};
+        applySettings(settings);
+        try {
+          localStorage.setItem("digital_notebook_settings", JSON.stringify(settings));
+        } catch (_) {}
+      };
+      settingsRef.on("value", settingsListener, error => {
+        setStatus("Settings sync error: " + error.message, "error");
+      });
+    }
+
+    async function toggleTheme() {
+      const next = document.body.classList.contains("dark") ? "light" : "dark";
+      applyTheme(next);
+      try { localStorage.setItem("theme", next); } catch (_) {}
+      await saveSetting("theme", next);
+    }
+
+    function safePath(path) {
+      if (typeof path !== "string" || !user) return false;
+      const parts = path.split("/");
+      if (parts.length < 3 || parts[0] !== "users" || parts[1] !== user.uid) return false;
+      if (parts.some(part => !part || part === "." || part === ".." || part.includes("#") || part.includes("$") || part.includes("[") || part.includes("]"))) return false;
+      return true;
+    }
+
+    function safeKey(key) {
+      return typeof key === "string" && key.length > 0 &&
+        !/[.#$\[\]\/]/.test(key);
+    }
+
+    function normaliseTrashRecord(category, id, raw) {
+      if (!raw || typeof raw !== "object") return null;
+
+      // Current shared schema:
+      // users/{uid}/trash/{recordType}/{recordId}
+      const recordType = raw.recordType || raw.trashType || category || "legacy";
+      const data = raw.data !== undefined ? raw.data : (
+        raw.originalData !== undefined ? raw.originalData : null
+      );
+
+      let originalPath = raw.originalPath || "";
+
+      // Limited compatibility with older house-expense Trash records.
+      if (!originalPath && recordType === "house_expense" && data && data.id) {
+        originalPath = "users/" + user.uid + "/house_expenses/" + data.id;
+      }
+
+      const deletedAt = Number(raw.deletedAt || raw.deleted_at || 0);
+      const expiresAt = Number(raw.expiresAt || (deletedAt ? deletedAt + TRASH_DAYS * DAY_MS : 0));
+
+      return {
+        id,
+        category,
+        recordType: String(recordType),
+        data,
+        originalPath,
+        deletedAt,
+        expiresAt,
+        legacy: raw.data === undefined
+      };
+    }
+
+    function collectTrash(raw) {
+      const items = [];
+      if (!raw || typeof raw !== "object") return items;
+
+      Object.keys(raw).forEach(category => {
+        const group = raw[category];
+
+        // Current schema has nested categories and IDs.
+        if (group && typeof group === "object" && !Array.isArray(group)) {
+          Object.keys(group).forEach(id => {
+            const entry = group[id];
+            if (!entry || typeof entry !== "object") return;
+
+            // A record directly at trash/{id} is a legacy flat entry.
+            const looksLikeRecord = (
+              "originalPath" in entry ||
+              "data" in entry ||
+              "trashType" in entry ||
+              "recordType" in entry ||
+              "deletedAt" in entry
+            );
+
+            if (looksLikeRecord) {
+              const item = normaliseTrashRecord(category, id, entry);
+              if (item) items.push(item);
+            } else {
+              // Nested current schema: trash/{recordType}/{recordId}
+              Object.keys(entry).forEach(nestedId => {
+                const nested = entry[nestedId];
+                if (!nested || typeof nested !== "object") return;
+                const item = normaliseTrashRecord(category, nestedId, nested);
+                if (item) items.push(item);
+              });
+            }
+          });
+        }
+      });
+
+      const seen = new Set();
+      return items.filter(item => {
+        const key = item.category + "/" + item.id;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
+
+    function trashPath(item) {
+      return userRef.child("trash").child(item.category).child(item.id);
+    }
+
+    function renderTrash() {
+      const items = collectTrash(trashSnapshot);
+      const now = Date.now();
+      const expired = items.filter(item => item.expiresAt && item.expiresAt <= now).length;
+      $("trashCount").textContent = String(items.length);
+      $("expiredCount").textContent = String(expired);
+
+      const query = $("trashSearch").value.trim().toLowerCase();
+      const filtered = items.filter(item => {
+        const text = [
+          item.recordType,
+          item.id,
+          item.originalPath,
+          safeJson(item.data)
+        ].join(" ").toLowerCase();
+        return text.includes(query);
+      });
+
+      const container = $("trashList");
+      container.replaceChildren();
+
+      if (!filtered.length) {
+        const empty = document.createElement("p");
+        empty.className = "muted";
+        empty.textContent = items.length ? "No Trash records match your search." : "Trash is empty.";
+        container.appendChild(empty);
+        return;
+      }
+
+      filtered.sort((a, b) => (b.deletedAt || 0) - (a.deletedAt || 0));
+
+      filtered.forEach(item => {
+        const isExpired = item.expiresAt > 0 && item.expiresAt <= now;
+        const title = (item.data && (
+          item.data.title || item.data.name || item.data.description ||
+          item.data.source || item.data.note
+        )) || item.recordType || "Deleted record";
+
+        const card = document.createElement("article");
+        card.className = "trash-record";
+
+        const heading = document.createElement("div");
+        heading.className = "between";
+
+        const titleEl = document.createElement("strong");
+        titleEl.textContent = String(title);
+
+        const badge = document.createElement("span");
+        badge.className = "badge";
+        badge.textContent = isExpired ? "Expired" : "Recoverable";
+
+        heading.append(titleEl, badge);
+        card.appendChild(heading);
+
+        const meta = document.createElement("div");
+        meta.className = "record-meta";
+        meta.textContent =
+          "Type: " + item.recordType +
+          " · Deleted: " + formatDate(item.deletedAt) +
+          " · Expires: " + formatDate(item.expiresAt);
+        card.appendChild(meta);
+
+        const path = document.createElement("div");
+        path.className = "small muted";
+        path.textContent = "Original path: " + (item.originalPath || "Not recorded");
+        card.appendChild(path);
+
+        const actions = document.createElement("div");
+        actions.className = "record-actions";
+
+        const restore = document.createElement("button");
+        restore.type = "button";
+        restore.className = "success";
+        restore.textContent = "Restore";
+        restore.disabled = isExpired || !item.originalPath || !safePath(item.originalPath) || item.data === null;
+        restore.addEventListener("click", () => restoreTrashItem(item));
+
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "danger";
+        remove.textContent = "Permanently delete";
+        remove.addEventListener("click", () => permanentlyDeleteTrashItem(item));
+
+        actions.append(restore, remove);
+        card.appendChild(actions);
+
+        if (!item.originalPath || item.data === null) {
+          const warning = document.createElement("p");
+          warning.className = "small danger-text";
+          warning.textContent = "This older Trash entry is missing recovery information, so automatic restore is unavailable.";
+          card.appendChild(warning);
+        } else if (!safePath(item.originalPath)) {
+          const warning = document.createElement("p");
+          warning.className = "small danger-text";
+          warning.textContent = "The recorded restore path failed safety checks.";
+          card.appendChild(warning);
+        }
+
+        container.appendChild(card);
+      });
+    }
+
+    function listenForTrash() {
+      if (trashRef && trashListener) trashRef.off("value", trashListener);
+      trashRef = userRef.child("trash");
+      trashListener = snapshot => {
+        trashSnapshot = snapshot.val() || {};
+        renderTrash();
+        setSyncStatus("Synced · " + new Date().toLocaleTimeString());
+      };
+      trashRef.on("value", trashListener, error => {
+        setStatus("Trash sync failed: " + error.message, "error");
+        setSyncStatus("Sync error");
+      });
+    }
+
+    async function restoreTrashItem(item) {
+      if (!user || !item) return;
+
+      if (item.expiresAt && item.expiresAt <= Date.now()) {
+        alert("यो Trash रेकर्डको ३० दिनको अवधि सकिएको छ। यसलाई Restore गर्न मिल्दैन।");
+        return;
+      }
+
+      if (!safePath(item.originalPath)) {
+        alert("यो रेकर्डको original path सुरक्षित छैन। Restore रोकियो।");
+        return;
+      }
+
+      if (item.data === null || item.data === undefined) {
+        alert("यो पुरानो Trash रेकर्डमा पुनःस्थापना गर्न आवश्यक data छैन।");
+        return;
+      }
+
+      if (!confirm("यो रेकर्ड Restore गर्ने? Original path मा पहिलेदेखि data भए त्यसलाई overwrite गरिने छैन।")) return;
+
+      showBusy("Restoring record", "Checking original record path…");
+
+      try {
+        const originalRef = db.ref(item.originalPath);
+        const result = await originalRef.transaction(current => {
+          if (current !== null) return;
+          return item.data;
+        }, undefined, false);
+
+        if (!result.committed) {
+          alert("Restore भएन: original path मा पहिलेदेखि data छ। पुरानो Trash रेकर्ड सुरक्षित राखिएको छ।");
+          return;
+        }
+
+        // Only remove Trash after the original record has been restored.
+        // If this removal fails, the restored record may also remain in Trash;
+        // that duplicate is safer than losing the record.
+        await trashPath(item).remove();
+        setStatus("Record restored successfully.", "good");
+      } catch (error) {
+        console.error(error);
+        setStatus("Restore error: " + error.message, "error");
+        alert("Restore पूरा भएन। Firebase Rules र connection जाँच गर्नुहोस्।");
+      } finally {
+        hideBusy();
+      }
+    }
+
+    async function permanentlyDeleteTrashItem(item) {
+      if (!confirm("यो Trash रेकर्ड स्थायी रूपमा मेटाउने? यो कार्य Undo गर्न सकिँदैन।")) return;
+
+      try {
+        await trashPath(item).remove();
+        setStatus("Trash record permanently deleted.", "good");
+      } catch (error) {
+        console.error(error);
+        setStatus("Permanent delete failed: " + error.message, "error");
+      }
+    }
+
+    function downloadJson(filename, data) {
+      const blob = new Blob([safeJson(data)], { type: "application/json;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    async function exportBackup() {
+      if (!user || !userRef) return;
+
+      showBusy("Creating backup", "Reading your Firebase account data…");
+      try {
+        const snapshot = await userRef.once("value");
+        const data = snapshot.val() || {};
+        const backup = {
+          format: "digital-notebook-backup-v1",
+          createdAt: new Date().toISOString(),
+          uid: user.uid,
+          data
+        };
+
+        const date = new Date().toISOString().slice(0, 10);
+        downloadJson("digital-notebook-backup-" + date + ".json", backup);
+        setBoxStatus("backupStatus", "Backup created. Keep it somewhere safe.", "good");
+      } catch (error) {
+        console.error(error);
+        setBoxStatus("backupStatus", "Backup failed: " + error.message, "error");
+      } finally {
+        hideBusy();
+      }
+    }
+
+    function validateBackup(parsed) {
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+        throw new Error("Invalid JSON backup.");
+      }
+
+      if (parsed.format !== "digital-notebook-backup-v1") {
+        throw new Error("Unsupported backup format.");
+      }
+
+      if (!parsed.data || typeof parsed.data !== "object" || Array.isArray(parsed.data)) {
+        throw new Error("Backup data is missing or invalid.");
+      }
+
+      return parsed.data;
+    }
+
+    async function restoreBackupFile(file) {
+      if (!user || !userRef || !file) return;
+
+      if (file.size > 25 * 1024 * 1024) {
+        setBoxStatus("backupStatus", "Backup is larger than 25 MB. Import cancelled.", "error");
+        return;
+      }
+
+      try {
+        const text = await file.text();
+        const parsed = JSON.parse(text);
+        const data = validateBackup(parsed);
+
+        if (!confirm(
+          "Restore backup by adding missing top-level sections only?\n\n" +
+          "Existing sections will NOT be overwritten. Sections already present will be skipped. " +
+          "Only import a backup you trust."
+        )) return;
+
+        showBusy("Restoring backup", "Adding sections that do not exist…");
+
+        const allowedTopLevel = new Set([
+          "transactions", "savings", "house_expenses", "house_budget",
+          "incomes", "income_sources", "notes", "secureNotes", "secureDocs",
+          "calendarEvents", "settings", "profile", "trash", "parties",
+          "partyLedger", "party_ledger", "accounting", "budgets"
+        ]);
+
+        const imported = [];
+        const skipped = [];
+        const updates = {};
+
+        for (const key of Object.keys(data)) {
+          if (!safeKey(key) || !allowedTopLevel.has(key)) {
+            skipped.push(key);
+            continue;
+          }
+
+          // Never import account-control metadata or another user's root.
+          if (key === "uid" || key === "email" || key === "password") {
+            skipped.push(key);
+            continue;
+          }
+
+          const target = userRef.child(key);
+          const result = await target.transaction(current => {
+            if (current !== null) return;
+            return data[key];
+          }, undefined, false);
+
+          if (result.committed) imported.push(key);
+          else skipped.push(key);
+        }
+
+        const summary = [
+          "Backup restore finished.",
+          "Added: " + (imported.join(", ") || "none"),
+          "Skipped (already existed or unsupported): " + (skipped.join(", ") || "none")
+        ].join("\n");
+
+        setBoxStatus("backupStatus", summary, "good");
+      } catch (error) {
+        console.error(error);
+        setBoxStatus("backupStatus", "Restore failed: " + error.message, "error");
+      } finally {
+        hideBusy();
+        $("backupFile").value = "";
+      }
+    }
+
+    async function sendPasswordReset() {
+      if (!user || !user.email) return;
+      if (!confirm("Send a password reset email to " + user.email + "?")) return;
+
+      try {
+        await auth.sendPasswordResetEmail(user.email);
+        setStatus("Password reset email sent. Check your inbox and spam folder.", "good");
+      } catch (error) {
+        setStatus("Could not send reset email: " + error.message, "error");
+      }
+    }
+
+    async function changePassword() {
+      if (!user) return;
+
+      const current = $("currentPassword").value;
+      const next = $("newPassword").value;
+
+      if (!current || next.length < 6) {
+        setBoxStatus("passwordStatus", "Enter your current password and a new password with at least 6 characters.", "error");
+        return;
+      }
+
+      const credential = firebase.auth.EmailAuthProvider.credential(user.email, current);
+
+      try {
+        await user.reauthenticateWithCredential(credential);
+        await user.updatePassword(next);
+        $("currentPassword").value = "";
+        $("newPassword").value = "";
+        setBoxStatus("passwordStatus", "Password changed successfully.", "good");
+      } catch (error) {
+        console.error(error);
+        setBoxStatus("passwordStatus", "Password change failed: " + error.message, "error");
+      }
+    }
+
+    async function logout() {
+      try {
+        await auth.signOut();
+        location.href = "index.html";
+      } catch (error) {
+        setStatus("Logout failed: " + error.message, "error");
+      }
+    }
+
+    function bytesToBase64Url(buffer) {
+      const bytes = new Uint8Array(buffer);
+      let binary = "";
+      bytes.forEach(byte => binary += String.fromCharCode(byte));
+      return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+    }
+
+    function base64UrlToBytes(value) {
+      const padded = value.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((value.length + 3) % 4);
+      const binary = atob(padded);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      return bytes;
+    }
+
+    function biometricStorageKey() {
+      return user ? "digital_notebook_webauthn_" + user.uid : "";
+    }
+
+    function getSavedCredential() {
+      try {
+        const raw = localStorage.getItem(biometricStorageKey());
+        return raw ? JSON.parse(raw) : null;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    function checkBiometricSupport() {
+      const supported = !!(
+        window.isSecureContext &&
+        window.PublicKeyCredential &&
+        navigator.credentials &&
+        typeof navigator.credentials.create === "function" &&
+        typeof navigator.credentials.get === "function"
+      );
+
+      if (!supported) {
+        setBoxStatus(
+          "biometricStatus",
+          "यो browser/device मा WebAuthn biometric सुविधा उपलब्ध छैन वा पेज secure HTTPS context मा छैन। Firebase login र password reset प्रयोग गर्नुहोस्.",
+          "error"
+        );
+        $("registerBiometricButton").disabled = true;
+        $("testBiometricButton").disabled = true;
+        return;
+      }
+
+      const saved = getSavedCredential();
+      setBoxStatus(
+        "biometricStatus",
+        saved
+          ? "यो browser मा biometric credential दर्ता गरिएको छ। आवश्यक पर्दा device authentication prompt आउन सक्छ."
+          : "Browser ले WebAuthn समर्थन गर्छ। Set up गर्दा फोनले उपलब्ध authentication विकल्प देखाउन सक्छ.",
+        "good"
       );
     }
 
-    await db.ref().update(updates);
+    async function registerBiometric() {
+      if (!user) return;
 
-    $('backup-status').textContent = 'Backup merged successfully.';
-    toast('Backup merged successfully.');
-  } catch (e) {
-    toast('Restore failed: ' + friendlyError(e), true);
-  } finally {
-    event.target.value = '';
-  }
-});
+      if (!window.isSecureContext || !window.PublicKeyCredential || !navigator.credentials) {
+        alert("यसका लागि HTTPS र WebAuthn समर्थन गर्ने browser आवश्यक छ।");
+        return;
+      }
 
-/* DEVICE MPIN */
-$('save-mpin').addEventListener('click', () => {
-  const pin = $('mpin-input').value.trim();
+      try {
+        showBusy("Set up biometric", "Follow the device prompt. The device may ask for fingerprint, face, or screen-lock verification.");
 
-  if (!/^\d{4}$/.test(pin)) {
-    return toast('Enter exactly 4 digits.', true);
-  }
+        const challenge = crypto.getRandomValues(new Uint8Array(32));
+        const userIdBytes = new TextEncoder().encode(user.uid.slice(0, 64));
 
-  localStorage.setItem('app_mpin', pin);
-  toast('MPIN saved on this device.');
-});
+        const credential = await navigator.credentials.create({
+          publicKey: {
+            challenge,
+            rp: {
+              name: "Digital NoteBook",
+              id: location.hostname
+            },
+            user: {
+              id: userIdBytes,
+              name: user.email || user.uid,
+              displayName: user.email || "Digital NoteBook user"
+            },
+            pubKeyCredParams: [
+              { type: "public-key", alg: -7 },
+              { type: "public-key", alg: -257 }
+            ],
+            authenticatorSelection: {
+              authenticatorAttachment: "platform",
+              residentKey: "preferred",
+              userVerification: "required"
+            },
+            timeout: 60000,
+            attestation: "none"
+          }
+        });
 
-$('biometric-toggle').addEventListener('change', () => {
-  localStorage.setItem(
-    'app_biometric',
-    $('biometric-toggle').checked ? 'enabled' : 'disabled'
-  );
+        if (!credential) throw new Error("No credential was created.");
 
-  toast('Preference saved. Actual biometric verification is not enabled.');
-});
+        const saved = {
+          id: bytesToBase64Url(credential.rawId),
+          createdAt: Date.now(),
+          rpId: location.hostname,
+          note: "Local convenience unlock only; not server-verified Firebase authentication."
+        };
 
-$('toggle-device').addEventListener('click', () => {
-  $('device-details').classList.toggle('hidden');
-});
+        localStorage.setItem(biometricStorageKey(), JSON.stringify(saved));
+        setBoxStatus(
+          "biometricStatus",
+          "Device credential created. This browser can now request device verification. It is not a replacement for Firebase authentication.",
+          "good"
+        );
+      } catch (error) {
+        console.error(error);
+        const message = error && error.name === "NotAllowedError"
+          ? "Device prompt was cancelled, timed out, or the device did not allow credential creation."
+          : "Biometric setup failed: " + (error.message || error.name || "Unknown error");
+        setBoxStatus("biometricStatus", message, "error");
+      } finally {
+        hideBusy();
+      }
+    }
 
-/* CHANGE PASSWORD */
-$('change-password').addEventListener('click', async () => {
-  const user = auth.currentUser;
-  const current = $('current-password').value;
-  const next = $('new-password').value;
-  const confirmation = $('confirm-password').value;
+    async function testBiometric() {
+      const saved = getSavedCredential();
+      if (!saved || !saved.id) {
+        alert("पहिले Set up biometric unlock गर्नुहोस्।");
+        return;
+      }
 
-  if (!user || !user.email) {
-    return toast('Please sign in again.', true);
-  }
+      try {
+        showBusy("Biometric test", "Follow the device authentication prompt…");
 
-  if (!current || !next || !confirmation) {
-    return toast('Fill in all password fields.', true);
-  }
+        const challenge = crypto.getRandomValues(new Uint8Array(32));
+        const credential = await navigator.credentials.get({
+          publicKey: {
+            challenge,
+            rpId: saved.rpId || location.hostname,
+            allowCredentials: [{
+              type: "public-key",
+              id: base64UrlToBytes(saved.id)
+            }],
+            userVerification: "required",
+            timeout: 60000
+          }
+        });
 
-  if (next.length < 6) {
-    return toast('Password must be at least 6 characters.', true);
-  }
+        if (!credential) throw new Error("No credential returned.");
 
-  if (next !== confirmation) {
-    return toast('New passwords do not match.', true);
-  }
+        setBoxStatus(
+          "biometricStatus",
+          "Device authentication succeeded in this browser. This local test does not verify the assertion on a server and does not sign you into Firebase.",
+          "good"
+        );
+      } catch (error) {
+        console.error(error);
+        setBoxStatus(
+          "biometricStatus",
+          "Biometric test failed or was cancelled: " + (error.message || error.name || "Unknown error"),
+          "error"
+        );
+      } finally {
+        hideBusy();
+      }
+    }
 
-  try {
-    const credential =
-      firebase.auth.EmailAuthProvider.credential(user.email, current);
+    function removeBiometric() {
+      if (!user) return;
+      if (!confirm("यस browser को biometric credential reference हटाउने? यसले फोनको system मा credential delete गर्छ भन्ने होइन।")) return;
 
-    await user.reauthenticateWithCredential(credential);
-    await user.updatePassword(next);
+      try {
+        localStorage.removeItem(biometricStorageKey());
+        checkBiometricSupport();
+        setBoxStatus("biometricStatus", "This browser's saved credential reference was removed.", "good");
+      } catch (error) {
+        setBoxStatus("biometricStatus", "Could not remove local setup: " + error.message, "error");
+      }
+    }
 
-    $('current-password').value = '';
-    $('new-password').value = '';
-    $('confirm-password').value = '';
+    function detachListeners() {
+      if (settingsRef && settingsListener) settingsRef.off("value", settingsListener);
+      if (trashRef && trashListener) trashRef.off("value", trashListener);
+      settingsListener = null;
+      trashListener = null;
+    }
 
-    toast('Password updated.');
-  } catch (e) {
-    toast(friendlyError(e), true);
-  }
-});
+    function initialiseFirebase() {
+      try {
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        auth = firebase.auth();
+        db = firebase.database();
 
-/* LOGOUT */
-$('logout').addEventListener('click', async () => {
-  if (!confirm('Log out of Digital NoteBook?')) return;
+        // Keep Firebase Auth state persisted in this browser.
+        auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(console.warn);
 
-  try {
-    await auth.signOut();
-    location.href = 'index.html';
-  } catch (e) {
-    toast(friendlyError(e), true);
-  }
-});
+        auth.onAuthStateChanged(async currentUser => {
+          if (!currentUser) {
+            detachListeners();
+            location.replace("index.html");
+            return;
+          }
 
-/* DANGEROUS MASTER RESET */
-$('master-reset').addEventListener('click', async () => {
-  if (!currentUser) return;
+          user = currentUser;
+          userRef = db.ref("users/" + user.uid);
 
-  if ($('reset-word').value.trim() !== 'RESET') {
-    return toast('Type RESET to confirm.', true);
-  }
+          $("accountEmail").textContent = user.email || "(email not available)";
+          $("accountUid").textContent = user.uid;
+          setStatus("Signed in. Loading your account data…", "good");
+          setSyncStatus("Syncing…");
 
-  const savedPin = localStorage.getItem('app_mpin');
+          try {
+            // Read permission check; no writes to the whole user object.
+            await userRef.child("settings").once("value");
+            isReady = true;
+            listenForSettings();
+            listenForTrash();
+            checkBiometricSupport();
+            setStatus("Account ready. Realtime settings and Trash listeners are active.", "good");
+          } catch (error) {
+            console.error(error);
+            setStatus("Cannot access your Firebase account data. Check Realtime Database Rules: " + error.message, "error");
+            setSyncStatus("Permission error");
+          }
+        }, error => {
+          console.error(error);
+          setStatus("Firebase authentication error: " + error.message, "error");
+        });
+      } catch (error) {
+        console.error(error);
+        setStatus("Firebase initialization failed: " + error.message, "error");
+      }
+    }
 
-  if (!savedPin || $('reset-mpin').value !== savedPin) {
-    return toast('Incorrect MPIN or no MPIN saved on this device.', true);
-  }
+    $("themeButton").addEventListener("click", toggleTheme);
+    $("logoutButton").addEventListener("click", logout);
+    $("refreshButton").addEventListener("click", async () => {
+      if (!userRef) return;
+      try {
+        const snapshot = await userRef.child("trash").once("value");
+        trashSnapshot = snapshot.val() || {};
+        renderTrash();
+        setStatus("Account data refreshed.", "good");
+      } catch (error) {
+        setStatus("Refresh failed: " + error.message, "error");
+      }
+    });
+    $("resetPasswordButton").addEventListener("click", sendPasswordReset);
+    $("changePasswordButton").addEventListener("click", changePassword);
+    $("reloadTrashButton").addEventListener("click", async () => {
+      if (!trashRef) return;
+      try {
+        const snapshot = await trashRef.once("value");
+        trashSnapshot = snapshot.val() || {};
+        renderTrash();
+      } catch (error) {
+        setStatus("Could not reload Trash: " + error.message, "error");
+      }
+    });
+    $("trashSearch").addEventListener("input", renderTrash);
+    $("exportButton").addEventListener("click", exportBackup);
+    $("chooseBackupButton").addEventListener("click", () => $("backupFile").click());
+    $("backupFile").addEventListener("change", event => {
+      const file = event.target.files && event.target.files[0];
+      if (file) restoreBackupFile(file);
+    });
+    $("registerBiometricButton").addEventListener("click", registerBiometric);
+    $("testBiometricButton").addEventListener("click", testBiometric);
+    $("removeBiometricButton").addEventListener("click", removeBiometric);
 
-  if (!confirm(
-    'FINAL WARNING: This permanently deletes all cloud data, including Trash. Download a backup first. Continue?'
-  )) return;
+    // Apply cached appearance immediately while waiting for Firebase.
+    try {
+      const cached = JSON.parse(localStorage.getItem("digital_notebook_settings") || "{}");
+      applySettings(cached);
+      if (!cached.theme) applyTheme(localStorage.getItem("theme") || "light");
+    } catch (_) {
+      applyTheme("light");
+    }
 
-  try {
-    await db.ref(rootPath()).remove();
-    toast('Account data removed.');
-    setTimeout(() => location.reload(), 1000);
-  } catch (e) {
-    toast('Reset failed: ' + friendlyError(e), true);
-  }
-});
-</script>
+    initialiseFirebase();
+  })();
+  </script>
 </body>
 </html>
