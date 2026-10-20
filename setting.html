@@ -34,9 +34,16 @@ tailwind.config = {
     } else {
         document.documentElement.classList.add('dark');
     }
+
+    const savedFont = localStorage.getItem('font_family') || 'Poppins';
+    const savedSize = localStorage.getItem('font_size') || 'text-xs';
+    document.addEventListener('DOMContentLoaded', () => {
+        document.body.style.fontFamily = savedFont;
+        document.body.className = document.body.className.replace(/text-(xs|sm|base|lg)/g, '') + ' ' + savedSize;
+    });
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Srikhand&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500;700&family=Srikhand&display=swap" rel="stylesheet">
 <style>
     @keyframes rainbow {
         0% { background-position: 0% 50%; }
@@ -67,96 +74,33 @@ tailwind.config = {
 
 <div class="flex min-h-screen w-full">
     
-    <!-- SIDEBAR SECTION -->
-    <div id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 bg-slate-900 border-r border-slate-800 transform -translate-x-full transition-transform duration-300 flex flex-col text-white">
-        
-        <div class="flex items-center justify-between px-4 py-3 border-b border-slate-800">
-            <div class="flex items-center space-x-2.5">
-                <div class="w-8 h-8 rounded-lg bg-emerald-600 border border-emerald-500 flex items-center justify-center overflow-hidden shadow-md">
-                    <img src="N1024.png" alt="Logo" class="w-full h-full object-cover">
-                </div>
-                <div>
-                    <h1 class="text-sm font-extrabold tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">
-                        Digital NoteBook
-                    </h1>
-                </div>
-            </div>
-            <button onclick="toggleSidebar()" class="text-slate-400 hover:text-white text-lg focus:outline-none">
-                ✕
-            </button>
-        </div>
-
-        <div class="p-3 space-y-3 overflow-y-auto flex-1 text-xs">
-            <div class="bg-slate-800/50 border border-slate-700/60 rounded-xl p-3 flex items-center space-x-3">
-                <div class="relative cursor-pointer group" onclick="document.getElementById('avatar-upload-input').click()">
-                    <div class="w-11 h-11 rounded-full bg-emerald-600 border border-emerald-500 flex items-center justify-center overflow-hidden shadow-sm">
-                        <img id="sidebar-avatar-img" src="N1024.png" alt="Profile" class="w-full h-full object-cover">
-                    </div>
-                </div>
-                <input type="file" id="avatar-upload-input" accept="image/*" class="hidden" onchange="handleAvatarUpload(event)">
-                <div>
-                    <h3 id="sidebar-profile-name" class="text-white font-bold text-sm"></h3>
-                    <p class="text-[10px] text-slate-400"><span class="lang-text" data-en="Click icon to set photo" data-np="फोटो राख्न क्लिक गर्नुहोस्">Click icon to set photo</span></p>
-                </div>
-            </div>
-
-            <!-- SIDEBAR NAVIGATION -->
-            <nav class="space-y-1 font-medium">
-                <a href="index.html" class="flex items-center gap-2.5 py-2.5 px-3 rounded-xl hover:bg-slate-800 text-slate-300 transition"><span>📊</span> <span class="lang-text" data-en="Overview" data-np="अवलोकन">Overview</span></a>
-                <a href="setting.html" class="flex items-center gap-2.5 py-2.5 px-3 rounded-xl bg-emerald-600 text-white shadow-md shadow-emerald-600/20 transition"><span>⚙️</span> <span class="lang-text" data-en="Settings & About" data-np="सेटिङ र बारेमा">Settings & About</span></a>
-            </nav>
-
-            <div class="space-y-2.5 bg-slate-800/50 p-3 rounded-xl border border-slate-700/60">
-                <h3 class="text-[11px] font-bold text-white flex items-center gap-1.5 mb-1">
-                    <i class="fa-solid fa-address-card text-emerald-400"></i> <span class="lang-text" data-en="Personal Info" data-np="व्यक्तिगत विवरण">Personal Info</span>
-                </h3>
-                <div>
-                    <label class="block text-[10px] font-semibold text-slate-400 mb-0.5"><span class="lang-text" data-en="Full Name" data-np="पूरा नाम">Full Name</span></label>
-                    <input type="text" id="input-full-name" placeholder="Enter Full Name" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-white text-xs focus:outline-none focus:border-emerald-500">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-semibold text-slate-400 mb-0.5"><span class="lang-text" data-en="Address" data-np="ठेगाना">Address</span></label>
-                    <input type="text" id="input-address" placeholder="Enter Address" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-white text-xs focus:outline-none focus:border-emerald-500">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-semibold text-slate-400 mb-0.5"><span class="lang-text" data-en="Mobile Number" data-np="मोबाइल नम्बर">Mobile Number</span></label>
-                    <input type="tel" id="input-mobile" placeholder="Enter Mobile Number" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-white text-xs focus:outline-none focus:border-emerald-500">
-                </div>
-                <button onclick="saveProfileDetails()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition shadow-md">
-                    <span class="lang-text" data-en="Save Info" data-np="सेभ गर्नुहोस्">Save Info</span>
-                </button>
-            </div>
-        </div>
-    </div>
-
     <div class="flex-1 flex flex-col w-full">
         
         <!-- HEADER SECTION -->
         <header class="sticky top-0 z-40 flex items-center justify-between px-3 md:px-5 py-3.5 bg-slate-900/95 backdrop-blur border-b border-emerald-500/20 shadow-md">
-            <div class="flex items-center space-x-2.5">
-                <button onclick="toggleSidebar()" class="text-white text-xl focus:outline-none hover:text-emerald-400 transition">☰</button>
-                <div class="flex items-center space-x-2 cursor-pointer" onclick="toggleSidebar()">
-                    <div class="w-7 h-7 rounded-lg bg-emerald-600 border border-emerald-500/50 flex items-center justify-center overflow-hidden shadow-sm">
-                        <img src="N1024.png" alt="Logo" class="w-full h-full object-cover">
-                    </div>
-                    <span class="text-xs md:text-sm font-extrabold tracking-wider bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">
-                        Digital NoteBook
-                    </span>
-                </div>
-            </div>
+            <!-- Left side empty as requested -->
+            <div class="flex items-center space-x-2.5"></div>
 
+            <!-- Right side controls: Language, Theme, Font Size, Font Family -->
             <div class="flex items-center space-x-2">
+                <select id="font-family-select" onchange="changeFontFamily(this.value)" class="bg-slate-800 border border-slate-700 text-[10px] font-bold text-slate-200 rounded-md px-1.5 py-1 focus:outline-none">
+                    <option value="Poppins">Poppins</option>
+                    <option value="Inter">Inter</option>
+                    <option value="Roboto">Roboto</option>
+                </select>
+
+                <select id="font-size-select" onchange="changeFontSize(this.value)" class="bg-slate-800 border border-slate-700 text-[10px] font-bold text-slate-200 rounded-md px-1.5 py-1 focus:outline-none">
+                    <option value="text-xs">Small</option>
+                    <option value="text-sm">Medium</option>
+                    <option value="text-base">Large</option>
+                </select>
+
                 <button onclick="toggleLanguage()" id="lang-toggle-btn" class="px-2 py-1 rounded-md bg-slate-800 border border-slate-700 text-[10px] font-bold text-slate-200 hover:bg-slate-700 transition">ENG</button>
                 <button onclick="toggleTheme()" id="theme-toggle-btn" class="w-7 h-7 rounded-md bg-slate-800 border border-slate-700 flex items-center justify-center text-sm hover:bg-slate-700 transition">🌛</button>
-                <div class="relative cursor-pointer" onclick="toggleSidebar()">
-                    <div class="w-8 h-8 rounded-full bg-emerald-600 border border-emerald-500 flex items-center justify-center overflow-hidden shadow-sm">
-                        <img id="header-avatar-img" src="N1024.png" alt="Profile" class="w-full h-full object-cover">
-                    </div>
-                </div>
             </div>
         </header>
         
-        <main class="p-4 md:p-6 space-y-4 flex-1 w-full text-xs">
+        <main class="p-4 md:p-6 space-y-4 flex-1 w-full">
             <div class="flex justify-between items-center px-1 py-1 text-white">
                 <div>
                     <p id="dynamic-date" class="text-[11px] font-semibold tracking-wider text-slate-400 uppercase mb-1"></p>
@@ -268,11 +212,6 @@ tailwind.config = {
     }
     const auth = firebase.auth();
 
-    function toggleSidebar() {
-        const sidebar = document.getElementById('sidebar');
-        if (sidebar) sidebar.classList.toggle('-translate-x-full');
-    }
-
     let currentLang = localStorage.getItem('lang') || 'EN';
 
     const translations = {
@@ -349,6 +288,17 @@ tailwind.config = {
             localStorage.setItem('theme', 'dark');
         }
         updateThemeUI();
+    }
+
+    function changeFontSize(sizeClass) {
+        const body = document.body;
+        body.className = body.className.replace(/text-(xs|sm|base|lg)/g, '') + ' ' + sizeClass;
+        localStorage.setItem('font_size', sizeClass);
+    }
+
+    function changeFontFamily(fontFamily) {
+        document.body.style.fontFamily = fontFamily;
+        localStorage.setItem('font_family', fontFamily);
     }
 
     function updateDynamicHeader() {
@@ -511,60 +461,19 @@ tailwind.config = {
         });
     }
 
-    function saveProfileDetails() {
-        const name = document.getElementById('input-full-name').value;
-        const address = document.getElementById('input-address').value;
-        const mobile = document.getElementById('input-mobile').value;
-
-        if(name) localStorage.setItem('profile_name', name);
-        localStorage.setItem('profile_address', address);
-        localStorage.setItem('profile_mobile', mobile);
-
-        loadUserData();
-        showToast(currentLang === 'NEP' ? 'Details saved successfully!' : 'Details saved successfully!', 'success');
-    }
-
-    function loadUserData() {
-        const savedName = localStorage.getItem('profile_name') || '';
-        const savedAddress = localStorage.getItem('profile_address') || '';
-        const savedMobile = localStorage.getItem('profile_mobile') || '';
-
-        if(document.getElementById('input-full-name')) document.getElementById('input-full-name').value = savedName;
-        if(document.getElementById('input-address')) document.getElementById('input-address').value = savedAddress;
-        if(document.getElementById('input-mobile')) document.getElementById('input-mobile').value = savedMobile;
-
-        const nameEl = document.getElementById('sidebar-profile-name');
-        if(nameEl) nameEl.innerText = savedName;
-    }
-
-    function handleAvatarUpload(event) {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const base64Image = e.target.result;
-                localStorage.setItem('profile_avatar', base64Image);
-                loadAvatar();
-                showToast(currentLang === 'NEP' ? 'Profile photo updated!' : 'Profile photo updated!', 'success');
-            };
-            reader.readAsDataURL(file);
-        }
-    }
-
-    function loadAvatar() {
-        const savedImage = localStorage.getItem('profile_avatar') || 'N1024.png';
-        ['sidebar-avatar-img', 'header-avatar-img'].forEach(id => {
-            const img = document.getElementById(id);
-            if(img) img.src = savedImage;
-        });
-    }
-
     document.addEventListener("DOMContentLoaded", () => {
         updateLanguageUI();
         updateThemeUI();
         updateDynamicHeader();
-        loadUserData();
-        loadAvatar();
+
+        const savedFontSelect = localStorage.getItem('font_family');
+        if(savedFontSelect && document.getElementById('font-family-select')) {
+            document.getElementById('font-family-select').value = savedFontSelect;
+        }
+        const savedSizeSelect = localStorage.getItem('font_size');
+        if(savedSizeSelect && document.getElementById('font-size-select')) {
+            document.getElementById('font-size-select').value = savedSizeSelect;
+        }
     });
 </script>
 </body>
