@@ -1,216 +1,354 @@
-<!DOCTYPE html><html lang="en" class="dark">
+<!DOCTYPE html><html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <meta name="theme-color" content="#0f172a">
-<title>Digital NoteBook — Savings</title><!-- External libraries are used for layout and PDF. Local preferences still work offline. --><script src="https://cdn.tailwindcss.com"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"><script>
-/* DISPLAY PREFERENCES: LOCAL ONLY — no network required */
-(function(){
+<title>Digital NoteBook - Savings</title><!-- Offline preferences are applied before the page is displayed. --><script>
+(function () {
   try {
-    const get = (k,d) => localStorage.getItem(k) || d;
-    const theme = get('theme','dark');
-    document.documentElement.classList.toggle('dark',theme !== 'light');
-    document.documentElement.dataset.lang = get('lang','EN');
-    document.documentElement.dataset.fontSize = get('font_size','small');
-    document.documentElement.dataset.fontFamily = get('font_family','Poppins');
-    document.documentElement.style.setProperty('--accent',get('accentColor','#00e600'));
-  } catch(e) {}
+    const p = JSON.parse(localStorage.getItem("dnb_display_preferences") || "{}");
+    const theme = p.theme || localStorage.getItem("theme") || "dark";
+    document.documentElement.className = theme === "light" ? "" : "dark";
+    document.documentElement.style.setProperty("--accent", p.accent || "#00e600");
+    document.documentElement.style.setProperty("--font-size",
+      ({small:"14px",medium:"16px",large:"18px"})[p.fontSize] || "14px");
+    document.documentElement.style.setProperty("--font-family",
+      ({Poppins:"Poppins, sans-serif",Arial:"Arial, sans-serif",system:"system-ui, sans-serif",Georgia:"Georgia, serif",Verdana:"Verdana, sans-serif"})[p.fontFamily] || "system-ui, sans-serif");
+  } catch (_) {}
 })();
-tailwind.config = {
-  darkMode:'class',
-  theme:{extend:{fontFamily:{sans:['Poppins','sans-serif']}}}
-};
 </script><style>
-:root{--accent:#00e600}
+:root{--accent:#00e600;--font-size:14px;--font-family:system-ui,sans-serif}
 *{box-sizing:border-box}
-body{font-family:var(--app-font,'Poppins',sans-serif)}
-.accent-bg{background:var(--accent)!important;color:#07120a!important}
-.accent-text{color:var(--accent)!important}
-.accent-border{border-color:var(--accent)!important}
-button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-button:disabled{opacity:.55;cursor:not-allowed}
-#page-status{overflow-wrap:anywhere}
-.font-small{font-size:12px}
-.font-medium{font-size:14px}
-.font-large{font-size:16px}
-input,select,button{max-width:100%}
-@media print{.no-print{display:none!important}body{background:white!important;color:#111!important}}
-</style></head><body class="bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-small min-h-screen"><!-- Simple page header only: no sidebar and no avatar --><header class="sticky top-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-b border-slate-200 dark:border-slate-800">
-  <div class="max-w-5xl mx-auto px-4 py-3 flex items-center gap-3">
-    <a href="index.html" aria-label="Back" class="shrink-0 w-10 h-10 rounded-xl border border-slate-300 dark:border-slate-700 flex items-center justify-center text-lg hover:bg-slate-100 dark:hover:bg-slate-800">
-      <i class="fa-solid fa-arrow-left"></i>
-    </a>
-    <div class="min-w-0 flex-1">
-      <h1 class="font-bold text-base md:text-lg">📘 Digital NoteBook</h1>
-      <p id="sync-status" class="text-xs text-slate-500 dark:text-slate-400">Starting…</p>
-    </div>
-    <button id="theme-button" class="no-print border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2" type="button" title="Toggle theme">🌙</button>
-    <button id="language-button" class="no-print border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 font-semibold" type="button">EN</button>
+body{margin:0;font-family:var(--font-family);font-size:var(--font-size);background:#f1f5f9;color:#0f172a;line-height:1.5}
+html.dark body{background:#0b1120;color:#e5e7eb}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.topbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;padding:14px 16px;background:#fff;border-bottom:1px solid #dbe1ea}
+html.dark .topbar{background:#182235;border-color:#303b50}
+.back{width:42px;height:42px;border-radius:13px;border:1px solid #d1d5db;background:transparent;color:inherit;font-size:22px}
+html.dark .back{border-color:#374151}
+.brand{font-size:18px;font-weight:800;flex:1}
+.subtitle{font-size:12px;color:#64748b;font-weight:400}
+html.dark .subtitle{color:#a8b2c4}
+.top-actions{display:flex;gap:7px;align-items:center}
+.small-btn{border:1px solid #cbd5e1;border-radius:10px;padding:8px 10px;background:transparent;color:inherit}
+html.dark .small-btn{border-color:#3b465a}
+main{width:min(900px,100%);margin:auto;padding:16px;display:grid;gap:16px}
+.card{padding:17px;border-radius:18px;border:1px solid #dbe1ea;background:#fff;box-shadow:0 3px 12px #00000008}
+html.dark .card{background:#182235;border-color:#303b50;box-shadow:none}
+h1,h2,h3,p{margin-top:0}
+h2{font-size:20px;margin-bottom:5px}
+h3{font-size:17px;margin-bottom:12px}
+.muted{color:#64748b}
+html.dark .muted{color:#a8b2c4}
+.small{font-size:12px}
+.status{padding:11px 12px;border:1px solid #cbd5e1;border-radius:12px;overflow-wrap:anywhere}
+html.dark .status{border-color:#374151}
+.status.error{color:#dc2626}
+.status.success{color:#15803d}
+html.dark .status.success{color:#4ade80}
+label{display:block;font-weight:650;margin-bottom:6px}
+input,select{width:100%;padding:11px 12px;border:1px solid #cbd5e1;border-radius:11px;background:#f8fafc;color:#0f172a;min-width:0}
+html.dark input,html.dark select{background:#101827;border-color:#374151;color:#e5e7eb}
+input[type=color]{height:46px;padding:4px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.btn{border:0;border-radius:11px;padding:11px 15px;font-weight:750;background:var(--accent);color:#061006}
+.btn.secondary{background:transparent;color:inherit;border:1px solid #cbd5e1}
+html.dark .btn.secondary{border-color:#374151}
+.btn.danger{background:#dc2626;color:white}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.accent{color:var(--accent)}
+.statgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.stat{border:1px solid #dbe1ea;border-radius:13px;padding:13px}
+html.dark .stat{border-color:#374151}
+.stat strong{display:block;font-size:19px;overflow-wrap:anywhere}
+.progress{height:10px;border-radius:99px;background:#dbe1ea;overflow:hidden;margin-top:9px}
+html.dark .progress{background:#303b50}
+.progress>div{height:100%;width:0;background:var(--accent);transition:width .2s}
+.record{padding:13px;border:1px solid #dbe1ea;border-radius:13px;margin-top:10px}
+html.dark .record{border-color:#374151}
+.record-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.record-title{font-weight:800;overflow-wrap:anywhere}
+.record-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.record-actions button{padding:7px 10px;font-size:12px}
+.hidden{display:none!important}
+footer{padding:0 16px 24px;text-align:center;font-size:12px;color:#64748b}
+@media(max-width:540px){.grid{grid-template-columns:1fr}.brand{font-size:16px}.topbar{padding:10px}.top-actions{gap:4px}.small-btn{padding:7px}.card{padding:14px}main{padding:12px}}
+@media print{.topbar,#preferences-card,#savings-form-card,#search-row,.record-actions,footer,.no-print{display:none!important}body,html.dark body{background:white!important;color:#111!important}.card,.record{background:white!important;color:#111!important;border-color:#ccc!important;box-shadow:none!important}main{width:100%;padding:0}.muted{color:#444!important}}
+</style></head>
+<body><header class="topbar">
+  <button class="back" id="back-btn" type="button" aria-label="Go back">‹</button>
+  <div class="brand">📘 Digital NoteBook<div class="subtitle" id="header-subtitle">Savings</div></div>
+  <div class="top-actions">
+    <button class="small-btn" id="quick-theme" type="button" aria-label="Toggle theme">🌙</button>
+    <button class="small-btn" id="quick-language" type="button">EN</button>
   </div>
-</header><main class="max-w-5xl mx-auto p-4 md:p-6 space-y-5">
-  <section class="flex flex-wrap items-start justify-between gap-3">
-    <div>
-      <p id="dynamic-date" class="text-xs text-slate-500 dark:text-slate-400 mb-1"></p>
-      <h2 class="text-xl md:text-2xl font-bold" data-en="Savings" data-np="बचत">Savings</h2>
-      <p class="mt-1 text-slate-500 dark:text-slate-400" data-en="Manage your savings and goals." data-np="आफ्नो बचत र लक्ष्य व्यवस्थापन गर्नुहोस्।">Manage your savings and goals.</p>
+</header><main>
+  <section>
+    <h2 data-en="Savings" data-np="बचत">Savings</h2>
+    <p class="muted" data-en="Manage your savings and goals." data-np="आफ्नो बचत र लक्ष्य व्यवस्थापन गर्नुहोस्।">Manage your savings and goals.</p>
+    <div id="app-status" class="status" role="status" aria-live="polite">Starting…</div>
+  </section>  <section class="card" id="preferences-card">
+    <div class="row" style="justify-content:space-between">
+      <h3 data-en="Display & Preferences" data-np="प्रदर्शन र प्राथमिकताहरू">Display & Preferences</h3>
+      <span class="small muted" data-en="Saved on this device" data-np="यसै उपकरणमा सुरक्षित">Saved on this device</span>
     </div>
-    <button id="preferences-open" type="button" class="no-print rounded-xl border border-slate-300 dark:border-slate-700 px-3 py-2">
-      <i class="fa-solid fa-sliders mr-1"></i><span data-en="Display preferences" data-np="प्रदर्शन सेटिङ">Display preferences</span>
-    </button>
-  </section>  <div id="page-status" role="status" aria-live="polite" class="rounded-xl border border-slate-300 dark:border-slate-700 p-3 text-sm">
-    Checking sign-in…
-  </div>  <!-- Local/offline display preferences -->  <section id="preferences-panel" class="hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-4">
-    <div class="flex items-center justify-between gap-2">
-      <h3 class="font-bold text-base" data-en="Display & Preferences" data-np="प्रदर्शन तथा प्राथमिकता">Display & Preferences</h3>
-      <span class="text-xs text-emerald-600 dark:text-emerald-400" data-en="Saved on this device" data-np="यसै फोनमा सुरक्षित">Saved on this device</span>
+    <p class="muted small" data-en="These options are stored locally and work offline. They are not uploaded to Firebase from this page." data-np="यी विकल्प यसै उपकरणमा सुरक्षित हुन्छन् र अफलाइन पनि चल्छन्। यस पेजबाट Firebase मा पठाइँदैनन्।">These options are stored locally and work offline. They are not uploaded to Firebase from this page.</p>
+    <div class="grid">
+      <div>
+        <label for="pref-language" data-en="Language" data-np="भाषा">Language</label>
+        <select id="pref-language">
+          <option value="EN">English</option>
+          <option value="NEP">नेपाली</option>
+        </select>
+      </div>
+      <div>
+        <label for="pref-theme" data-en="Theme" data-np="थिम">Theme</label>
+        <select id="pref-theme">
+          <option value="dark">Dark</option>
+          <option value="light">Light</option>
+        </select>
+      </div>
+      <div>
+        <label for="pref-font-size" data-en="Font size" data-np="अक्षरको आकार">Font size</label>
+        <select id="pref-font-size">
+          <option value="small">Small</option>
+          <option value="medium">Medium</option>
+          <option value="large">Large</option>
+        </select>
+      </div>
+      <div>
+        <label for="pref-font-family" data-en="Font family" data-np="अक्षर शैली">Font family</label>
+        <select id="pref-font-family">
+          <option value="Poppins">Poppins</option>
+          <option value="Arial">Arial</option>
+          <option value="system">System default</option>
+          <option value="Georgia">Georgia</option>
+          <option value="Verdana">Verdana</option>
+        </select>
+      </div>
+      <div>
+        <label for="pref-accent" data-en="Accent color" data-np="मुख्य रङ">Accent color</label>
+        <input id="pref-accent" type="color" value="#00e600">
+      </div>
     </div>
-    <p class="text-xs text-slate-500 dark:text-slate-400" data-en="These options are stored locally and work offline. They are not uploaded to Firebase from this page." data-np="यी सेटिङ यसै फोनमा सुरक्षित हुन्छन् र अफलाइनमा पनि चल्छन्। यो पेजबाट Firebase मा पठाइँदैन।">These options are stored locally and work offline. They are not uploaded to Firebase from this page.</p><div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-  <label class="block">
-    <span class="block mb-1 font-semibold" data-en="Language" data-np="भाषा">Language</span>
-    <select id="pref-language" class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-3">
-      <option value="EN">English</option>
-      <option value="NEP">नेपाली</option>
-    </select>
-  </label>
-  <label class="block">
-    <span class="block mb-1 font-semibold" data-en="Theme" data-np="थिम">Theme</span>
-    <select id="pref-theme" class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-3">
-      <option value="dark">Dark</option>
-      <option value="light">Light</option>
-    </select>
-  </label>
-  <label class="block">
-    <span class="block mb-1 font-semibold" data-en="Font size" data-np="अक्षरको आकार">Font size</span>
-    <select id="pref-font-size" class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-3">
-      <option value="small">Small</option>
-      <option value="medium">Medium</option>
-      <option value="large">Large</option>
-    </select>
-  </label>
-  <label class="block">
-    <span class="block mb-1 font-semibold" data-en="Font family" data-np="अक्षर शैली">Font family</span>
-    <select id="pref-font-family" class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-3">
-      <option value="Poppins">Poppins</option>
-      <option value="Arial">Arial</option>
-      <option value="system">System default</option>
-      <option value="Georgia">Georgia</option>
-      <option value="Verdana">Verdana</option>
-    </select>
-  </label>
-  <label class="block">
-    <span class="block mb-1 font-semibold" data-en="Accent color" data-np="मुख्य रङ">Accent color</span>
-    <input id="pref-accent" type="color" value="#00e600" class="w-full h-12 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-1">
-  </label>
-</div>
-<div class="flex flex-wrap gap-2">
-  <button id="preferences-save" type="button" class="accent-bg rounded-xl px-4 py-3 font-bold" data-en="Save on this device" data-np="यस फोनमा सेभ गर्नुहोस्">Save on this device</button>
-  <button id="preferences-reset" type="button" class="rounded-xl border border-slate-300 dark:border-slate-700 px-4 py-3" data-en="Reset preferences" data-np="सेटिङ रिसेट">Reset preferences</button>
-</div>
-
-  </section>  <!-- Savings summary -->  <section class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
-    <div class="flex items-center justify-between gap-3 mb-3">
-      <h3 class="font-bold text-base" data-en="Savings target" data-np="बचत लक्ष्य">Savings target</h3>
-      <button id="target-edit" type="button" class="no-print rounded-lg border border-slate-300 dark:border-slate-700 px-3 py-2" data-en="Set target" data-np="लक्ष्य राख्नुहोस्">Set target</button>
+    <div class="row" style="margin-top:14px">
+      <button class="btn" id="preferences-save" type="button" data-en="Save on this device" data-np="यस फोनमा सेभ गर्नुहोस्">Save on this device</button>
+      <button class="btn secondary" id="preferences-reset" type="button" data-en="Reset preferences" data-np="सेटिङ रिसेट">Reset preferences</button>
     </div>
-    <div class="flex flex-wrap justify-between gap-2 text-sm mb-2">
+    <p id="preferences-status" class="small muted" style="margin:12px 0 0" aria-live="polite"></p>
+  </section>  <section class="card">
+    <div class="row" style="justify-content:space-between">
+      <h3 data-en="Savings target" data-np="बचत लक्ष्य">Savings target</h3>
+      <button class="btn secondary" id="target-open" type="button" data-en="Set target" data-np="लक्ष्य राख्नुहोस्">Set target</button>
+    </div>
+    <div class="row" style="justify-content:space-between">
       <span id="target-progress-text">Rs 0 / Goal not set</span>
-      <strong id="target-percentage" class="accent-text">0%</strong>
+      <strong class="accent" id="target-percentage">0%</strong>
     </div>
-    <div class="h-3 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-      <div id="target-progress-bar" class="h-full rounded-full transition-all" style="width:0%;background:var(--accent)"></div>
+    <div class="progress"><div id="target-progress-bar"></div></div>
+    <div class="statgrid" style="margin-top:14px">
+      <div class="stat"><span class="muted" data-en="Total savings (NPR)" data-np="कुल बचत (नेरु)">Total savings (NPR)</span><strong class="accent" id="total-savings">Rs 0.00</strong></div>
+      <div class="stat"><span class="muted" data-en="Number of records" data-np="रेकर्ड सङ्ख्या">Number of records</span><strong id="record-count">0</strong></div>
     </div>
-    <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-      <div class="rounded-xl bg-slate-50 dark:bg-slate-800 p-3">
-        <p class="text-slate-500 dark:text-slate-400" data-en="Total savings (NPR)" data-np="कुल बचत (नेरु)">Total savings (NPR)</p>
-        <div class="flex items-center gap-2 mt-1">
-          <strong id="total-savings" class="text-xl accent-text">Rs 0.00</strong>
-          <button id="toggle-visibility" type="button" class="no-print p-2" aria-label="Hide or show amounts"><i id="eye-icon" class="fa-solid fa-eye"></i></button>
+  </section>  <section class="card" id="savings-form-card">
+    <h3 id="form-heading" data-en="Add savings" data-np="बचत थप्नुहोस्">Add savings</h3>
+    <form id="savings-form">
+      <input type="hidden" id="edit-id">
+      <div class="grid">
+        <div>
+          <label for="s-title" data-en="Title" data-np="शीर्षक">Title</label>
+          <input id="s-title" maxlength="160" required placeholder="e.g. Bank deposit">
         </div>
-      </div>
-      <div class="rounded-xl bg-slate-50 dark:bg-slate-800 p-3">
-        <p class="text-slate-500 dark:text-slate-400" data-en="Number of records" data-np="रेकर्ड संख्या">Number of records</p>
-        <strong id="record-count" class="text-xl">0</strong>
-      </div>
-    </div>
-  </section>  <!-- Add/Edit form -->  <section class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
-    <h3 class="font-bold text-base mb-4" id="form-heading" data-en="Add savings" data-np="बचत थप्नुहोस्">Add savings</h3>
-    <form id="savings-form" class="space-y-4">
-      <input type="hidden" id="record-id">
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <label class="block">
-          <span class="block mb-1 font-semibold" data-en="Title" data-np="शीर्षक">Title</span>
-          <input id="savings-title" maxlength="160" required class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-3" placeholder="e.g. Bank deposit">
-        </label>
-        <label class="block">
-          <span class="block mb-1 font-semibold" data-en="Category" data-np="श्रेणी">Category</span>
-          <select id="savings-category" class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-3">
+        <div>
+          <label for="s-category" data-en="Category" data-np="श्रेणी">Category</label>
+          <select id="s-category">
             <option value="Bank">🏦 Bank</option>
             <option value="Cash">💵 Cash</option>
             <option value="Investment">📈 Investment</option>
             <option value="Other">📦 Other</option>
           </select>
-        </label>
-        <label class="block">
-          <span class="block mb-1 font-semibold">NPR (रु)</span>
-          <input id="amount-npr" type="number" min="0" step="any" inputmode="decimal" value="0" class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-3">
-        </label>
-        <label class="block">
-          <span class="block mb-1 font-semibold">INR (₹)</span>
-          <input id="amount-inr" type="number" min="0" step="any" inputmode="decimal" value="0" class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-3">
-        </label>
-        <label class="block">
-          <span class="block mb-1 font-semibold" data-en="Total in NPR (INR rate: 1.6)" data-np="नेरुमा जम्मा (भारु दर: १.६)">Total in NPR (INR rate: 1.6)</span>
-          <input id="amount-total" readonly class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 p-3 font-bold">
-        </label>
-        <label class="block">
-          <span class="block mb-1 font-semibold" data-en="Date" data-np="मिति">Date</span>
-          <input id="savings-date" type="date" required class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-3">
-        </label>
+        </div>
+        <div>
+          <label for="s-npr">NPR (रु)</label>
+          <input id="s-npr" type="number" min="0" step="0.01" value="0" required>
+        </div>
+        <div>
+          <label for="s-inr">INR (₹)</label>
+          <input id="s-inr" type="number" min="0" step="0.01" value="0" required>
+        </div>
+        <div>
+          <label for="s-total" data-en="Total in NPR (INR rate: 1.6)" data-np="नेरुमा जम्मा (भारु दर: १.६)">Total in NPR (INR rate: 1.6)</label>
+          <input id="s-total" readonly value="0.00">
+        </div>
+        <div>
+          <label for="s-date" data-en="Date" data-np="मिति">Date</label>
+          <input id="s-date" type="date" required>
+        </div>
       </div>
-      <div class="flex flex-wrap gap-2">
-        <button id="submit-button" type="submit" class="accent-bg rounded-xl px-5 py-3 font-bold" data-en="Add savings" data-np="बचत थप्नुहोस्">Add savings</button>
-        <button id="cancel-edit" type="button" class="hidden rounded-xl border border-slate-300 dark:border-slate-700 px-5 py-3" data-en="Cancel edit" data-np="सम्पादन रद्द">Cancel edit</button>
+      <div class="row" style="margin-top:14px">
+        <button class="btn" id="save-record" type="submit" data-en="Add savings" data-np="बचत थप्नुहोस्">Add savings</button>
+        <button class="btn secondary hidden" id="cancel-edit" type="button" data-en="Cancel edit" data-np="सम्पादन रद्द">Cancel edit</button>
       </div>
     </form>
-  </section>  <!-- Search/list -->  <section class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
-    <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
-      <h3 class="font-bold text-base" data-en="Savings records" data-np="बचत रेकर्ड">Savings records</h3>
-      <button id="pdf-button" type="button" class="no-print rounded-xl accent-bg px-4 py-2 font-semibold"><i class="fa-solid fa-file-pdf mr-1"></i><span data-en="Report / Print" data-np="रिपोर्ट / प्रिन्ट">Report / Print</span></button>
+  </section>  <section class="card">
+    <div class="row" style="justify-content:space-between">
+      <h3 data-en="Savings records" data-np="बचत रेकर्ड">Savings records</h3>
+      <button class="btn secondary" id="print-report" type="button" data-en="Report / Print" data-np="रिपोर्ट / प्रिन्ट">Report / Print</button>
     </div>
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
-      <input id="search-savings" type="search" class="rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-3" placeholder="Search title…">
-      <select id="sort-savings" class="rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-3">
-        <option value="date_desc">Newest date first</option>
-        <option value="name">Title A–Z</option>
-        <option value="total_desc">Highest amount</option>
-      </select>
+    <div class="grid" id="search-row">
+      <div>
+        <label for="search-records" data-en="Search" data-np="खोज्नुहोस्">Search</label>
+        <input id="search-records" placeholder="Search title…">
+      </div>
+      <div>
+        <label for="sort-records" data-en="Sort by" data-np="क्रम मिलाउनुहोस्">Sort by</label>
+        <select id="sort-records">
+          <option value="date">Newest date first</option>
+          <option value="name">Title A–Z</option>
+          <option value="amount">Highest amount</option>
+        </select>
+      </div>
     </div>
-    <div id="savings-list" class="space-y-3">
-      <p class="text-slate-500">Sign in to load your records.</p>
+    <div id="records-list" style="margin-top:12px">
+      <p class="muted" data-en="Sign in to load your records." data-np="रेकर्ड लोड गर्न लगइन गर्नुहोस्।">Sign in to load your records.</p>
     </div>
-    <div class="mt-4 border-t border-slate-200 dark:border-slate-800 pt-4 flex justify-between gap-3 font-bold">
-      <span data-en="Grand total" data-np="कुल जम्मा">Grand total</span>
-      <span id="grand-total" class="accent-text">Rs 0.00</span>
+    <div class="row" style="justify-content:space-between;border-top:1px solid #cbd5e1;margin-top:15px;padding-top:14px">
+      <strong data-en="Grand total" data-np="कुल जम्मा">Grand total</strong>
+      <strong class="accent" id="grand-total">Rs 0.00</strong>
     </div>
-  </section>  <p class="text-xs text-slate-500 dark:text-slate-400 pb-5" data-en="Display preferences work offline. Savings records require a signed-in account to synchronize with Firebase. PDF libraries and Google Fonts may need internet access." data-np="प्रदर्शन सेटिङ अफलाइन चल्छन्। बचत रेकर्ड Firebase सँग सिंक गर्न लगइन आवश्यक हुन्छ। PDF पुस्तकालय र Google Fonts लाई इन्टरनेट चाहिन सक्छ।">Display preferences work offline. Savings records require a signed-in account to synchronize with Firebase. PDF libraries and Google Fonts may need internet access.</p>
-</main><!-- Target dialog --><div id="target-dialog" class="hidden fixed inset-0 z-50 bg-black/60 p-4 items-center justify-center">
-  <div class="w-full max-w-sm rounded-2xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 p-5 space-y-4">
-    <h3 class="font-bold text-lg" data-en="Savings target" data-np="बचत लक्ष्य">Savings target</h3>
-    <label class="block">
-      <span class="block mb-1" data-en="Target amount in NPR" data-np="लक्ष्य रकम (नेरु)">Target amount in NPR</span>
-      <input id="target-input" type="number" min="0" step="any" class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-3">
-    </label>
-    <div class="flex gap-2">
-      <button id="target-save" type="button" class="accent-bg rounded-xl px-4 py-3 font-bold flex-1" data-en="Save" data-np="सेभ">Save</button>
-      <button id="target-cancel" type="button" class="rounded-xl border border-slate-300 dark:border-slate-700 px-4 py-3" data-en="Cancel" data-np="रद्द">Cancel</button>
+  </section>  <section class="card hidden" id="target-card">
+    <h3 data-en="Savings target" data-np="बचत लक्ष्य">Savings target</h3>
+    <label for="target-amount" data-en="Target amount in NPR" data-np="लक्ष्य रकम (नेरु)">Target amount in NPR</label>
+    <input id="target-amount" type="number" min="0" step="0.01" value="0">
+    <div class="row" style="margin-top:12px">
+      <button class="btn" id="target-save" type="button" data-en="Save" data-np="सेभ गर्नुहोस्">Save</button>
+      <button class="btn secondary" id="target-cancel" type="button" data-en="Cancel" data-np="रद्द गर्नुहोस्">Cancel</button>
     </div>
-  </div>
-</div><!-- Firebase compat SDK --><script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script><script>
-'use strict';
+  </section>
+</main><footer data-en="Display preferences work offline. Savings records require a signed-in account to synchronize with Firebase. Printing uses your browser." data-np="प्रदर्शन प्राथमिकता अफलाइन चल्छ। बचत रेकर्ड Firebase मा सिंक गर्न लगइन आवश्यक छ। प्रिन्ट गर्न ब्राउजर प्रयोग हुन्छ।">Display preferences work offline. Savings records require a signed-in account to synchronize with Firebase. Printing uses your browser.</footer><!-- Firebase Authentication + Realtime Database (compat SDK) --><script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script><script>
+"use strict";
 
-/* Firebase settings are for SAVINGS DATA only.
-   Display & Preferences are stored in localStorage on this device. */
+/* ---------------- OFFLINE DISPLAY PREFERENCES ---------------- */
+const PREF_KEY = "dnb_display_preferences";
+const PREF_DEFAULTS = {
+  language: "EN",
+  theme: "dark",
+  fontSize: "small",
+  fontFamily: "Poppins",
+  accent: "#00e600"
+};
+let preferences = loadPreferences();
+
+function loadPreferences() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(PREF_KEY) || "{}");
+    return {...PREF_DEFAULTS, ...saved};
+  } catch (_) {
+    return {...PREF_DEFAULTS};
+  }
+}
+function applyPreferences() {
+  const root = document.documentElement;
+  root.classList.toggle("dark", preferences.theme === "dark");
+  root.style.setProperty("--accent", preferences.accent || PREF_DEFAULTS.accent);
+  root.style.setProperty("--font-size", ({small:"14px",medium:"16px",large:"18px"})[preferences.fontSize] || "14px");
+  root.style.setProperty("--font-family", ({
+    Poppins:"Poppins, sans-serif",
+    Arial:"Arial, sans-serif",
+    system:"system-ui, sans-serif",
+    Georgia:"Georgia, serif",
+    Verdana:"Verdana, sans-serif"
+  })[preferences.fontFamily] || "system-ui, sans-serif");
+
+  document.getElementById("pref-language").value = preferences.language;
+  document.getElementById("pref-theme").value = preferences.theme;
+  document.getElementById("pref-font-size").value = preferences.fontSize;
+  document.getElementById("pref-font-family").value = preferences.fontFamily;
+  document.getElementById("pref-accent").value = preferences.accent;
+  document.getElementById("quick-theme").textContent = preferences.theme === "dark" ? "🌙" : "☀️";
+  document.getElementById("quick-language").textContent = preferences.language === "NEP" ? "ने" : "EN";
+
+  document.querySelectorAll("[data-en][data-np]").forEach(el => {
+    const text = el.getAttribute(preferences.language === "NEP" ? "data-np" : "data-en");
+    if (text !== null) el.textContent = text;
+  });
+  document.documentElement.lang = preferences.language === "NEP" ? "ne" : "en";
+  updateDynamicLabels();
+}
+function savePreferences() {
+  preferences = {
+    language: document.getElementById("pref-language").value,
+    theme: document.getElementById("pref-theme").value,
+    fontSize: document.getElementById("pref-font-size").value,
+    fontFamily: document.getElementById("pref-font-family").value,
+    accent: document.getElementById("pref-accent").value
+  };
+  try {
+    localStorage.setItem(PREF_KEY, JSON.stringify(preferences));
+    /* Keep older pages' local theme/language convention in step. */
+    localStorage.setItem("theme", preferences.theme);
+    localStorage.setItem("lang", preferences.language);
+    applyPreferences();
+    document.getElementById("preferences-status").textContent =
+      preferences.language === "NEP" ? "यस उपकरणमा सेभ भयो। इन्टरनेट आवश्यक छैन।" : "Saved on this device. No internet required.";
+  } catch (_) {
+    document.getElementById("preferences-status").textContent =
+      "Could not save preferences. Check this browser's storage settings.";
+  }
+}
+function resetPreferences() {
+  preferences = {...PREF_DEFAULTS};
+  try {
+    localStorage.setItem(PREF_KEY, JSON.stringify(preferences));
+    localStorage.setItem("theme", preferences.theme);
+    localStorage.setItem("lang", preferences.language);
+  } catch (_) {}
+  applyPreferences();
+  document.getElementById("preferences-status").textContent =
+    preferences.language === "NEP" ? "पूर्वनिर्धारित सेटिङ राखियो।" : "Default preferences restored.";
+}
+document.getElementById("preferences-save").addEventListener("click", savePreferences);
+document.getElementById("preferences-reset").addEventListener("click", resetPreferences);
+["pref-language","pref-theme","pref-font-size","pref-font-family","pref-accent"].forEach(id => {
+  document.getElementById(id).addEventListener("change", savePreferences);
+});
+document.getElementById("quick-theme").addEventListener("click", () => {
+  preferences.theme = preferences.theme === "dark" ? "light" : "dark";
+  savePreferences();
+});
+document.getElementById("quick-language").addEventListener("click", () => {
+  preferences.language = preferences.language === "EN" ? "NEP" : "EN";
+  savePreferences();
+});
+document.getElementById("back-btn").addEventListener("click", () => {
+  if (history.length > 1) history.back();
+  else location.href = "index.html";
+});
+
+/* ---------------- LOCAL UI STATUS (NO TOAST / ALERT) ---------------- */
+function status(message, type) {
+  const el = document.getElementById("app-status");
+  el.textContent = message;
+  el.className = "status" + (type ? " " + type : "");
+}
+function t(en, np) {
+  return preferences.language === "NEP" ? np : en;
+}
+function updateDynamicLabels() {
+  document.getElementById("form-heading").textContent =
+    document.getElementById("edit-id").value ? t("Edit savings","बचत सम्पादन") : t("Add savings","बचत थप्नुहोस्");
+  document.getElementById("save-record").textContent =
+    document.getElementById("edit-id").value ? t("Update savings","बचत अपडेट गर्नुहोस्") : t("Add savings","बचत थप्नुहोस्");
+}
+function todayLocal() {
+  const d = new Date();
+  const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0,10);
+}
+
+/* ---------------- FIREBASE ---------------- */
 const firebaseConfig = {
   apiKey: "AIzaSyDDY_v7RHnkCTI6uyV4DNDjqoaIBGweg8c",
   authDomain: "digital-a2552.firebaseapp.com",
@@ -218,600 +356,342 @@ const firebaseConfig = {
   projectId: "digital-a2552",
   storageBucket: "digital-a2552.firebasestorage.app",
   messagingSenderId: "218135618179",
-  appId: "1:218135618179:web:821b76920d3e5669ac31b6"
-};
-
-const INR_RATE = 1.6;
-const TRASH_DAYS = 30;
-const DEFAULT_PREFS = {
-  lang:'EN', theme:'dark', font_size:'small',
-  font_family:'Poppins', accentColor:'#00e600'
+  appId: "1:821b76920d3e5669ac31b6:web:821b76920d3e5669ac31b6"
 };
 
 let db = null;
 let auth = null;
-let currentUser = null;
+let uid = null;
 let savingsRef = null;
 let targetRef = null;
 let savingsListener = null;
 let targetListener = null;
-let savingsMap = {};
+let savings = [];
 let targetAmount = 0;
-let isHidden = localStorage.getItem('savings_hidden') === 'true';
-let isSaving = false;
-let prefs = loadPrefs();
+let busy = false;
 
-const $ = id => document.getElementById(id);
-
-function showStatus(message, kind='info') {
-  const el = $('page-status');
-  if (!el) return;
-  el.textContent = message;
-  el.className = 'rounded-xl border p-3 text-sm';
-  if (kind === 'error') el.classList.add('border-rose-400','text-rose-700','dark:text-rose-300');
-  else if (kind === 'success') el.classList.add('border-emerald-400','text-emerald-700','dark:text-emerald-300');
-  else el.classList.add('border-slate-300','dark:border-slate-700');
+function cleanNumber(value) {
+  const n = Number(value);
+  return Number.isFinite(n) && n >= 0 ? n : 0;
 }
-
-function loadPrefs() {
-  try {
-    const p = {...DEFAULT_PREFS};
-    const map = {
-      lang:'lang',
-      theme:'theme',
-      font_size:'font_size',
-      font_family:'font_family',
-      accentColor:'accentColor'
-    };
-    Object.keys(map).forEach(k => {
-      const v = localStorage.getItem(map[k]);
-      if (v) p[k] = v;
-    });
-    if (p.lang !== 'NEP') p.lang = 'EN';
-    if (!['dark','light'].includes(p.theme)) p.theme = 'dark';
-    if (!['small','medium','large'].includes(p.font_size)) p.font_size = 'small';
-    if (!['Poppins','Arial','system','Georgia','Verdana'].includes(p.font_family)) p.font_family = 'Poppins';
-    if (!/^#[0-9a-f]{6}$/i.test(p.accentColor)) p.accentColor = DEFAULT_PREFS.accentColor;
-    return p;
-  } catch (e) {
-    return {...DEFAULT_PREFS};
-  }
+function totalFor(npr, inr) {
+  return Math.round((cleanNumber(npr) + cleanNumber(inr) * 1.6) * 100) / 100;
 }
-
-function persistPrefs() {
-  try {
-    localStorage.setItem('lang',prefs.lang);
-    localStorage.setItem('theme',prefs.theme);
-    localStorage.setItem('font_size',prefs.font_size);
-    localStorage.setItem('font_family',prefs.font_family);
-    localStorage.setItem('accentColor',prefs.accentColor);
-    return true;
-  } catch (e) {
-    showStatus('Could not save preferences locally. Check browser storage settings.','error');
-    return false;
-  }
+function calculateFormTotal() {
+  document.getElementById("s-total").value =
+    totalFor(document.getElementById("s-npr").value, document.getElementById("s-inr").value).toFixed(2);
 }
+document.getElementById("s-npr").addEventListener("input", calculateFormTotal);
+document.getElementById("s-inr").addEventListener("input", calculateFormTotal);
+document.getElementById("s-date").value = todayLocal();
 
-function applyPrefs() {
-  document.documentElement.classList.toggle('dark',prefs.theme === 'dark');
-  document.documentElement.dataset.lang = prefs.lang;
-  document.documentElement.style.setProperty('--accent',prefs.accentColor);
-
-  const fontMap = {
-    Poppins:"'Poppins',sans-serif",
-    Arial:"Arial,sans-serif",
-    system:"system-ui,sans-serif",
-    Georgia:"Georgia,serif",
-    Verdana:"Verdana,sans-serif"
-  };
-  document.documentElement.style.setProperty('--app-font',fontMap[prefs.font_family] || fontMap.Poppins);
-
-  document.body.classList.remove('font-small','font-medium','font-large');
-  document.body.classList.add('font-' + prefs.font_size);
-
-  $('pref-language').value = prefs.lang;
-  $('pref-theme').value = prefs.theme;
-  $('pref-font-size').value = prefs.font_size;
-  $('pref-font-family').value = prefs.font_family;
-  $('pref-accent').value = prefs.accentColor;
-  $('language-button').textContent = prefs.lang === 'NEP' ? 'ने' : 'EN';
-  $('theme-button').textContent = prefs.theme === 'dark' ? '🌙' : '☀️';
-
-  document.querySelectorAll('[data-en][data-np]').forEach(el => {
-    const text = prefs.lang === 'NEP' ? el.dataset.np : el.dataset.en;
-    if (text != null) el.textContent = text;
-  });
-  $('form-heading').textContent = $('record-id').value
-    ? (prefs.lang === 'NEP' ? 'बचत अपडेट गर्नुहोस्' : 'Edit savings')
-    : (prefs.lang === 'NEP' ? 'बचत थप्नुहोस्' : 'Add savings');
-
-  updateDate();
-  renderSavings();
+function openTarget() {
+  document.getElementById("target-amount").value = String(targetAmount || 0);
+  document.getElementById("target-card").classList.remove("hidden");
+  document.getElementById("target-card").scrollIntoView({behavior:"smooth",block:"center"});
 }
-
-function updateDate() {
-  const locale = prefs.lang === 'NEP' ? 'ne-NP' : 'en-US';
-  $('dynamic-date').textContent = new Date().toLocaleDateString(locale,{
-    weekday:'long',year:'numeric',month:'long',day:'numeric'
-  });
+function closeTarget() {
+  document.getElementById("target-card").classList.add("hidden");
 }
+document.getElementById("target-open").addEventListener("click", openTarget);
+document.getElementById("target-cancel").addEventListener("click", closeTarget);
 
-function savePreferencesFromControls() {
-  prefs = {
-    lang:$('pref-language').value,
-    theme:$('pref-theme').value,
-    font_size:$('pref-font-size').value,
-    font_family:$('pref-font-family').value,
-    accentColor:$('pref-accent').value
-  };
-  if (persistPrefs()) {
-    applyPrefs();
-    showStatus(prefs.lang === 'NEP'
-      ? 'प्रदर्शन सेटिङ यस फोनमा सुरक्षित भयो।'
-      : 'Display preferences saved on this device.','success');
-  }
-}
-
-$('preferences-open').addEventListener('click',() => {
-  $('preferences-panel').classList.toggle('hidden');
-});
-$('preferences-save').addEventListener('click',savePreferencesFromControls);
-
-['pref-language','pref-theme','pref-font-size','pref-font-family','pref-accent'].forEach(id => {
-  $(id).addEventListener('change',() => {
-    prefs = {
-      lang:$('pref-language').value,
-      theme:$('pref-theme').value,
-      font_size:$('pref-font-size').value,
-      font_family:$('pref-font-family').value,
-      accentColor:$('pref-accent').value
-    };
-    applyPrefs();
-  });
-});
-
-$('preferences-reset').addEventListener('click',() => {
-  if (!confirm('Reset display preferences on this device?')) return;
-  prefs = {...DEFAULT_PREFS};
-  persistPrefs();
-  applyPrefs();
-  showStatus('Local display preferences reset.','success');
-});
-
-$('theme-button').addEventListener('click',() => {
-  prefs.theme = prefs.theme === 'dark' ? 'light' : 'dark';
-  persistPrefs();
-  applyPrefs();
-});
-$('language-button').addEventListener('click',() => {
-  prefs.lang = prefs.lang === 'EN' ? 'NEP' : 'EN';
-  persistPrefs();
-  applyPrefs();
-});
-
-function localToday() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-}
-$('savings-date').value = localToday();
-
-function calcFormTotal() {
-  const npr = Math.max(0,Number($('amount-npr').value) || 0);
-  const inr = Math.max(0,Number($('amount-inr').value) || 0);
-  $('amount-total').value = (npr + inr * INR_RATE).toFixed(2);
-}
-$('amount-npr').addEventListener('input',calcFormTotal);
-$('amount-inr').addEventListener('input',calcFormTotal);
-
-function money(value) {
-  return 'Rs ' + (Number(value) || 0).toLocaleString('en-IN',{
-    minimumFractionDigits:2,maximumFractionDigits:2
-  });
-}
-function safeText(value) {
-  return String(value == null ? '' : value);
-}
-function escapeHTML(value) {
-  return safeText(value).replace(/[&<>"']/g,c => ({
-    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-  })[c]);
-}
-function recordTotal(item) {
-  if (Number.isFinite(Number(item.total))) return Number(item.total);
-  return (Number(item.npr)||0) + (Number(item.inr)||0)*INR_RATE;
-}
-function allRecords() {
-  return Object.entries(savingsMap).map(([id,data]) => ({...data,id}));
-}
-
-function renderSavings() {
-  const container = $('savings-list');
-  if (!container) return;
-
-  const query = $('search-savings').value.trim().toLowerCase();
-  const sort = $('sort-savings').value;
-  let records = allRecords().filter(item =>
-    safeText(item.title).toLowerCase().includes(query) ||
-    safeText(item.category).toLowerCase().includes(query)
-  );
-
-  records.sort((a,b) => {
-    if (sort === 'name') return safeText(a.title).localeCompare(safeText(b.title));
-    if (sort === 'total_desc') return recordTotal(b)-recordTotal(a);
-    return safeText(b.date).localeCompare(safeText(a.date));
-  });
-
-  const total = allRecords().reduce((sum,item) => sum+recordTotal(item),0);
-  $('total-savings').textContent = isHidden ? 'Rs ••••••' : money(total);
-  $('grand-total').textContent = isHidden ? 'Rs ••••••' : money(total);
-  $('record-count').textContent = String(allRecords().length);
-  $('eye-icon').className = isHidden ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
-
-  const percentage = targetAmount > 0 ? Math.min(100,Math.round(total/targetAmount*100)) : 0;
-  $('target-percentage').textContent = percentage + '%';
-  $('target-progress-bar').style.width = percentage + '%';
-  $('target-progress-text').textContent = targetAmount > 0
-    ? (isHidden ? 'Rs •••••• / Rs ••••••' : `${money(total)} / ${money(targetAmount)}`)
-    : (isHidden ? 'Rs •••••• / Goal not set' : `${money(total)} / Goal not set`);
-
-  if (!currentUser) {
-    container.innerHTML = '<p class="text-slate-500">Sign in to load your savings.</p>';
+document.getElementById("target-save").addEventListener("click", async () => {
+  if (!targetRef) {
+    status(t("Sign in to save your target.","लक्ष्य सेभ गर्न लगइन गर्नुहोस्।"), "error");
     return;
   }
-  if (!records.length) {
-    container.innerHTML = `<p class="text-center text-slate-500 py-6">${prefs.lang === 'NEP' ? 'बचत रेकर्ड छैन। माथिको फारम प्रयोग गर्नुहोस्।' : 'No savings records found. Use the form above to add one.'}</p>`;
+  const amount = cleanNumber(document.getElementById("target-amount").value);
+  try {
+    await targetRef.set(amount);
+    closeTarget();
+    status(t("Savings target saved.","बचत लक्ष्य सेभ भयो।"), "success");
+  } catch (e) {
+    status(t("Could not save target: ","लक्ष्य सेभ भएन: ") + e.message, "error");
+  }
+});
+
+document.getElementById("savings-form").addEventListener("submit", async event => {
+  event.preventDefault();
+  if (!savingsRef || !uid) {
+    status(t("Sign in to save savings records.","बचत रेकर्ड सेभ गर्न लगइन गर्नुहोस्।"), "error");
+    return;
+  }
+  if (busy) return;
+  const title = document.getElementById("s-title").value.trim();
+  const category = document.getElementById("s-category").value;
+  const npr = cleanNumber(document.getElementById("s-npr").value);
+  const inr = cleanNumber(document.getElementById("s-inr").value);
+  const date = document.getElementById("s-date").value;
+  const editId = document.getElementById("edit-id").value;
+
+  if (!title || !date) {
+    status(t("Enter a title and date.","शीर्षक र मिति राख्नुहोस्।"), "error");
     return;
   }
 
-  container.innerHTML = records.map(item => {
-    const totalText = isHidden ? 'Rs ••••••' : money(recordTotal(item));
-    const detailText = isHidden ? 'NPR ••• · INR •••' :
-      `NPR ${Number(item.npr)||0} · INR ${Number(item.inr)||0}`;
-    return `
-      <article class="rounded-xl border border-slate-200 dark:border-slate-700 p-3">
-        <div class="flex flex-wrap items-start justify-between gap-3">
-          <div class="min-w-0 flex-1">
-            <h4 class="font-bold text-sm break-words">${escapeHTML(item.title || 'Untitled')}</h4>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">${escapeHTML(item.category || 'Other')} · ${escapeHTML(item.date || '')}</p>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">${detailText}</p>
-          </div>
-          <strong class="accent-text whitespace-nowrap">${totalText}</strong>
-        </div>
-        <div class="no-print flex flex-wrap gap-2 mt-3">
-          <button type="button" data-action="edit" data-id="${escapeHTML(item.id)}" class="rounded-lg border border-slate-300 dark:border-slate-700 px-3 py-2">${prefs.lang === 'NEP' ? 'सम्पादन' : 'Edit'}</button>
-          <button type="button" data-action="delete" data-id="${escapeHTML(item.id)}" class="rounded-lg border border-rose-300 text-rose-600 dark:border-rose-900 px-3 py-2">${prefs.lang === 'NEP' ? 'Trash मा राख्नुहोस्' : 'Move to Trash'}</button>
-        </div>
-      </article>`;
-  }).join('');
-}
-
-$('search-savings').addEventListener('input',renderSavings);
-$('sort-savings').addEventListener('change',renderSavings);
-$('toggle-visibility').addEventListener('click',() => {
-  isHidden = !isHidden;
-  localStorage.setItem('savings_hidden',String(isHidden));
-  renderSavings();
+  const now = Date.now();
+  const record = {
+    title, category, npr, inr, total: totalFor(npr, inr), date,
+    updatedAt: now
+  };
+  busy = true;
+  document.getElementById("save-record").disabled = true;
+  try {
+    if (editId) {
+      const old = savings.find(x => x.id === editId);
+      if (!old) throw new Error("This record no longer exists. Refresh the page.");
+      /* Update only this record; do not overwrite the user's entire data. */
+      await savingsRef.child(editId).update(record);
+      status(t("Savings record updated.","बचत रेकर्ड अपडेट भयो।"), "success");
+    } else {
+      const newRef = savingsRef.push();
+      record.createdAt = now;
+      await newRef.set(record);
+      status(t("Savings record added.","बचत रेकर्ड थपियो।"), "success");
+    }
+    resetForm();
+  } catch (e) {
+    status(t("Save failed: ","सेभ भएन: ") + e.message, "error");
+  } finally {
+    busy = false;
+    document.getElementById("save-record").disabled = false;
+  }
 });
 
 function resetForm() {
-  $('savings-form').reset();
-  $('record-id').value = '';
-  $('amount-npr').value = '0';
-  $('amount-inr').value = '0';
-  $('savings-date').value = localToday();
-  $('amount-total').value = '0.00';
-  $('cancel-edit').classList.add('hidden');
-  applyPrefs();
+  document.getElementById("savings-form").reset();
+  document.getElementById("edit-id").value = "";
+  document.getElementById("s-date").value = todayLocal();
+  document.getElementById("s-npr").value = "0";
+  document.getElementById("s-inr").value = "0";
+  calculateFormTotal();
+  document.getElementById("cancel-edit").classList.add("hidden");
+  updateDynamicLabels();
 }
-$('cancel-edit').addEventListener('click',resetForm);
+document.getElementById("cancel-edit").addEventListener("click", resetForm);
 
-$('savings-list').addEventListener('click',async event => {
-  const button = event.target.closest('button[data-action]');
-  if (!button) return;
-  const id = button.dataset.id;
-  const item = savingsMap[id];
-  if (!item || !currentUser) return;
-
-  if (button.dataset.action === 'edit') {
-    $('record-id').value = id;
-    $('savings-title').value = item.title || '';
-    $('savings-category').value = item.category || 'Other';
-    $('amount-npr').value = Number(item.npr)||0;
-    $('amount-inr').value = Number(item.inr)||0;
-    $('savings-date').value = item.date || localToday();
-    calcFormTotal();
-    $('cancel-edit').classList.remove('hidden');
-    $('form-heading').scrollIntoView({behavior:'smooth',block:'center'});
-    $('savings-title').focus();
-    return;
-  }
-
-  if (button.dataset.action === 'delete') {
-    const message = prefs.lang === 'NEP'
-      ? 'यो बचत ३० दिनभित्र Restore गर्न मिल्ने Trash मा राख्ने?'
-      : 'Move this saving to Trash? You can restore it within 30 days.';
-    if (!confirm(message)) return;
-    try {
-      await moveToTrash(id,item);
-      showStatus(prefs.lang === 'NEP' ? 'रेकर्ड Trash मा राखियो।' : 'Record moved to Trash.','success');
-    } catch (e) {
-      console.error(e);
-      showStatus('Could not move this record to Trash: ' + (e.message || e.code || 'Unknown error'),'error');
-    }
-  }
-});
-
-$('savings-form').addEventListener('submit',async event => {
-  event.preventDefault();
-  if (!currentUser || !savingsRef) {
-    showStatus('Please sign in before saving records.','error');
-    return;
-  }
-  if (isSaving) return;
-  const title = $('savings-title').value.trim();
-  const npr = Number($('amount-npr').value) || 0;
-  const inr = Number($('amount-inr').value) || 0;
-  const date = $('savings-date').value;
-  if (!title) return showStatus('Please enter a title.','error');
-  if (npr < 0 || inr < 0 || !Number.isFinite(npr) || !Number.isFinite(inr)) {
-    return showStatus('Amounts must be valid non-negative numbers.','error');
-  }
-  if (!date) return showStatus('Please choose a date.','error');
-
-  isSaving = true;
-  $('submit-button').disabled = true;
-  try {
-    const id = $('record-id').value;
-    const now = Date.now();
-    const existing = id ? savingsMap[id] : null;
-    const data = {
-      title,
-      category:$('savings-category').value,
-      npr,inr,total:npr+inr*INR_RATE,date,
-      createdAt:existing && existing.createdAt ? existing.createdAt : now,
-      updatedAt:now
-    };
-    if (id) {
-      if (!existing) throw new Error('This record is no longer available. Refresh and try again.');
-      await savingsRef.child(id).update(data);
-    } else {
-      const newRef = savingsRef.push();
-      await newRef.set(data);
-    }
-    resetForm();
-    showStatus(prefs.lang === 'NEP' ? 'बचत सुरक्षित भयो।' : 'Savings saved successfully.','success');
-  } catch (e) {
-    console.error(e);
-    showStatus('Save failed: ' + (e.message || e.code || 'Unknown error'),'error');
-  } finally {
-    isSaving = false;
-    $('submit-button').disabled = false;
-  }
-});
-
-/* Move only this record to the shared Trash schema. */
-async function moveToTrash(id,item) {
-  if (!currentUser) throw new Error('Not signed in');
-  const originalPath = `users/${currentUser.uid}/savings/${id}`;
-  const trashRef = db.ref(`users/${currentUser.uid}/trash/savings/${id}`);
-  const originalRef = db.ref(originalPath);
-  const current = await originalRef.once('value');
-  if (!current.exists()) throw new Error('Record no longer exists. Refresh the page.');
-  const deletedAt = Date.now();
-  const trashRecord = {
-    originalPath,
-    data:current.val(),
-    deletedAt,
-    expiresAt:deletedAt + TRASH_DAYS*24*60*60*1000,
-    recordType:'savings'
-  };
-  await trashRef.set(trashRecord);
-  try {
-    await originalRef.remove();
-  } catch (e) {
-    /* Keep a recoverable Trash copy if removing the original fails. */
-    throw new Error('Trash copy was saved, but the original could not be removed. Check your connection.');
-  }
+function editRecord(id) {
+  const item = savings.find(x => x.id === id);
+  if (!item) return;
+  document.getElementById("edit-id").value = id;
+  document.getElementById("s-title").value = item.title || "";
+  document.getElementById("s-category").value = item.category || "Other";
+  document.getElementById("s-npr").value = cleanNumber(item.npr);
+  document.getElementById("s-inr").value = cleanNumber(item.inr);
+  document.getElementById("s-date").value = item.date || todayLocal();
+  calculateFormTotal();
+  document.getElementById("cancel-edit").classList.remove("hidden");
+  updateDynamicLabels();
+  document.getElementById("savings-form-card").scrollIntoView({behavior:"smooth",block:"start"});
 }
 
-$('target-edit').addEventListener('click',() => {
-  $('target-input').value = targetAmount || '';
-  $('target-dialog').classList.remove('hidden');
-  $('target-dialog').classList.add('flex');
-});
-$('target-cancel').addEventListener('click',closeTargetDialog);
-function closeTargetDialog() {
-  $('target-dialog').classList.add('hidden');
-  $('target-dialog').classList.remove('flex');
-}
-$('target-save').addEventListener('click',async () => {
-  if (!currentUser || !targetRef) return showStatus('Please sign in first.','error');
-  const value = Number($('target-input').value) || 0;
-  if (!Number.isFinite(value) || value < 0) return showStatus('Enter a valid target amount.','error');
+/* ---------------- CENTRAL TRASH ----------------
+   Schema: users/{uid}/trash/{recordType}/{recordId}
+   Restore is blocked when the original record path already exists.
+*/
+async function deleteRecord(id) {
+  if (!savingsRef || !uid) return;
+  const item = savings.find(x => x.id === id);
+  if (!item) return;
+  if (!confirm(t("Move this savings record to Trash? It can be restored for 30 days.","यो बचत रेकर्ड Trash मा सार्ने? ३० दिनभित्र फर्काउन सकिन्छ।"))) return;
+
+  const originalRef = savingsRef.child(id);
+  const trashRef = db.ref("users/" + uid + "/trash/savings/" + id);
   try {
-    await targetRef.set(value);
-    closeTargetDialog();
-    showStatus('Savings target saved.','success');
-  } catch(e) {
-    showStatus('Could not save target: ' + (e.message || e.code || 'Unknown error'),'error');
-  }
-});
-
-/* Safe migration: asks first, adds only when the cloud savings node is empty.
-   It does not overwrite an existing cloud collection. */
-async function offerLegacyMigration() {
-  if (!currentUser || !savingsRef) return;
-  const alreadyAskedKey = 'savings_migration_asked_' + currentUser.uid;
-  if (localStorage.getItem(alreadyAskedKey) === 'yes') return;
-  const legacyRaw = localStorage.getItem('digital_notebook_savings');
-  if (!legacyRaw) {
-    localStorage.setItem(alreadyAskedKey,'yes');
-    return;
-  }
-
-  let legacy;
-  try {
-    legacy = JSON.parse(legacyRaw);
-  } catch(e) {
-    showStatus('Old local savings data is not valid JSON. It has not been changed.','error');
-    return;
-  }
-  if (!Array.isArray(legacy) || !legacy.length) {
-    localStorage.setItem(alreadyAskedKey,'yes');
-    return;
-  }
-
-  const answer = confirm(
-    `Found ${legacy.length} old savings record(s) stored on this device. ` +
-    `Import them only if your cloud savings list is empty? Existing cloud records will never be overwritten.`
-  );
-  localStorage.setItem(alreadyAskedKey,'yes');
-  if (!answer) return;
-
-  try {
-    const snap = await savingsRef.once('value');
-    if (snap.exists() && Object.keys(snap.val() || {}).length) {
-      showStatus('Cloud already has savings. Nothing was imported; no cloud data was overwritten.','info');
+    /* Transaction prevents a competing deletion from copying a changed record. */
+    const result = await originalRef.transaction(current => current === null ? undefined : null);
+    if (!result.committed || !result.snapshot.exists()) {
+      status(t("The record changed or was already removed. Refresh and try again.","रेकर्ड परिवर्तन भएको वा हटिसकेको छ। फेरि लोड गर्नुहोस्।"), "error");
       return;
     }
-    const payload = {};
-    legacy.forEach(item => {
-      if (!item || typeof item !== 'object' || !String(item.title || '').trim()) return;
-      const id = db.ref().push().key;
-      const npr = Math.max(0,Number(item.npr)||0);
-      const inr = Math.max(0,Number(item.inr)||0);
-      payload[id] = {
-        title:String(item.title).slice(0,160),
-        category:['Bank','Cash','Investment','Other'].includes(item.category) ? item.category : 'Other',
-        npr,inr,total:npr+inr*INR_RATE,
-        date:/^\d{4}-\d{2}-\d{2}$/.test(item.date || '') ? item.date : localToday(),
-        createdAt:Date.now(),updatedAt:Date.now(),migratedFromLocal:true
-      };
-    });
-    if (Object.keys(payload).length) {
-      const check = await savingsRef.once('value');
-      if (check.exists() && Object.keys(check.val() || {}).length) {
-        showStatus('Cloud records appeared during migration. Import cancelled to protect them.','error');
-        return;
-      }
-      await savingsRef.update(payload);
-      showStatus('Old local records imported. The original local copy has been kept.','success');
+    const originalPath = "users/" + uid + "/savings/" + id;
+    const data = result.snapshot.val();
+    const deletedAt = Date.now();
+    try {
+      await trashRef.set({
+        recordType: "savings",
+        originalPath,
+        data,
+        deletedAt,
+        expiresAt: deletedAt + 30 * 24 * 60 * 60 * 1000
+      });
+      status(t("Moved to Trash. Restore it within 30 days.","Trash मा सारियो। ३० दिनभित्र फर्काउन सक्नुहुन्छ।"), "success");
+    } catch (trashError) {
+      /* If writing Trash fails, restore the original only if the path remains empty. */
+      await originalRef.transaction(current => current === null ? data : undefined);
+      throw trashError;
     }
-  } catch(e) {
-    console.error(e);
-    showStatus('Migration failed; the original local data was kept. ' + (e.message || e.code || ''),'error');
+  } catch (e) {
+    status(t("Could not delete record: ","रेकर्ड हटाउन सकिएन: ") + e.message, "error");
   }
 }
 
-/* PDF/Print report */
-$('pdf-button').addEventListener('click',async () => {
-  const records = allRecords().sort((a,b)=>safeText(a.date).localeCompare(safeText(b.date)));
-  if (!records.length) {
-    showStatus(prefs.lang === 'NEP' ? 'रिपोर्ट बनाउन रेकर्ड छैन।' : 'There are no records to report.','error');
+function renderRecords() {
+  const list = document.getElementById("records-list");
+  list.replaceChildren();
+  const query = document.getElementById("search-records").value.trim().toLowerCase();
+  const sort = document.getElementById("sort-records").value;
+  let shown = savings.filter(x => String(x.title || "").toLowerCase().includes(query));
+  shown.sort((a,b) => {
+    if (sort === "name") return String(a.title || "").localeCompare(String(b.title || ""));
+    if (sort === "amount") return cleanNumber(b.total) - cleanNumber(a.total);
+    return String(b.date || "").localeCompare(String(a.date || ""));
+  });
+
+  let grandTotal = 0;
+  savings.forEach(x => grandTotal += cleanNumber(x.total));
+  document.getElementById("grand-total").textContent = money(grandTotal);
+  document.getElementById("total-savings").textContent = money(grandTotal);
+  document.getElementById("record-count").textContent = String(savings.length);
+
+  const percent = targetAmount > 0 ? Math.min(100, Math.round(grandTotal / targetAmount * 100)) : 0;
+  document.getElementById("target-percentage").textContent = percent + "%";
+  document.getElementById("target-progress-bar").style.width = percent + "%";
+  document.getElementById("target-progress-text").textContent = targetAmount > 0
+    ? money(grandTotal) + " / " + money(targetAmount)
+    : money(grandTotal) + " / " + t("Goal not set","लक्ष्य राखिएको छैन");
+
+  if (!uid) {
+    list.innerHTML = '<p class="muted">' + escapeHtml(t("Sign in to load your records.","रेकर्ड लोड गर्न लगइन गर्नुहोस्।")) + '</p>';
     return;
   }
-  const rows = records.map(r => `
-    <tr>
-      <td>${escapeHTML(r.date)}</td>
-      <td>${escapeHTML(r.title)}</td>
-      <td>${escapeHTML(r.category)}</td>
-      <td>${(Number(r.npr)||0).toFixed(2)}</td>
-      <td>${(Number(r.inr)||0).toFixed(2)}</td>
-      <td>${recordTotal(r).toFixed(2)}</td>
-    </tr>`).join('');
-  const total = records.reduce((sum,r)=>sum+recordTotal(r),0);
-  const report = document.createElement('div');
-  report.id = 'savings-report';
-  report.style.cssText = 'background:#fff;color:#111;padding:24px;font-family:Arial,sans-serif;width:100%;';
-  report.innerHTML = `
-    <h1 style="font-size:22px;text-align:center;margin-bottom:8px">Digital NoteBook</h1>
-    <h2 style="font-size:18px;text-align:center;margin-bottom:16px">Savings Report</h2>
-    <p>Generated: ${escapeHTML(new Date().toLocaleString())}</p>
-    <table style="border-collapse:collapse;width:100%;font-size:12px">
-      <thead><tr>${['Date','Title','Category','NPR','INR','Total NPR'].map(x=>`<th style="border:1px solid #bbb;padding:7px;text-align:left">${x}</th>`).join('')}</tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
-    <h3 style="text-align:right;margin-top:18px">Grand Total: Rs ${total.toFixed(2)}</h3>`;
-  const w = window.open('','_blank');
-  if (!w) {
-    showStatus('Allow pop-ups for this page to print the report.','error');
+  if (!shown.length) {
+    list.innerHTML = '<p class="muted">' + escapeHtml(t("No savings records found.","बचत रेकर्ड भेटिएन।")) + '</p>';
     return;
   }
-  w.document.open();
-  w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Savings Report</title><style>body{font-family:Arial,sans-serif;padding:18px}td,th{border:1px solid #bbb;padding:7px;text-align:left}table{border-collapse:collapse;width:100%} @media print{button{display:none}}</style></head><body>');w.document.write(report.outerHTML);
-w.document.write('<script>window.onload=()=>setTimeout(()=>window.print(),300);</script></body></html>');
-w.document.close();
+
+  shown.forEach(item => {
+    const card = document.createElement("article");
+    card.className = "record";
+
+    const head = document.createElement("div");
+    head.className = "record-head";
+    const left = document.createElement("div");
+    const title = document.createElement("div");
+    title.className = "record-title";
+    title.textContent = item.title || t("Untitled","शीर्षक छैन");
+    const detail = document.createElement("div");
+    detail.className = "muted small";
+    detail.textContent = (item.date || "—") + " · " + (item.category || "Other");
+    left.append(title, detail);
+    const amount = document.createElement("strong");
+    amount.className = "accent";
+    amount.textContent = money(cleanNumber(item.total));
+    head.append(left, amount);
+
+    const breakdown = document.createElement("div");
+    breakdown.className = "muted small";
+    breakdown.style.marginTop = "6px";
+    breakdown.textContent = "NPR: " + cleanNumber(item.npr).toFixed(2) + " · INR: " + cleanNumber(item.inr).toFixed(2);
+
+    const actions = document.createElement("div");
+    actions.className = "record-actions";
+    const edit = document.createElement("button");
+    edit.className = "btn secondary";
+    edit.type = "button";
+    edit.textContent = t("Edit","सम्पादन");
+    edit.addEventListener("click", () => editRecord(item.id));
+    const del = document.createElement("button");
+    del.className = "btn danger";
+    del.type = "button";
+    del.textContent = t("Move to Trash","Trash मा सार्नुहोस्");
+    del.addEventListener("click", () => deleteRecord(item.id));
+    actions.append(edit, del);
+    card.append(head, breakdown, actions);
+    list.append(card);
+  });
+}
+function money(value) {
+  return "Rs " + cleanNumber(value).toLocaleString("en-IN", {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, ch => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  })[ch]);
+}
+document.getElementById("search-records").addEventListener("input", renderRecords);
+document.getElementById("sort-records").addEventListener("change", renderRecords);
+
+document.getElementById("print-report").addEventListener("click", () => {
+  if (!uid) {
+    status(t("Sign in before printing your cloud records.","क्लाउड रेकर्ड प्रिन्ट गर्न पहिले लगइन गर्नुहोस्।"), "error");
+    return;
+  }
+  if (!savings.length) {
+    status(t("There are no records to print.","प्रिन्ट गर्न रेकर्ड छैन।"), "error");
+    return;
+  }
+  window.print();
 });
 
-/* Authentication and live listeners. No user-root set() is used. */
+/* ---------------- AUTH / REALTIME LISTENERS ---------------- */
 function detachListeners() {
-if (savingsRef && savingsListener) savingsRef.off('value',savingsListener);
-if (targetRef && targetListener) targetRef.off('value',targetListener);
-savingsListener = null;
-targetListener = null;
+  if (savingsRef && savingsListener) savingsRef.off("value", savingsListener);
+  if (targetRef && targetListener) targetRef.off("value", targetListener);
+  savingsListener = null;
+  targetListener = null;
 }
-
 function startUserSession(user) {
-detachListeners();
-currentUser = user;
-savingsMap = {};
-targetAmount = 0;
-savingsRef = db.ref("users/${user.uid}/savings");
-targetRef = db.ref("users/${user.uid}/savings_target");
+  detachListeners();
+  uid = user.uid;
+  savingsRef = db.ref("users/" + uid + "/savings");
+  targetRef = db.ref("users/" + uid + "/savingsTarget");
 
-savingsListener = snapshot => {
-savingsMap = snapshot.val() || {};
-renderSavings();
-showStatus('Signed in · Savings syncing in real time.','success');
-};
-targetListener = snapshot => {
-targetAmount = Math.max(0,Number(snapshot.val()) || 0);
-renderSavings();
-};
+  status(t("Signed in. Connecting to your savings…","लगइन भयो। बचतसँग जडान हुँदैछ…"));
 
-savingsRef.on('value',savingsListener,error => {
-console.error(error);
-showStatus('Could not read savings: ' + (error.message || error.code || 'Check Firebase rules and connection.'),'error');
-});
-targetRef.on('value',targetListener,error => {
-console.error(error);
-showStatus('Could not read target: ' + (error.message || error.code || 'Check Firebase rules and connection.'),'error');
-});
+  savingsListener = snapshot => {
+    const value = snapshot.val() || {};
+    savings = Object.entries(value)
+      .filter(([id, data]) => data && typeof data === "object" && !data.deletedAt)
+      .map(([id, data]) => ({...data, id}));
+    renderRecords();
+    status(t("Connected. Savings records are syncing in real time.","जडान भयो। बचत रेकर्ड रियलटाइममा सिंक हुँदैछन्।"), "success");
+  };
+  targetListener = snapshot => {
+    targetAmount = cleanNumber(snapshot.val());
+    renderRecords();
+  };
 
-offerLegacyMigration();
+  savingsRef.on("value", savingsListener, error => {
+    status(t("Could not load savings: ","बचत लोड भएन: ") + error.message, "error");
+  });
+  targetRef.on("value", targetListener, error => {
+    status(t("Could not load target: ","लक्ष्य लोड भएन: ") + error.message, "error");
+  });
 }
 
-function initFirebase() {
 try {
-if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-auth = firebase.auth();
-db = firebase.database();
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  auth = firebase.auth();
+  db = firebase.database();
 
-auth.onAuthStateChanged(user => {
-  if (!user) {
-    detachListeners();
-    currentUser = null;
-    showStatus('You must sign in to use Savings. Redirecting to sign-in page…','error');
-    setTimeout(() => { location.href = 'index.html'; },900);
-    return;
-  }
-  startUserSession(user);
-},error => {
-  console.error(error);
-  showStatus('Authentication error: ' + (error.message || error.code || 'Unknown error'),'error');
-});
-
-} catch(e) {
-console.error(e);
-showStatus('Firebase could not start. Check your internet connection and Firebase configuration.','error');
-}
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      startUserSession(user);
+    } else {
+      detachListeners();
+      uid = null;
+      savingsRef = null;
+      targetRef = null;
+      savings = [];
+      targetAmount = 0;
+      renderRecords();
+      status(t("You are signed out. Sign in from the Home page to sync savings.","तपाईं लगआउट हुनुहुन्छ। बचत सिंक गर्न Home पेजबाट लगइन गर्नुहोस्।"), "error");
+    }
+  });
+} catch (e) {
+  status(t("Firebase could not start. Check your internet connection and Firebase setup. ","Firebase सुरु भएन। इन्टरनेट र Firebase सेटिङ जाँच गर्नुहोस्।") + e.message, "error");
 }
 
-applyPrefs();
-calcFormTotal();
-renderSavings();
-initFirebase();
-</script>
+applyPreferences();
+calculateFormTotal();
+renderRecords();
 
-</body>
+/* Note: This page does not run a client-side 30-day deletion timer.
+   Expired Trash cleanup must be performed by a deployed scheduled
+   Firebase Cloud Function. This page only moves deleted savings
+   into the shared Trash schema.
+*/
+</script></body>
 </html>
