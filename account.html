@@ -1,541 +1,604 @@
+
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Digital NoteBook - Account & Data Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Digital NoteBook — Account</title>
+
 <script src="https://cdn.tailwindcss.com"></script>
-<!-- Firebase App (core) and Firebase Auth -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 <script>
-tailwind.config = {
-    darkMode: 'class',
-    theme: {
-        extend: {
-            fontFamily: {
-                sans: ['Poppins', 'sans-serif'],
-            }
-        }
-    }
-}
-</script>
-<script>
-    const savedTheme = localStorage.getItem('theme') || 'dark';
-    if (savedTheme === 'light') {
-        document.documentElement.classList.remove('dark');
-    } else {
-        document.documentElement.classList.add('dark');
-    }
+tailwind.config = { darkMode: 'class' };
+try {
+  document.documentElement.classList.toggle(
+    'dark', (localStorage.getItem('theme') || 'dark') === 'dark'
+  );
+} catch(e) {}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-    @keyframes pulseGlow {
-        0%, 100% { opacity: 1; filter: drop-shadow(0 0 2px rgba(16, 185, 129, 0.4)); }
-        50% { opacity: 0.8; filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.8)); }
-    }
-    .animated-title { animation: pulseGlow 3s infinite ease-in-out; }
+  body { font-family: Arial, sans-serif; }
+  button, a, input { -webkit-tap-highlight-color: transparent; }
+  .card { border:1px solid rgb(51 65 85 / .65); border-radius:16px; padding:16px; }
+  .field { width:100%; padding:10px 12px; border-radius:10px; border:1px solid #475569; background:#1e293b; color:white; }
+  .btn { padding:10px 12px; border-radius:10px; font-weight:600; }
+  .green { background:#059669; color:white; }
+  .blue { background:#2563eb; color:white; }
+  .red { background:#dc2626; color:white; }
+  .muted { background:#334155; color:white; }
 </style>
 </head>
-<body class="bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 text-xs">
 
-<!-- TOAST NOTIFICATION CONTAINER -->
-<div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2"></div>
+<body class="bg-slate-100 text-slate-800 dark:bg-slate-950 dark:text-slate-100 text-sm">
 
-<!-- LOGOUT CONFIRMATION MODAL -->
-<div id="logout-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 w-full max-w-sm shadow-2xl space-y-4 text-center">
-        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Are you sure you want to log out?</h3>
-        <div class="flex gap-2 justify-center pt-2">
-            <button onclick="closeLogoutModal()" class="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-xs font-semibold rounded-xl hover:bg-slate-300">No</button>
-            <button onclick="executeLogout()" class="px-4 py-2 bg-rose-600 text-white text-xs font-semibold rounded-xl hover:bg-rose-700">Yes</button>
-        </div>
+<div id="toast-container" class="fixed bottom-4 right-4 z-[100] space-y-2"></div>
+
+<!-- LOGIN GATE -->
+<section id="login-panel" class="hidden min-h-screen items-center justify-center p-5">
+  <div class="card w-full max-w-sm bg-white dark:bg-slate-900 space-y-4">
+    <h1 class="text-xl font-bold text-emerald-500">Digital NoteBook</h1>
+    <p class="text-slate-500">Sign in to access your account and recovery.</p>
+    <input id="login-email" class="field" type="email" placeholder="Email address" autocomplete="username">
+    <input id="login-password" class="field" type="password" placeholder="Password" autocomplete="current-password">
+    <button class="btn green w-full" onclick="signIn()">Sign In</button>
+    <button class="btn muted w-full" onclick="resetLoginPassword()">Forgot password?</button>
+    <p id="login-error" class="text-rose-500"></p>
+  </div>
+</section>
+
+<div id="app" class="hidden min-h-screen">
+  <!-- No top header: navigation is in the page content/sidebar. -->
+  <aside id="sidebar" class="hidden fixed inset-y-0 left-0 z-40 w-72 overflow-y-auto bg-slate-900 p-4 text-white shadow-xl">
+    <div class="mb-5 flex items-center justify-between">
+      <h2 class="text-lg font-extrabold text-emerald-400">Digital NoteBook</h2>
+      <button class="btn muted" onclick="toggleSidebar()" aria-label="Close menu">✕</button>
     </div>
-</div>
-
-<!-- MASTER RESET MODAL -->
-<div id="reset-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 w-full max-w-md shadow-2xl space-y-4">
-        <h3 class="text-base font-bold text-red-600 dark:text-red-500 flex items-center gap-2">
-            <i class="fa-solid fa-triangle-exclamation"></i> <span>Master Reset Confirm</span>
-        </h3>
-        <p class="text-xs text-slate-600 dark:text-slate-400">
-            All your data will be deleted. Type 'RESET' and enter MPIN to confirm:
-        </p>
-        <div class="space-y-3">
-            <input type="text" id="reset-input" placeholder="Type RESET here" class="w-full p-2.5 text-xs bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl outline-none text-slate-900 dark:text-white">
-            <input type="password" id="reset-pin" placeholder="Enter 4-digit MPIN" maxlength="4" class="w-full p-2.5 text-xs bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl outline-none text-slate-900 dark:text-white">
-        </div>
-        <div class="flex gap-2 justify-end pt-2">
-            <button onclick="closeResetModal()" class="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-xs font-semibold rounded-xl hover:bg-slate-300">Cancel</button>
-            <button onclick="confirmMasterReset()" class="px-4 py-2 bg-red-600 text-white text-xs font-semibold rounded-xl hover:bg-red-700">Reset System</button>
-        </div>
+    <div class="mb-5 rounded-xl bg-slate-800 p-3">
+      <p id="side-email" class="break-all font-semibold"></p>
+      <p class="mt-1 text-xs text-slate-400">Signed-in account</p>
     </div>
-</div>
+    <nav class="space-y-2">
+      <a class="block rounded-lg p-3 hover:bg-slate-800" href="index.html">📊 Overview</a>
+      <a class="block rounded-lg bg-emerald-700 p-3" href="account.html">⚙️ Account & Recovery</a>
+      <a class="block rounded-lg p-3 hover:bg-slate-800" href="add-transaction.html">💳 Transactions</a>
+      <a class="block rounded-lg p-3 hover:bg-slate-800" href="add-saving.html">💰 Savings</a>
+      <a class="block rounded-lg p-3 hover:bg-slate-800" href="savings.html">💰 Savings (alternate page)</a>
+      <a class="block rounded-lg p-3 hover:bg-slate-800" href="house-expense.html">🏠 House Expenses</a>
+    </nav>
+  </aside>
 
-<div class="flex min-h-screen w-full">
-    
-    <!-- SIDEBAR SECTION -->
-    <div id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 bg-slate-900 border-r border-slate-800 transform -translate-x-full transition-transform duration-300 flex flex-col text-white">
-        
-        <div class="flex items-center justify-between px-4 py-3 border-b border-slate-800">
-            <div class="flex items-center space-x-2.5">
-                <div class="w-8 h-8 rounded-lg bg-emerald-600 border border-emerald-500 flex items-center justify-center overflow-hidden shadow-md">
-                    <img src="N1024.png" alt="Logo" class="w-full h-full object-cover">
-                </div>
-                <div>
-                    <h1 class="text-sm font-extrabold tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-white via-emerald-300 to-cyan-500">
-                        Digital <span class="text-emerald-400">NoteBook</span>
-                    </h1>
-                </div>
-            </div>
-            <button onclick="toggleSidebar()" class="text-slate-400 hover:text-white text-lg focus:outline-none">✕</button>
-        </div>
-
-        <div class="p-3 space-y-3 overflow-y-auto flex-1 text-xs">
-            <div class="bg-slate-800/50 border border-slate-700/60 rounded-xl p-3 flex items-center space-x-3">
-                <div class="w-11 h-11 rounded-full bg-emerald-600 border border-emerald-500 flex items-center justify-center overflow-hidden shadow-sm">
-                    <img id="sidebar-avatar-img" src="N1024.png" alt="Profile" class="w-full h-full object-cover">
-                </div>
-                <div>
-                    <h3 id="sidebar-profile-name" class="text-white font-bold text-sm">User</h3>
-                    <p class="text-[10px] text-slate-400" id="sidebar-user-email">Local User</p>
-                </div>
-            </div>
-
-            <nav class="space-y-1 font-medium">
-                <a href="index.html" class="flex items-center gap-2.5 py-2.5 px-3 rounded-xl hover:bg-slate-800 text-slate-300 transition"><span>📊</span> <span>Overview</span></a>
-                <a href="account.html" class="flex items-center gap-2.5 py-2.5 px-3 rounded-xl bg-emerald-600 text-white shadow-md shadow-emerald-600/20 transition"><span>⚙️</span> <span>Account & Backup</span></a>
-            </nav>
-        </div>
+  <main class="mx-auto max-w-2xl space-y-4 p-4">
+    <div class="card flex items-center justify-between bg-white dark:bg-slate-900">
+      <div>
+        <p class="text-xs uppercase tracking-widest text-emerald-500">Digital NoteBook</p>
+        <h1 class="mt-1 text-xl font-bold">Account & Data Management</h1>
+        <p id="account-email" class="mt-1 break-all text-xs text-slate-500"></p>
+      </div>
+      <div class="flex gap-2">
+        <button class="btn muted" onclick="toggleSidebar()" aria-label="Open navigation">☰</button>
+        <button class="btn muted" onclick="toggleTheme()" id="theme-button" aria-label="Toggle theme">🌙</button>
+      </div>
     </div>
 
-    <div class="flex-1 flex flex-col w-full">
-        
-        <!-- HEADER SECTION -->
-        <header class="sticky top-0 z-40 flex items-center justify-between px-3 md:px-5 py-3.5 bg-slate-900/95 backdrop-blur border-b border-emerald-500/20 shadow-md">
-            <div class="flex items-center space-x-2.5">
-                <button onclick="toggleSidebar()" class="text-white text-xl focus:outline-none hover:text-emerald-400 transition">☰</button>
-                <div class="flex items-center space-x-2 cursor-pointer" onclick="toggleSidebar()">
-                    <div class="w-7 h-7 rounded-lg bg-emerald-600 border border-emerald-500/50 flex items-center justify-center overflow-hidden shadow-sm">
-                        <img src="N1024.png" alt="Logo" class="w-full h-full object-cover">
-                    </div>
-                    <span class="text-xs md:text-sm font-extrabold tracking-wider bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">
-                        Digital NoteBook
-                    </span>
-                </div>
-            </div>
+    <div id="status" class="hidden rounded-xl border border-amber-500/40 bg-amber-50 p-3 text-amber-800 dark:bg-amber-950 dark:text-amber-200"></div>
 
-            <div class="flex items-center space-x-2">
-                <button onclick="toggleTheme()" id="theme-toggle-btn" class="w-7 h-7 rounded-md bg-slate-800 border border-slate-700 flex items-center justify-center text-sm hover:bg-slate-700 transition">🌛</button>
-                <div class="relative cursor-pointer" onclick="toggleSidebar()">
-                    <div class="w-8 h-8 rounded-full bg-emerald-600 border border-emerald-500 flex items-center justify-center overflow-hidden shadow-sm">
-                        <img id="header-avatar-img" src="N1024.png" alt="Profile" class="w-full h-full object-cover">
-                    </div>
-                </div>
-            </div>
-        </header>
+    <!-- ACCOUNT LINKS -->
+    <section class="card space-y-3 bg-white dark:bg-slate-900">
+      <h2 class="font-bold text-emerald-500"><i class="fa-solid fa-link mr-2"></i>All Pages</h2>
+      <p class="text-xs text-slate-500">Open the different sections of your notebook.</p>
+      <div class="grid grid-cols-2 gap-2">
+        <a class="btn muted text-center" href="index.html">Overview</a>
+        <a class="btn muted text-center" href="add-transaction.html">Transactions</a>
+        <a class="btn muted text-center" href="add-saving.html">Savings</a>
+        <a class="btn muted text-center" href="house-expense.html">House Expenses</a>
+      </div>
+      <p class="text-xs text-slate-500">If your actual filename differs, update the matching link above.</p>
+    </section>
 
-        <!-- MAIN CONTENT AREA -->
-        <main class="p-4 space-y-4 flex-1 w-full max-w-xl mx-auto overflow-y-auto">
-            
-            <!-- Header & Back Button -->
-            <div class="flex items-center justify-between bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm">
-                <h1 class="text-base font-bold text-emerald-600 dark:text-emerald-400">Account Management</h1>
-                <a href="index.html" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs rounded-xl font-medium transition text-slate-800 dark:text-white">Back to Dashboard</a>
-            </div>
+    <!-- CENTRAL TRASH -->
+    <section class="card space-y-3 bg-white dark:bg-slate-900">
+      <div class="flex items-center justify-between gap-2">
+        <h2 class="font-bold text-emerald-500"><i class="fa-solid fa-trash-arrow-up mr-2"></i>Central Trash & Recovery</h2>
+        <button class="btn muted" onclick="loadTrash()">Refresh</button>
+      </div>
+      <p class="text-xs text-slate-500">
+        Deleted records from connected pages should appear here. Eligible records can be restored within 30 days.
+      </p>
+      <div id="trash-count" class="text-xs text-slate-500">Loading recovery items…</div>
+      <div id="trash-list" class="space-y-2"></div>
+      <p class="border-t border-slate-200 pt-3 text-xs text-amber-600 dark:border-slate-700 dark:text-amber-300">
+        Automatic permanent deletion while this page is closed requires a Firebase scheduled server function. This page alone cannot guarantee that background cleanup.
+      </p>
+    </section>
 
-            <!-- 1. BACKUP & DATA MANAGEMENT SECTION -->
-            <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm space-y-3 border border-slate-200 dark:border-slate-800">
-                <h3 class="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                    <i class="fa-solid fa-database text-emerald-500"></i> <span>Data Management & Backup</span>
-                </h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    <button onclick="backupData()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium p-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2 shadow-md">
-                        <i class="fa-solid fa-download"></i> <span>Backup JSON</span>
-                    </button>
-                    <label class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium p-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer shadow-md">
-                        <i class="fa-solid fa-upload"></i> <span>Restore JSON</span>
-                        <input type="file" id="restore-file" onchange="restoreData(event)" class="hidden" accept=".json">
-                    </label>
-                </div>
-            </div>
+    <!-- BACKUP AND RESTORE -->
+    <section class="card space-y-3 bg-white dark:bg-slate-900">
+      <h2 class="font-bold text-emerald-500"><i class="fa-solid fa-database mr-2"></i>Backup & Restore</h2>
+      <p class="text-xs text-slate-500">
+        Backup downloads the signed-in user's cloud data. Restore merges records without deleting unrelated existing fields.
+      </p>
+      <button class="btn green w-full" onclick="backupData()"><i class="fa-solid fa-download mr-2"></i>Download Cloud Backup JSON</button>
+      <label class="btn blue block cursor-pointer text-center">
+        <i class="fa-solid fa-upload mr-2"></i>Restore Backup JSON
+        <input id="restore-file" type="file" accept=".json,application/json" class="hidden" onchange="restoreData(event)">
+      </label>
+      <p id="backup-status" class="text-xs text-slate-500"></p>
+    </section>
 
-            <!-- 2. SECURITY & LOCK SETTINGS (4-Digit MPIN & Biometric) -->
-            <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 space-y-4">
-                <h3 class="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                    <i class="fa-solid fa-shield-halved text-emerald-500"></i> <span>Security & Lock Settings</span>
-                </h3>
-                <div class="space-y-3">
-                    <!-- MPIN Lock -->
-                    <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
-                        <div>
-                            <h4 class="font-bold text-xs text-slate-800 dark:text-white">App 4-Digit MPIN Lock</h4>
-                        </div>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="pin-lock-toggle" onchange="togglePinLockSetting(this)" class="sr-only peer">
-                            <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
-                        </label>
-                    </div>
-                    <div id="pin-setup-box" class="hidden space-y-3 pt-2">
-                        <div class="relative">
-                            <input type="password" id="new-app-pin" placeholder="Enter 4-digit MPIN" maxlength="4" class="w-full p-2.5 pr-10 text-xs bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl outline-none text-slate-900 dark:text-white">
-                            <button type="button" onclick="togglePinVisibility('new-app-pin', 'pin-eye-icon')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
-                                <i id="pin-eye-icon" class="fa-solid fa-eye"></i>
-                            </button>
-                        </div>
-                        <button onclick="saveAppPin()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold">Save MPIN</button>
-                    </div>
+    <!-- SECURITY -->
+    <section class="card space-y-4 bg-white dark:bg-slate-900">
+      <h2 class="font-bold text-emerald-500"><i class="fa-solid fa-shield-halved mr-2"></i>Security Settings</h2>
 
-                    <!-- Biometric Setting Toggle Section -->
-                    <div class="bg-slate-800/50 p-3 rounded-xl border border-slate-700/60 flex items-center justify-between mt-3">
-                        <div>
-                            <h4 class="text-xs font-bold text-white flex items-center gap-2">
-                                <i class="fa-solid fa-fingerprint text-emerald-400"></i>
-                                <span>Biometric Unlock</span>
-                            </h4>
-                            <p class="text-[10px] text-slate-400">Unlock app using Fingerprint / FaceID</p>
-                        </div>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="biometric-toggle" onchange="toggleBiometricSetting(this)" class="sr-only peer">
-                            <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
-                        </label>
-                    </div>
-                </div>
-            </div>
+      <div>
+        <label class="mb-1 block text-xs">App MPIN (4 digits)</label>
+        <div class="flex gap-2">
+          <input id="mpin-input" class="field" type="password" maxlength="4" inputmode="numeric" placeholder="4-digit MPIN">
+          <button class="btn green" onclick="saveMPIN()">Save</button>
+        </div>
+        <p class="mt-1 text-xs text-slate-500">This stores an app lock setting on this device; it is not a replacement for Firebase account security.</p>
+      </div>
 
-            <!-- 3. EMAIL & CHANGE PASSWORD -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm space-y-4">
-                <h2 class="text-sm font-bold text-slate-800 dark:text-slate-300 border-b border-slate-200 dark:border-slate-800 pb-2">Email & Change Password</h2>
-                <div class="space-y-3">
-                    <div>
-                        <label class="block text-[11px] font-semibold text-slate-400 mb-1">Current Email</label>
-                        <input type="email" id="user-email-display" readonly class="w-full p-2.5 bg-slate-100 dark:bg-slate-800/60 border border-slate-300 dark:border-slate-700 rounded-xl text-xs text-slate-500 dark:text-slate-400 cursor-not-allowed">
-                    </div>
-                    <div class="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-                        <div class="relative">
-                            <input type="password" id="current-password" placeholder="Current Password" class="w-full p-2.5 pr-10 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white outline-none">
-                            <button type="button" onclick="togglePinVisibility('current-password', 'curr-pass-eye')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400">
-                                <i id="curr-pass-eye" class="fa-solid fa-eye"></i>
-                            </button>
-                        </div>
-                        <div class="relative">
-                            <input type="password" id="new-password" placeholder="New Password" class="w-full p-2.5 pr-10 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white outline-none">
-                            <button type="button" onclick="togglePinVisibility('new-password', 'new-pass-eye')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400">
-                                <i id="new-pass-eye" class="fa-solid fa-eye"></i>
-                            </button>
-                        </div>
-                        <div class="relative">
-                            <input type="password" id="confirm-password" placeholder="Confirm Password" class="w-full p-2.5 pr-10 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white outline-none">
-                            <button type="button" onclick="togglePinVisibility('confirm-password', 'conf-pass-eye')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400">
-                                <i id="conf-pass-eye" class="fa-solid fa-eye"></i>
-                            </button>
-                        </div>
-                        <button onclick="handleChangePassword()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs transition">
-                            Update Password
-                        </button>
-                    </div>
-                </div>
-            </div>
+      <div class="flex items-center justify-between gap-3">
+        <label for="biometric-toggle">Biometric unlock setting</label>
+        <input id="biometric-toggle" type="checkbox" onchange="saveBiometric()">
+      </div>
+      <p class="text-xs text-slate-500">This toggle stores a preference only. Real fingerprint/Face ID verification requires a separate WebAuthn implementation.</p>
+    </section>
 
-            <!-- 4. DEVICE INFO -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm space-y-3">
-                <h2 class="text-sm font-bold text-slate-800 dark:text-slate-300 border-b border-slate-200 dark:border-slate-800 pb-2">Device Info</h2>
-                <div class="flex items-center justify-between text-xs py-1">
-                    <span id="device-short-display" class="font-medium text-slate-900 dark:text-white">Chrome on Android</span>
-                    <button onclick="toggleDeviceDetails()" class="text-emerald-500 font-semibold hover:underline" id="device-toggle-btn">View Full Details</button>
-                </div>
-                <div id="device-full-details" class="hidden pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 break-all">
-                    <span id="device-info-display">Loading...</span>
-                </div>
-            </div>
+    <!-- PASSWORD -->
+    <section class="card space-y-3 bg-white dark:bg-slate-900">
+      <h2 class="font-bold text-emerald-500"><i class="fa-solid fa-key mr-2"></i>Change Password</h2>
+      <input id="current-password" class="field" type="password" autocomplete="current-password" placeholder="Current password">
+      <input id="new-password" class="field" type="password" autocomplete="new-password" placeholder="New password (at least 6 characters)">
+      <input id="confirm-password" class="field" type="password" autocomplete="new-password" placeholder="Confirm new password">
+      <button class="btn blue w-full" onclick="changePassword()">Update Password</button>
+    </section>
 
-            <!-- 5. DANGER ZONE (LOG OUT & MASTER RESET) -->
-            <div class="bg-white dark:bg-slate-900 border border-rose-900/40 p-5 rounded-2xl shadow-sm space-y-4">
-                <h2 class="text-sm font-bold text-rose-600 dark:text-rose-400 border-b border-rose-900/30 pb-2">Danger Zone</h2>
-                
-                <div class="space-y-3">
-                    <button onclick="openLogoutModal()" class="w-full py-2.5 bg-rose-600/20 hover:bg-rose-600 text-rose-600 hover:text-white border border-rose-600/30 rounded-xl font-bold text-xs transition">
-                        Log Out
-                    </button>
-                    <button onclick="openResetModal()" class="w-full bg-red-600 hover:bg-red-700 text-white font-medium p-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2 shadow-md">
-                        <i class="fa-solid fa-triangle-exclamation"></i> <span>Master Reset</span>
-                    </button>
-                </div>
-            </div>
+    <!-- DEVICE -->
+    <section class="card space-y-2 bg-white dark:bg-slate-900">
+      <h2 class="font-bold">Device Information</h2>
+      <p id="device-name" class="text-xs text-slate-500"></p>
+      <button class="btn muted" onclick="toggleDeviceDetails()">Show/hide full details</button>
+      <p id="device-details" class="hidden break-all text-xs text-slate-500"></p>
+    </section>
 
-        </main>
-    </div>
+    <!-- DANGER ZONE -->
+    <section class="card space-y-3 border-rose-500/50 bg-white dark:bg-slate-900">
+      <h2 class="font-bold text-rose-500">Danger Zone</h2>
+      <button class="btn muted w-full" onclick="logout()">Log Out</button>
+      <p class="text-xs text-slate-500">Master Reset permanently removes all cloud data for this account. Export a backup first.</p>
+      <input id="reset-word" class="field" placeholder="Type RESET to confirm">
+      <input id="reset-mpin" class="field" type="password" inputmode="numeric" maxlength="4" placeholder="Enter your saved MPIN">
+      <button class="btn red w-full" onclick="masterReset()">Permanently Reset Account Data</button>
+    </section>
+
+    <footer class="pb-4 text-center text-xs text-slate-500">Digital NoteBook · Account Management</footer>
+  </main>
 </div>
 
 <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyDDY_v7RHnkCTI6uyV4DNDjqoaIBGweg8c",
-      authDomain: "digital-a2552.firebaseapp.com",
-      projectId: "digital-a2552",
-      databaseURL: "https://digital-a2552-default-rtdb.asia-southeast1.firebasedatabase.app",
-      storageBucket: "digital-a2552.firebasestorage.app",
-      messagingSenderId: "218135618179",
-      appId: "1:218135618179:web:821b76920d3e5669ac31b6"
+const firebaseConfig = {
+  apiKey: "AIzaSyDDY_v7RHnkCTI6uyV4DNDjqoaIBGweg8c",
+  authDomain: "digital-a2552.firebaseapp.com",
+  projectId: "digital-a2552",
+  databaseURL: "https://digital-a2552-default-rtdb.asia-southeast1.firebasedatabase.app",
+  storageBucket: "digital-a2552.firebasestorage.app",
+  messagingSenderId: "218135618179",
+  appId: "1:218135618179:web:821b76920d3e5669ac31b6"
+};
+
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.database();
+
+let currentUser = null;
+let trashRef = null;
+let trashListener = null;
+let trashItems = {};
+
+const $ = id => document.getElementById(id);
+const userRoot = () => `users/${currentUser.uid}`;
+
+function toast(message, error = false) {
+  const el = document.createElement('div');
+  el.className = `rounded-xl px-4 py-3 text-white shadow-lg ${error ? 'bg-rose-600' : 'bg-emerald-600'}`;
+  el.textContent = message;
+  $('toast-container').appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+function setStatus(message) {
+  $('status').textContent = message;
+  $('status').classList.remove('hidden');
+}
+
+function toggleSidebar() {
+  $('sidebar').classList.toggle('hidden');
+}
+
+function toggleTheme() {
+  const dark = !document.documentElement.classList.contains('dark');
+  document.documentElement.classList.toggle('dark', dark);
+  localStorage.setItem('theme', dark ? 'dark' : 'light');
+  $('theme-button').textContent = dark ? '🌙' : '☀️';
+}
+
+function signIn() {
+  $('login-error').textContent = '';
+  auth.signInWithEmailAndPassword(
+    $('login-email').value.trim(),
+    $('login-password').value
+  ).catch(e => $('login-error').textContent = friendlyError(e));
+}
+
+function resetLoginPassword() {
+  const email = $('login-email').value.trim();
+  if (!email) return toast('Enter your email address first.', true);
+  auth.sendPasswordResetEmail(email)
+    .then(() => toast('Password reset email sent.'))
+    .catch(e => toast(friendlyError(e), true));
+}
+
+function friendlyError(error) {
+  const messages = {
+    'auth/wrong-password': 'Incorrect password.',
+    'auth/user-not-found': 'No account was found for that email.',
+    'auth/invalid-email': 'Please check the email address.',
+    'auth/weak-password': 'Use a stronger password (at least 6 characters).',
+    'auth/requires-recent-login': 'Please sign in again and retry this action.',
+    'auth/network-request-failed': 'Network error. Check your internet connection.'
+  };
+  return messages[error.code] || error.message || 'Something went wrong.';
+}
+
+auth.onAuthStateChanged(user => {
+  currentUser = user;
+  if (!user) {
+    $('app').classList.add('hidden');
+    $('login-panel').classList.remove('hidden');
+    $('login-panel').classList.add('flex');
+    if (trashRef && trashListener) trashRef.off('value', trashListener);
+    trashRef = null;
+    trashListener = null;
+    return;
+  }
+
+  $('login-panel').classList.add('hidden');
+  $('app').classList.remove('hidden');
+  $('account-email').textContent = user.email || user.uid;
+  $('side-email').textContent = user.email || user.uid;
+
+  const ua = navigator.userAgent;
+  $('device-name').textContent =
+    /Android/i.test(ua) ? 'Browser on Android' :
+    /iPhone|iPad/i.test(ua) ? 'Browser on iPhone/iPad' :
+    /Windows/i.test(ua) ? 'Browser on Windows' : 'Web browser';
+  $('device-details').textContent = ua;
+
+  $('mpin-input').value = localStorage.getItem('app_mpin') || '';
+  $('biometric-toggle').checked = localStorage.getItem('app_biometric') === 'enabled';
+
+  listenToTrash();
+});
+
+function listenToTrash() {
+  if (!currentUser) return;
+  if (trashRef && trashListener) trashRef.off('value', trashListener);
+
+  trashRef = db.ref(`${userRoot()}/trash`);
+  trashListener = snapshot => {
+    trashItems = snapshot.val() || {};
+    renderTrash();
+    cleanupExpiredTrash();
+  };
+
+  trashRef.on('value', trashListener, error => {
+    toast('Could not load Trash: ' + error.message, true);
+  });
+}
+
+function flattenTrash(tree) {
+  const result = [];
+  if (!tree || typeof tree !== 'object') return result;
+
+  Object.entries(tree).forEach(([category, entries]) => {
+    if (!entries || typeof entries !== 'object') return;
+    Object.entries(entries).forEach(([id, item]) => {
+      if (!item || typeof item !== 'object') return;
+      result.push({ category, id, ...item });
+    });
+  });
+  return result;
+}
+
+function readableCategory(category) {
+  const names = {
+    transactions: 'Transaction',
+    incomes: 'Income',
+    savings: 'Savings',
+    house_expenses: 'House expense',
+    notes: 'Note',
+    cashflow: 'Cash flow'
+  };
+  return names[category] || category.replaceAll('_', ' ');
+}
+
+function escapeHTML(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({
+    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+  }[ch]));
+}
+
+function renderTrash() {
+  const items = flattenTrash(trashItems);
+  $('trash-count').textContent = `${items.length} item(s) in central Trash`;
+  const container = $('trash-list');
+  container.replaceChildren();
+
+  if (!items.length) {
+    const empty = document.createElement('p');
+    empty.className = 'rounded-xl bg-slate-100 p-4 text-center text-xs text-slate-500 dark:bg-slate-800';
+    empty.textContent = 'No recovery items found. Connected pages must move deletions into users/{uid}/trash/{category}/{id}.';
+    container.appendChild(empty);
+    return;
+  }
+
+  items.sort((a,b) => Number(b.deletedAt || 0) - Number(a.deletedAt || 0));
+
+  items.forEach(item => {
+    const deletedAt = Number(item.deletedAt || 0);
+    const expiresAt = Number(item.expiresAt || (deletedAt + 30 * 86400000));
+    const data = item.data ?? item.record ?? item.value ?? {};
+    const label = data.title || data.name || data.description ||
+                  data.partyName || data.party || data.note || `${readableCategory(item.category)} record`;
+    const row = document.createElement('div');
+    row.className = 'rounded-xl border border-slate-200 p-3 dark:border-slate-700';
+
+    const info = document.createElement('div');
+    info.className = 'mb-3';
+    info.innerHTML =
+      `<p class="font-semibold">${escapeHTML(label)}</p>
+       <p class="mt-1 text-xs text-slate-500">${escapeHTML(readableCategory(item.category))}</p>
+       <p class="mt-1 text-xs text-slate-500">Deleted: ${deletedAt ? new Date(deletedAt).toLocaleString() : 'Date unavailable'}</p>
+       <p class="mt-1 text-xs text-amber-600">Expires: ${new Date(expiresAt).toLocaleString()}</p>`;
+    row.appendChild(info);
+
+    const actions = document.createElement('div');
+    actions.className = 'flex gap-2';
+
+    const restoreBtn = document.createElement('button');
+    restoreBtn.className = 'btn green flex-1';
+    restoreBtn.textContent = 'Restore';
+    restoreBtn.disabled = expiresAt <= Date.now();
+    restoreBtn.onclick = () => restoreTrashItem(item);
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'btn red';
+    deleteBtn.textContent = 'Delete permanently';
+    deleteBtn.onclick = () => permanentlyDeleteTrashItem(item);
+
+    actions.append(restoreBtn, deleteBtn);
+    row.appendChild(actions);
+    container.appendChild(row);
+  });
+}
+
+function safeOriginalPath(item) {
+  const path = String(item.originalPath || '').replace(/^\/+|\/+$/g, '');
+  if (!path) return null;
+  if (!path.startsWith(`${userRoot()}/`)) return null;
+  if (path.includes('//') || path.split('/').some(p => p === '.' || p === '..')) return null;
+  return path;
+}
+
+async function restoreTrashItem(item) {
+  if (!currentUser) return;
+  const expiresAt = Number(item.expiresAt || (Number(item.deletedAt || 0) + 30 * 86400000));
+  if (expiresAt <= Date.now()) return toast('This item has expired and cannot be restored.', true);
+
+  const originalPath = safeOriginalPath(item);
+  const record = item.data ?? item.record ?? item.value;
+  if (!originalPath || record === undefined) {
+    return toast('This item is missing a valid originalPath or data. It was not changed.', true);
+  }
+
+  const trashPath = `${userRoot()}/trash/${item.category}/${item.id}`;
+  try {
+    const existing = await db.ref(originalPath).once('value');
+    if (existing.exists()) {
+      return toast('A record already exists at the original location. Nothing was overwritten.', true);
+    }
+    const updates = {};
+    updates[originalPath] = record;
+    updates[trashPath] = null;
+    await db.ref().update(updates);
+    toast('Record restored successfully.');
+  } catch (e) {
+    toast('Restore failed: ' + e.message, true);
+  }
+}
+
+async function permanentlyDeleteTrashItem(item) {
+  if (!currentUser) return;
+  if (!confirm('Permanently delete this item? This cannot be undone.')) return;
+  try {
+    await db.ref(`${userRoot()}/trash/${item.category}/${item.id}`).remove();
+    toast('Trash item permanently deleted.');
+  } catch (e) {
+    toast('Delete failed: ' + e.message, true);
+  }
+}
+
+async function cleanupExpiredTrash() {
+  if (!currentUser) return;
+  const now = Date.now();
+  const updates = {};
+  flattenTrash(trashItems).forEach(item => {
+    const deletedAt = Number(item.deletedAt || 0);
+    const expiresAt = Number(item.expiresAt || (deletedAt + 30 * 86400000));
+    if (deletedAt > 0 && expiresAt <= now) {
+      updates[`${userRoot()}/trash/${item.category}/${item.id}`] = null;
+    }
+  });
+  if (!Object.keys(updates).length) return;
+  try {
+    await db.ref().update(updates);
+  } catch (e) {
+    console.warn('Expired Trash cleanup failed:', e);
+  }
+}
+
+function isPlainObject(value) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function flattenForMerge(value, path, updates) {
+  if (isPlainObject(value)) {
+    const keys = Object.keys(value);
+    if (!keys.length) updates[path] = {};
+    else keys.forEach(key => {
+      if (/[.#$\[\]/]/.test(key)) throw new Error('Backup contains an invalid Firebase key.');
+      flattenForMerge(value[key], `${path}/${key}`, updates);
+    });
+  } else {
+    updates[path] = value;
+  }
+}
+
+async function backupData() {
+  if (!currentUser) return;
+  try {
+    const snapshot = await db.ref(userRoot()).once('value');
+    const backup = {
+      format: 'digital-notebook-backup-v1',
+      uid: currentUser.uid,
+      exportedAt: new Date().toISOString(),
+      data: snapshot.val() || {}
     };
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
+    const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `digital_notebook_backup_${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    $('backup-status').textContent = 'Cloud backup downloaded.';
+    toast('Backup downloaded.');
+  } catch (e) {
+    toast('Backup failed: ' + e.message, true);
+  }
+}
+
+async function restoreData(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file || !currentUser) return;
+
+  try {
+    const backup = JSON.parse(await file.text());
+    if (backup.format !== 'digital-notebook-backup-v1' ||
+        backup.uid !== currentUser.uid ||
+        !isPlainObject(backup.data)) {
+      throw new Error('Unsupported backup or backup belongs to another account.');
     }
-    const auth = firebase.auth();
+    if (!confirm('Merge this backup into your current cloud data? Existing fields will not be intentionally removed.')) return;
 
-    function toggleSidebar() {
-        const sidebar = document.getElementById('sidebar');
-        if (sidebar) sidebar.classList.toggle('-translate-x-full');
-    }
+    const updates = {};
+    flattenForMerge(backup.data, userRoot(), updates);
+    await db.ref().update(updates);
+    $('backup-status').textContent = 'Backup merged successfully.';
+    toast('Backup merged successfully.');
+  } catch (e) {
+    toast('Restore failed: ' + e.message, true);
+  } finally {
+    event.target.value = '';
+  }
+}
 
-    function updateThemeUI() {
-        const isDark = document.documentElement.classList.contains('dark');
-        const themeBtn = document.getElementById('theme-toggle-btn');
-        if(themeBtn) themeBtn.innerText = isDark ? '🌛' : '🌞';
-    }
+function saveMPIN() {
+  const pin = $('mpin-input').value.trim();
+  if (!/^\d{4}$/.test(pin)) return toast('Enter exactly 4 digits.', true);
+  localStorage.setItem('app_mpin', pin);
+  toast('MPIN saved on this device.');
+}
 
-    function toggleTheme() {
-        const htmlEl = document.documentElement;
-        if (htmlEl.classList.contains('dark')) {
-            htmlEl.classList.remove('dark');
-            localStorage.setItem('theme', 'light');
-        } else {
-            htmlEl.classList.add('dark');
-            localStorage.setItem('theme', 'dark');
-        }
-        updateThemeUI();
-    }
+function saveBiometric() {
+  localStorage.setItem('app_biometric', $('biometric-toggle').checked ? 'enabled' : 'disabled');
+  toast('Preference saved. Actual biometric authentication needs separate setup.');
+}
 
-    function showToast(message, type = 'success') {
-        const container = document.getElementById('toast-container');
-        if(!container) return;
-        const toast = document.createElement('div');
-        const bgColor = type === 'success' ? 'bg-emerald-600' : 'bg-rose-600';
-        toast.className = `${bgColor} text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-semibold transform transition-all duration-300 translate-y-2 opacity-0 flex items-center gap-2`;
-        toast.innerHTML = `<span>${type === 'success' ? '✅' : '⚠️'}</span> <span>${message}</span>`;
-        container.appendChild(toast);
-        setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 50);
-        setTimeout(() => {
-            toast.classList.add('translate-y-2', 'opacity-0');
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
-    }
+function toggleDeviceDetails() {
+  $('device-details').classList.toggle('hidden');
+}
 
-    function togglePinVisibility(inputId, iconId) {
-        const input = document.getElementById(inputId);
-        const icon = document.getElementById(iconId);
-        if (input.type === 'password') {
-            input.type = 'text';
-            icon.classList.remove('fa-eye');
-            icon.classList.add('fa-eye-slash');
-        } else {
-            input.type = 'password';
-            icon.classList.remove('fa-eye-slash');
-            icon.classList.add('fa-eye');
-        }
-    }
+async function changePassword() {
+  const user = auth.currentUser;
+  const current = $('current-password').value;
+  const next = $('new-password').value;
+  const confirmNext = $('confirm-password').value;
 
-    function toggleDeviceDetails() {
-        const details = document.getElementById('device-full-details');
-        const btn = document.getElementById('device-toggle-btn');
-        if (details.classList.contains('hidden')) {
-            details.classList.remove('hidden');
-            btn.innerText = "Hide Details";
-        } else {
-            details.classList.add('hidden');
-            btn.innerText = "View Full Details";
-        }
-    }
+  if (!user || !user.email) return toast('Please sign in again.', true);
+  if (!current || !next || !confirmNext) return toast('Fill in all password fields.', true);
+  if (next.length < 6) return toast('Password must be at least 6 characters.', true);
+  if (next !== confirmNext) return toast('New passwords do not match.', true);
 
-    auth.onAuthStateChanged((user) => {
-        if (user) {
-            document.getElementById('user-email-display').value = user.email;
-            document.getElementById('sidebar-user-email').innerText = user.email;
-            document.getElementById('device-info-display').innerText = navigator.userAgent;
-            
-            let shortName = "Mobile App / Web Browser";
-            const ua = navigator.userAgent;
-            if (ua.includes("Chrome") && ua.includes("Android")) shortName = "Chrome on Android";
-            else if (ua.includes("iPhone")) shortName = "Safari on iPhone";
-            else if (ua.includes("Windows")) shortName = "Browser on Windows";
-            document.getElementById('device-short-display').innerText = shortName;
-        } else {
-            window.location.href = 'index.html';
-        }
-    });
+  try {
+    const credential = firebase.auth.EmailAuthProvider.credential(user.email, current);
+    await user.reauthenticateWithCredential(credential);
+    await user.updatePassword(next);
+    $('current-password').value = '';
+    $('new-password').value = '';
+    $('confirm-password').value = '';
+    toast('Password updated.');
+  } catch (e) {
+    toast(friendlyError(e), true);
+  }
+}
 
-    function openLogoutModal() {
-        document.getElementById('logout-modal').classList.remove('hidden');
-    }
+async function logout() {
+  if (!confirm('Log out of Digital NoteBook?')) return;
+  try {
+    await auth.signOut();
+    location.href = 'index.html';
+  } catch (e) {
+    toast(friendlyError(e), true);
+  }
+}
 
-    function closeLogoutModal() {
-        document.getElementById('logout-modal').classList.add('hidden');
-    }
+async function masterReset() {
+  if (!currentUser) return;
+  if ($('reset-word').value.trim() !== 'RESET') {
+    return toast("Type RESET to confirm.", true);
+  }
+  const savedPin = localStorage.getItem('app_mpin');
+  if (!savedPin || $('reset-mpin').value !== savedPin) {
+    return toast('Incorrect MPIN, or no MPIN is saved on this device.', true);
+  }
+  const secondConfirm = confirm(
+    'FINAL WARNING: This permanently deletes all cloud data under your account, including Trash. Download a backup first. Continue?'
+  );
+  if (!secondConfirm) return;
 
-    function executeLogout() {
-        auth.signOut().then(() => {
-            window.location.href = 'index.html';
-        }).catch((error) => {
-            showToast("Error: " + error.message, 'error');
-        });
-    }
+  try {
+    await db.ref(userRoot()).remove();
+    toast('Account data removed from the database.');
+    setTimeout(() => location.reload(), 1000);
+  } catch (e) {
+    toast('Reset failed: ' + e.message, true);
+  }
+}
 
-    function handleChangePassword() {
-        const currentPassword = document.getElementById('current-password').value;
-        const newPassword = document.getElementById('new-password').value;
-        const confirmPassword = document.getElementById('confirm-password').value;
-        const user = auth.currentUser;
+function loadTrash() {
+  if (!currentUser) return;
+  listenToTrash();
+}
 
-        if (!currentPassword || !newPassword || !confirmPassword) {
-            showToast('Please fill all password fields!', 'error');
-            return;
-        }
-
-        if (newPassword !== confirmPassword) {
-            showToast('New passwords do not match!', 'error');
-            return;
-        }
-
-        if (newPassword.length < 6) {
-            showToast('Password must be at least 6 characters long.', 'error');
-            return;
-        }
-
-        const credential = firebase.auth.EmailAuthProvider.credential(user.email, currentPassword);
-        user.reauthenticateWithCredential(credential).then(() => {
-            user.updatePassword(newPassword).then(() => {
-                showToast('Password successfully updated.');
-                document.getElementById('current-password').value = '';
-                document.getElementById('new-password').value = '';
-                document.getElementById('confirm-password').value = '';
-            }).catch((error) => {
-                showToast("Error: " + error.message, 'error');
-            });
-        }).catch((error) => {
-            showToast('Incorrect current password!', 'error');
-        });
-    }
-
-    function togglePinLockSetting(checkbox) {
-        const box = document.getElementById('pin-setup-box');
-        if (checkbox.checked) {
-            box.classList.remove('hidden');
-        } else {
-            box.classList.add('hidden');
-            localStorage.removeItem('app_mpin');
-            showToast('MPIN Lock disabled!', 'success');
-        }
-    }
-
-    function saveAppPin() {
-        const pin = document.getElementById('new-app-pin').value.trim();
-        if (pin.length !== 4) {
-            showToast('Please enter a 4-digit MPIN!', 'error');
-            return;
-        }
-        localStorage.setItem('app_mpin', pin);
-        showToast('MPIN saved successfully!', 'success');
-    }
-
-    // Function to save Biometric state in LocalStorage on toggle
-    async function toggleBiometricSetting(element) {
-        if (element.checked) {
-            if (window.PublicKeyCredential && await PublicKeyCredential.isUserVerifiableNativeAuthAvailable()) {
-                localStorage.setItem('app_biometric', 'enabled');
-                showToast('Biometric authentication enabled successfully!', 'success');
-            } else {
-                showToast('Biometric authentication is not supported or available on this device.', 'error');
-                element.checked = false;
-                localStorage.setItem('app_biometric', 'disabled');
-            }
-        } else {
-            localStorage.setItem('app_biometric', 'disabled');
-            showToast('Biometric authentication disabled.', 'success');
-        }
-    }
-
-    function backupData() {
-        const allData = {};
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            allData[key] = localStorage.getItem(key);
-        }
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allData, null, 2));
-        const downloadAnchor = document.createElement('a');
-        downloadAnchor.setAttribute("href", dataStr);
-        downloadAnchor.setAttribute("download", `digital_notebook_backup_${new Date().toISOString().split('T')[0]}.json`);
-        document.body.appendChild(downloadAnchor);
-        downloadAnchor.click();
-        downloadAnchor.remove();
-        showToast('Backup file downloaded!', 'success');
-    }
-
-    function restoreData(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                const data = JSON.parse(e.target.result);
-                for (const key in data) {
-                    localStorage.setItem(key, data[key]);
-                }
-                showToast('Data successfully restored!', 'success');
-                setTimeout(() => location.reload(), 1000);
-            } catch (err) {
-                showToast('Invalid backup file!', 'error');
-            }
-        };
-        reader.readAsText(file);
-    }
-
-    function openResetModal() {
-        document.getElementById('reset-modal').classList.remove('hidden');
-    }
-
-    function closeResetModal() {
-        document.getElementById('reset-modal').classList.add('hidden');
-    }
-
-    function confirmMasterReset() {
-        const textVal = document.getElementById('reset-input').value.trim();
-        const pinVal = document.getElementById('reset-pin').value.trim();
-        const savedPin = localStorage.getItem('app_mpin') || '1234';
-
-        if (textVal !== 'RESET') {
-            showToast("Please type 'RESET'!", 'error');
-            return;
-        }
-
-        if (pinVal !== savedPin && pinVal !== '') {
-            showToast("Incorrect MPIN!", 'error');
-            return;
-        }
-
-        localStorage.clear();
-        showToast('System successfully reset!', 'success');
-        setTimeout(() => location.reload(), 1000);
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-        updateThemeUI();
-        
-        // MPIN State Check
-        const savedPin = localStorage.getItem('app_mpin');
-        if (savedPin) {
-            document.getElementById('pin-lock-toggle').checked = true;
-            document.getElementById('pin-setup-box').classList.remove('hidden');
-            document.getElementById('new-app-pin').value = savedPin;
-        }
-
-        // Biometric State Check
-        const isBiometricEnabled = localStorage.getItem('app_biometric') === 'enabled';
-        const biometricToggle = document.getElementById('biometric-toggle');
-        if (biometricToggle) {
-            biometricToggle.checked = isBiometricEnabled;
-        }
-    });
+$('theme-button').textContent =
+  document.documentElement.classList.contains('dark') ? '🌙' : '☀️';
 </script>
 </body>
 </html>
