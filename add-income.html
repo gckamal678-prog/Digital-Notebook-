@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="ne">
 <head>
@@ -106,7 +105,6 @@ body[data-layout="comfortable"] main{gap:14px}
 <header>
  <a href="index.html" aria-label="Back">←</a>
  <b>📘 Digital NoteBook · <span data-i18n="pageName">Income</span></b>
- <span class="status" id="status" data-i18n="checking">Checking authentication…</span>
 </header>
 
 <main>
@@ -198,7 +196,7 @@ let importingLegacy=false;
 
 const I18N={
  en:{
-  pageName:"Income",checking:"Checking authentication…",incomeTitle:"Income",
+  pageName:"Income",incomeTitle:"Income",
   rateHelp:"1 INR = 1.6 NPR · Records with the same name appear in one Group Ledger.",
   sourceName:"Income source / name",date:"Date",nprAmount:"Amount NPR",
   inrAmount:"Amount INR",totalNpr:"Total NPR",note:"Note / details",
@@ -248,7 +246,7 @@ const I18N={
   searchPlaceholderShort:"Search by name or details"
  },
  ne:{
-  pageName:"आम्दानी",checking:"लगइन जाँच हुँदैछ…",incomeTitle:"आम्दानी",
+  pageName:"आम्दानी",incomeTitle:"आम्दानी",
   rateHelp:"१ INR = १.६ NPR · एउटै नामका रेकर्ड एउटै समूहगत हिसाबमा देखिन्छन्।",
   sourceName:"आम्दानीको स्रोत / नाम",date:"मिति",nprAmount:"रकम NPR",
   inrAmount:"रकम INR",totalNpr:"कुल रकम NPR",note:"कैफियत / विवरण",
@@ -327,9 +325,6 @@ function applyPreferences(){
   el.placeholder=tr(el.dataset.i18nPlaceholder);
  });
  $("search").placeholder=tr("searchPlaceholder");
- $("status").textContent=uid
-  ?(navigator.onLine?"Cloud Sync · "+new Date().toLocaleTimeString():"Offline")
-  :tr("checking");
  $("saveButton").textContent=$("recordId").value?tr("updateIncome"):tr("saveIncome");
  document.title="Digital NoteBook · "+tr("pageName");
  render();
@@ -427,12 +422,8 @@ function attach(){
   if(Array.isArray(raw)){void convertLegacyCloudArray();return;}
   items=raw&&typeof raw==="object"?raw:{};
   render();
-  $("status").textContent=navigator.onLine
-   ?"Cloud Sync · "+new Date().toLocaleTimeString()
-   :"Offline";
  };
  userRef(PATH).on("value",dataListener,error=>{
-  $("status").textContent=tr("syncError");
   toast(tr("saveError")+error.message,true);
  });
  trashListener=snap=>{
@@ -781,17 +772,14 @@ auth.onAuthStateChanged(user=>{
  }
  uid=user.uid;
  document.body.classList.remove("auth-pending");
- $("status").textContent=navigator.onLine?"Cloud Sync":"Offline";
  attach();
  applyPreferences();
 });
 
 window.addEventListener("offline",()=>{
- $("status").textContent="Offline";
  toast(tr("offline"),true);
 });
 window.addEventListener("online",()=>{
- $("status").textContent=tr("online");
 });
 
 $("date").value=new Date().toISOString().slice(0,10);
