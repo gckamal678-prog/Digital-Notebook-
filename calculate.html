@@ -1,346 +1,1032 @@
+
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Digital NoteBook - Calculator</title>
-<script src="https://cdn.tailwindcss.com"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#101827">
+<title>Digital NoteBook · Calculator</title>
+
+<!-- Shared Display Preferences: works offline -->
 <script>
-tailwind.config = {
-    darkMode: 'class',
-    theme: {
-        extend: {
-            fontFamily: {
-                sans: ['Poppins', 'sans-serif'],
-            }
-        }
-    }
-}
+(function () {
+  const KEY = "digital_notebook_settings";
+  const defaults = {
+    lang: "en",
+    theme: "dark",
+    font_size: "16",
+    font_family: "Poppins",
+    accentColor: "#10b981",
+    layout: "comfortable"
+  };
+  let p = {};
+  try { p = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (_) {}
+  if (!p || typeof p !== "object" || Array.isArray(p)) p = {};
+  p = { ...defaults, ...p };
+  if (!localStorage.getItem(KEY) && localStorage.getItem("theme")) {
+    p.theme = localStorage.getItem("theme");
+  }
+  document.documentElement.lang = p.lang === "ne" ? "ne" : "en";
+  document.documentElement.classList.toggle("dark", p.theme !== "light");
+  document.documentElement.style.setProperty("--accent", p.accentColor);
+  document.documentElement.style.setProperty("--app-font-size", (Number(p.font_size) || 16) + "px");
+  document.documentElement.style.setProperty("--app-font-family", '"' + String(p.font_family || "Poppins").replace(/[^a-zA-Z0-9 -]/g, "") + '", Arial, sans-serif');
+  document.documentElement.dataset.layout = p.layout || "comfortable";
+})();
 </script>
-<script>
-    const savedTheme = localStorage.getItem('theme') || 'dark';
-    if (savedTheme === 'light') {
-        document.documentElement.classList.remove('dark');
-    } else {
-        document.documentElement.classList.add('dark');
-    }
-</script>
+
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg:#0b1220;
+  --panel:#151f31;
+  --field:#1c2940;
+  --text:#edf3ff;
+  --muted:#9cacc5;
+  --line:#2b3a54;
+  --accent:#10b981;
+  --app-font-size:16px;
+  --app-font-family:Poppins,Arial,sans-serif;
+}
+html:not(.dark) {
+  --bg:#f3f6fb;
+  --panel:#fff;
+  --field:#edf2f9;
+  --text:#152033;
+  --muted:#586780;
+  --line:#d7e0ed;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0;
+  min-height:100vh;
+  background:var(--bg);
+  color:var(--text);
+  font:var(--app-font-size)/1.5 var(--app-font-family);
+}
+button,input,select { font:inherit; }
+button { cursor:pointer; }
+button:focus-visible,input:focus-visible,select:focus-visible {
+  outline:2px solid var(--accent);
+  outline-offset:2px;
+}
+.topbar {
+  position:sticky;
+  top:0;
+  z-index:10;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px 15px;
+  padding-top:max(12px,env(safe-area-inset-top));
+  background:var(--panel);
+  border-bottom:1px solid var(--line);
+}
+.back {
+  color:var(--text);
+  text-decoration:none;
+  font-size:25px;
+  line-height:1;
+  padding:4px 5px;
+}
+.brand {
+  display:flex;
+  align-items:center;
+  gap:9px;
+  flex:1;
+  min-width:0;
+  font-weight:700;
+}
+.brand-icon { font-size:23px; }
+.header-actions { display:flex; gap:6px; }
+.icon-btn {
+  border:1px solid var(--line);
+  border-radius:9px;
+  background:var(--field);
+  color:var(--text);
+  min-width:38px;
+  min-height:36px;
+  padding:6px 9px;
+}
+main {
+  width:min(960px,100%);
+  margin:auto;
+  padding:14px;
+  display:grid;
+  gap:14px;
+}
+.card {
+  min-width:0;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:17px;
+  padding:16px;
+}
+h1,h2,h3,p { margin-top:0; }
+h1 { font-size:1.4em; margin-bottom:5px; }
+h2 { font-size:1.12em; margin-bottom:7px; }
+.muted { color:var(--muted); }
+.small { font-size:.85em; }
+.display {
+  min-height:116px;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+  text-align:right;
+  background:var(--bg);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:13px;
+  margin:14px 0;
+  overflow:hidden;
+}
+.history {
+  min-height:22px;
+  color:var(--muted);
+  font-size:.9em;
+  overflow-x:auto;
+  white-space:nowrap;
+}
+.screen {
+  font-size:clamp(2rem,8vw,3rem);
+  font-weight:700;
+  line-height:1.3;
+  overflow-x:auto;
+  white-space:nowrap;
+  scrollbar-width:thin;
+}
+.keypad {
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:8px;
+}
+.key {
+  min-height:56px;
+  border:1px solid var(--line);
+  border-radius:13px;
+  background:var(--field);
+  color:var(--text);
+  font-size:1.12em;
+  font-weight:650;
+}
+.key:active { transform:scale(.97); }
+.key.operator { color:var(--accent); }
+.key.clear { color:#fb7185; }
+.key.equal {
+  background:var(--accent);
+  color:#05251b;
+  border-color:var(--accent);
+}
+.key.wide { grid-column:span 2; }
+.calc-actions {
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:10px;
+}
+.action {
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:9px 12px;
+  background:var(--field);
+  color:var(--text);
+}
+.action.primary { background:var(--accent); color:#05251b; font-weight:700; }
+.tools-grid {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+.tool {
+  min-width:0;
+  padding:14px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:var(--bg);
+}
+.tool-icon { font-size:1.5em; margin-bottom:5px; }
+.field { display:grid; gap:6px; margin-top:11px; }
+label { font-weight:600; }
+input,select {
+  width:100%;
+  min-width:0;
+  padding:11px;
+  color:var(--text);
+  background:var(--field);
+  border:1px solid var(--line);
+  border-radius:10px;
+}
+.result {
+  margin-top:10px;
+  padding:10px;
+  border-radius:10px;
+  background:var(--field);
+  overflow-wrap:anywhere;
+}
+.result strong { color:var(--accent); }
+footer {
+  text-align:center;
+  padding:4px 12px 22px;
+  color:var(--muted);
+  font-size:.8em;
+}
+body[data-layout="compact"] main { padding:8px; gap:8px; }
+body[data-layout="compact"] .card { padding:11px; border-radius:12px; }
+body[data-layout="compact"] .key { min-height:47px; }
+.toast-area {
+  position:fixed;
+  bottom:15px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:50;
+  width:min(92%,420px);
+}
+.toast {
+  padding:11px 14px;
+  margin-top:6px;
+  border-radius:10px;
+  background:#166534;
+  color:white;
+  box-shadow:0 4px 18px #0003;
+}
+.toast.error { background:#9f1239; }
+@media(min-width:700px) {
+  .calculator-layout {
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(270px,.85fr);
+    gap:14px;
+    align-items:start;
+  }
+  .calculator-layout .card { height:100%; }
+}
+@media(max-width:440px) {
+  main { padding:9px; gap:10px; }
+  .card { padding:12px; }
+  .tools-grid { grid-template-columns:1fr; }
+  .key { min-height:51px; }
+  .brand { font-size:.9em; }
+}
+</style>
 </head>
-<body class="bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 text-xs flex flex-col h-screen overflow-hidden select-none">
 
-<!-- SIDEBAR -->
-<div id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 bg-slate-900 border-r border-slate-800 transform -translate-x-full transition-transform duration-300 flex flex-col text-white">
-    <div class="flex items-center justify-between px-4 py-3 border-b border-slate-800">
-        <div class="flex items-center space-x-2.5">
-            <div class="w-8 h-8 rounded-lg bg-emerald-600 border border-emerald-500 flex items-center justify-center overflow-hidden shadow-md">
-                <img src="N1024.png" alt="Logo" class="w-full h-full object-cover">
-            </div>
-            <h1 class="text-sm font-extrabold tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">
-                Digital NoteBook
-            </h1>
+<body>
+<header class="topbar">
+  <a class="back" href="index.html" aria-label="Back to home" title="Back">←</a>
+  <div class="brand">
+    <span class="brand-icon">📘</span>
+    <span>Digital NoteBook · <span data-i18n="appTitle">Calculator</span></span>
+  </div>
+  <div class="header-actions">
+    <button class="icon-btn" id="languageBtn" type="button" aria-label="Change language">नेपाली</button>
+    <button class="icon-btn" id="themeBtn" type="button" aria-label="Change theme">🌙</button>
+  </div>
+</header>
+
+<main>
+  <section>
+    <h1 data-i18n="pageTitle">Calculator & Converters</h1>
+    <p class="muted small" data-i18n="pageIntro">Everyday calculations and useful measurement tools. Works without Firebase.</p>
+  </section>
+
+  <div class="calculator-layout">
+    <section class="card" aria-label="Calculator">
+      <h2>🧮 <span data-i18n="basicCalc">Basic calculator</span></h2>
+      <div class="display" aria-live="polite">
+        <div class="history" id="historyDisplay"></div>
+        <div class="screen" id="calcDisplay">0</div>
+      </div>
+
+      <div class="keypad" id="keypad">
+        <button class="key clear" data-action="clear">AC</button>
+        <button class="key" data-action="backspace" aria-label="Delete last digit">⌫</button>
+        <button class="key operator" data-value="%">%</button>
+        <button class="key operator" data-value="/">÷</button>
+
+        <button class="key" data-value="7">7</button>
+        <button class="key" data-value="8">8</button>
+        <button class="key" data-value="9">9</button>
+        <button class="key operator" data-value="*">×</button>
+
+        <button class="key" data-value="4">4</button>
+        <button class="key" data-value="5">5</button>
+        <button class="key" data-value="6">6</button>
+        <button class="key operator" data-value="-">−</button>
+
+        <button class="key" data-value="1">1</button>
+        <button class="key" data-value="2">2</button>
+        <button class="key" data-value="3">3</button>
+        <button class="key operator" data-value="+">+</button>
+
+        <button class="key wide" data-value="0">0</button>
+        <button class="key" data-value=".">.</button>
+        <button class="key equal" data-action="equals">=</button>
+      </div>
+
+      <div class="calc-actions">
+        <button class="action" id="copyBtn" type="button" data-i18n="copy">Copy result</button>
+        <button class="action" id="clearHistoryBtn" type="button" data-i18n="clearHistory">Clear display</button>
+      </div>
+      <p class="muted small" style="margin:12px 0 0" data-i18n="calcHint">Operators replace one another when pressed consecutively.</p>
+    </section>
+
+    <section class="card">
+      <h2>📐 <span data-i18n="quickTools">Quick tools</span></h2>
+      <p class="muted small" data-i18n="toolsIntro">Choose a tool below to calculate a measurement or value.</p>
+
+      <div class="tools-grid">
+        <div class="tool">
+          <div class="tool-icon">⚖️</div>
+          <h3 data-i18n="bmiTitle">BMI calculator</h3>
+          <div class="field">
+            <label for="height" data-i18n="heightCm">Height (cm)</label>
+            <input id="height" type="number" min="1" max="300" step="any" inputmode="decimal" placeholder="170">
+          </div>
+          <div class="field">
+            <label for="weight" data-i18n="weightKg">Weight (kg)</label>
+            <input id="weight" type="number" min="1" max="700" step="any" inputmode="decimal" placeholder="65">
+          </div>
+          <div class="calc-actions">
+            <button class="action primary" id="bmiBtn" type="button" data-i18n="calculate">Calculate</button>
+          </div>
+          <div class="result" id="bmiResult" aria-live="polite">—</div>
+          <p class="muted small" data-i18n="bmiNote">BMI is a screening measure, not a diagnosis. For children and teens, interpretation depends on age and sex.</p>
         </div>
-        <button onclick="toggleSidebar()" class="text-slate-400 hover:text-white text-lg focus:outline-none">✕</button>
-    </div>
 
-    <div class="p-3 space-y-3 overflow-y-auto flex-1 text-xs">
-        <div class="bg-slate-800/50 border border-slate-700/60 rounded-xl p-3 flex items-center space-x-3">
-            <div class="relative cursor-pointer group" onclick="document.getElementById('avatar-upload-input').click()">
-                <div class="w-11 h-11 rounded-full bg-emerald-600 border border-emerald-500 flex items-center justify-center overflow-hidden shadow-sm">
-                    <img id="sidebar-avatar-img" src="N1024.png" alt="Profile" class="w-full h-full object-cover">
-                </div>
-            </div>
-            <input type="file" id="avatar-upload-input" accept="image/*" class="hidden" onchange="handleAvatarUpload(event)">
-            <div>
-                <h3 id="sidebar-profile-name" class="text-white font-bold text-sm"></h3>
-                <p class="text-[10px] text-slate-400"><span class="lang-text" data-en="Click icon to set photo" data-np="फोटो राख्न क्लिक गर्नुहोस्">Click icon to set photo</span></p>
-            </div>
+        <div class="tool">
+          <div class="tool-icon">🔄</div>
+          <h3 data-i18n="weightConvert">Weight converter</h3>
+          <div class="field">
+            <label for="weightValue" data-i18n="value">Value</label>
+            <input id="weightValue" type="number" step="any" inputmode="decimal" value="1">
+          </div>
+          <div class="field">
+            <label for="weightFrom" data-i18n="from">From</label>
+            <select id="weightFrom">
+              <option value="kg">Kilogram (kg)</option>
+              <option value="g">Gram (g)</option>
+              <option value="lb">Pound (lb)</option>
+              <option value="oz">Ounce (oz)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="weightTo" data-i18n="to">To</label>
+            <select id="weightTo">
+              <option value="lb">Pound (lb)</option>
+              <option value="kg">Kilogram (kg)</option>
+              <option value="g">Gram (g)</option>
+              <option value="oz">Ounce (oz)</option>
+            </select>
+          </div>
+          <div class="result" id="weightResult" aria-live="polite">—</div>
         </div>
 
-        <nav class="space-y-1 font-medium">
-            <a href="index.html" class="flex items-center gap-2.5 py-2.5 px-3 rounded-xl hover:bg-slate-800 text-slate-300 transition"><span>📊</span> <span class="lang-text" data-en="Overview" data-np="अवलोकन">Overview</span></a>
-            <a href="#" class="flex items-center gap-2.5 py-2.5 px-3 rounded-xl bg-emerald-600 text-white shadow-md transition"><span>🧮</span> <span class="lang-text" data-en="Digital Calculator" data-np="डिजिटल क्याल्कुलेटर">Digital Calculator</span></a>
-        </nav>
-
-        <div class="space-y-2.5 bg-slate-800/50 p-3 rounded-xl border border-slate-700/60">
-            <h3 class="text-[11px] font-bold text-white flex items-center gap-1.5 mb-1">
-                <i class="fa-solid fa-address-card text-emerald-400"></i> <span class="lang-text" data-en="Personal Info" data-np="व्यक्तिगत विवरण">Personal Info</span>
-            </h3>
-            <div>
-                <label class="block text-[10px] font-semibold text-slate-400 mb-0.5"><span class="lang-text" data-en="Full Name" data-np="पूरा नाम">Full Name</span></label>
-                <input type="text" id="input-full-name" placeholder="Enter Full Name" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-white text-xs focus:outline-none focus:border-emerald-500">
-            </div>
-            <div>
-                <label class="block text-[10px] font-semibold text-slate-400 mb-0.5"><span class="lang-text" data-en="Address" data-np="ठेगाना">Address</span></label>
-                <input type="text" id="input-address" placeholder="Enter Address" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-white text-xs focus:outline-none focus:border-emerald-500">
-            </div>
-            <div>
-                <label class="block text-[10px] font-semibold text-slate-400 mb-0.5"><span class="lang-text" data-en="Mobile Number" data-np="मोबाइल नम्बर">Mobile Number</span></label>
-                <input type="tel" id="input-mobile" placeholder="Enter Mobile Number" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-white text-xs focus:outline-none focus:border-emerald-500">
-            </div>
-            <button onclick="saveProfileDetails()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition shadow-md">
-                <span class="lang-text" data-en="Save Info" data-np="सेभ गर्नुहोस्">Save Info</span>
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- MAIN LAYOUT -->
-<div class="flex-1 flex flex-col h-full w-full">
-    
-    <!-- HEADER SECTION -->
-    <header class="sticky top-0 z-40 flex items-center justify-between px-3 md:px-5 py-3.5 bg-slate-900/95 backdrop-blur border-b border-emerald-500/20 shadow-md">
-        <div class="flex items-center space-x-2.5">
-            <button onclick="toggleSidebar()" class="text-white text-xl focus:outline-none hover:text-emerald-400 transition">☰</button>
-            <div class="flex items-center space-x-2 cursor-pointer" onclick="toggleSidebar()">
-                <div class="w-7 h-7 rounded-lg bg-emerald-600 border border-emerald-500/50 flex items-center justify-center overflow-hidden shadow-sm">
-                    <img src="N1024.png" alt="Logo" class="w-full h-full object-cover">
-                </div>
-                <span class="text-xs md:text-sm font-extrabold tracking-wider bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">
-                    Digital NoteBook
-                </span>
-            </div>
+        <div class="tool">
+          <div class="tool-icon">📏</div>
+          <h3 data-i18n="lengthConvert">Length converter</h3>
+          <div class="field">
+            <label for="lengthValue" data-i18n="value">Value</label>
+            <input id="lengthValue" type="number" step="any" inputmode="decimal" value="1">
+          </div>
+          <div class="field">
+            <label for="lengthFrom" data-i18n="from">From</label>
+            <select id="lengthFrom">
+              <option value="m">Meter (m)</option>
+              <option value="km">Kilometer (km)</option>
+              <option value="cm">Centimeter (cm)</option>
+              <option value="mm">Millimeter (mm)</option>
+              <option value="ft">Foot (ft)</option>
+              <option value="in">Inch (in)</option>
+              <option value="mi">Mile (mi)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="lengthTo" data-i18n="to">To</label>
+            <select id="lengthTo">
+              <option value="ft">Foot (ft)</option>
+              <option value="m">Meter (m)</option>
+              <option value="km">Kilometer (km)</option>
+              <option value="cm">Centimeter (cm)</option>
+              <option value="mm">Millimeter (mm)</option>
+              <option value="in">Inch (in)</option>
+              <option value="mi">Mile (mi)</option>
+            </select>
+          </div>
+          <div class="result" id="lengthResult" aria-live="polite">—</div>
         </div>
 
-        <div class="flex items-center space-x-2">
-            <!-- Floating / Mini Mode Button -->
-            <button onclick="toggleFloatMode()" id="float-mode-btn" title="Toggle Floating Mode" class="px-2 py-1 rounded-md bg-slate-800 border border-slate-700 text-[10px] font-bold text-slate-200 hover:bg-slate-700 transition flex items-center gap-1">
-                <i class="fa-solid fa-clone"></i> <span class="lang-text" data-en="Mini" data-np="सानो">Mini</span>
-            </button>
-            <button onclick="minimizeCalculator()" title="Dashboard" class="w-7 h-7 rounded-md bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 hover:bg-slate-700"><i class="fa-solid fa-house text-[10px]"></i></button>
-            <button onclick="toggleLanguage()" id="lang-toggle-btn" class="px-2 py-1 rounded-md bg-slate-800 border border-slate-700 text-[10px] font-bold text-slate-200 hover:bg-slate-700 transition">ENG</button>
-            <button onclick="toggleTheme()" id="theme-toggle-btn" class="w-7 h-7 rounded-md bg-slate-800 border border-slate-700 flex items-center justify-center text-sm hover:bg-slate-700 transition">🌛</button>
-            <div class="relative cursor-pointer" onclick="toggleSidebar()">
-                <div class="w-8 h-8 rounded-full bg-emerald-600 border border-emerald-500 flex items-center justify-center overflow-hidden shadow-sm">
-                    <img id="header-avatar-img" src="N1024.png" alt="Profile" class="w-full h-full object-cover">
-                </div>
-            </div>
+        <div class="tool">
+          <div class="tool-icon">🌡️</div>
+          <h3 data-i18n="tempConvert">Temperature converter</h3>
+          <div class="field">
+            <label for="tempValue" data-i18n="value">Value</label>
+            <input id="tempValue" type="number" step="any" inputmode="decimal" value="0">
+          </div>
+          <div class="field">
+            <label for="tempFrom" data-i18n="from">From</label>
+            <select id="tempFrom">
+              <option value="C">Celsius (°C)</option>
+              <option value="F">Fahrenheit (°F)</option>
+              <option value="K">Kelvin (K)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="tempTo" data-i18n="to">To</label>
+            <select id="tempTo">
+              <option value="F">Fahrenheit (°F)</option>
+              <option value="C">Celsius (°C)</option>
+              <option value="K">Kelvin (K)</option>
+            </select>
+          </div>
+          <div class="result" id="tempResult" aria-live="polite">—</div>
         </div>
-    </header>
 
-    <!-- CALCULATOR CONTENT -->
-    <main id="main-calculator-container" class="flex-1 flex flex-col items-center justify-center p-4 w-full h-full bg-slate-100 dark:bg-slate-950 overflow-hidden transition-all duration-300">
-        <div id="calculator-card" class="w-full max-w-md h-full max-h-[620px] flex flex-col bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-800 p-5 space-y-4 transition-all">
-            
-            <div class="flex justify-between items-center px-1">
-                <p id="dynamic-date" class="text-[10px] font-semibold tracking-wider text-slate-400 uppercase"></p>
-                <span class="text-xs font-bold text-emerald-500 flex items-center gap-1"><i class="fa-solid fa-calculator"></i> Digital Calculator</span>
-            </div>
-
-            <!-- Screen Display -->
-            <div class="bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 text-right flex flex-col justify-end h-28 overflow-hidden shadow-inner flex-shrink-0 relative group">
-                <div id="calc-history" class="text-slate-400 text-xs tracking-wide h-5 overflow-x-auto whitespace-nowrap"></div>
-                <div id="calc-display" class="text-slate-900 dark:text-white text-4xl font-bold tracking-wider overflow-x-auto whitespace-nowrap">0</div>
-                <button onclick="copyResult()" title="Copy Result" class="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition bg-slate-800/60 text-white p-1 rounded text-[10px]"><i class="fa-solid fa-copy"></i></button>
-            </div>
-
-            <!-- Keypad Grid -->
-            <div class="grid grid-cols-4 gap-2.5 flex-1">
-                <button onclick="clearCalculator()" class="bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white font-bold rounded-2xl transition text-base flex items-center justify-center">C</button>
-                <button onclick="appendValue('%')" class="bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-emerald-600 hover:text-white font-bold rounded-2xl transition text-base flex items-center justify-center">%</button>
-                <button onclick="deleteLast()" class="bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-emerald-600 hover:text-white font-bold rounded-2xl transition text-base flex items-center justify-center"><i class="fa-solid fa-delete-left"></i></button>
-                <button onclick="appendValue('/')" class="bg-emerald-500/10 text-emerald-500 hover:bg-emerald-600 hover:text-white font-bold rounded-2xl transition text-base flex items-center justify-center">÷</button>
-
-                <button onclick="appendValue('7')" class="bg-slate-100 dark:bg-slate-800/60 text-slate-800 dark:text-white hover:bg-emerald-600 hover:text-white font-bold rounded-2xl transition text-base flex items-center justify-center">7</button>
-                <button onclick="appendValue('8')" class="bg-slate-100 dark:bg-slate-800/60 text-slate-800 dark:text-white hover:bg-emerald-600 hover:text-white font-bold rounded-2xl transition text-base flex items-center justify-center">8</button>
-                <button onclick="appendValue('9')" class="bg-slate-100 dark:bg-slate-800/60 text-slate-800 dark:text-white hover:bg-emerald-600 hover:text-white font-bold rounded-2xl transition text-base flex items-center justify-center">9</button>
-                <button onclick="appendValue('*')" class="bg-emerald-500/10 text-emerald-500 hover:bg-emerald-600 hover:text-white font-bold rounded-2xl transition text-base flex items-center justify-center">×</button>
-
-                <button onclick="appendValue('4')" class="bg-slate-100 dark:bg-slate-800/60 text-slate-800 dark:text-white hover:bg-emerald-600 hover:text-white font-bold rounded-2xl transition text-base flex items-center justify-center">4</button>
-                <button onclick="appendValue('5')" class="bg-slate-100 dark:bg-slate-800/60 text-slate-800 dark:text-white hover:bg-emerald-600 hover:text-white font-bold rounded-2xl transition text-base flex items-center justify-center">5</button>
-                <button onclick="appendValue('6')" class="bg-slate-100 dark:bg-slate-800/60 text-slate-800 dark:text-white hover:bg-emerald-600 hover:text-white font-bold rounded-2xl transition text-base flex items-center justify-center">6</button>
-                <button onclick="appendValue('-')" class="bg-emerald-500/10 text-emerald-500 hover:bg-emerald-600 hover:text-white font-bold rounded-2xl transition text-base flex items-center justify-center">-</button>
-
-                <button onclick="appendValue('1')" class="bg-slate-100 dark:bg-slate-800/60 text-slate-800 dark:text-white hover:bg-emerald-600 hover:text-white font-bold rounded-2xl transition text-base flex items-center justify-center">1</button>
-                <button onclick="appendValue('2')" class="bg-slate-100 dark:bg-slate-800/60 text-slate-800 dark:text-white hover:bg-emerald-600 hover:text-white font-bold rounded-2xl transition text-base flex items-center justify-center">2</button>
-                <button onclick="appendValue('3')" class="bg-slate-100 dark:bg-slate-800/60 text-slate-800 dark:text-white hover:bg-emerald-600 hover:text-white font-bold rounded-2xl transition text-base flex items-center justify-center">3</button>
-                <button onclick="appendValue('+')" class="bg-emerald-500/10 text-emerald-500 hover:bg-emerald-600 hover:text-white font-bold rounded-2xl transition text-base flex items-center justify-center">+</button>
-
-                <button onclick="appendValue('0')" class="col-span-2 bg-slate-100 dark:bg-slate-800/60 text-slate-800 dark:text-white hover:bg-emerald-600 hover:text-white font-bold rounded-2xl transition text-base flex items-center justify-center">0</button>
-                <button onclick="appendValue('.')" class="bg-slate-100 dark:bg-slate-800/60 text-slate-800 dark:text-white hover:bg-emerald-600 hover:text-white font-bold rounded-2xl transition text-base flex items-center justify-center">.</button>
-                <button onclick="calculateResult()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl transition shadow-md text-base flex items-center justify-center">=</button>
-            </div>
+        <div class="tool">
+          <div class="tool-icon">💰</div>
+          <h3 data-i18n="interestTitle">Simple interest</h3>
+          <div class="field">
+            <label for="principal" data-i18n="principal">Principal amount</label>
+            <input id="principal" type="number" min="0" step="any" inputmode="decimal" value="10000">
+          </div>
+          <div class="field">
+            <label for="rate" data-i18n="rate">Annual interest rate (%)</label>
+            <input id="rate" type="number" min="0" step="any" inputmode="decimal" value="10">
+          </div>
+          <div class="field">
+            <label for="years" data-i18n="years">Time (years)</label>
+            <input id="years" type="number" min="0" step="any" inputmode="decimal" value="1">
+          </div>
+          <div class="calc-actions">
+            <button class="action primary" id="interestBtn" type="button" data-i18n="calculate">Calculate</button>
+          </div>
+          <div class="result" id="interestResult" aria-live="polite">—</div>
         </div>
-    </main>
-</div>
+
+        <div class="tool">
+          <div class="tool-icon">📊</div>
+          <h3 data-i18n="percentageTitle">Percentage calculator</h3>
+          <div class="field">
+            <label for="percentValue" data-i18n="percentOf">What is this percentage?</label>
+            <input id="percentValue" type="number" step="any" inputmode="decimal" value="10">
+          </div>
+          <div class="field">
+            <label for="percentTotal" data-i18n="ofValue">Of this value</label>
+            <input id="percentTotal" type="number" step="any" inputmode="decimal" value="1000">
+          </div>
+          <div class="calc-actions">
+            <button class="action primary" id="percentBtn" type="button" data-i18n="calculate">Calculate</button>
+          </div>
+          <div class="result" id="percentResult" aria-live="polite">—</div>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <span>Digital NoteBook</span> · <span data-i18n="offlineNote">Display preferences are stored on this device.</span>
+</footer>
+<div id="toastArea" class="toast-area" aria-live="polite"></div>
 
 <script>
-    function toggleSidebar() {
-        const sidebar = document.getElementById('sidebar');
-        if (sidebar) sidebar.classList.toggle('-translate-x-full');
+"use strict";
+
+/* No Firebase code in this file. */
+const SETTINGS_KEY = "digital_notebook_settings";
+const DEFAULTS = {
+  lang:"en", theme:"dark", font_size:"16",
+  font_family:"Poppins", accentColor:"#10b981", layout:"comfortable"
+};
+
+const words = {
+  en: {
+    appTitle:"Calculator", pageTitle:"Calculator & Converters",
+    pageIntro:"Everyday calculations and useful measurement tools. Works without Firebase.",
+    basicCalc:"Basic calculator", copy:"Copy result", clearHistory:"Clear display",
+    calcHint:"Operators replace one another when pressed consecutively.",
+    quickTools:"Quick tools", toolsIntro:"Choose a tool below to calculate a measurement or value.",
+    bmiTitle:"BMI calculator", heightCm:"Height (cm)", weightKg:"Weight (kg)",
+    calculate:"Calculate", bmiNote:"BMI is a screening measure, not a diagnosis. For children and teens, interpretation depends on age and sex.",
+    weightConvert:"Weight converter", lengthConvert:"Length converter",
+    tempConvert:"Temperature converter", value:"Value", from:"From", to:"To",
+    interestTitle:"Simple interest", principal:"Principal amount",
+    rate:"Annual interest rate (%)", years:"Time (years)",
+    percentageTitle:"Percentage calculator", percentOf:"Percentage (%)", ofValue:"Of this value",
+    offlineNote:"Display preferences are stored on this device.",
+    copied:"Result copied.", copyFailed:"Could not copy the result.",
+    invalid:"Please enter valid numbers.", bmiResult:"BMI",
+    bmiLow:"Below the usual adult range", bmiNormal:"Within the usual adult range",
+    bmiHigh:"Above the usual adult range",
+    bmiTeen:"For people under 18, BMI must be interpreted using age- and sex-specific growth charts.",
+    bmiAdult:"Adult BMI categories are not intended for people under 18.",
+    interestResult:"Interest", totalResult:"Total amount",
+    percentageResult:"Result", error:"Invalid calculation",
+    divisionZero:"Cannot divide by zero."
+  },
+  ne: {
+    appTitle:"क्याल्कुलेटर", pageTitle:"क्याल्कुलेटर र रूपान्तरण",
+    pageIntro:"दैनिक हिसाब र नापतौलका उपयोगी उपकरण। Firebase बिना पनि चल्छ।",
+    basicCalc:"साधारण क्याल्कुलेटर", copy:"नतिजा कपी", clearHistory:"डिस्प्ले खाली",
+    calcHint:"लगातार Operator थिच्दा अन्तिम Operator प्रतिस्थापन हुन्छ।",
+    quickTools:"अन्य उपयोगी उपकरण", toolsIntro:"तलको उपकरण छानेर हिसाब गर्नुहोस्।",
+    bmiTitle:"BMI क्याल्कुलेटर", heightCm:"उचाइ (से.मी.)", weightKg:"तौल (के.जी.)",
+    calculate:"हिसाब गर्नुहोस्", bmiNote:"BMI सामान्य जाँचको सूचक हो, रोग निदान होइन। बालबालिका र किशोरकिशोरीको BMI उमेर र लिङ्गअनुसार बुझ्नुपर्छ।",
+    weightConvert:"तौल रूपान्तरण", lengthConvert:"लम्बाइ रूपान्तरण",
+    tempConvert:"तापक्रम रूपान्तरण", value:"मान", from:"बाट", to:"मा",
+    interestTitle:"साधारण ब्याज", principal:"मूलधन",
+    rate:"वार्षिक ब्याजदर (%)", years:"समय (वर्ष)",
+    percentageTitle:"प्रतिशत हिसाब", percentOf:"प्रतिशत (%)", ofValue:"यो रकमको",
+    offlineNote:"देखावटका प्राथमिकता यस उपकरणमा सुरक्षित हुन्छन्।",
+    copied:"नतिजा कपी भयो।", copyFailed:"नतिजा कपी गर्न सकिएन।",
+    invalid:"कृपया सही सङ्ख्या राख्नुहोस्।", bmiResult:"BMI",
+    bmiLow:"सामान्य वयस्क दायराभन्दा कम",
+    bmiNormal:"सामान्य वयस्क दायराभित्र",
+    bmiHigh:"सामान्य वयस्क दायराभन्दा बढी",
+    bmiTeen:"१८ वर्षमुनिका लागि BMI उमेर र लिङ्गअनुसारको वृद्धि चार्टबाट बुझ्नुपर्छ।",
+    bmiAdult:"वयस्क BMI वर्गीकरण १८ वर्षमुनिका लागि लागू हुँदैन।",
+    interestResult:"ब्याज", totalResult:"कुल रकम",
+    percentageResult:"नतिजा", error:"हिसाब मिलेन",
+    divisionZero:"शून्यले भाग गर्न मिल्दैन।"
+  }
+};
+
+function readSettings() {
+  let p = {};
+  try { p = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}"); } catch (_) {}
+  if (!p || typeof p !== "object" || Array.isArray(p)) p = {};
+  p = { ...DEFAULTS, ...p };
+  if (!localStorage.getItem(SETTINGS_KEY) && localStorage.getItem("theme")) {
+    p.theme = localStorage.getItem("theme");
+  }
+  return p;
+}
+
+let prefs = readSettings();
+let expression = "0";
+let justCalculated = false;
+let lastResult = 0;
+
+function saveSettings() {
+  try {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(prefs));
+    localStorage.setItem("theme", prefs.theme);
+  } catch (e) {
+    console.error("Could not save display preferences", e);
+  }
+}
+
+function tr(key) {
+  return (words[prefs.lang === "ne" ? "ne" : "en"][key] ||
+          words.en[key] || key);
+}
+
+function applyPreferences() {
+  const root = document.documentElement;
+  root.lang = prefs.lang === "ne" ? "ne" : "en";
+  root.classList.toggle("dark", prefs.theme !== "light");
+  root.style.setProperty("--accent", prefs.accentColor || DEFAULTS.accentColor);
+  root.style.setProperty("--app-font-size", (Number(prefs.font_size) || 16) + "px");
+
+  const font = String(prefs.font_family || "Poppins").replace(/[^a-zA-Z0-9 -]/g, "");
+  root.style.setProperty("--app-font-family", '"' + font + '", Arial, sans-serif');
+  root.dataset.layout = prefs.layout || "comfortable";
+  document.body.dataset.layout = prefs.layout || "comfortable";
+
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const key = el.getAttribute("data-i18n");
+    if (tr(key)) el.textContent = tr(key);
+  });
+
+  document.title = "Digital NoteBook · " + tr("appTitle");
+  document.getElementById("languageBtn").textContent =
+    prefs.lang === "ne" ? "English" : "नेपाली";
+  document.getElementById("themeBtn").textContent =
+    prefs.theme === "light" ? "☀️" : "🌙";
+  renderDisplay();
+}
+
+document.getElementById("languageBtn").addEventListener("click", () => {
+  prefs.lang = prefs.lang === "ne" ? "en" : "ne";
+  saveSettings();
+  applyPreferences();
+});
+
+document.getElementById("themeBtn").addEventListener("click", () => {
+  prefs.theme = prefs.theme === "light" ? "dark" : "light";
+  saveSettings();
+  applyPreferences();
+});
+
+/* Update this page if Settings changes in another tab on the same device. */
+window.addEventListener("storage", event => {
+  if (event.key !== SETTINGS_KEY || !event.newValue) return;
+  try {
+    const next = JSON.parse(event.newValue);
+    prefs = { ...DEFAULTS, ...next };
+    applyPreferences();
+  } catch (_) {}
+});
+
+function displayNumber(n) {
+  if (!Number.isFinite(n)) return "Error";
+  if (Object.is(n, -0)) n = 0;
+  return String(Number(n.toPrecision(12)));
+}
+
+function renderDisplay() {
+  document.getElementById("calcDisplay").textContent = expression;
+}
+
+function renderHistory(text) {
+  document.getElementById("historyDisplay").textContent = text || "";
+}
+
+function isOperator(ch) {
+  return ["+","-","*","/"].includes(ch);
+}
+
+function appendDigit(digit) {
+  if (justCalculated) {
+    expression = "0";
+    justCalculated = false;
+    renderHistory("");
+  }
+
+  if (expression === "Error") expression = "0";
+
+  if (digit === ".") {
+    const currentNumber = expression.split(/[+\-*/]/).pop();
+    if (currentNumber.includes(".")) return;
+    if (!currentNumber) expression += "0.";
+    else expression += ".";
+  } else if (expression === "0") {
+    expression = digit;
+  } else if (/([+\-*/])0$/.test(expression)) {
+    expression += digit;
+  } else {
+    expression += digit;
+  }
+  renderDisplay();
+}
+
+function appendOperator(operator) {
+  if (expression === "Error") expression = "0";
+  if (justCalculated) justCalculated = false;
+
+  const last = expression.slice(-1);
+
+  if (isOperator(last)) {
+    if (operator === "-" && last !== "-") {
+      expression += operator;
+    } else {
+      expression = expression.slice(0, -1) + operator;
+    }
+  } else if (last === ".") {
+    expression = expression.slice(0, -1) + operator;
+  } else {
+    expression += operator;
+  }
+  renderDisplay();
+}
+
+function clearCalc() {
+  expression = "0";
+  justCalculated = false;
+  lastResult = 0;
+  renderHistory("");
+  renderDisplay();
+}
+
+function backspace() {
+  if (justCalculated || expression === "Error" || expression.length <= 1) {
+    expression = "0";
+    justCalculated = false;
+  } else {
+    expression = expression.slice(0, -1);
+    if (expression === "" || expression === "-") expression = "0";
+  }
+  renderDisplay();
+}
+
+/* Safe arithmetic parser: no eval() or Function() execution. */
+function tokenize(input) {
+  const tokens = [];
+  let i = 0;
+
+  while (i < input.length) {
+    const ch = input[i];
+    if (/\s/.test(ch)) { i++; continue; }
+
+    if (/[0-9.]/.test(ch)) {
+      let num = "";
+      let dots = 0;
+      while (i < input.length && /[0-9.]/.test(input[i])) {
+        if (input[i] === ".") dots++;
+        num += input[i++];
+      }
+      if (dots > 1 || num === ".") throw new Error("Invalid number");
+      tokens.push(Number(num));
+      continue;
     }
 
-    let currentLang = localStorage.getItem('lang') || 'EN';
-
-    function updateLanguageUI() {
-        const btn = document.getElementById('lang-toggle-btn');
-        if(btn) btn.innerText = currentLang;
-
-        document.querySelectorAll('.lang-text').forEach(el => {
-            const text = currentLang === 'NEP' ? el.getAttribute('data-np') : el.getAttribute('data-en');
-            if(text) el.innerText = text;
-        });
+    if ("+-*/%()".includes(ch)) {
+      tokens.push(ch);
+      i++;
+      continue;
     }
+    throw new Error("Invalid character");
+  }
+  return tokens;
+}
 
-    function toggleLanguage() {
-        currentLang = currentLang === 'EN' ? 'NEP' : 'EN';
-        localStorage.setItem('lang', currentLang);
-        updateLanguageUI();
-        updateDynamicHeader();
+function evaluateExpression(input) {
+  const tokens = tokenize(input);
+  let pos = 0;
+
+  function primary() {
+    const token = tokens[pos++];
+
+    if (token === "+" || token === "-") {
+      const n = primary();
+      return token === "-" ? -n : n;
     }
-
-    function updateThemeUI() {
-        const isDark = document.documentElement.classList.contains('dark');
-        const themeBtn = document.getElementById('theme-toggle-btn');
-        if(themeBtn) themeBtn.innerText = isDark ? '🌛' : '🌞';
+    if (token === "(") {
+      const value = addSub();
+      if (tokens[pos++] !== ")") throw new Error("Missing closing bracket");
+      return value;
     }
+    if (typeof token === "number") return token;
+    throw new Error("Expected a number");
+  }
 
-    function toggleTheme() {
-        const htmlEl = document.documentElement;
-        if (htmlEl.classList.contains('dark')) {
-            htmlEl.classList.remove('dark');
-            localStorage.setItem('theme', 'light');
-        } else {
-            htmlEl.classList.add('dark');
-            localStorage.setItem('theme', 'dark');
-        }
-        updateThemeUI();
+  function percent() {
+    let value = primary();
+    while (tokens[pos] === "%") {
+      pos++;
+      value = value / 100;
     }
+    return value;
+  }
 
-    function updateDynamicHeader() {
-        const now = new Date();
-        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        const dateString = now.toLocaleDateString(currentLang === 'NEP' ? 'ne-NP' : 'en-US', options).toUpperCase();
-        const dateEl = document.getElementById('dynamic-date');
-        if (dateEl) dateEl.innerText = dateString;
+  function mulDiv() {
+    let value = percent();
+    while (tokens[pos] === "*" || tokens[pos] === "/") {
+      const op = tokens[pos++];
+      const right = percent();
+      if (op === "/" && right === 0) throw new Error(tr("divisionZero"));
+      value = op === "*" ? value * right : value / right;
     }
+    return value;
+  }
 
-    function minimizeCalculator() {
-        window.location.href = 'index.html';
+  function addSub() {
+    let value = mulDiv();
+    while (tokens[pos] === "+" || tokens[pos] === "-") {
+      const op = tokens[pos++];
+      const right = mulDiv();
+      value = op === "+" ? value + right : value - right;
     }
+    return value;
+  }
 
-    // Floating Mini Mode Toggle
-    let isFloat = false;
-    function toggleFloatMode() {
-        isFloat = !isFloat;
-        const card = document.getElementById('calculator-card');
-        const container = document.getElementById('main-calculator-container');
-        
-        if (isFloat) {
-            card.className = "fixed bottom-5 right-5 w-80 h-[450px] flex flex-col bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-emerald-500/40 p-4 space-y-3 z-50 transition-all";
-            container.classList.remove('items-center', 'justify-center');
-        } else {
-            card.className = "w-full max-w-md h-full max-h-[620px] flex flex-col bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-800 p-5 space-y-4 transition-all";
-            container.classList.add('items-center', 'justify-center');
-        }
+  if (!tokens.length) throw new Error("Empty expression");
+  const result = addSub();
+  if (pos !== tokens.length || !Number.isFinite(result)) {
+    throw new Error("Invalid expression");
+  }
+  return result;
+}
+
+function calculate() {
+  try {
+    let input = expression;
+    if (isOperator(input.slice(-1)) || input.endsWith(".")) {
+      input = input.slice(0, -1);
     }
+    if (!input || input === "-") throw new Error("Incomplete expression");
 
-    function copyResult() {
-        navigator.clipboard.writeText(currentInput);
-        alert(currentLang === 'NEP' ? 'नतिजा क्लिपबोर्डमा कपी भयो!' : 'Result copied to clipboard!');
+    const result = evaluateExpression(input);
+    renderHistory(input + " =");
+    expression = displayNumber(result);
+    lastResult = result;
+    justCalculated = true;
+    renderDisplay();
+  } catch (e) {
+    renderHistory(e.message === tr("divisionZero") ? tr("divisionZero") : tr("error"));
+    expression = "Error";
+    justCalculated = true;
+    renderDisplay();
+  }
+}
+
+document.getElementById("keypad").addEventListener("click", event => {
+  const button = event.target.closest("button");
+  if (!button) return;
+
+  const action = button.dataset.action;
+  const value = button.dataset.value;
+
+  if (action === "clear") clearCalc();
+  else if (action === "backspace") backspace();
+  else if (action === "equals") calculate();
+  else if (value && isOperator(value)) appendOperator(value);
+  else if (value === "%") {
+    if (expression === "Error") expression = "0";
+    if (justCalculated) justCalculated = false;
+    if (!isOperator(expression.slice(-1)) && !expression.endsWith(".")) {
+      expression += "%";
+      renderDisplay();
     }
+  } else if (value !== undefined) appendDigit(value);
+});
 
-    // CALCULATOR LOGIC
-    let currentInput = "0";
-    let historyInput = "";
-
-    function updateDisplay() {
-        document.getElementById('calc-display').innerText = currentInput;
-        document.getElementById('calc-history').innerText = historyInput;
+document.addEventListener("keydown", event => {
+  if (event.ctrlKey || event.metaKey || event.altKey) return;
+  if (/^[0-9.]$/.test(event.key)) appendDigit(event.key);
+  else if (["+", "-", "*", "/"].includes(event.key)) appendOperator(event.key);
+  else if (event.key === "Enter" || event.key === "=") {
+    event.preventDefault();
+    calculate();
+  } else if (event.key === "Backspace") backspace();
+  else if (event.key === "Escape") clearCalc();
+  else if (event.key === "%") {
+    if (!isOperator(expression.slice(-1)) && !expression.endsWith(".")) {
+      expression += "%";
+      renderDisplay();
     }
+  }
+});
 
-    function appendValue(val) {
-        if (currentInput === "0" && val !== '.') {
-            currentInput = val;
-        } else {
-            currentInput += val;
-        }
-        updateDisplay();
-    }
+document.getElementById("copyBtn").addEventListener("click", async () => {
+  const text = expression === "Error" ? "" : expression;
+  if (!text) return toast(tr("copyFailed"), true);
+  try {
+    await navigator.clipboard.writeText(text);
+    toast(tr("copied"));
+  } catch (_) {
+    toast(tr("copyFailed"), true);
+  }
+});
 
-    function clearCalculator() {
-        currentInput = "0";
-        historyInput = "";
-        updateDisplay();
-    }
+document.getElementById("clearHistoryBtn").addEventListener("click", clearCalc);
 
-    function deleteLast() {
-        if (currentInput.length > 1) {
-            currentInput = currentInput.slice(0, -1);
-        } else {
-            currentInput = "0";
-        }
-        updateDisplay();
-    }
+function toast(message, error = false) {
+  const area = document.getElementById("toastArea");
+  const item = document.createElement("div");
+  item.className = "toast" + (error ? " error" : "");
+  item.textContent = message;
+  area.appendChild(item);
+  setTimeout(() => item.remove(), 2500);
+}
 
-    function calculateResult() {
-        try {
-            historyInput = currentInput;
-            let sanitized = currentInput.replace(/×/g, '*').replace(/÷/g, '/');
-            let result = eval(sanitized);
-            currentInput = Number.isFinite(result) ? String(result) : "Error";
-            updateDisplay();
-        } catch (error) {
-            currentInput = "Error";
-            updateDisplay();
-        }
-    }
+function numberValue(id) {
+  const raw = document.getElementById(id).value.trim();
+  if (raw === "") return NaN;
+  return Number(raw);
+}
 
-    function saveProfileDetails() {
-        const name = document.getElementById('input-full-name').value;
-        const address = document.getElementById('input-address').value;
-        const mobile = document.getElementById('input-mobile').value;
+function formatValue(n, digits = 4) {
+  if (!Number.isFinite(n)) return "—";
+  return n.toLocaleString(prefs.lang === "ne" ? "ne-NP" : "en-US", {
+    maximumFractionDigits: digits
+  });
+}
 
-        if(name) localStorage.setItem('profile_name', name);
-        localStorage.setItem('profile_address', address);
-        localStorage.setItem('profile_mobile', mobile);
+function convertWeight() {
+  const factors = { kg:1, g:0.001, lb:0.45359237, oz:0.028349523125 };
+  const value = numberValue("weightValue");
+  if (!Number.isFinite(value)) return "—";
+  const kg = value * factors[document.getElementById("weightFrom").value];
+  return formatValue(kg / factors[document.getElementById("weightTo").value], 6);
+}
 
-        loadUserData();
-        alert(currentLang === 'NEP' ? 'विवरण सफलतापूर्वक सेभ भयो!' : 'Details saved successfully!');
-    }
+function convertLength() {
+  const factors = {
+    m:1, km:1000, cm:0.01, mm:0.001,
+    ft:0.3048, in:0.0254, mi:1609.344
+  };
+  const value = numberValue("lengthValue");
+  if (!Number.isFinite(value)) return "—";
+  const meters = value * factors[document.getElementById("lengthFrom").value];
+  return formatValue(meters / factors[document.getElementById("lengthTo").value], 6);
+}
 
-    function loadUserData() {
-        const savedName = localStorage.getItem('profile_name') || '';
-        const savedAddress = localStorage.getItem('profile_address') || '';
-        const savedMobile = localStorage.getItem('profile_mobile') || '';
+function convertTemperature() {
+  const value = numberValue("tempValue");
+  if (!Number.isFinite(value)) return "—";
+  const from = document.getElementById("tempFrom").value;
+  const to = document.getElementById("tempTo").value;
 
-        if(document.getElementById('input-full-name')) document.getElementById('input-full-name').value = savedName;
-        if(document.getElementById('input-address')) document.getElementById('input-address').value = savedAddress;
-        if(document.getElementById('input-mobile')) document.getElementById('input-mobile').value = savedMobile;
+  let celsius;
+  if (from === "C") celsius = value;
+  else if (from === "F") celsius = (value - 32) * 5 / 9;
+  else celsius = value - 273.15;
 
-        const nameEl = document.getElementById('sidebar-profile-name');
-        if(nameEl) nameEl.innerText = savedName;
-    }
+  let result;
+  if (to === "C") result = celsius;
+  else if (to === "F") result = celsius * 9 / 5 + 32;
+  else result = celsius + 273.15;
 
-    function handleAvatarUpload(event) {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const base64Image = e.target.result;
-                localStorage.setItem('profile_avatar', base64Image);
-                loadAvatar();
-            };
-            reader.readAsDataURL(file);
-        }
-    }
+  if (to === "K" && result < 0) return "—";
+  return formatValue(result, 4);
+}
 
-    function loadAvatar() {
-        const savedImage = localStorage.getItem('profile_avatar') || 'N1024.png';
-        ['sidebar-avatar-img', 'header-avatar-img'].forEach(id => {
-            const img = document.getElementById(id);
-            if(img) img.src = savedImage;
-        });
-    }
+function updateConverters() {
+  document.getElementById("weightResult").textContent = convertWeight();
+  document.getElementById("lengthResult").textContent = convertLength();
+  document.getElementById("tempResult").textContent = convertTemperature();
+}
 
-    document.addEventListener("DOMContentLoaded", () => {
-        updateLanguageUI();
-        updateThemeUI();
-        updateDynamicHeader();
-        loadUserData();
-        loadAvatar();
-    });
+["weightValue","weightFrom","weightTo"].forEach(id =>
+  document.getElementById(id).addEventListener("input", () =>
+    document.getElementById("weightResult").textContent = convertWeight()
+  )
+);
+["lengthValue","lengthFrom","lengthTo"].forEach(id =>
+  document.getElementById(id).addEventListener("input", () =>
+    document.getElementById("lengthResult").textContent = convertLength()
+  )
+);
+["tempValue","tempFrom","tempTo"].forEach(id =>
+  document.getElementById(id).addEventListener("input", () =>
+    document.getElementById("tempResult").textContent = convertTemperature()
+  )
+);
+
+document.getElementById("bmiBtn").addEventListener("click", () => {
+  const heightCm = numberValue("height");
+  const weightKg = numberValue("weight");
+  const result = document.getElementById("bmiResult");
+
+  if (!Number.isFinite(heightCm) || !Number.isFinite(weightKg) ||
+      heightCm <= 0 || weightKg <= 0 || heightCm > 300 || weightKg > 700) {
+    result.textContent = tr("invalid");
+    return;
+  }
+
+  const heightM = heightCm / 100;
+  const bmi = weightKg / (heightM * heightM);
+  let category;
+
+  if (bmi < 18.5) category = tr("bmiLow");
+  else if (bmi < 25) category = tr("bmiNormal");
+  else category = tr("bmiHigh");
+
+  result.replaceChildren();
+  const heading = document.createElement("strong");
+  heading.textContent = tr("bmiResult") + ": " + formatValue(bmi, 1);
+  const detail = document.createElement("div");
+  detail.textContent = category;
+  const note = document.createElement("div");
+  note.className = "muted small";
+  note.style.marginTop = "6px";
+  note.textContent = tr("bmiAdult");
+  result.append(heading, detail, note);
+});
+
+document.getElementById("interestBtn").addEventListener("click", () => {
+  const principal = numberValue("principal");
+  const rate = numberValue("rate");
+  const years = numberValue("years");
+  const result = document.getElementById("interestResult");
+
+  if (![principal, rate, years].every(Number.isFinite) ||
+      principal < 0 || rate < 0 || years < 0) {
+    result.textContent = tr("invalid");
+    return;
+  }
+
+  const interest = principal * rate * years / 100;
+  const total = principal + interest;
+  result.replaceChildren();
+
+  const line1 = document.createElement("div");
+  const strong1 = document.createElement("strong");
+  strong1.textContent = tr("interestResult") + ": " + formatValue(interest, 2);
+  line1.appendChild(strong1);
+
+  const line2 = document.createElement("div");
+  line2.textContent = tr("totalResult") + ": " + formatValue(total, 2);
+  result.append(line1, line2);
+});
+
+document.getElementById("percentBtn").addEventListener("click", () => {
+  const percent = numberValue("percentValue");
+  const total = numberValue("percentTotal");
+  const result = document.getElementById("percentResult");
+
+  if (![percent, total].every(Number.isFinite)) {
+    result.textContent = tr("invalid");
+    return;
+  }
+
+  result.textContent = tr("percentageResult") + ": " +
+    formatValue(percent * total / 100, 4);
+});
+
+applyPreferences();
+updateConverters();
 </script>
 </body>
 </html>
