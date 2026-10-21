@@ -282,6 +282,7 @@ const I18N = {
     noLocal:"No local savings records were found.",
     importDone:"Import finished. Imported records: ",
     importFailed:"Import failed: ",
+    sync:"Cloud sync", offline:"Offline", connected:"Connected",
     syncError:"Cloud sync error: ", localGoal:"Goal saved on this device.",
     pdfLoading:"Preparing PDF…", pdfError:"Could not create PDF: ",
     pdfLibrary:"PDF library did not load. Check your connection.",
@@ -293,11 +294,12 @@ const I18N = {
     totalLabel:"Total NPR", remarksLabel:"Remarks",
     summary:"SUMMARY", goalLabel:"Savings goal", progress:"Goal progress",
     noName:"Unnamed", localStorageError:"Could not save preferences on this device.",
-    saving:"Saving…",
+    languageButton:"नेपाली", saving:"Saving…",
     invalidAmount:"Enter valid non-negative amounts and a positive exchange rate.",
     recordChanged:"This record changed or was deleted elsewhere. Refresh and try again.",
     profileFallback:"Profile details not filled in",
-    migrationOffline:"Import requires an internet connection."
+    migrationOffline:"Import requires an internet connection.",
+    loginWaiting:"Checking sign-in…"
   },
   ne: {
     appTitle:"बचत", pageTitle:"बचत रेकर्ड",
@@ -332,6 +334,7 @@ const I18N = {
     noLocal:"स्थानीय पुरानो बचत डाटा भेटिएन।",
     importDone:"Import पूरा भयो। Import गरिएका रेकर्ड: ",
     importFailed:"Import असफल: ",
+    sync:"Cloud Sync", offline:"अफलाइन", connected:"जडान भयो",
     syncError:"Cloud Sync त्रुटि: ", localGoal:"लक्ष्य यस उपकरणमा सेभ भयो।",
     pdfLoading:"PDF तयार हुँदैछ…", pdfError:"PDF बनाउन सकिएन: ",
     pdfLibrary:"PDF library लोड भएन। इन्टरनेट जाँच्नुहोस्।",
@@ -343,11 +346,12 @@ const I18N = {
     totalLabel:"कुल NPR", remarksLabel:"कैफियत",
     summary:"सारांश", goalLabel:"बचत लक्ष्य", progress:"लक्ष्य प्रगति",
     noName:"नाम नभएको", localStorageError:"यस उपकरणमा प्राथमिकता सेभ गर्न सकिएन।",
-    saving:"सेभ हुँदैछ…",
+    languageButton:"English", saving:"सेभ हुँदैछ…",
     invalidAmount:"शून्यभन्दा कम नभएको रकम र शून्यभन्दा ठूलो INR दर राख्नुहोस्।",
     recordChanged:"यो रेकर्ड अरू ठाउँबाट परिवर्तन वा हटाइएको छ। Refresh गरेर फेरि प्रयास गर्नुहोस्।",
     profileFallback:"प्रोफाइल विवरण भरिएको छैन",
-    migrationOffline:"पुरानो डाटा Import गर्न इन्टरनेट चाहिन्छ।"
+    migrationOffline:"पुरानो डाटा Import गर्न इन्टरनेट चाहिन्छ।",
+    loginWaiting:"लगइन जाँच हुँदैछ…"
   }
 };
 
@@ -428,6 +432,7 @@ function persistSettings() {
     return false;
   }
 }
+
 window.addEventListener("storage", event => {
   if (event.key !== SETTINGS_KEY || !event.newValue) return;
   try {
