@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
@@ -280,7 +279,6 @@ body[data-layout="compact"] .key { min-height:47px; }
   </div>
   <div class="header-actions">
     <button class="icon-btn" id="languageBtn" type="button" aria-label="Change language">नेपाली</button>
-    <button class="icon-btn" id="themeBtn" type="button" aria-label="Change theme">🌙</button>
   </div>
 </header>
 
@@ -492,7 +490,6 @@ body[data-layout="compact"] .key { min-height:47px; }
 <script>
 "use strict";
 
-/* No Firebase code in this file. */
 const SETTINGS_KEY = "digital_notebook_settings";
 const DEFAULTS = {
   lang:"en", theme:"dark", font_size:"16",
@@ -570,7 +567,6 @@ let lastResult = 0;
 function saveSettings() {
   try {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(prefs));
-    localStorage.setItem("theme", prefs.theme);
   } catch (e) {
     console.error("Could not save display preferences", e);
   }
@@ -601,8 +597,6 @@ function applyPreferences() {
   document.title = "Digital NoteBook · " + tr("appTitle");
   document.getElementById("languageBtn").textContent =
     prefs.lang === "ne" ? "English" : "नेपाली";
-  document.getElementById("themeBtn").textContent =
-    prefs.theme === "light" ? "☀️" : "🌙";
   renderDisplay();
 }
 
@@ -612,13 +606,6 @@ document.getElementById("languageBtn").addEventListener("click", () => {
   applyPreferences();
 });
 
-document.getElementById("themeBtn").addEventListener("click", () => {
-  prefs.theme = prefs.theme === "light" ? "dark" : "light";
-  saveSettings();
-  applyPreferences();
-});
-
-/* Update this page if Settings changes in another tab on the same device. */
 window.addEventListener("storage", event => {
   if (event.key !== SETTINGS_KEY || !event.newValue) return;
   try {
@@ -709,7 +696,6 @@ function backspace() {
   renderDisplay();
 }
 
-/* Safe arithmetic parser: no eval() or Function() execution. */
 function tokenize(input) {
   const tokens = [];
   let i = 0;
