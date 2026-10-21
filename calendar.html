@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#101827">
 <title>Digital NoteBook - Calendar</title>
 
-<!-- Read the same display preferences as setting.html -->
+<!-- Read settings without connecting to Firebase -->
 <script>
 (function () {
   const KEY = "digital_notebook_settings";
@@ -20,41 +20,40 @@
     layout: "comfortable"
   };
 
-  let prefs = {};
+  let settings = {};
   try {
-    prefs = JSON.parse(localStorage.getItem(KEY) || "{}");
-  } catch (e) {}
+    settings = JSON.parse(localStorage.getItem(KEY) || "{}");
+  } catch (_) {}
 
-  if (!prefs || typeof prefs !== "object" || Array.isArray(prefs)) {
-    prefs = {};
+  if (!settings || typeof settings !== "object" || Array.isArray(settings)) {
+    settings = {};
   }
 
-  prefs = { ...DEFAULTS, ...prefs };
+  settings = { ...DEFAULTS, ...settings };
 
-  // Migrate the older theme preference if necessary.
   if (!localStorage.getItem(KEY) && localStorage.getItem("theme")) {
-    prefs.theme = localStorage.getItem("theme");
+    settings.theme = localStorage.getItem("theme");
   }
 
-  document.documentElement.lang = prefs.lang === "ne" ? "ne" : "en";
-  document.documentElement.classList.toggle("dark", prefs.theme !== "light");
-  document.documentElement.style.setProperty("--accent", prefs.accentColor);
+  document.documentElement.lang = settings.lang === "ne" ? "ne" : "en";
+  document.documentElement.classList.toggle("dark", settings.theme !== "light");
+  document.documentElement.style.setProperty(
+    "--accent",
+    /^#[0-9a-fA-F]{6}$/.test(settings.accentColor)
+      ? settings.accentColor : DEFAULTS.accentColor
+  );
   document.documentElement.style.setProperty(
     "--app-font-size",
-    (Number(prefs.font_size) || 16) + "px"
+    (Number(settings.font_size) >= 12 && Number(settings.font_size) <= 30
+      ? Number(settings.font_size) : 16) + "px"
   );
-  document.documentElement.style.setProperty(
-    "--app-font-family",
-    '"' + String(prefs.font_family || "Poppins").replace(/[";]/g, "") +
-    '", Arial, sans-serif'
-  );
-  document.documentElement.dataset.layout = prefs.layout || "comfortable";
+  document.documentElement.dataset.layout =
+    settings.layout === "compact" ? "compact" : "comfortable";
 })();
 </script>
 
-<!-- No Firebase scripts are used on this page. -->
-<!-- BS/AD conversion library; internet is required to load it. -->
-<script src="https://cdn.jsdelivr.net/npm/nepali-date-converter@3.4.0/dist/nepali-date-converter.umd.js"></script>
+<!-- Browser-compatible BS/AD converter. Internet connection required. -->
+<script src="https://cdn.jsdelivr.net/npm/@remotemerge/nepali-date-converter@1/dist/ndc-browser.js"></script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -169,7 +168,6 @@ h1 { margin-bottom: 5px; font-size: 1.35em; }
 h2 { margin-bottom: 12px; font-size: 1.12em; }
 p { color: var(--muted); }
 .subtext { color: var(--muted); font-size: .86em; margin-bottom: 12px; }
-.accent-text { color: var(--accent); }
 .controls {
   display: flex;
   align-items: center;
@@ -220,13 +218,11 @@ p { color: var(--muted); }
   border-color: transparent;
 }
 .day-number { display: block; font-weight: 700; font-size: 1.03em; }
-.bs-hint { display: block; margin-top: 3px; font-size: .65em; color: var(--muted); }
 .calendar td.today {
   border: 2px solid var(--accent);
   background: color-mix(in srgb, var(--accent) 12%, var(--field));
 }
 .calendar td.saturday .day-number { color: var(--accent); }
-.legend { font-size: .78em; color: var(--muted); margin: 9px 0 0; }
 .converter-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -258,30 +254,17 @@ input, select {
   border: 1px dashed var(--line);
   border-radius: 9px;
   overflow-wrap: anywhere;
+  font-weight: 600;
 }
-.result strong { color: var(--accent); }
+.result.success { color: var(--accent); }
 .message {
-  min-height: 20px;
+  min-height: 0;
   margin: 8px 0 0;
   font-size: .82em;
   color: var(--muted);
 }
 .message.error { color: #fb7185; }
 .message.success { color: var(--accent); }
-.holiday-note {
-  border-left: 4px solid var(--accent);
-  padding: 11px 13px;
-  background: var(--field);
-  border-radius: 0 10px 10px 0;
-  font-size: .87em;
-  color: var(--muted);
-}
-footer {
-  text-align: center;
-  color: var(--muted);
-  font-size: .78em;
-  padding: 0 15px 22px;
-}
 html[data-layout="compact"] main { gap: 8px; padding: 8px; }
 html[data-layout="compact"] .card { padding: 11px; border-radius: 12px; }
 html[data-layout="compact"] .calendar td { height: 54px; }
@@ -292,7 +275,6 @@ html[data-layout="compact"] .calendar td { height: 54px; }
   .converter-grid { grid-template-columns: 1fr; }
   .calendar { border-spacing: 2px; }
   .calendar td { height: 58px; padding: 3px 1px; }
-  .bs-hint { font-size: .58em; }
   .controls { gap: 5px; }
   .controls button { padding: 8px; }
 }
@@ -312,53 +294,49 @@ html[data-layout="compact"] .calendar td { height: 54px; }
 </header>
 
 <main>
+  <!-- Calendar section retained above the previous red line -->
   <section class="card">
     <h1 data-i18n="calendarTitle">AD Calendar</h1>
-    <p class="subtext" data-i18n="calendarDesc">
-      View the full Gregorian month, Sunday through Saturday.
-    </p>
+    <p class="subtext" data-i18n="calendarDesc">View the full Gregorian month, Sunday through Saturday.</p>
 
     <div class="controls">
       <button id="previousMonth" type="button" aria-label="Previous month">←</button>
-      <div id="monthTitle" class="month-title" aria-live="polite">Loading…</div>
+      <div id="monthTitle" class="month-title" aria-live="polite"></div>
       <button id="nextMonth" type="button" aria-label="Next month">→</button>
       <button id="todayButton" class="today-button" type="button" data-i18n="today">Today</button>
     </div>
 
     <div class="calendar-wrap">
       <table class="calendar" aria-label="Monthly calendar">
-        <thead>
-          <tr id="weekdayHead"></tr>
-        </thead>
+        <thead><tr id="weekdayHead"></tr></thead>
         <tbody id="calendarBody"></tbody>
       </table>
     </div>
-    <p class="legend" data-i18n="bsHint">
-      Small numbers below AD dates show the corresponding BS date when conversion data is available.
-    </p>
   </section>
 
+  <!-- Fixed BS/AD converter -->
   <section class="card">
     <h2 data-i18n="converterTitle">BS ↔ AD Date Converter</h2>
-    <p class="subtext" data-i18n="converterDesc">
-      Convert a Bikram Sambat date to Gregorian date, or a Gregorian date to Bikram Sambat.
-    </p>
 
     <div class="converter-grid">
       <div class="converter-box">
         <h3 data-i18n="bsToAd">BS → AD</h3>
+
         <div class="field">
           <label for="bsYear" data-i18n="bsYear">BS Year</label>
-          <input id="bsYear" type="number" inputmode="numeric" min="1970" max="2099" placeholder="2083">
+          <input id="bsYear" type="number" inputmode="numeric" min="1975" max="2099" placeholder="2083">
         </div>
+
         <div class="field">
           <label for="bsMonth" data-i18n="bsMonth">BS Month</label>
           <select id="bsMonth"></select>
         </div>
+
         <div class="field">
           <label for="bsDay" data-i18n="bsDay">BS Day</label>
           <input id="bsDay" type="number" inputmode="numeric" min="1" max="32" placeholder="1">
         </div>
+
         <button id="convertBsToAd" class="primary" type="button" data-i18n="convert">Convert</button>
         <div id="bsToAdResult" class="result" aria-live="polite">—</div>
         <p id="bsToAdMessage" class="message" role="status"></p>
@@ -366,10 +344,12 @@ html[data-layout="compact"] .calendar td { height: 54px; }
 
       <div class="converter-box">
         <h3 data-i18n="adToBs">AD → BS</h3>
+
         <div class="field">
           <label for="adDate" data-i18n="adDate">AD Date</label>
           <input id="adDate" type="date">
         </div>
+
         <button id="convertAdToBs" class="primary" type="button" data-i18n="convert">Convert</button>
         <div id="adToBsResult" class="result" aria-live="polite">—</div>
         <p id="adToBsMessage" class="message" role="status"></p>
@@ -378,23 +358,61 @@ html[data-layout="compact"] .calendar td { height: 54px; }
 
     <p id="libraryStatus" class="message" role="status"></p>
   </section>
-
-  <section class="card">
-    <h2 data-i18n="festivalsTitle">Nepali festivals and holidays</h2>
-    <div class="holiday-note" data-i18n="holidayNote">
-      A verified holiday list has not been included in this page. Festival dates are not guessed or displayed as confirmed dates.
-    </div>
-  </section>
 </main>
-
-<footer data-i18n="footer">
-  Calendar runs without Firebase. Display preferences are read from Settings on this device.
-</footer>
 
 <script>
 "use strict";
 
 const SETTINGS_KEY = "digital_notebook_settings";
+
+const TEXT = {
+  en: {
+    calendarTitle: "AD Calendar",
+    calendarDesc: "View the full Gregorian month, Sunday through Saturday.",
+    today: "Today",
+    converterTitle: "BS ↔ AD Date Converter",
+    bsToAd: "BS → AD",
+    adToBs: "AD → BS",
+    bsYear: "BS Year",
+    bsMonth: "BS Month",
+    bsDay: "BS Day",
+    adDate: "AD Date",
+    convert: "Convert",
+    months: ["January","February","March","April","May","June","July","August","September","October","November","December"],
+    bsMonths: ["Baisakh","Jestha","Ashadh","Shrawan","Bhadra","Ashwin","Kartik","Mangsir","Poush","Magh","Falgun","Chaitra"],
+    weekdays: ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],
+    invalidBs: "Enter a valid BS year, month and day.",
+    invalidAd: "Choose a valid AD date.",
+    invalidDate: "That date is invalid or unsupported.",
+    libraryMissing: "Date converter unavailable. Check your internet connection and reload this page.",
+    converted: "Conversion complete.",
+    unsupported: "Date is outside the supported conversion range.",
+    back: "Back"
+  },
+  ne: {
+    calendarTitle: "ई.सं. क्यालेन्डर",
+    calendarDesc: "आइतबारदेखि शनिबारसम्मको अंग्रेजी महिनाको क्यालेन्डर।",
+    today: "आज",
+    converterTitle: "वि.सं. ↔ ई.सं. मिति रूपान्तरण",
+    bsToAd: "वि.सं. → ई.सं.",
+    adToBs: "ई.सं. → वि.सं.",
+    bsYear: "वि.सं. वर्ष",
+    bsMonth: "वि.सं. महिना",
+    bsDay: "वि.सं. गते",
+    adDate: "अंग्रेजी मिति",
+    convert: "रूपान्तरण",
+    months: ["जनवरी","फेब्रुअरी","मार्च","अप्रिल","मे","जुन","जुलाई","अगस्ट","सेप्टेम्बर","अक्टोबर","नोभेम्बर","डिसेम्बर"],
+    bsMonths: ["वैशाख","जेठ","असार","श्रावण","भदौ","आश्विन","कार्तिक","मंसिर","पुष","माघ","फागुन","चैत"],
+    weekdays: ["आइतबार","सोमबार","मंगलबार","बुधबार","बिहीबार","शुक्रबार","शनिबार"],
+    invalidBs: "मान्य वि.सं. वर्ष, महिना र गते लेख्नुहोस्।",
+    invalidAd: "मान्य अंग्रेजी मिति छान्नुहोस्।",
+    invalidDate: "यो मिति अमान्य छ वा उपलब्ध छैन।",
+    libraryMissing: "मिति रूपान्तरण library लोड भएन। इन्टरनेट जाँच गरी पेज फेरि खोल्नुहोस्।",
+    converted: "मिति रूपान्तरण भयो।",
+    unsupported: "यो मिति रूपान्तरणको उपलब्ध सीमाभन्दा बाहिर छ।",
+    back: "पछाडि"
+  }
+};
 
 const DEFAULT_SETTINGS = {
   lang: "en",
@@ -405,97 +423,39 @@ const DEFAULT_SETTINGS = {
   layout: "comfortable"
 };
 
-const TEXT = {
-  en: {
-    calendarTitle: "AD Calendar",
-    calendarDesc: "View the full Gregorian month, Sunday through Saturday.",
-    today: "Today",
-    bsHint: "Small numbers below AD dates show the corresponding BS date when conversion data is available.",
-    converterTitle: "BS ↔ AD Date Converter",
-    converterDesc: "Convert a Bikram Sambat date to Gregorian date, or a Gregorian date to Bikram Sambat.",
-    bsToAd: "BS → AD",
-    adToBs: "AD → BS",
-    bsYear: "BS Year",
-    bsMonth: "BS Month",
-    bsDay: "BS Day",
-    adDate: "AD Date",
-    convert: "Convert",
-    festivalsTitle: "Nepali festivals and holidays",
-    holidayNote: "A verified holiday list has not been included in this page. Festival dates are not guessed or displayed as confirmed dates.",
-    footer: "Calendar runs without Firebase. Display preferences are read from Settings on this device.",
-    months: ["January","February","March","April","May","June","July","August","September","October","November","December"],
-    bsMonths: ["Baisakh","Jestha","Ashadh","Shrawan","Bhadra","Ashwin","Kartik","Mangsir","Poush","Magh","Falgun","Chaitra"],
-    weekdays: ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],
-    invalidBs: "Enter a valid BS year, month, and day.",
-    invalidAd: "Choose a valid AD date.",
-    invalidDate: "That date is invalid or outside the converter's supported range.",
-    libraryMissing: "The date-conversion library could not load. Check your internet connection and reload the page.",
-    converted: "Conversion complete.",
-    unsupported: "This date is outside the converter's supported range.",
-    back: "Back"
-  },
-  ne: {
-    calendarTitle: "ई.सं. क्यालेन्डर",
-    calendarDesc: "आइतबारदेखि शनिबारसम्मको पूरा अंग्रेजी महिनाको क्यालेन्डर।",
-    today: "आज",
-    bsHint: "अंग्रेजी मितिको तल देखिने सानो अंक उपलब्ध रूपान्तरण डाटाअनुसारको विक्रम संवत् मिति हो।",
-    converterTitle: "वि.सं. ↔ ई.सं. मिति रूपान्तरण",
-    converterDesc: "विक्रम संवत् मितिलाई अंग्रेजी मितिमा वा अंग्रेजी मितिलाई विक्रम संवत् मितिमा बदल्नुहोस्।",
-    bsToAd: "वि.सं. → ई.सं.",
-    adToBs: "ई.सं. → वि.सं.",
-    bsYear: "वि.सं. वर्ष",
-    bsMonth: "वि.सं. महिना",
-    bsDay: "वि.सं. गते",
-    adDate: "अंग्रेजी मिति",
-    convert: "रूपान्तरण",
-    festivalsTitle: "नेपाली चाडपर्व र बिदा",
-    holidayNote: "यस पेजमा प्रमाणित चाडपर्व सूची राखिएको छैन। अनुमान गरेर कुनै मितिलाई चाडपर्वको पुष्टि गरिएको मिति भनेर देखाइँदैन।",
-    footer: "यो क्यालेन्डर Firebase बिना चल्छ। यस उपकरणको Settings बाट देखावट प्राथमिकता लिइन्छ।",
-    months: ["जनवरी","फेब्रुअरी","मार्च","अप्रिल","मे","जुन","जुलाई","अगस्ट","सेप्टेम्बर","अक्टोबर","नोभेम्बर","डिसेम्बर"],
-    bsMonths: ["वैशाख","जेठ","असार","श्रावण","भदौ","आश्विन","कार्तिक","मंसिर","पुष","माघ","फागुन","चैत"],
-    weekdays: ["आइतबार","सोमबार","मंगलबार","बुधबार","बिहीबार","शुक्रबार","शनिबार"],
-    invalidBs: "मिल्दो वि.सं. वर्ष, महिना र गते लेख्नुहोस्।",
-    invalidAd: "मान्य अंग्रेजी मिति छान्नुहोस्।",
-    invalidDate: "यो मिति अमान्य छ वा रूपान्तरणको उपलब्ध सीमाभन्दा बाहिर छ।",
-    libraryMissing: "मिति रूपान्तरण library लोड भएन। इन्टरनेट जाँच गरेर पेज फेरि खोल्नुहोस्।",
-    converted: "मिति रूपान्तरण भयो।",
-    unsupported: "यो मिति रूपान्तरणको उपलब्ध सीमाभन्दा बाहिर छ।",
-    back: "पछाडि"
-  }
-};
-
-let prefs = readSettings();
 let viewYear;
 let viewMonth;
+let prefs = readSettings();
 
 function readSettings() {
   try {
-    const raw = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
-    return { ...DEFAULT_SETTINGS, ...(raw && typeof raw === "object" ? raw : {}) };
-  } catch (e) {
+    const value = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+      return { ...DEFAULT_SETTINGS };
+    }
+    return { ...DEFAULT_SETTINGS, ...value };
+  } catch (_) {
     return { ...DEFAULT_SETTINGS };
   }
 }
 
-function language() {
+function lang() {
   return prefs.lang === "ne" ? "ne" : "en";
 }
 
-function tr(key) {
-  return (TEXT[language()] && TEXT[language()][key]) ||
-         (TEXT.en[key] || key);
-}
-
-function safeColor(value) {
-  return /^#[0-9a-fA-F]{6}$/.test(String(value || "")) ? value : DEFAULT_SETTINGS.accentColor;
+function t(key) {
+  return TEXT[lang()][key] || TEXT.en[key] || key;
 }
 
 function applySettings() {
   prefs = readSettings();
 
-  document.documentElement.lang = language();
+  document.documentElement.lang = lang();
   document.documentElement.classList.toggle("dark", prefs.theme !== "light");
-  document.documentElement.style.setProperty("--accent", safeColor(prefs.accentColor));
+
+  const color = /^#[0-9a-fA-F]{6}$/.test(String(prefs.accentColor || ""))
+    ? prefs.accentColor : DEFAULT_SETTINGS.accentColor;
+  document.documentElement.style.setProperty("--accent", color);
 
   const size = Number(prefs.font_size);
   document.documentElement.style.setProperty(
@@ -503,39 +463,40 @@ function applySettings() {
     (size >= 12 && size <= 30 ? size : 16) + "px"
   );
 
-  const allowedFonts = ["Poppins", "Arial", "Roboto", "Georgia", "system-ui"];
-  const font = allowedFonts.includes(prefs.font_family) ? prefs.font_family : "Poppins";
-  document.documentElement.style.setProperty(
-    "--app-font-family",
-    '"' + font + '", Arial, sans-serif'
-  );
-
+  const fonts = ["Poppins", "Arial", "Roboto", "Georgia", "system-ui"];
+  const font = fonts.includes(prefs.font_family) ? prefs.font_family : "Poppins";
+  document.documentElement.style.setProperty("--app-font-family", '"' + font + '", Arial, sans-serif');
   document.documentElement.dataset.layout =
     prefs.layout === "compact" ? "compact" : "comfortable";
 
   document.querySelectorAll("[data-i18n]").forEach(el => {
-    const key = el.getAttribute("data-i18n");
-    if (tr(key)) el.textContent = tr(key);
+    el.textContent = t(el.dataset.i18n);
   });
 
-  document.getElementById("backButton").setAttribute("aria-label", tr("back"));
-  document.getElementById("backButton").setAttribute("title", tr("back"));
+  document.getElementById("backButton").title = t("back");
+  document.getElementById("backButton").setAttribute("aria-label", t("back"));
 
   renderWeekdays();
   renderCalendar();
   populateBsMonths();
+  updateLibraryStatus();
+}
 
-  if (document.getElementById("libraryStatus")) {
-    document.getElementById("libraryStatus").textContent =
-      typeof window.NepaliDate === "function" ? "" : tr("libraryMissing");
-  }
+function converterAvailable() {
+  return typeof window.DateConverter === "function";
+}
+
+function updateLibraryStatus() {
+  const el = document.getElementById("libraryStatus");
+  el.textContent = converterAvailable() ? "" : t("libraryMissing");
+  el.className = "message" + (converterAvailable() ? "" : " error");
 }
 
 function renderWeekdays() {
   const head = document.getElementById("weekdayHead");
   head.replaceChildren();
 
-  tr("weekdays").forEach(day => {
+  t("weekdays").forEach(day => {
     const th = document.createElement("th");
     th.scope = "col";
     th.textContent = day;
@@ -549,30 +510,8 @@ function dateKey(year, month, day) {
 }
 
 function todayKey() {
-  const d = new Date();
-  return dateKey(d.getFullYear(), d.getMonth(), d.getDate());
-}
-
-function formatBsHint(adDate) {
-  if (typeof window.NepaliDate !== "function") return "";
-
-  try {
-    const localDate = new Date(
-      adDate.getFullYear(),
-      adDate.getMonth(),
-      adDate.getDate(),
-      12, 0, 0
-    );
-    const bs = new window.NepaliDate(localDate);
-    const year = Number(bs.getYear());
-    const month = Number(bs.getMonth()) + 1;
-    const day = Number(bs.getDate());
-
-    if (!year || month < 1 || month > 12 || day < 1 || day > 32) return "";
-    return year + "/" + month + "/" + day;
-  } catch (e) {
-    return "";
-  }
+  const now = new Date();
+  return dateKey(now.getFullYear(), now.getMonth(), now.getDate());
 }
 
 function renderCalendar() {
@@ -580,55 +519,47 @@ function renderCalendar() {
   const body = document.getElementById("calendarBody");
   body.replaceChildren();
 
-  title.textContent = tr("months")[viewMonth] + " " + viewYear;
+  title.textContent = t("months")[viewMonth] + " " + viewYear;
 
-  const firstWeekday = new Date(viewYear, viewMonth, 1, 12).getDay();
-  const daysInMonth = new Date(viewYear, viewMonth + 1, 0, 12).getDate();
-  const rows = Math.ceil((firstWeekday + daysInMonth) / 7);
+  const firstDay = new Date(viewYear, viewMonth, 1, 12).getDay();
+  const totalDays = new Date(viewYear, viewMonth + 1, 0, 12).getDate();
+  const rows = Math.ceil((firstDay + totalDays) / 7);
   let day = 1;
 
-  for (let row = 0; row < rows; row++) {
-    const trEl = document.createElement("tr");
+  for (let r = 0; r < rows; r++) {
+    const tr = document.createElement("tr");
 
-    for (let col = 0; col < 7; col++) {
+    for (let c = 0; c < 7; c++) {
       const td = document.createElement("td");
-      const position = row * 7 + col;
+      const pos = r * 7 + c;
 
-      if (position < firstWeekday || day > daysInMonth) {
+      if (pos < firstDay || day > totalDays) {
         td.className = "empty";
         td.setAttribute("aria-hidden", "true");
       } else {
         const currentDay = day++;
-        const key = dateKey(viewYear, viewMonth, currentDay);
-
         const number = document.createElement("span");
         number.className = "day-number";
         number.textContent = String(currentDay);
         td.appendChild(number);
 
-        const adDate = new Date(viewYear, viewMonth, currentDay, 12);
-        const hintText = formatBsHint(adDate);
-
-        if (hintText) {
-          const hint = document.createElement("span");
-          hint.className = "bs-hint";
-          hint.textContent = hintText;
-          td.appendChild(hint);
-        }
-
-        if (key === todayKey()) {
+        if (dateKey(viewYear, viewMonth, currentDay) === todayKey()) {
           td.classList.add("today");
           td.setAttribute("aria-current", "date");
         }
-        if (col === 6) td.classList.add("saturday");
-        td.setAttribute("aria-label", tr("weekdays")[col] + ", " +
-          tr("months")[viewMonth] + " " + currentDay + ", " + viewYear);
+
+        if (c === 6) td.classList.add("saturday");
+
+        td.setAttribute(
+          "aria-label",
+          t("weekdays")[c] + ", " + t("months")[viewMonth] +
+          " " + currentDay + ", " + viewYear
+        );
       }
 
-      trEl.appendChild(td);
+      tr.appendChild(td);
     }
-
-    body.appendChild(trEl);
+    body.appendChild(tr);
   }
 }
 
@@ -637,7 +568,7 @@ function populateBsMonths() {
   const oldValue = select.value;
   select.replaceChildren();
 
-  tr("bsMonths").forEach((month, index) => {
+  t("bsMonths").forEach((month, index) => {
     const option = document.createElement("option");
     option.value = String(index + 1);
     option.textContent = (index + 1) + ". " + month;
@@ -647,32 +578,37 @@ function populateBsMonths() {
   if (oldValue) select.value = oldValue;
 }
 
-function setMessage(id, message, type) {
+function setMessage(id, message, type = "") {
   const el = document.getElementById(id);
-  el.textContent = message || "";
+  el.textContent = message;
   el.className = "message" + (type ? " " + type : "");
 }
 
-function formatAdDate(date) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return y + "-" + m + "-" + d;
+function pad(number) {
+  return String(number).padStart(2, "0");
 }
 
-function formatBsDate(bs) {
-  return Number(bs.getYear()) + "-" +
-    String(Number(bs.getMonth()) + 1).padStart(2, "0") + "-" +
-    String(Number(bs.getDate())).padStart(2, "0");
+function formatDate(year, month, day) {
+  return Number(year) + "-" + pad(Number(month)) + "-" + pad(Number(day));
+}
+
+function validDateParts(year, month, day) {
+  return Number.isInteger(year) &&
+    Number.isInteger(month) &&
+    Number.isInteger(day) &&
+    month >= 1 && month <= 12 &&
+    day >= 1 && day <= 31;
 }
 
 function convertBsToAd() {
   const result = document.getElementById("bsToAdResult");
   result.textContent = "—";
+  result.className = "result";
   setMessage("bsToAdMessage", "");
 
-  if (typeof window.NepaliDate !== "function") {
-    setMessage("bsToAdMessage", tr("libraryMissing"), "error");
+  if (!converterAvailable()) {
+    setMessage("bsToAdMessage", t("libraryMissing"), "error");
+    updateLibraryStatus();
     return;
   }
 
@@ -680,93 +616,90 @@ function convertBsToAd() {
   const month = Number(document.getElementById("bsMonth").value);
   const day = Number(document.getElementById("bsDay").value);
 
-  if (!Number.isInteger(year) || !Number.isInteger(month) ||
-      !Number.isInteger(day) || year < 1970 || year > 2099 ||
-      month < 1 || month > 12 || day < 1 || day > 32) {
-    setMessage("bsToAdMessage", tr("invalidBs"), "error");
+  if (!Number.isInteger(year) || year < 1975 || year > 2099 ||
+      !validDateParts(year, month, day)) {
+    setMessage("bsToAdMessage", t("invalidBs"), "error");
     return;
   }
 
   try {
-    const bs = new window.NepaliDate(year, month - 1, day);
-    const actualYear = Number(bs.getYear());
-    const actualMonth = Number(bs.getMonth()) + 1;
-    const actualDay = Number(bs.getDate());
+    const converter = new window.DateConverter(formatDate(year, month, day));
+    const ad = converter.toAd();
 
-    // Reject silent rollover of invalid days/months.
-    if (actualYear !== year || actualMonth !== month || actualDay !== day) {
-      setMessage("bsToAdMessage", tr("invalidDate"), "error");
-      return;
+    if (!ad || !validDateParts(Number(ad.year), Number(ad.month), Number(ad.date))) {
+      throw new Error("Invalid conversion result");
     }
 
-    const ad = bs.toJsDate();
-    if (!(ad instanceof Date) || Number.isNaN(ad.getTime())) {
-      setMessage("bsToAdMessage", tr("invalidDate"), "error");
-      return;
+    const adText = formatDate(ad.year, ad.month, ad.date);
+
+    // Check reverse conversion to reject invalid BS dates or silent rollover.
+    const reverse = new window.DateConverter(adText).toBs();
+    if (!reverse ||
+        Number(reverse.year) !== year ||
+        Number(reverse.month) !== month ||
+        Number(reverse.date) !== day) {
+      throw new Error("Date did not round-trip");
     }
 
-    // Ensure conversion round-trips to the exact requested BS date.
-    const roundTrip = new window.NepaliDate(ad);
-    if (Number(roundTrip.getYear()) !== year ||
-        Number(roundTrip.getMonth()) + 1 !== month ||
-        Number(roundTrip.getDate()) !== day) {
-      setMessage("bsToAdMessage", tr("invalidDate"), "error");
-      return;
-    }
-
-    result.textContent = formatAdDate(ad);
-    setMessage("bsToAdMessage", tr("converted"), "success");
-  } catch (e) {
-    setMessage("bsToAdMessage", tr("unsupported"), "error");
+    result.textContent = adText;
+    result.className = "result success";
+    setMessage("bsToAdMessage", t("converted"), "success");
+  } catch (_) {
+    setMessage("bsToAdMessage", t("invalidDate"), "error");
   }
 }
 
 function convertAdToBs() {
   const result = document.getElementById("adToBsResult");
   result.textContent = "—";
+  result.className = "result";
   setMessage("adToBsMessage", "");
 
-  if (typeof window.NepaliDate !== "function") {
-    setMessage("adToBsMessage", tr("libraryMissing"), "error");
+  if (!converterAvailable()) {
+    setMessage("adToBsMessage", t("libraryMissing"), "error");
+    updateLibraryStatus();
     return;
   }
 
   const value = document.getElementById("adDate").value;
-  if (!value) {
-    setMessage("adToBsMessage", tr("invalidAd"), "error");
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    setMessage("adToBsMessage", t("invalidAd"), "error");
     return;
   }
 
-  const parts = value.split("-").map(Number);
-  if (parts.length !== 3 || parts.some(n => !Number.isInteger(n))) {
-    setMessage("adToBsMessage", tr("invalidAd"), "error");
-    return;
-  }
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(year, month - 1, day, 12, 0, 0);
 
-  const [year, month, day] = parts;
-  const ad = new Date(year, month - 1, day, 12, 0, 0);
-
-  if (ad.getFullYear() !== year || ad.getMonth() !== month - 1 ||
-      ad.getDate() !== day) {
-    setMessage("adToBsMessage", tr("invalidAd"), "error");
+  if (date.getFullYear() !== year ||
+      date.getMonth() !== month - 1 ||
+      date.getDate() !== day) {
+    setMessage("adToBsMessage", t("invalidAd"), "error");
     return;
   }
 
   try {
-    const bs = new window.NepaliDate(ad);
-    const bsYear = Number(bs.getYear());
-    const bsMonth = Number(bs.getMonth()) + 1;
-    const bsDay = Number(bs.getDate());
+    const bs = new window.DateConverter(value).toBs();
 
-    if (!bsYear || bsMonth < 1 || bsMonth > 12 || bsDay < 1 || bsDay > 32) {
-      setMessage("adToBsMessage", tr("unsupported"), "error");
-      return;
+    if (!bs || !validDateParts(Number(bs.year), Number(bs.month), Number(bs.date))) {
+      throw new Error("Invalid conversion result");
     }
 
-    result.textContent = formatBsDate(bs);
-    setMessage("adToBsMessage", tr("converted"), "success");
-  } catch (e) {
-    setMessage("adToBsMessage", tr("unsupported"), "error");
+    const bsText = formatDate(bs.year, bs.month, bs.date);
+
+    // Check reverse conversion so invalid/out-of-range results are not shown.
+    const reverse = new window.DateConverter(bsText).toAd();
+    if (!reverse ||
+        Number(reverse.year) !== year ||
+        Number(reverse.month) !== month ||
+        Number(reverse.date) !== day) {
+      throw new Error("Date did not round-trip");
+    }
+
+    result.textContent = bsText;
+    result.className = "result success";
+    setMessage("adToBsMessage", t("converted"), "success");
+  } catch (_) {
+    setMessage("adToBsMessage", t("unsupported"), "error");
   }
 }
 
@@ -790,59 +723,62 @@ document.getElementById("todayButton").addEventListener("click", () => {
 document.getElementById("convertBsToAd").addEventListener("click", convertBsToAd);
 document.getElementById("convertAdToBs").addEventListener("click", convertAdToBs);
 
-document.getElementById("bsYear").addEventListener("keydown", e => {
-  if (e.key === "Enter") convertBsToAd();
+document.getElementById("bsYear").addEventListener("keydown", event => {
+  if (event.key === "Enter") convertBsToAd();
 });
-document.getElementById("bsDay").addEventListener("keydown", e => {
-  if (e.key === "Enter") convertBsToAd();
+document.getElementById("bsDay").addEventListener("keydown", event => {
+  if (event.key === "Enter") convertBsToAd();
 });
-document.getElementById("adDate").addEventListener("change", convertAdToBs);
 
-// Use browser history when this page was opened from another page.
-// Otherwise, the header link returns to index.html.
-document.getElementById("backButton").addEventListener("click", function (event) {
+document.getElementById("backButton").addEventListener("click", event => {
   if (window.history.length > 1) {
     event.preventDefault();
     window.history.back();
   }
 });
 
-// When setting.html changes preferences in another tab on the same device,
-// update the calendar without requiring a manual refresh.
-window.addEventListener("storage", function (event) {
+window.addEventListener("storage", event => {
   if (event.key === SETTINGS_KEY || event.key === "theme") {
     applySettings();
   }
 });
 
-// Keep the browser's native month navigation predictable.
 const now = new Date();
 viewYear = now.getFullYear();
 viewMonth = now.getMonth();
 
-// Default converter dates: today's AD date and its BS equivalent if available.
-document.getElementById("adDate").value = formatAdDate(now);
+document.getElementById("adDate").value =
+  viewYear + "-" + pad(viewMonth + 1) + "-" + pad(now.getDate());
 
-try {
-  if (typeof window.NepaliDate === "function") {
-    const todayBs = new window.NepaliDate(
-      new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12)
-    );
-    document.getElementById("bsYear").value = todayBs.getYear();
-    document.getElementById("bsMonth").value = String(Number(todayBs.getMonth()) + 1);
-    document.getElementById("bsDay").value = todayBs.getDate();
-  } else {
-    document.getElementById("bsYear").value = 2083;
+/* Use today's BS date as the default when the converter is available.
+   Otherwise leave fields editable and let the user enter a date. */
+function setDefaultBsDate() {
+  if (!converterAvailable()) {
+    document.getElementById("bsYear").value = "";
     document.getElementById("bsMonth").value = "1";
-    document.getElementById("bsDay").value = 1;
+    document.getElementById("bsDay").value = "";
+    updateLibraryStatus();
+    return;
   }
-} catch (e) {
-  document.getElementById("bsYear").value = 2083;
-  document.getElementById("bsMonth").value = "1";
-  document.getElementById("bsDay").value = 1;
+
+  try {
+    const adText = document.getElementById("adDate").value;
+    const bs = new window.DateConverter(adText).toBs();
+
+    document.getElementById("bsYear").value = bs.year;
+    document.getElementById("bsMonth").value = String(bs.month);
+    document.getElementById("bsDay").value = bs.date;
+  } catch (_) {
+    document.getElementById("bsYear").value = "";
+    document.getElementById("bsMonth").value = "1";
+    document.getElementById("bsDay").value = "";
+  }
+
+  updateLibraryStatus();
 }
 
 applySettings();
+setDefaultBsDate();
 </script>
 </body>
 </html>
