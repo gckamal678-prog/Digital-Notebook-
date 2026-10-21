@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
@@ -52,9 +51,6 @@
 })();
 </script>
 
-<!-- Browser-compatible BS/AD converter. Internet connection required. -->
-<script src="https://cdn.jsdelivr.net/npm/@remotemerge/nepali-date-converter@1/dist/ndc-browser.js"></script>
-
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
@@ -89,8 +85,7 @@ body {
   font-size: var(--app-font-size);
   line-height: 1.5;
 }
-button, input, select { font: inherit; }
-button, select, input { accent-color: var(--accent); }
+button { font: inherit; accent-color: var(--accent); }
 button {
   cursor: pointer;
   color: var(--text);
@@ -99,7 +94,7 @@ button {
   border-radius: 10px;
   padding: 9px 12px;
 }
-button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible {
+button:focus-visible, a:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
@@ -163,9 +158,8 @@ main {
   padding: 17px;
   min-width: 0;
 }
-h1, h2, h3, p { margin-top: 0; }
+h1, p { margin-top: 0; }
 h1 { margin-bottom: 5px; font-size: 1.35em; }
-h2 { margin-bottom: 12px; font-size: 1.12em; }
 p { color: var(--muted); }
 .subtext { color: var(--muted); font-size: .86em; margin-bottom: 12px; }
 .controls {
@@ -183,7 +177,7 @@ p { color: var(--muted); }
   font-weight: 750;
   font-size: 1.1em;
 }
-.today-button, .primary {
+.today-button {
   background: var(--accent);
   border-color: var(--accent);
   color: #062319;
@@ -223,48 +217,6 @@ p { color: var(--muted); }
   background: color-mix(in srgb, var(--accent) 12%, var(--field));
 }
 .calendar td.saturday .day-number { color: var(--accent); }
-.converter-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-}
-.converter-box {
-  min-width: 0;
-  padding: 14px;
-  border: 1px solid var(--line);
-  border-radius: 13px;
-  background: var(--field);
-}
-.converter-box h3 { font-size: .98em; margin-bottom: 12px; }
-.field { display: grid; gap: 5px; margin-bottom: 12px; }
-label { font-weight: 650; font-size: .88em; }
-input, select {
-  width: 100%;
-  min-width: 0;
-  color: var(--text);
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 9px;
-  padding: 10px;
-}
-.result {
-  min-height: 44px;
-  margin-top: 10px;
-  padding: 10px;
-  border: 1px dashed var(--line);
-  border-radius: 9px;
-  overflow-wrap: anywhere;
-  font-weight: 600;
-}
-.result.success { color: var(--accent); }
-.message {
-  min-height: 0;
-  margin: 8px 0 0;
-  font-size: .82em;
-  color: var(--muted);
-}
-.message.error { color: #fb7185; }
-.message.success { color: var(--accent); }
 html[data-layout="compact"] main { gap: 8px; padding: 8px; }
 html[data-layout="compact"] .card { padding: 11px; border-radius: 12px; }
 html[data-layout="compact"] .calendar td { height: 54px; }
@@ -272,7 +224,6 @@ html[data-layout="compact"] .calendar td { height: 54px; }
   main { padding: 10px; gap: 10px; }
   header { padding: 8px 10px; }
   .card { padding: 12px; }
-  .converter-grid { grid-template-columns: 1fr; }
   .calendar { border-spacing: 2px; }
   .calendar td { height: 58px; padding: 3px 1px; }
   .controls { gap: 5px; }
@@ -294,7 +245,7 @@ html[data-layout="compact"] .calendar td { height: 54px; }
 </header>
 
 <main>
-  <!-- Calendar section retained above the previous red line -->
+  <!-- Calendar section -->
   <section class="card">
     <h1 data-i18n="calendarTitle">AD Calendar</h1>
     <p class="subtext" data-i18n="calendarDesc">View the full Gregorian month, Sunday through Saturday.</p>
@@ -313,51 +264,6 @@ html[data-layout="compact"] .calendar td { height: 54px; }
       </table>
     </div>
   </section>
-
-  <!-- Fixed BS/AD converter -->
-  <section class="card">
-    <h2 data-i18n="converterTitle">BS ↔ AD Date Converter</h2>
-
-    <div class="converter-grid">
-      <div class="converter-box">
-        <h3 data-i18n="bsToAd">BS → AD</h3>
-
-        <div class="field">
-          <label for="bsYear" data-i18n="bsYear">BS Year</label>
-          <input id="bsYear" type="number" inputmode="numeric" min="1975" max="2099" placeholder="2083">
-        </div>
-
-        <div class="field">
-          <label for="bsMonth" data-i18n="bsMonth">BS Month</label>
-          <select id="bsMonth"></select>
-        </div>
-
-        <div class="field">
-          <label for="bsDay" data-i18n="bsDay">BS Day</label>
-          <input id="bsDay" type="number" inputmode="numeric" min="1" max="32" placeholder="1">
-        </div>
-
-        <button id="convertBsToAd" class="primary" type="button" data-i18n="convert">Convert</button>
-        <div id="bsToAdResult" class="result" aria-live="polite">—</div>
-        <p id="bsToAdMessage" class="message" role="status"></p>
-      </div>
-
-      <div class="converter-box">
-        <h3 data-i18n="adToBs">AD → BS</h3>
-
-        <div class="field">
-          <label for="adDate" data-i18n="adDate">AD Date</label>
-          <input id="adDate" type="date">
-        </div>
-
-        <button id="convertAdToBs" class="primary" type="button" data-i18n="convert">Convert</button>
-        <div id="adToBsResult" class="result" aria-live="polite">—</div>
-        <p id="adToBsMessage" class="message" role="status"></p>
-      </div>
-    </div>
-
-    <p id="libraryStatus" class="message" role="status"></p>
-  </section>
 </main>
 
 <script>
@@ -370,46 +276,16 @@ const TEXT = {
     calendarTitle: "AD Calendar",
     calendarDesc: "View the full Gregorian month, Sunday through Saturday.",
     today: "Today",
-    converterTitle: "BS ↔ AD Date Converter",
-    bsToAd: "BS → AD",
-    adToBs: "AD → BS",
-    bsYear: "BS Year",
-    bsMonth: "BS Month",
-    bsDay: "BS Day",
-    adDate: "AD Date",
-    convert: "Convert",
     months: ["January","February","March","April","May","June","July","August","September","October","November","December"],
-    bsMonths: ["Baisakh","Jestha","Ashadh","Shrawan","Bhadra","Ashwin","Kartik","Mangsir","Poush","Magh","Falgun","Chaitra"],
     weekdays: ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],
-    invalidBs: "Enter a valid BS year, month and day.",
-    invalidAd: "Choose a valid AD date.",
-    invalidDate: "That date is invalid or unsupported.",
-    libraryMissing: "Date converter unavailable. Check your internet connection and reload this page.",
-    converted: "Conversion complete.",
-    unsupported: "Date is outside the supported conversion range.",
     back: "Back"
   },
   ne: {
     calendarTitle: "ई.सं. क्यालेन्डर",
     calendarDesc: "आइतबारदेखि शनिबारसम्मको अंग्रेजी महिनाको क्यालेन्डर।",
     today: "आज",
-    converterTitle: "वि.सं. ↔ ई.सं. मिति रूपान्तरण",
-    bsToAd: "वि.सं. → ई.सं.",
-    adToBs: "ई.सं. → वि.सं.",
-    bsYear: "वि.सं. वर्ष",
-    bsMonth: "वि.सं. महिना",
-    bsDay: "वि.सं. गते",
-    adDate: "अंग्रेजी मिति",
-    convert: "रूपान्तरण",
     months: ["जनवरी","फेब्रुअरी","मार्च","अप्रिल","मे","जुन","जुलाई","अगस्ट","सेप्टेम्बर","अक्टोबर","नोभेम्बर","डिसेम्बर"],
-    bsMonths: ["वैशाख","जेठ","असार","श्रावण","भदौ","आश्विन","कार्तिक","मंसिर","पुष","माघ","फागुन","चैत"],
     weekdays: ["आइतबार","सोमबार","मंगलबार","बुधबार","बिहीबार","शुक्रबार","शनिबार"],
-    invalidBs: "मान्य वि.सं. वर्ष, महिना र गते लेख्नुहोस्।",
-    invalidAd: "मान्य अंग्रेजी मिति छान्नुहोस्।",
-    invalidDate: "यो मिति अमान्य छ वा उपलब्ध छैन।",
-    libraryMissing: "मिति रूपान्तरण library लोड भएन। इन्टरनेट जाँच गरी पेज फेरि खोल्नुहोस्।",
-    converted: "मिति रूपान्तरण भयो।",
-    unsupported: "यो मिति रूपान्तरणको उपलब्ध सीमाभन्दा बाहिर छ।",
     back: "पछाडि"
   }
 };
@@ -478,18 +354,6 @@ function applySettings() {
 
   renderWeekdays();
   renderCalendar();
-  populateBsMonths();
-  updateLibraryStatus();
-}
-
-function converterAvailable() {
-  return typeof window.DateConverter === "function";
-}
-
-function updateLibraryStatus() {
-  const el = document.getElementById("libraryStatus");
-  el.textContent = converterAvailable() ? "" : t("libraryMissing");
-  el.className = "message" + (converterAvailable() ? "" : " error");
 }
 
 function renderWeekdays() {
@@ -563,146 +427,6 @@ function renderCalendar() {
   }
 }
 
-function populateBsMonths() {
-  const select = document.getElementById("bsMonth");
-  const oldValue = select.value;
-  select.replaceChildren();
-
-  t("bsMonths").forEach((month, index) => {
-    const option = document.createElement("option");
-    option.value = String(index + 1);
-    option.textContent = (index + 1) + ". " + month;
-    select.appendChild(option);
-  });
-
-  if (oldValue) select.value = oldValue;
-}
-
-function setMessage(id, message, type = "") {
-  const el = document.getElementById(id);
-  el.textContent = message;
-  el.className = "message" + (type ? " " + type : "");
-}
-
-function pad(number) {
-  return String(number).padStart(2, "0");
-}
-
-function formatDate(year, month, day) {
-  return Number(year) + "-" + pad(Number(month)) + "-" + pad(Number(day));
-}
-
-function validDateParts(year, month, day) {
-  return Number.isInteger(year) &&
-    Number.isInteger(month) &&
-    Number.isInteger(day) &&
-    month >= 1 && month <= 12 &&
-    day >= 1 && day <= 31;
-}
-
-function convertBsToAd() {
-  const result = document.getElementById("bsToAdResult");
-  result.textContent = "—";
-  result.className = "result";
-  setMessage("bsToAdMessage", "");
-
-  if (!converterAvailable()) {
-    setMessage("bsToAdMessage", t("libraryMissing"), "error");
-    updateLibraryStatus();
-    return;
-  }
-
-  const year = Number(document.getElementById("bsYear").value);
-  const month = Number(document.getElementById("bsMonth").value);
-  const day = Number(document.getElementById("bsDay").value);
-
-  if (!Number.isInteger(year) || year < 1975 || year > 2099 ||
-      !validDateParts(year, month, day)) {
-    setMessage("bsToAdMessage", t("invalidBs"), "error");
-    return;
-  }
-
-  try {
-    const converter = new window.DateConverter(formatDate(year, month, day));
-    const ad = converter.toAd();
-
-    if (!ad || !validDateParts(Number(ad.year), Number(ad.month), Number(ad.date))) {
-      throw new Error("Invalid conversion result");
-    }
-
-    const adText = formatDate(ad.year, ad.month, ad.date);
-
-    // Check reverse conversion to reject invalid BS dates or silent rollover.
-    const reverse = new window.DateConverter(adText).toBs();
-    if (!reverse ||
-        Number(reverse.year) !== year ||
-        Number(reverse.month) !== month ||
-        Number(reverse.date) !== day) {
-      throw new Error("Date did not round-trip");
-    }
-
-    result.textContent = adText;
-    result.className = "result success";
-    setMessage("bsToAdMessage", t("converted"), "success");
-  } catch (_) {
-    setMessage("bsToAdMessage", t("invalidDate"), "error");
-  }
-}
-
-function convertAdToBs() {
-  const result = document.getElementById("adToBsResult");
-  result.textContent = "—";
-  result.className = "result";
-  setMessage("adToBsMessage", "");
-
-  if (!converterAvailable()) {
-    setMessage("adToBsMessage", t("libraryMissing"), "error");
-    updateLibraryStatus();
-    return;
-  }
-
-  const value = document.getElementById("adDate").value;
-  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    setMessage("adToBsMessage", t("invalidAd"), "error");
-    return;
-  }
-
-  const [year, month, day] = value.split("-").map(Number);
-  const date = new Date(year, month - 1, day, 12, 0, 0);
-
-  if (date.getFullYear() !== year ||
-      date.getMonth() !== month - 1 ||
-      date.getDate() !== day) {
-    setMessage("adToBsMessage", t("invalidAd"), "error");
-    return;
-  }
-
-  try {
-    const bs = new window.DateConverter(value).toBs();
-
-    if (!bs || !validDateParts(Number(bs.year), Number(bs.month), Number(bs.date))) {
-      throw new Error("Invalid conversion result");
-    }
-
-    const bsText = formatDate(bs.year, bs.month, bs.date);
-
-    // Check reverse conversion so invalid/out-of-range results are not shown.
-    const reverse = new window.DateConverter(bsText).toAd();
-    if (!reverse ||
-        Number(reverse.year) !== year ||
-        Number(reverse.month) !== month ||
-        Number(reverse.date) !== day) {
-      throw new Error("Date did not round-trip");
-    }
-
-    result.textContent = bsText;
-    result.className = "result success";
-    setMessage("adToBsMessage", t("converted"), "success");
-  } catch (_) {
-    setMessage("adToBsMessage", t("unsupported"), "error");
-  }
-}
-
 function shiftMonth(amount) {
   const next = new Date(viewYear, viewMonth + amount, 1, 12);
   viewYear = next.getFullYear();
@@ -718,16 +442,6 @@ document.getElementById("todayButton").addEventListener("click", () => {
   viewYear = now.getFullYear();
   viewMonth = now.getMonth();
   renderCalendar();
-});
-
-document.getElementById("convertBsToAd").addEventListener("click", convertBsToAd);
-document.getElementById("convertAdToBs").addEventListener("click", convertAdToBs);
-
-document.getElementById("bsYear").addEventListener("keydown", event => {
-  if (event.key === "Enter") convertBsToAd();
-});
-document.getElementById("bsDay").addEventListener("keydown", event => {
-  if (event.key === "Enter") convertBsToAd();
 });
 
 document.getElementById("backButton").addEventListener("click", event => {
@@ -747,38 +461,7 @@ const now = new Date();
 viewYear = now.getFullYear();
 viewMonth = now.getMonth();
 
-document.getElementById("adDate").value =
-  viewYear + "-" + pad(viewMonth + 1) + "-" + pad(now.getDate());
-
-/* Use today's BS date as the default when the converter is available.
-   Otherwise leave fields editable and let the user enter a date. */
-function setDefaultBsDate() {
-  if (!converterAvailable()) {
-    document.getElementById("bsYear").value = "";
-    document.getElementById("bsMonth").value = "1";
-    document.getElementById("bsDay").value = "";
-    updateLibraryStatus();
-    return;
-  }
-
-  try {
-    const adText = document.getElementById("adDate").value;
-    const bs = new window.DateConverter(adText).toBs();
-
-    document.getElementById("bsYear").value = bs.year;
-    document.getElementById("bsMonth").value = String(bs.month);
-    document.getElementById("bsDay").value = bs.date;
-  } catch (_) {
-    document.getElementById("bsYear").value = "";
-    document.getElementById("bsMonth").value = "1";
-    document.getElementById("bsDay").value = "";
-  }
-
-  updateLibraryStatus();
-}
-
 applySettings();
-setDefaultBsDate();
 </script>
 </body>
 </html>
