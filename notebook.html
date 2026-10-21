@@ -3,23 +3,36 @@
 <html lang="en" class="dark">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#101827">
 <title>Digital NoteBook — Notebook</title>
 
 <script>
-(function(){
-  const KEY="digital_notebook_settings";
-  const D={lang:"en",theme:"dark",font_size:"16",font_family:"Poppins",accentColor:"#10b981",layout:"comfortable"};
-  let s={};
-  try{s=JSON.parse(localStorage.getItem(KEY)||"{}")||{}}catch(_){}
-  s={...D,...s};
-  document.documentElement.lang=s.lang==="ne"?"ne":"en";
-  document.documentElement.classList.toggle("dark",s.theme!=="light");
-  document.documentElement.style.setProperty("--accent",s.accentColor);
-  document.documentElement.style.setProperty("--app-size",(Number(s.font_size)||16)+"px");
-  document.documentElement.style.setProperty("--app-font",JSON.stringify(s.font_family||"Poppins")+",Arial,sans-serif");
-  document.documentElement.dataset.layout=s.layout||"comfortable";
+(function () {
+  const KEY = "digital_notebook_settings";
+  const defaults = {
+    lang: "en",
+    theme: "dark",
+    font_size: "16",
+    font_family: "Poppins",
+    accentColor: "#10b981",
+    layout: "comfortable"
+  };
+
+  let p = {};
+  try {
+    p = JSON.parse(localStorage.getItem(KEY) || "{}") || {};
+  } catch (_) {}
+
+  p = { ...defaults, ...p };
+  const root = document.documentElement;
+
+  root.lang = p.lang === "ne" ? "ne" : "en";
+  root.classList.toggle("dark", p.theme !== "light");
+  root.style.setProperty("--accent", p.accentColor);
+  root.style.setProperty("--app-size", (Number(p.font_size) || 16) + "px");
+  root.style.setProperty("--app-font", JSON.stringify(p.font_family || "Poppins") + ", Arial, sans-serif");
+  root.dataset.layout = p.layout || "comfortable";
 })();
 </script>
 
@@ -30,73 +43,202 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
 <style>
-:root{--bg:#0b1220;--panel:#151f31;--field:#1c2940;--text:#edf3ff;--muted:#9cacc5;--line:#2b3a54;--accent:#10b981;--app-size:16px;--app-font:Poppins,Arial,sans-serif}
-html:not(.dark){--bg:#f3f6fb;--panel:#fff;--field:#edf2f9;--text:#152033;--muted:#586780;--line:#d7e0ed}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font:var(--app-size)/1.55 var(--app-font)}
-button,input,textarea,select{font:inherit}
-button{cursor:pointer}
-button:disabled{opacity:.55;cursor:not-allowed}
-header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;padding:12px 15px;background:var(--panel);border-bottom:1px solid var(--line)}
-header a{color:var(--text);text-decoration:none;font-size:22px}
-.brand{font-weight:750;flex:1}
-#sync{font-size:.75em;color:var(--muted);text-align:right}
-main{max-width:1100px;margin:auto;padding:15px;display:grid;gap:14px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;min-width:0}
-h1,h2,h3,p{margin-top:0}
-h1{font-size:1.35em;margin-bottom:5px}
-h2{font-size:1.12em}
-.muted,.help{color:var(--muted)}
-.help{font-size:.82em}
-input,textarea,select{width:100%;min-width:0;padding:11px;color:var(--text);background:var(--field);border:1px solid var(--line);border-radius:10px}
-textarea{resize:vertical}
-button{padding:9px 12px;color:var(--text);background:var(--field);border:1px solid var(--line);border-radius:10px}
-.primary{background:var(--accent);color:#062319;border-color:var(--accent);font-weight:700}
-.danger{color:#fb7185}
-.actions{display:flex;gap:7px;flex-wrap:wrap}
-.actions button{flex:1}
-.toolbar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
-.filters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:9px}
-.note-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:12px}
-.note{border:1px solid var(--line);border-radius:14px;padding:13px;min-width:0;overflow-wrap:anywhere;display:flex;flex-direction:column;gap:9px}
-.note-body{white-space:pre-wrap;overflow-wrap:anywhere;max-height:240px;overflow:auto}
-.note-title{font-weight:750;font-size:1.03em;margin:0}
-.note-meta{font-size:.76em;color:var(--muted)}
-.pills{display:flex;gap:5px;flex-wrap:wrap}
-.pill{font-size:.72em;border-radius:30px;padding:3px 8px;background:var(--field);color:var(--muted)}
-.note-buttons{display:flex;gap:5px;flex-wrap:wrap;margin-top:auto}
-.note-buttons button{flex:1;padding:7px 8px;font-size:.85em}
-.note-color{border-left:5px solid var(--note-color,var(--accent))}
-.star{color:#fbbf24}
-#modal{position:fixed;inset:0;z-index:50;background:#000b;padding:12px;overflow:auto;display:none;align-items:flex-start;justify-content:center}
-#modal.open{display:flex}
-.modal-box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;width:min(700px,100%);margin:auto;display:grid;gap:11px}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-.label{display:grid;gap:5px;font-weight:600}
-#toastArea{position:fixed;z-index:100;bottom:14px;left:50%;transform:translateX(-50%);width:min(92%,460px);display:grid;gap:6px}
-.toast{padding:11px 14px;background:#166534;color:white;border-radius:10px;box-shadow:0 4px 18px #0003}
-.toast.error{background:#9f1239}
-.hidden{display:none!important}
-body.auth-pending main,body.auth-pending header{visibility:hidden}
-.empty{text-align:center;padding:28px 8px;color:var(--muted)}
-.small-btn{padding:6px 9px;font-size:.82em}
-body[data-layout="compact"] main{padding:8px;gap:8px}
-body[data-layout="compact"] .card{padding:11px}
-body[data-layout="compact"] .note{padding:9px;gap:6px}
-@media(max-width:520px){
- main{padding:9px}.card{padding:12px}header{padding:10px}
- .filters{grid-template-columns:1fr 1fr}
- .toolbar{grid-template-columns:1fr}
- .two{grid-template-columns:1fr}
- #sync{max-width:100px}
+:root {
+  --bg:#0b1220;
+  --panel:#151f31;
+  --field:#1c2940;
+  --text:#edf3ff;
+  --muted:#9cacc5;
+  --line:#2b3a54;
+  --accent:#10b981;
+  --app-size:16px;
+  --app-font:Poppins,Arial,sans-serif;
 }
-@media print{
- header,.no-print,#modal,#toastArea{display:none!important}
- body{background:white!important;color:black!important;font-size:12pt}
- main{max-width:none;padding:0}
- .card,.note{background:white!important;color:black!important;border:1px solid #bbb;break-inside:avoid}
- .note-body{max-height:none;overflow:visible}
- .note-meta,.muted,.help{color:#444!important}
+html:not(.dark) {
+  --bg:#f3f6fb;
+  --panel:#fff;
+  --field:#edf2f9;
+  --text:#152033;
+  --muted:#586780;
+  --line:#d7e0ed;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font:var(--app-size)/1.55 var(--app-font);
+}
+button,input,textarea,select { font:inherit; }
+button {
+  cursor:pointer;
+  padding:10px 12px;
+  color:var(--text);
+  background:var(--field);
+  border:1px solid var(--line);
+  border-radius:10px;
+}
+button:disabled { opacity:.5; cursor:not-allowed; }
+input,textarea,select {
+  width:100%;
+  min-width:0;
+  padding:11px;
+  color:var(--text);
+  background:var(--field);
+  border:1px solid var(--line);
+  border-radius:10px;
+}
+textarea { resize:vertical; }
+header {
+  position:sticky;
+  top:0;
+  z-index:10;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px 15px;
+  background:var(--panel);
+  border-bottom:1px solid var(--line);
+}
+header a {
+  color:var(--text);
+  text-decoration:none;
+  font-size:22px;
+}
+.brand { flex:1; font-weight:750; }
+#sync { color:var(--muted); font-size:.75em; text-align:right; }
+main {
+  max-width:1100px;
+  margin:auto;
+  padding:15px;
+  display:grid;
+  gap:14px;
+}
+.card {
+  min-width:0;
+  padding:16px;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:16px;
+}
+h1,h2,h3,p { margin-top:0; }
+h1 { font-size:1.35em; margin-bottom:5px; }
+h2 { font-size:1.12em; }
+.muted,.help { color:var(--muted); }
+.help { font-size:.82em; }
+.primary {
+  color:#062319;
+  background:var(--accent);
+  border-color:var(--accent);
+  font-weight:700;
+}
+.danger { color:#fb7185; }
+.actions { display:flex; gap:7px; flex-wrap:wrap; align-items:center; }
+.actions button { flex:1; }
+.toolbar {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(140px,220px);
+  gap:8px;
+}
+.filters {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+  margin-top:9px;
+}
+.note-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));
+  gap:12px;
+  margin-top:13px;
+}
+.note {
+  display:flex;
+  flex-direction:column;
+  gap:9px;
+  min-width:0;
+  padding:13px;
+  border:1px solid var(--line);
+  border-left:5px solid var(--note-color,var(--accent));
+  border-radius:14px;
+  overflow-wrap:anywhere;
+}
+.note-title { font-size:1.03em; font-weight:750; margin:0; }
+.note-body {
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+  max-height:300px;
+  overflow:auto;
+}
+.note-meta { color:var(--muted); font-size:.76em; }
+.pills { display:flex; gap:5px; flex-wrap:wrap; }
+.pill {
+  padding:3px 8px;
+  background:var(--field);
+  border-radius:30px;
+  color:var(--muted);
+  font-size:.72em;
+}
+.note-buttons { display:flex; gap:5px; flex-wrap:wrap; margin-top:auto; }
+.note-buttons button { flex:1; padding:7px; font-size:.82em; }
+.star { color:#fbbf24; }
+.empty { padding:25px 8px; text-align:center; color:var(--muted); }
+.label { display:grid; gap:5px; font-weight:600; }
+.two { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+.checkrow { display:flex; align-items:center; gap:8px; }
+.checkrow input { width:auto; }
+#modal {
+  position:fixed;
+  inset:0;
+  z-index:30;
+  display:none;
+  align-items:flex-start;
+  justify-content:center;
+  overflow:auto;
+  padding:12px;
+  background:#000b;
+}
+#modal.open { display:flex; }
+.modal-box {
+  display:grid;
+  gap:11px;
+  width:min(700px,100%);
+  margin:auto;
+  padding:16px;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:16px;
+}
+#toastArea {
+  position:fixed;
+  z-index:50;
+  bottom:14px;
+  left:50%;
+  transform:translateX(-50%);
+  display:grid;
+  gap:6px;
+  width:min(92%,460px);
+}
+.toast {
+  padding:11px 14px;
+  color:white;
+  background:#166534;
+  border-radius:10px;
+  box-shadow:0 4px 18px #0003;
+}
+.toast.error { background:#9f1239; }
+.hidden { display:none!important; }
+body.auth-pending main,body.auth-pending header { visibility:hidden; }
+body[data-layout="compact"] main { padding:8px; gap:8px; }
+body[data-layout="compact"] .card { padding:11px; }
+body[data-layout="compact"] .note { padding:9px; gap:6px; }
+@media(max-width:520px) {
+  main { padding:9px; }
+  .card { padding:12px; }
+  header { padding:10px; }
+  .filters { grid-template-columns:1fr 1fr; }
+  .toolbar,.two { grid-template-columns:1fr; }
+  #sync { max-width:100px; }
 }
 </style>
 </head>
@@ -111,17 +253,13 @@ body[data-layout="compact"] .note{padding:9px;gap:6px}
 <main>
   <section class="card">
     <h1 data-i18n="title">My Notebook</h1>
-    <p class="muted" data-i18n="intro">Create, organize, search, print and recover your notes.</p>
-    <div class="actions no-print">
-      <button class="primary" id="newNote"><i class="fa-solid fa-plus"></i> <span data-i18n="newNote">New note</span></button>
-      <button id="exportNotes"><i class="fa-solid fa-download"></i> <span data-i18n="export">Export JSON</span></button>
-      <button id="importButton"><i class="fa-solid fa-upload"></i> <span data-i18n="import">Import JSON</span></button>
-      <button id="printNotes"><i class="fa-solid fa-print"></i> <span data-i18n="print">Print</span></button>
-      <input id="importFile" type="file" accept=".json,application/json" class="hidden">
+    <p class="muted" data-i18n="intro">Organize your notes, ideas and private documents.</p>
+    <div class="actions">
+      <button id="newNote" class="primary"><i class="fa-solid fa-plus"></i> <span data-i18n="newNote">New note</span></button>
     </div>
   </section>
 
-  <section class="card no-print">
+  <section class="card">
     <div class="toolbar">
       <input id="search" type="search" data-i18n-placeholder="search" placeholder="Search title, content or tags…">
       <select id="viewFilter" aria-label="Note view">
@@ -154,52 +292,52 @@ body[data-layout="compact"] .note{padding:9px;gap:6px}
   <section class="card">
     <div class="actions">
       <h2 style="flex:1;margin:0" data-i18n="notesHeading">Notes</h2>
-      <span class="muted" id="noteCount">0</span>
+      <span id="noteCount" class="muted">0</span>
     </div>
-    <div id="notes" class="note-grid" style="margin-top:13px">
+    <div id="notes" class="note-grid">
       <p class="empty" data-i18n="loading">Loading notes…</p>
     </div>
   </section>
 
-  <section class="card no-print">
-    <h2>🗄️ <span data-i18n="trashHeading">Trash & Recovery</span></h2>
-    <p class="help" data-i18n="trashHelp">Deleted records can be restored within 30 days. Permanent cleanup depends on the server-side cleanup function.</p>
-    <div id="trash" class="note-grid"></div>
-  </section>
-
-  <section class="card no-print">
-    <div class="actions" style="align-items:center">
+  <section class="card">
+    <div class="actions">
       <h2 style="flex:1;margin:0">🔐 <span data-i18n="vaultHeading">Secure Vault</span></h2>
       <button id="vaultToggle" data-i18n="openVault">Open vault</button>
     </div>
-    <p class="help" data-i18n="vaultWarning">The PIN is an app lock, not end-to-end encryption. Do not store passwords, bank PINs or other highly sensitive secrets here.</p>
+    <p class="help" data-i18n="vaultWarning">The PIN is an app lock, not encryption. Do not store highly sensitive secrets here.</p>
 
-    <div id="vault" class="hidden" style="margin-top:12px">
+    <div id="vault" class="hidden">
       <div id="vaultLock" class="two">
-        <label class="label"><span data-i18n="vaultPin">4-digit PIN</span><input id="pin" type="password" inputmode="numeric" maxlength="4" autocomplete="off"></label>
+        <label class="label">
+          <span data-i18n="vaultPin">4-digit PIN</span>
+          <input id="pin" type="password" inputmode="numeric" maxlength="4" autocomplete="off">
+        </label>
         <div class="actions" style="align-items:end">
           <button id="unlockVault" class="primary" data-i18n="unlock">Unlock</button>
           <button id="setVaultPin" data-i18n="setPin">Set/change PIN</button>
         </div>
       </div>
 
-      <div id="vaultBody" class="hidden" style="margin-top:13px">
+      <div id="vaultBody" class="hidden">
         <div class="actions">
           <button id="tabSecret" class="primary" data-i18n="secretNotes">Private notes</button>
           <button id="tabDocs" data-i18n="documents">Documents</button>
         </div>
+
         <div id="secretEditor" style="display:grid;gap:8px;margin-top:10px">
           <input id="secretTitle" data-i18n-placeholder="secretTitle" placeholder="Private note title">
           <textarea id="secretContent" rows="3" data-i18n-placeholder="secretContent" placeholder="Private note"></textarea>
           <button class="primary" id="saveSecret" data-i18n="saveSecret">Save private note</button>
         </div>
+
         <div id="docEditor" class="hidden" style="display:grid;gap:8px;margin-top:10px">
           <input id="docTitle" data-i18n-placeholder="docTitle" placeholder="Document name (optional)">
           <input id="docFile" type="file" accept="image/*,.pdf">
           <p class="help" data-i18n="docLimit">Image/PDF only, maximum 300 KB per file.</p>
           <button class="primary" id="saveDoc" data-i18n="saveDoc">Save document</button>
         </div>
-        <div id="vaultList" class="note-grid" style="margin-top:12px"></div>
+
+        <div id="vaultList" class="note-grid"></div>
         <button id="lockVault" style="margin-top:10px" data-i18n="lockVault">Lock vault</button>
       </div>
     </div>
@@ -208,15 +346,24 @@ body[data-layout="compact"] .note{padding:9px;gap:6px}
 
 <div id="modal">
   <div class="modal-box">
-    <div class="actions" style="align-items:center">
+    <div class="actions">
       <h2 id="modalTitle" style="flex:1;margin:0" data-i18n="newNote">New note</h2>
       <button id="closeModal" aria-label="Close">✕</button>
     </div>
     <input id="noteId" type="hidden">
-    <label class="label"><span data-i18n="noteTitle">Title</span><input id="noteTitle" maxlength="200"></label>
-    <label class="label"><span data-i18n="noteContent">Content</span><textarea id="noteContent" rows="9" maxlength="50000"></textarea></label>
+
+    <label class="label">
+      <span data-i18n="noteTitle">Title</span>
+      <input id="noteTitle" maxlength="200">
+    </label>
+    <label class="label">
+      <span data-i18n="noteContent">Content</span>
+      <textarea id="noteContent" rows="9" maxlength="50000"></textarea>
+    </label>
+
     <div class="two">
-      <label class="label"><span data-i18n="category">Category</span>
+      <label class="label">
+        <span data-i18n="category">Category</span>
         <select id="noteCategory">
           <option value="Personal" data-i18n="personal">Personal</option>
           <option value="Work" data-i18n="work">Work</option>
@@ -226,17 +373,29 @@ body[data-layout="compact"] .note{padding:9px;gap:6px}
           <option value="Other" data-i18n="other">Other</option>
         </select>
       </label>
-      <label class="label"><span data-i18n="tags">Tags (comma separated)</span><input id="noteTags" maxlength="500" placeholder="e.g. project, important"></label>
+      <label class="label">
+        <span data-i18n="tags">Tags (comma separated)</span>
+        <input id="noteTags" maxlength="500" placeholder="project, important">
+      </label>
     </div>
+
     <div class="two">
-      <label class="label"><span data-i18n="color">Note color</span><input id="noteColor" type="color" value="#10b981"></label>
-      <label class="label"><span data-i18n="reminder">Reminder (optional)</span><input id="noteReminder" type="datetime-local"></label>
+      <label class="label">
+        <span data-i18n="color">Note color</span>
+        <input id="noteColor" type="color" value="#10b981">
+      </label>
+      <label class="label">
+        <span data-i18n="reminder">Reminder (optional)</span>
+        <input id="noteReminder" type="datetime-local">
+      </label>
     </div>
+
     <div class="two">
-      <label><input id="noteFavorite" type="checkbox" style="width:auto"> <span data-i18n="favorite">Favorite</span></label>
-      <label><input id="notePinned" type="checkbox" style="width:auto"> <span data-i18n="pinNote">Pin note</span></label>
+      <label class="checkrow"><input id="noteFavorite" type="checkbox"><span data-i18n="favorite">Favorite</span></label>
+      <label class="checkrow"><input id="notePinned" type="checkbox"><span data-i18n="pinNote">Pin note</span></label>
     </div>
-    <p class="help" data-i18n="reminderHelp">Reminder date is stored with the note; this page does not promise background notifications.</p>
+
+    <p class="help" data-i18n="reminderHelp">Reminder dates are saved, but background notifications are not guaranteed.</p>
     <div class="actions">
       <button id="cancelModal" data-i18n="cancel">Cancel</button>
       <button id="saveNote" class="primary" data-i18n="save">Save note</button>
@@ -249,481 +408,731 @@ body[data-layout="compact"] .note{padding:9px;gap:6px}
 <script>
 "use strict";
 
-(function(){
-const CFG={
- apiKey:"AIzaSyDDY_v7RHnkCTI6uyV4DNDjqoaIBGweg8c",
- authDomain:"digital-a2552.firebaseapp.com",
- databaseURL:"https://digital-a2552-default-rtdb.asia-southeast1.firebasedatabase.app",
- projectId:"digital-a2552",
- storageBucket:"digital-a2552.firebasestorage.app",
- messagingSenderId:"218135618179",
- appId:"1:218135618179:web:821b76920d3e5669ac31b6"
-};
-const SETTINGS_KEY="digital_notebook_settings";
-const DAY=86400000,TTL=30*DAY;
-const $=id=>document.getElementById(id);
-let db,user,notes={},trash={},secretNotes={},documents={},vaultSettings={},unlocked=false,vaultTab="notes",prefs={};
-const DEFAULT_PREFS={lang:"en",theme:"dark",font_size:"16",font_family:"Poppins",accentColor:"#10b981",layout:"comfortable"};
+(function () {
+  const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyDDY_v7RHnkCTI6uyV4DNDjqoaIBGweg8c",
+    authDomain: "digital-a2552.firebaseapp.com",
+    databaseURL: "https://digital-a2552-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "digital-a2552",
+    storageBucket: "digital-a2552.firebasestorage.app",
+    messagingSenderId: "218135618179",
+    appId: "1:218135618179:web:821b76920d3e5669ac31b6"
+  };
 
-const TXT={
-en:{
- header:"Notebook",connecting:"Connecting…",live:"Live sync",offline:"Offline",title:"My Notebook",
- intro:"Create, organize, search, print and recover your notes.",newNote:"New note",export:"Export JSON",import:"Import JSON",print:"Print",
- search:"Search title, content or tags…",activeNotes:"Active notes",favorites:"Favorites",pinned:"Pinned",archive:"Archived",allNotes:"All notes",
- allCategories:"All categories",personal:"Personal",work:"Work",study:"Study",finance:"Finance",ideas:"Ideas",other:"Other",
- sortUpdated:"Recently updated",sortCreated:"Recently created",sortTitle:"Title A–Z",clearFilters:"Clear filters",notesHeading:"Notes",
- trashHeading:"Trash & Recovery",trashHelp:"Deleted records can be restored within 30 days. Permanent cleanup depends on the server-side cleanup function.",
- vaultHeading:"Secure Vault",openVault:"Open vault",closeVault:"Close vault",
- vaultWarning:"The PIN is an app lock, not end-to-end encryption. Do not store passwords, bank PINs or other highly sensitive secrets here.",
- vaultPin:"4-digit PIN",unlock:"Unlock",setPin:"Set/change PIN",secretNotes:"Private notes",documents:"Documents",
- secretTitle:"Private note title",secretContent:"Private note",saveSecret:"Save private note",docTitle:"Document name (optional)",
- docLimit:"Image/PDF only, maximum 300 KB per file.",saveDoc:"Save document",lockVault:"Lock vault",noteTitle:"Title",noteContent:"Content",
- category:"Category",tags:"Tags (comma separated)",color:"Note color",reminder:"Reminder (optional)",favorite:"Favorite",pinNote:"Pin note",
- reminderHelp:"Reminder date is stored with the note; this page does not promise background notifications.",cancel:"Cancel",save:"Save note",
- loading:"Loading notes…",empty:"No notes match your filters.",noTrash:"Trash is empty.",noVault:"No records.",edit:"Edit",delete:"Trash",
- restore:"Restore",printOne:"Print",archiveAction:"Archive",unarchive:"Unarchive",unpin:"Unpin",pinAction:"Pin",unfavorite:"Remove favorite",
- favoriteAction:"Favorite",confirmDelete:"Move this record to Trash?",confirmPermanent:"Permanently delete this item? This cannot be undone.",
- saved:"Note saved.",saveFailed:"Could not save. Check your connection and Firebase Rules.",deleted:"Moved to Trash.",
- restored:"Restored.",expired:"This record is outside the 30-day restore period.",imported:"Import completed.",importFailed:"Could not import this file.",
- invalidFile:"Choose a valid JSON file.",noImport:"No valid notes found in this file.",pinRequired:"Enter exactly 4 digits.",
- pinSet:"PIN hash saved. Unlock the vault now.",pinMismatch:"Incorrect PIN.",setPinFirst:"Set a PIN before unlocking.",
- vaultSaved:"Vault record saved.",vaultFailed:"Could not save the Vault record.",fileTooLarge:"File exceeds the 300 KB limit.",
- chooseFile:"Choose a file first.",authRequired:"Please sign in through index.html first.",cloudError:"Cloud sync error",
- localImport:"Old local notes imported.",duplicateImport:"Skipped an existing note ID.",untitled:"Untitled note",deletedOn:"Deleted",
- tagsLabel:"Tags",reminderLabel:"Reminder",categoryLabel:"Category",created:"Created",updated:"Updated",
- vaultLock:"Vault locked.",confirmImport:"Import notes from this JSON file? Existing notes will not be overwritten.",
- noContent:"Write a title or some content first.",clearDone:"Filters cleared.",archiveDone:"Archive status updated.",
- vaultPinWarning:"Changing the PIN does not encrypt existing Vault data.",selectCategory:"Select category",
- authLost:"Your session ended. Redirecting to sign in…",noPermission:"Permission denied. Check Firebase Rules."
-},
-ne:{
- header:"नोटबुक",connecting:"जोडिँदैछ…",live:"लाइभ सिंक",offline:"अफलाइन",title:"मेरो नोटबुक",
- intro:"नोट लेख्नुहोस्, वर्गीकरण गर्नुहोस्, खोज्नुहोस्, प्रिन्ट गर्नुहोस् र पुनःस्थापना गर्नुहोस्।",newNote:"नयाँ नोट",export:"JSON Export",import:"JSON Import",print:"प्रिन्ट",
- search:"शीर्षक, विवरण वा ट्याग खोज्नुहोस्…",activeNotes:"सक्रिय नोट",favorites:"मनपर्ने",pinned:"पिन गरिएका",archive:"आर्काइभ",allNotes:"सबै नोट",
- allCategories:"सबै वर्ग",personal:"व्यक्तिगत",work:"काम",study:"अध्ययन",finance:"आर्थिक",ideas:"विचार",other:"अन्य",
- sortUpdated:"हालै परिवर्तन",sortCreated:"हालै सिर्जना",sortTitle:"शीर्षक अनुसार",clearFilters:"फिल्टर हटाउनुहोस्",notesHeading:"नोटहरू",
- trashHeading:"Trash र पुनःप्राप्ति",trashHelp:"मेटाइएका रेकर्ड ३० दिनभित्र Restore गर्न सकिन्छ। स्थायी सफाइ server-side cleanup function मा निर्भर हुन्छ।",
- vaultHeading:"गोप्य Vault",openVault:"Vault खोल्नुहोस्",closeVault:"Vault बन्द गर्नुहोस्",
- vaultWarning:"PIN एपको लक हो, पूर्ण encryption होइन। पासवर्ड, बैंक PIN वा अत्यन्त संवेदनशील गोप्य विवरण यहाँ नराख्नुहोस्।",
- vaultPin:"४ अङ्कको PIN",unlock:"खोल्नुहोस्",setPin:"PIN राख्ने/बदल्ने",secretNotes:"गोप्य नोट",documents:"कागजात",
- secretTitle:"गोप्य नोटको शीर्षक",secretContent:"गोप्य नोट",saveSecret:"गोप्य नोट सेभ",docTitle:"कागजातको नाम (ऐच्छिक)",
- docLimit:"Image/PDF मात्र, प्रत्येक फाइल अधिकतम ३०० KB।",saveDoc:"कागजात सेभ",lockVault:"Vault लक गर्नुहोस्",noteTitle:"शीर्षक",noteContent:"विवरण",
- category:"वर्ग",tags:"ट्याग (अल्पविरामले छुट्याउनुहोस्)",color:"नोटको रङ",reminder:"सम्झना मिति (ऐच्छिक)",favorite:"मनपर्ने",pinNote:"नोट पिन गर्नुहोस्",
- reminderHelp:"सम्झना मिति नोटमा सुरक्षित हुन्छ; यो पेजले पृष्ठभूमिमा सूचना आउने ग्यारेन्टी गर्दैन।",cancel:"रद्द",save:"नोट सेभ",
- loading:"नोट लोड हुँदैछ…",empty:"छानिएका फिल्टरअनुसार नोट भेटिएन।",noTrash:"Trash खाली छ।",noVault:"रेकर्ड छैन।",edit:"सम्पादन",delete:"Trash",
- restore:"पुनःस्थापना",printOne:"प्रिन्ट",archiveAction:"Archive",unarchive:"Archive हटाउनुहोस्",unpin:"Pin हटाउनुहोस्",pinAction:"Pin",unfavorite:"मनपर्ने हटाउनुहोस्",
- favoriteAction:"मनपर्ने",confirmDelete:"यो रेकर्ड Trash मा सार्ने?",confirmPermanent:"यो रेकर्ड सधैँका लागि मेटाउने? यो कार्य फिर्ता गर्न सकिँदैन।",
- saved:"नोट सेभ भयो।",saveFailed:"सेभ भएन। इन्टरनेट र Firebase Rules जाँच्नुहोस्।",deleted:"Trash मा सारियो।",
- restored:"पुनःस्थापना भयो।",expired:"३० दिनको पुनःस्थापना अवधि सकिएको छ।",imported:"Import पूरा भयो।",importFailed:"यो फाइल Import गर्न सकिएन।",
- invalidFile:"सही JSON फाइल छान्नुहोस्।",noImport:"फाइलमा मान्य नोट भेटिएन।",pinRequired:"ठ्याक्कै ४ अङ्कको PIN राख्नुहोस्।",
- pinSet:"PIN hash सेभ भयो। अब Vault खोल्नुहोस्।",pinMismatch:"PIN मिलेन।",setPinFirst:"पहिले PIN राख्नुहोस्।",
- vaultSaved:"Vault रेकर्ड सेभ भयो।",vaultFailed:"Vault रेकर्ड सेभ भएन।",fileTooLarge:"फाइल ३०० KB भन्दा ठूलो छ।",
- chooseFile:"पहिले फाइल छान्नुहोस्।",authRequired:"पहिले index.html बाट लगइन गर्नुहोस्।",cloudError:"Cloud Sync त्रुटि",
- localImport:"पुराना Local नोट Import गरिए।",duplicateImport:"पहिलेको ID भएको नोट छोडियो।",untitled:"शीर्षक नभएको नोट",deletedOn:"मेटाइएको",
- tagsLabel:"ट्याग",reminderLabel:"सम्झना",categoryLabel:"वर्ग",created:"सिर्जना",updated:"परिवर्तन",
- vaultLock:"Vault लक गरियो।",confirmImport:"यो JSON फाइलका नोट Import गर्ने? पहिलेदेखिका नोट परिवर्तन गरिने छैनन्।",
- noContent:"पहिले शीर्षक वा विवरण लेख्नुहोस्।",clearDone:"फिल्टर हटाइयो।",archiveDone:"Archive अवस्था परिवर्तन भयो.",
- vaultPinWarning:"PIN परिवर्तन गर्दा पहिलेको Vault डाटा encrypt हुँदैन।",selectCategory:"वर्ग छान्नुहोस्",
- authLost:"लगइन अवधि सकियो। लगइन पेज खोलिँदैछ…",noPermission:"अनुमति छैन। Firebase Rules जाँच्नुहोस्।"
-}
-};
+  const SETTINGS_KEY = "digital_notebook_settings";
+  const DEFAULT_PREFS = {
+    lang:"en", theme:"dark", font_size:"16",
+    font_family:"Poppins", accentColor:"#10b981", layout:"comfortable"
+  };
+  const CATEGORIES = ["Personal","Work","Study","Finance","Ideas","Other"];
+  const $ = id => document.getElementById(id);
 
-function tr(k){return (TXT[prefs.lang==="ne"?"ne":"en"][k]||TXT.en[k]||k)}
-function readPrefs(){
- try{const s=JSON.parse(localStorage.getItem(SETTINGS_KEY)||"{}");prefs={...DEFAULT_PREFS,...(s&&typeof s==="object"?s:{})}}
- catch(_){prefs={...DEFAULT_PREFS}}
-}
-function applyPrefs(){
- const h=document.documentElement;
- h.lang=prefs.lang==="ne"?"ne":"en";
- h.classList.toggle("dark",prefs.theme!=="light");
- h.style.setProperty("--accent",/^#[0-9a-f]{6}$/i.test(prefs.accentColor||"")?prefs.accentColor:DEFAULT_PREFS.accentColor);
- h.style.setProperty("--app-size",(Number(prefs.font_size)||16)+"px");
- const safeFont=["Poppins","Arial","Roboto","Georgia","system-ui"].includes(prefs.font_family)?prefs.font_family:"Poppins";
- h.style.setProperty("--app-font",JSON.stringify(safeFont)+",Arial,sans-serif");
- h.dataset.layout=prefs.layout||"comfortable";
- document.body.dataset.layout=prefs.layout||"comfortable";
- document.querySelectorAll("[data-i18n]").forEach(el=>{const v=tr(el.dataset.i18n);if(v)el.textContent=v});
- document.querySelectorAll("[data-i18n-placeholder]").forEach(el=>el.placeholder=tr(el.dataset.i18nPlaceholder));
- document.title="Digital NoteBook — "+tr("header");
- renderNotes();renderTrash();if(unlocked)renderVault();
-}
-window.addEventListener("storage",e=>{
- if(e.key===SETTINGS_KEY){readPrefs();applyPrefs()}
-});
+  let prefs = {...DEFAULT_PREFS};
+  let user = null;
+  let db = null;
+  let notes = {};
+  let privateNotes = {};
+  let documents = {};
+  let vaultSettings = {};
+  let unlocked = false;
+  let vaultTab = "notes";
 
-function toast(text,error=false){
- const el=document.createElement("div");el.className="toast"+(error?" error":"");el.textContent=text;
- $("toastArea").append(el);setTimeout(()=>el.remove(),3200);
-}
-function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-function notePath(part){return "users/"+user.uid+"/"+part}
-function makeId(){return db.ref().push().key}
-function records(v){
- if(!v||typeof v!=="object")return {};
- const o={};
- Object.entries(v).forEach(([k,x])=>{
-   if(x&&typeof x==="object"&&!Array.isArray(x))o[String(x.id||k)]={...x,id:String(x.id||k)};
- });
- return o;
-}
-function when(ts){return ts?new Date(Number(ts)).toLocaleString(prefs.lang==="ne"?"ne-NP":"en-IN"):"—"}
-function showModal(on){$("modal").classList.toggle("open",on)}
-function ask(text){
- return new Promise(resolve=>{
-  const wrap=document.createElement("div");
-  wrap.style.cssText="position:fixed;inset:0;z-index:90;background:#000b;display:grid;place-items:center;padding:15px";
-  const box=document.createElement("div");box.className="card";box.style.maxWidth="420px";box.style.width="100%";
-  const p=document.createElement("p");p.textContent=text;
-  const actions=document.createElement("div");actions.className="actions";
-  const no=document.createElement("button");no.textContent=tr("cancel");
-  const yes=document.createElement("button");yes.className="primary";yes.textContent="OK";
-  actions.append(no,yes);box.append(p,actions);wrap.append(box);document.body.append(wrap);
-  no.onclick=()=>{wrap.remove();resolve(false)};yes.onclick=()=>{wrap.remove();resolve(true)};
- });
-}
-function openEditor(n){
- n=n||{};
- $("noteId").value=n.id||"";
- $("noteTitle").value=n.title||"";
- $("noteContent").value=n.content||"";
- $("noteCategory").value=n.category||"Personal";
- $("noteTags").value=Array.isArray(n.tags)?n.tags.join(", "):"";
- $("noteColor").value=/^#[0-9a-f]{6}$/i.test(n.color||"")?n.color:"#10b981";
- $("noteReminder").value=n.reminder?new Date(n.reminder).toISOString().slice(0,16):"";
- $("noteFavorite").checked=!!n.favorite;
- $("notePinned").checked=!!n.pinned;
- $("modalTitle").textContent=tr(n.id?"edit":"newNote");
- showModal(true);
-}
-function filteredNotes(){
- const q=$("search").value.trim().toLocaleLowerCase();
- const view=$("viewFilter").value,cat=$("categoryFilter").value,sort=$("sortFilter").value;
- let arr=Object.values(notes).filter(n=>{
-   if(n.archived&&view!=="archive"&&view!=="all")return false;
-   if(view==="active"&&n.archived)return false;
-   if(view==="archive"&&!n.archived)return false;
-   if(view==="favorite"&&!n.favorite)return false;
-   if(view==="pinned"&&!n.pinned)return false;
-   if(cat&&n.category!==cat)return false;
-   const hay=[n.title,n.content,n.category,...(Array.isArray(n.tags)?n.tags:[])].join(" ").toLocaleLowerCase();
-   return !q||hay.includes(q);
- });
- arr.sort((a,b)=>{
-   if(a.pinned!==b.pinned)return Number(b.pinned)-Number(a.pinned);
-   if(sort==="title")return String(a.title||"").localeCompare(String(b.title||""));
-   if(sort==="created")return (b.createdAt||0)-(a.createdAt||0);
-   return (b.updatedAt||0)-(a.updatedAt||0);
- });
- return arr;
-}
-function renderNotes(){
- if(!$("notes"))return;
- const root=$("notes");root.replaceChildren();
- if(!Object.keys(notes).length){root.innerHTML=`<p class="empty">${esc(tr("empty"))}</p>`;$("noteCount").textContent="0";return}
- const arr=filteredNotes();$("noteCount").textContent=String(arr.length);
- if(!arr.length){root.innerHTML=`<p class="empty">${esc(tr("empty"))}</p>`;return}
- arr.forEach(n=>{
-  const el=document.createElement("article");el.className="note note-color";el.style.setProperty("--note-color",/^#[0-9a-f]{6}$/i.test(n.color||"")?n.color:"var(--accent)");
-  const tags=Array.isArray(n.tags)?n.tags:[];
-  el.innerHTML=`
-   <div class="actions" style="align-items:start">
-    <h3 class="note-title" style="flex:1">${esc(n.title||tr("untitled"))}</h3>
-    <span>${n.pinned?'📌 ':''}${n.favorite?'<span class="star">★</span>':''}</span>
-   </div>
-   <div class="pills"><span class="pill">${esc(tr(n.category?.toLowerCase())||n.category||tr("personal"))}</span>${n.archived?`<span class="pill">${esc(tr("archive"))}</span>`:""}${tags.map(t=>`<span class="pill">#${esc(t)}</span>`).join("")}</div>
-   <div class="note-body">${esc(n.content||"")}</div>
-   ${n.reminder?`<div class="note-meta">⏰ ${esc(tr("reminderLabel"))}: ${esc(when(n.reminder))}</div>`:""}
-   <div class="note-meta">${esc(tr("updated"))}: ${esc(when(n.updatedAt))}</div>
-   <div class="note-buttons no-print">
-    <button data-action="edit" data-id="${esc(n.id)}">${esc(tr("edit"))}</button>
-    <button data-action="favorite" data-id="${esc(n.id)}">${n.favorite?"★":"☆"}</button>
-    <button data-action="pin" data-id="${esc(n.id)}">${n.pinned?"📌":"📍"}</button>
-    <button data-action="archive" data-id="${esc(n.id)}">${n.archived?"↩":"▣"}</button>
-    <button data-action="print" data-id="${esc(n.id)}">${esc(tr("printOne"))}</button>
-    <button class="danger" data-action="delete" data-id="${esc(n.id)}">${esc(tr("delete"))}</button>
-   </div>`;
-  root.append(el);
- });
-}
-function renderTrash(){
- if(!$("trash"))return;
- const root=$("trash");root.replaceChildren();
- const arr=Object.values(trash).filter(x=>x&&Number(x.deletedAt)>0).sort((a,b)=>b.deletedAt-a.deletedAt);
- if(!arr.length){root.innerHTML=`<p class="empty">${esc(tr("noTrash"))}</p>`;return}
- arr.forEach(item=>{
-  const data=item.data&&typeof item.data==="object"?item.data:item;
-  const el=document.createElement("article");el.className="note";
-  const remaining=Math.max(0,Math.ceil((Number(item.expiresAt||item.deletedAt+TTL)-Date.now())/DAY));
-  el.innerHTML=`<h3 class="note-title">${esc(data.title||tr("untitled"))}</h3>
-   <p class="note-body">${esc(data.content||"")}</p>
-   <p class="note-meta">${esc(tr("deletedOn"))}: ${esc(when(item.deletedAt))} · ${remaining} days</p>
-   <div class="note-buttons">
-    <button data-trash-action="restore" data-id="${esc(item.id||data.id)}">${esc(tr("restore"))}</button>
-    <button class="danger" data-trash-action="permanent" data-id="${esc(item.id||data.id)}">${esc(tr("delete"))}</button>
-   </div>`;
-  root.append(el);
- });
-}
-async function saveNote(){
- const title=$("noteTitle").value.trim(),content=$("noteContent").value.trim();
- if(!title&&!content)return toast(tr("noContent"),true);
- const oldId=$("noteId").value,key=oldId||makeId(),old=notes[key]||{};
- const tags=[...new Set($("noteTags").value.split(",").map(s=>s.trim()).filter(Boolean))].slice(0,30);
- const reminder=$("noteReminder").value?new Date($("noteReminder").value).getTime():null;
- const item={
-  ...old,id:key,title:title||tr("untitled"),content,category:$("noteCategory").value,
-  tags,color:$("noteColor").value,favorite:$("noteFavorite").checked,pinned:$("notePinned").checked,
-  archived:!!old.archived,reminder:reminder&&Number.isFinite(reminder)?reminder:null,
-  createdAt:old.createdAt||Date.now(),updatedAt:Date.now()
- };
- try{
-  await db.ref(notePath("notes/"+key)).transaction(current=>({...item,...(current||{}),...item}));
-  showModal(false);toast(tr("saved"));
- }catch(e){console.error(e);toast(e.code==="PERMISSION_DENIED"?tr("noPermission"):tr("saveFailed"),true)}
-}
-async function softDelete(collection,key,category){
- const source=collection==="notes"?notes:collection==="secure_notes"?secretNotes:documents;
- const item=source[key];if(!item)return;
- if(!await ask(tr("confirmDelete")))return;
- const now=Date.now(),base=notePath(collection+"/"+key);
- const deleted={...item,id:key,category:category||collection,originalPath:base,deletedAt:now,expiresAt:now+TTL,data:{...item}};
- const patch={};patch[notePath("trash/"+(category||collection)+"/"+key)]=deleted;patch[base]=null;
- try{await db.ref().update(patch);toast(tr("deleted"))}
- catch(e){console.error(e);toast(tr("saveFailed"),true)}
-}
-async function restoreTrash(key){
- const item=trash[key];if(!item)return;
- if(Date.now()-Number(item.deletedAt||0)>TTL)return toast(tr("expired"),true);
- const data=item.data&&typeof item.data==="object"?item.data:{...item};
- const original=String(item.originalPath||"");
- const allowed=[notePath("notes/"),notePath("secure_notes/"),notePath("secure_docs/")].some(prefix=>original.startsWith(prefix));
- if(!allowed)return toast(tr("saveFailed"),true);
- const destination=original||notePath("notes/"+(data.id||key));
- const clean={...data,id:data.id||key,restoredAt:Date.now()};
- ["deletedAt","expiresAt","originalPath","data","category"].forEach(k=>delete clean[k]);
- try{
-  const snap=await db.ref(destination).once("value");
-  if(snap.exists())return toast(tr("duplicateImport"),true);
-  const patch={};patch[destination]=clean;patch[notePath("trash/"+(item.category||"notes")+"/"+key)]=null;
-  await db.ref().update(patch);toast(tr("restored"));
- }catch(e){console.error(e);toast(tr("saveFailed"),true)}
-}
-async function permanentlyDeleteTrash(key){
- const item=trash[key];if(!item)return;
- if(!await ask(tr("confirmPermanent")))return;
- try{
-  await db.ref(notePath("trash/"+(item.category||"notes")+"/"+key)).remove();
-  toast(tr("deleted"));
- }catch(e){console.error(e);toast(tr("saveFailed"),true)}
-}
-async function updateNoteFlag(key,changes){
- const old=notes[key];if(!old)return;
- try{await db.ref(notePath("notes/"+key)).update({...changes,updatedAt:Date.now()})}
- catch(e){console.error(e);toast(tr("saveFailed"),true)}
-}
-function printOne(n){
- if(!n)return;
- const w=window.open("","_blank");
- if(!w)return toast("Please allow pop-ups to print.",true);
- const html=`<!doctype html><html><head><meta charset="utf-8"><title>${esc(n.title||tr("untitled"))}</title><style>body{font:16px Arial,sans-serif;max-width:800px;margin:35px auto;padding:0 18px;color:#111}h1{border-bottom:2px solid #10b981;padding-bottom:12px}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit}small{color:#555}</style></head><body><h1>${esc(n.title||tr("untitled"))}</h1><small>${esc(n.category||"")} · ${esc(when(n.updatedAt))}</small><pre>${esc(n.content||"")}</pre><p>${esc((n.tags||[]).map(x=>"#"+x).join(" "))}</p><script>window.onload=()=>window.print()<\/script></body></html>`;
- w.document.open();w.document.write(html);w.document.close();
-}
-function exportNotes(){
- const payload={app:"Digital NoteBook",type:"notes-export",version:1,exportedAt:new Date().toISOString(),notes:Object.values(notes)};
- const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
- const url=URL.createObjectURL(blob),a=document.createElement("a");
- a.href=url;a.download="digital-notebook-notes-"+new Date().toISOString().slice(0,10)+".json";a.click();
- setTimeout(()=>URL.revokeObjectURL(url),1000);
-}
-async function importNotes(file){
- if(!file)return;
- try{
-  const raw=JSON.parse(await file.text());
-  const list=Array.isArray(raw)?raw:raw.notes;
-  if(!Array.isArray(list))return toast(tr("noImport"),true);
-  if(!await ask(tr("confirmImport")))return;
-  let count=0,skipped=0;const patch={};
-  for(const n of list){
-   if(!n||typeof n!=="object"||Array.isArray(n))continue;
-   let key=String(n.id||makeId()).replace(/[.#$[\]/]/g,"_");
-   if(notes[key]){skipped++;continue}
-   const item={
-    id:key,title:String(n.title||"").slice(0,200)||tr("untitled"),
-    content:String(n.content||"").slice(0,50000),
-    category:["Personal","Work","Study","Finance","Ideas","Other"].includes(n.category)?n.category:"Other",
-    tags:Array.isArray(n.tags)?n.tags.map(x=>String(x).slice(0,50)).slice(0,30):[],
-    color:/^#[0-9a-f]{6}$/i.test(n.color||"")?n.color:"#10b981",
-    favorite:!!n.favorite,pinned:!!n.pinned,archived:!!n.archived,
-    reminder:Number.isFinite(Number(n.reminder))?Number(n.reminder):null,
-    createdAt:Number(n.createdAt)||Date.now(),updatedAt:Date.now()
-   };
-   patch[notePath("notes/"+key)]=item;count++;
+  const TEXT = {
+    en: {
+      header:"Notebook", connecting:"Connecting…", live:"Live sync", offline:"Offline",
+      title:"My Notebook", intro:"Organize your notes, ideas and private documents.",
+      newNote:"New note", search:"Search title, content or tags…",
+      activeNotes:"Active notes", favorites:"Favorites", pinned:"Pinned",
+      archive:"Archived", allNotes:"All notes", allCategories:"All categories",
+      personal:"Personal", work:"Work", study:"Study", finance:"Finance",
+      ideas:"Ideas", other:"Other", sortUpdated:"Recently updated",
+      sortCreated:"Recently created", sortTitle:"Title A–Z",
+      clearFilters:"Clear filters", notesHeading:"Notes", loading:"Loading notes…",
+      empty:"No notes match your filters.", noteTitle:"Title", noteContent:"Content",
+      category:"Category", tags:"Tags (comma separated)", color:"Note color",
+      reminder:"Reminder (optional)", favorite:"Favorite", pinNote:"Pin note",
+      reminderHelp:"Reminder dates are saved, but background notifications are not guaranteed.",
+      cancel:"Cancel", save:"Save note", edit:"Edit", delete:"Delete",
+      untitled:"Untitled note", updated:"Updated", created:"Created",
+      noContent:"Write a title or content first.", saved:"Note saved.",
+      saveFailed:"Could not save. Check your internet connection and Firebase Rules.",
+      deleted:"Note permanently deleted.", confirmDelete:"Permanently delete this note?",
+      archive:"Archived", archiveAction:"Archive", unarchive:"Unarchive",
+      pin:"Pin", unpin:"Unpin", favoriteAction:"Favorite",
+      unfavorite:"Remove favorite", printOne:"Open", noPermission:"Permission denied. Check Firebase Rules.",
+      authRequired:"Please sign in through index.html first.",
+      cloudError:"Cloud sync error", authLost:"Session ended. Returning to sign-in…",
+      vaultHeading:"Secure Vault", openVault:"Open vault", closeVault:"Close vault",
+      vaultWarning:"The PIN is an app lock, not encryption. Do not store highly sensitive secrets here.",
+      vaultPin:"4-digit PIN", unlock:"Unlock", setPin:"Set/change PIN",
+      secretNotes:"Private notes", documents:"Documents", secretTitle:"Private note title",
+      secretContent:"Private note", saveSecret:"Save private note",
+      docTitle:"Document name (optional)", docLimit:"Image/PDF only, maximum 300 KB per file.",
+      saveDoc:"Save document", lockVault:"Lock vault", noVault:"No records.",
+      pinRequired:"Enter exactly 4 digits.", setPinFirst:"Set a PIN before unlocking.",
+      pinSet:"PIN saved.", pinMismatch:"Incorrect PIN.", vaultSaved:"Vault record saved.",
+      vaultFailed:"Could not save the Vault record.", vaultLock:"Vault locked.",
+      chooseFile:"Choose a file first.", fileTooLarge:"File exceeds 300 KB.",
+      invalidFile:"Only image or PDF files are supported.", confirmVaultDelete:"Delete this Vault record permanently?",
+      confirmPinChange:"Change the Vault PIN? This does not encrypt the stored records.",
+      privateDelete:"Private note deleted.", documentDelete:"Document deleted.",
+      reminderLabel:"Reminder", noReminders:"No reminder",
+      localSaved:"Preferences applied from this device.", noteColor:"Note color",
+      syncInfo:"Your notes sync through your Firebase account."
+    },
+    ne: {
+      header:"नोटबुक", connecting:"जोडिँदैछ…", live:"लाइभ सिंक", offline:"अफलाइन",
+      title:"मेरो नोटबुक", intro:"आफ्ना नोट, विचार र निजी कागजात व्यवस्थित गर्नुहोस्।",
+      newNote:"नयाँ नोट", search:"शीर्षक, विवरण वा ट्याग खोज्नुहोस्…",
+      activeNotes:"सक्रिय नोट", favorites:"मनपर्ने", pinned:"पिन गरिएका",
+      archive:"आर्काइभ", allNotes:"सबै नोट", allCategories:"सबै वर्ग",
+      personal:"व्यक्तिगत", work:"काम", study:"अध्ययन", finance:"आर्थिक",
+      ideas:"विचार", other:"अन्य", sortUpdated:"हालै परिवर्तन",
+      sortCreated:"हालै सिर्जना", sortTitle:"शीर्षक अनुसार",
+      clearFilters:"फिल्टर हटाउनुहोस्", notesHeading:"नोटहरू", loading:"नोट लोड हुँदैछ…",
+      empty:"फिल्टरसँग मिल्ने नोट भेटिएन।", noteTitle:"शीर्षक", noteContent:"विवरण",
+      category:"वर्ग", tags:"ट्याग (अल्पविरामले छुट्याउनुहोस्)", color:"नोटको रङ",
+      reminder:"सम्झना मिति (ऐच्छिक)", favorite:"मनपर्ने", pinNote:"नोट पिन गर्नुहोस्",
+      reminderHelp:"सम्झना मिति सुरक्षित हुन्छ, तर पृष्ठ बन्द हुँदा सूचना आउने ग्यारेन्टी छैन।",
+      cancel:"रद्द गर्नुहोस्", save:"नोट सेभ गर्नुहोस्", edit:"सम्पादन",
+      delete:"स्थायी रूपमा हटाउनुहोस्", untitled:"शीर्षक नभएको नोट",
+      updated:"परिवर्तन", created:"सिर्जना", noContent:"पहिले शीर्षक वा विवरण लेख्नुहोस्।",
+      saved:"नोट सेभ भयो।", saveFailed:"सेभ गर्न सकिएन। इन्टरनेट र Firebase Rules जाँच्नुहोस्।",
+      deleted:"नोट स्थायी रूपमा हटाइयो।", confirmDelete:"यो नोट स्थायी रूपमा हटाउने?",
+      archiveAction:"आर्काइभ", unarchive:"आर्काइभबाट निकाल्नुहोस्",
+      pin:"पिन", unpin:"पिन हटाउनुहोस्", favoriteAction:"मनपर्ने",
+      unfavorite:"मनपर्नेबाट हटाउनुहोस्", printOne:"खोल्नुहोस्",
+      noPermission:"अनुमति छैन। Firebase Rules जाँच्नुहोस्।",
+      authRequired:"पहिले index.html बाट लगइन गर्नुहोस्।",
+      cloudError:"Cloud Sync त्रुटि", authLost:"लगइन अवधि सकियो। लगइन पेज खोलिँदैछ…",
+      vaultHeading:"गोप्य Vault", openVault:"Vault खोल्नुहोस्", closeVault:"Vault बन्द गर्नुहोस्",
+      vaultWarning:"PIN एपको लक हो, encryption होइन। अत्यन्त संवेदनशील गोप्य कुरा नराख्नुहोस्।",
+      vaultPin:"४ अङ्कको PIN", unlock:"खोल्नुहोस्", setPin:"PIN राख्नुहोस्/बदल्नुहोस्",
+      secretNotes:"निजी नोट", documents:"कागजात", secretTitle:"निजी नोटको शीर्षक",
+      secretContent:"निजी नोट", saveSecret:"निजी नोट सेभ गर्नुहोस्",
+      docTitle:"कागजातको नाम (ऐच्छिक)", docLimit:"Image/PDF मात्र, प्रति फाइल बढीमा ३०० KB।",
+      saveDoc:"कागजात सेभ गर्नुहोस्", lockVault:"Vault लक गर्नुहोस्", noVault:"रेकर्ड छैन।",
+      pinRequired:"ठ्याक्कै ४ अङ्कको PIN लेख्नुहोस्।", setPinFirst:"पहिले PIN राख्नुहोस्।",
+      pinSet:"PIN सुरक्षित भयो।", pinMismatch:"PIN मिलेन।", vaultSaved:"Vault रेकर्ड सेभ भयो।",
+      vaultFailed:"Vault रेकर्ड सेभ गर्न सकिएन।", vaultLock:"Vault लक गरियो।",
+      chooseFile:"पहिले फाइल छान्नुहोस्।", fileTooLarge:"फाइल ३०० KB भन्दा ठूलो छ।",
+      invalidFile:"Image वा PDF फाइल मात्र मिल्छ।", confirmVaultDelete:"यो Vault रेकर्ड स्थायी रूपमा हटाउने?",
+      confirmPinChange:"Vault PIN बदल्ने? यसले पुराना रेकर्ड encrypt गर्दैन।",
+      privateDelete:"निजी नोट हटाइयो।", documentDelete:"कागजात हटाइयो.",
+      reminderLabel:"सम्झना", noReminders:"सम्झना छैन", localSaved:"यस उपकरणको प्राथमिकता लागू भयो।",
+      noteColor:"नोटको रङ", syncInfo:"नोटहरू Firebase खाताबाट सिंक हुन्छन्।"
+    }
+  };
+
+  function t(key) {
+    const lang = prefs.lang === "ne" ? "ne" : "en";
+    return TEXT[lang][key] || TEXT.en[key] || key;
   }
-  if(!count)return toast(skipped?tr("duplicateImport"):tr("noImport"),true);
-  await db.ref().update(patch);toast(tr("imported")+" "+count);
- }catch(e){console.error(e);toast(tr("importFailed"),true)}
-}
-function localMigration(){
- const candidates=["digital_notebook_notes","advanced_notebook_notes","notes"];
- const mark="dn_notebook_migrated_v2_"+user.uid;
- if(localStorage.getItem(mark))return;
- Promise.all(candidates.map(k=>db.ref(notePath("notes")).once("value").then(s=>{
-  if(s.exists())return;
-  let arr;try{arr=JSON.parse(localStorage.getItem(k)||"[]")}catch(_){return}
-  if(!Array.isArray(arr)||!arr.length)return;
-  const patch={};
-  arr.forEach(n=>{
-   if(!n||typeof n!=="object")return;
-   const key=String(n.id||makeId()).replace(/[.#$[\]/]/g,"_");
-   patch[notePath("notes/"+key)]={id:key,title:String(n.title||"").slice(0,200),content:String(n.content||"").slice(0,50000),category:n.category||"Personal",tags:Array.isArray(n.tags)?n.tags:[],favorite:!!n.favorite,pinned:!!n.pinned,archived:!!n.archived,color:n.color||"#10b981",createdAt:Number(n.createdAt)||Date.now(),updatedAt:Number(n.updatedAt)||Date.now()};
+
+  function readPrefs() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
+      prefs = {...DEFAULT_PREFS, ...(raw && typeof raw === "object" ? raw : {})};
+    } catch (_) {
+      prefs = {...DEFAULT_PREFS};
+    }
+  }
+
+  function applyPrefs() {
+    const root = document.documentElement;
+    root.lang = prefs.lang === "ne" ? "ne" : "en";
+    root.classList.toggle("dark", prefs.theme !== "light");
+    root.style.setProperty(
+      "--accent",
+      /^#[0-9a-f]{6}$/i.test(prefs.accentColor || "") ? prefs.accentColor : DEFAULT_PREFS.accentColor
+    );
+    root.style.setProperty("--app-size", (Number(prefs.font_size) || 16) + "px");
+
+    const fonts = ["Poppins","Arial","Roboto","Georgia","system-ui"];
+    const font = fonts.includes(prefs.font_family) ? prefs.font_family : "Poppins";
+    root.style.setProperty("--app-font", JSON.stringify(font) + ",Arial,sans-serif");
+    root.dataset.layout = prefs.layout || "comfortable";
+    document.body.dataset.layout = prefs.layout || "comfortable";
+
+    document.querySelectorAll("[data-i18n]").forEach(el => {
+      const key = el.getAttribute("data-i18n");
+      if (el.tagName === "OPTION" || el.tagName === "BUTTON" ||
+          el.tagName === "SPAN" || el.tagName === "P" ||
+          el.tagName === "H1" || el.tagName === "H2") {
+        el.textContent = t(key);
+      }
+    });
+    document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+      el.placeholder = t(el.getAttribute("data-i18n-placeholder"));
+    });
+
+    $("sync").textContent = navigator.onLine ? t("connecting") : t("offline");
+    document.title = "Digital NoteBook — " + t("header");
+    renderNotes();
+    if (unlocked) renderVault();
+  }
+
+  window.addEventListener("storage", event => {
+    if (event.key === SETTINGS_KEY) {
+      readPrefs();
+      applyPrefs();
+    }
   });
-  if(Object.keys(patch).length)return db.ref().update(patch);
- }))).then(()=>localStorage.setItem(mark,"1")).catch(e=>console.warn("Legacy migration deferred",e));
-}
 
-/* Vault lock. Hashing the PIN is not encryption of the records. */
-async function hashPin(pin){
- const bytes=new TextEncoder().encode(pin);
- const digest=await crypto.subtle.digest("SHA-256",bytes);
- return Array.from(new Uint8Array(digest)).map(x=>x.toString(16).padStart(2,"0")).join("");
-}
-async function setPin(){
- const pin=$("pin").value;
- if(!/^\d{4}$/.test(pin))return toast(tr("pinRequired"),true);
- try{
-  await db.ref(notePath("vault_settings")).update({pinHash:await hashPin(pin),updatedAt:Date.now()});
-  toast(tr("pinSet")+" "+tr("vaultPinWarning"));
- }catch(e){console.error(e);toast(tr("vaultFailed"),true)}
-}
-async function unlock(){
- const pin=$("pin").value;
- if(!/^\d{4}$/.test(pin))return toast(tr("pinRequired"),true);
- if(!vaultSettings.pinHash)return toast(tr("setPinFirst"),true);
- if(await hashPin(pin)!==String(vaultSettings.pinHash))return toast(tr("pinMismatch"),true);
- unlocked=true;$("vaultLock").classList.add("hidden");$("vaultBody").classList.remove("hidden");renderVault();
-}
-function lockVault(){
- unlocked=false;$("pin").value="";$("vaultLock").classList.remove("hidden");$("vaultBody").classList.add("hidden");toast(tr("vaultLock"));
-}
-async function saveSecret(){
- if(!unlocked)return;
- const title=$("secretTitle").value.trim(),content=$("secretContent").value.trim();
- if(!title&&!content)return toast(tr("noContent"),true);
- const key=makeId(),now=Date.now();
- try{
-  await db.ref(notePath("secure_notes/"+key)).set({id:key,title:title||tr("untitled"),content,createdAt:now,updatedAt:now});
-  $("secretTitle").value="";$("secretContent").value="";toast(tr("vaultSaved"));
- }catch(e){console.error(e);toast(tr("vaultFailed"),true)}
-}
-async function saveDocument(){
- if(!unlocked)return;
- const file=$("docFile").files[0];
- if(!file)return toast(tr("chooseFile"),true);
- if(file.size>300*1024)return toast(tr("fileTooLarge"),true);
- if(!(file.type==="application/pdf"||file.type.startsWith("image/")))return toast(tr("invalidFile"),true);
- const reader=new FileReader();
- reader.onerror=()=>toast(tr("vaultFailed"),true);
- reader.onload=async()=>{
-  const key=makeId();
-  try{
-   await db.ref(notePath("secure_docs/"+key)).set({id:key,title:$("docTitle").value.trim()||file.name,mime:file.type,size:file.size,data:reader.result,createdAt:Date.now()});
-   $("docTitle").value="";$("docFile").value="";toast(tr("vaultSaved"));
-  }catch(e){console.error(e);toast(tr("vaultFailed"),true)}
- };
- reader.readAsDataURL(file);
-}
-function renderVault(){
- if(!unlocked)return;
- const root=$("vaultList");root.replaceChildren();
- const list=Object.values(vaultTab==="notes"?secretNotes:documents);
- if(!list.length){root.innerHTML=`<p class="empty">${esc(tr("noVault"))}</p>`;return}
- list.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).forEach(item=>{
-  const el=document.createElement("article");el.className="note";
-  if(vaultTab==="notes"){
-   el.innerHTML=`<h3 class="note-title">${esc(item.title||tr("untitled"))}</h3><div class="note-body">${esc(item.content||"")}</div><p class="note-meta">${esc(when(item.createdAt))}</p><button class="danger" data-vault-delete="secure_notes" data-id="${esc(item.id)}">${esc(tr("delete"))}</button>`;
-  }else{
-   el.innerHTML=`<h3 class="note-title">${esc(item.title||"Document")}</h3><p class="note-meta">${esc(item.mime||"File")} · ${Math.ceil((item.size||0)/1024)} KB</p>${item.mime?.startsWith("image/")?`<img src="${item.data}" alt="${esc(item.title)}" style="max-width:100%;max-height:220px;border-radius:10px">`:""}${item.mime==="application/pdf"?`<button data-open-doc="${esc(item.id)}">${esc(tr("documents"))} · PDF</button>`:""}<button class="danger" data-vault-delete="secure_docs" data-id="${esc(item.id)}">${esc(tr("delete"))}</button>`;
+  function toast(message, error = false) {
+    const el = document.createElement("div");
+    el.className = "toast" + (error ? " error" : "");
+    el.textContent = message;
+    $("toastArea").append(el);
+    setTimeout(() => el.remove(), 3000);
   }
-  root.append(el);
- });
-}
-function listen(path,callback){
- db.ref(notePath(path)).on("value",snap=>callback(snap.val()),error=>{
-  console.error(path,error);$("sync").textContent=tr("cloudError");
-  if(error.code==="PERMISSION_DENIED")toast(tr("noPermission"),true);
- });
-}
-function wireEvents(){
- $("newNote").onclick=()=>openEditor();
- $("closeModal").onclick=$("cancelModal").onclick=()=>showModal(false);
- $("saveNote").onclick=saveNote;
- $("search").oninput=renderNotes;
- ["viewFilter","categoryFilter","sortFilter"].forEach(id=>$(id).onchange=renderNotes);
- $("clearFilters").onclick=()=>{$("search").value="";$("viewFilter").value="active";$("categoryFilter").value="";$("sortFilter").value="updated";renderNotes();toast(tr("clearDone"))};
- $("notes").onclick=async e=>{
-  const b=e.target.closest("[data-action]");if(!b)return;
-  const n=notes[b.dataset.id];if(!n)return;
-  switch(b.dataset.action){
-   case "edit":openEditor(n);break;
-   case "favorite":updateNoteFlag(n.id,{favorite:!n.favorite});break;
-   case "pin":updateNoteFlag(n.id,{pinned:!n.pinned});break;
-   case "archive":updateNoteFlag(n.id,{archived:!n.archived});toast(tr("archiveDone"));break;
-   case "delete":softDelete("notes",n.id,"notes");break;
-   case "print":printOne(n);break;
+
+  function esc(value) {
+    return String(value ?? "").replace(/[&<>"']/g, c => ({
+      "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+    }[c]));
   }
- };
- $("trash").onclick=e=>{
-  const b=e.target.closest("[data-trash-action]");if(!b)return;
-  if(b.dataset.trashAction==="restore")restoreTrash(b.dataset.id);
-  if(b.dataset.trashAction==="permanent")permanentlyDeleteTrash(b.dataset.id);
- };
- $("exportNotes").onclick=exportNotes;
- $("importButton").onclick=()=>$("importFile").click();
- $("importFile").onchange=e=>{importNotes(e.target.files[0]);e.target.value=""};
- $("printNotes").onclick=()=>window.print();
- $("vaultToggle").onclick=()=>{
-  const opening=$("vault").classList.contains("hidden");
-  $("vault").classList.toggle("hidden",!opening);
-  $("vaultToggle").textContent=tr(opening?"closeVault":"openVault");
-  if(!opening)lockVault();
- };
- $("unlockVault").onclick=unlock;$("setVaultPin").onclick=setPin;
- $("saveSecret").onclick=saveSecret;$("saveDoc").onclick=saveDocument;
- $("lockVault").onclick=lockVault;
- $("tabSecret").onclick=()=>{vaultTab="notes";$("secretEditor").classList.remove("hidden");$("docEditor").classList.add("hidden");$("tabSecret").classList.add("primary");$("tabDocs").classList.remove("primary");renderVault()};
- $("tabDocs").onclick=()=>{vaultTab="docs";$("secretEditor").classList.add("hidden");$("docEditor").classList.remove("hidden");$("tabDocs").classList.add("primary");$("tabSecret").classList.remove("primary");renderVault()};
- $("vaultList").onclick=async e=>{
-  const del=e.target.closest("[data-vault-delete]");
-  if(del)await softDelete(del.dataset.vaultDelete,del.dataset.id,del.dataset.vaultDelete);
-  const open=e.target.closest("[data-open-doc]");
-  if(open){const doc=documents[open.dataset.openDoc];if(doc?.data){const w=window.open();if(w){w.document.write(`<iframe title="PDF" src="${esc(doc.data)}" style="border:0;width:100%;height:100vh"></iframe>`);w.document.close()}}}
- };
- document.addEventListener("keydown",e=>{if(e.key==="Escape")showModal(false)});
-}
-async function start(){
- readPrefs();applyPrefs();wireEvents();
- if(!firebase.apps.length)firebase.initializeApp(CFG);
- db=firebase.database();
- firebase.auth().onAuthStateChanged(u=>{
-  if(!u){
-   user=null;$("sync").textContent=tr("authRequired");toast(tr("authLost"),true);
-   setTimeout(()=>location.replace("index.html"),500);return;
+
+  function path(part) {
+    return "users/" + user.uid + "/" + part;
   }
-  if(user&&user.uid===u.uid)return;
-  user=u;document.body.classList.remove("auth-pending");
-  $("sync").textContent=navigator.onLine?tr("connecting"):tr("offline");
-  listen("notes",v=>{notes=records(v);renderNotes()});
-  listen("trash",v=>{trash={};if(v&&typeof v==="object")Object.values(v).forEach(group=>Object.assign(trash,records(group)));renderTrash()});
-  listen("secure_notes",v=>{secretNotes=records(v);if(unlocked&&vaultTab==="notes")renderVault()});
-  listen("secure_docs",v=>{documents=records(v);if(unlocked&&vaultTab==="docs")renderVault()});
-  listen("vault_settings",v=>{vaultSettings=v||{}});
-  localMigration();
- });
- window.addEventListener("online",()=>{$("sync").textContent=tr("live")});
- window.addEventListener("offline",()=>{$("sync").textContent=tr("offline")});
-}
-try{start()}catch(e){console.error(e);$("sync").textContent=tr("cloudError");toast(tr("cloudError"),true)}
+
+  function newId() {
+    return db.ref().push().key;
+  }
+
+  function records(value) {
+    const out = {};
+    if (!value || typeof value !== "object") return out;
+    Object.entries(value).forEach(([key, value]) => {
+      if (value && typeof value === "object" && !Array.isArray(value)) {
+        const id = String(value.id || key);
+        out[id] = {...value, id};
+      }
+    });
+    return out;
+  }
+
+  function dateText(value) {
+    if (!value) return "—";
+    const date = new Date(Number(value));
+    if (!Number.isFinite(date.getTime())) return "—";
+    return date.toLocaleString(prefs.lang === "ne" ? "ne-NP" : "en-IN");
+  }
+
+  function openEditor(note = {}) {
+    $("noteId").value = note.id || "";
+    $("noteTitle").value = note.title || "";
+    $("noteContent").value = note.content || "";
+    $("noteCategory").value = CATEGORIES.includes(note.category) ? note.category : "Personal";
+    $("noteTags").value = Array.isArray(note.tags) ? note.tags.join(", ") : "";
+    $("noteColor").value = /^#[0-9a-f]{6}$/i.test(note.color || "") ? note.color : "#10b981";
+    $("noteReminder").value = note.reminder
+      ? new Date(Number(note.reminder)).toISOString().slice(0,16) : "";
+    $("noteFavorite").checked = !!note.favorite;
+    $("notePinned").checked = !!note.pinned;
+    $("modalTitle").textContent = t(note.id ? "edit" : "newNote");
+    $("modal").classList.add("open");
+  }
+
+  function closeEditor() {
+    $("modal").classList.remove("open");
+  }
+
+  function filteredNotes() {
+    const query = $("search").value.trim().toLocaleLowerCase();
+    const view = $("viewFilter").value;
+    const category = $("categoryFilter").value;
+    const sort = $("sortFilter").value;
+
+    const list = Object.values(notes).filter(note => {
+      if (view === "active" && note.archived) return false;
+      if (view === "archive" && !note.archived) return false;
+      if (view === "favorite" && !note.favorite) return false;
+      if (view === "pinned" && !note.pinned) return false;
+      if (category && note.category !== category) return false;
+
+      const tags = Array.isArray(note.tags) ? note.tags : [];
+      const searchable = [
+        note.title, note.content, note.category, ...tags
+      ].join(" ").toLocaleLowerCase();
+
+      return !query || searchable.includes(query);
+    });
+
+    list.sort((a,b) => {
+      if (!!a.pinned !== !!b.pinned) return Number(!!b.pinned) - Number(!!a.pinned);
+      if (sort === "title") return String(a.title || "").localeCompare(String(b.title || ""));
+      if (sort === "created") return Number(b.createdAt || 0) - Number(a.createdAt || 0);
+      return Number(b.updatedAt || 0) - Number(a.updatedAt || 0);
+    });
+
+    return list;
+  }
+
+  function renderNotes() {
+    if (!$("notes")) return;
+    const root = $("notes");
+    root.replaceChildren();
+    const list = filteredNotes();
+    $("noteCount").textContent = String(list.length);
+
+    if (!list.length) {
+      const empty = document.createElement("p");
+      empty.className = "empty";
+      empty.textContent = t("empty");
+      root.append(empty);
+      return;
+    }
+
+    list.forEach(note => {
+      const el = document.createElement("article");
+      el.className = "note";
+      el.style.setProperty(
+        "--note-color",
+        /^#[0-9a-f]{6}$/i.test(note.color || "") ? note.color : "var(--accent)"
+      );
+
+      const tags = Array.isArray(note.tags) ? note.tags : [];
+      const categoryKey = String(note.category || "Other").toLowerCase();
+      const categoryName = t(categoryKey);
+
+      el.innerHTML = `
+        <div class="actions">
+          <h3 class="note-title" style="flex:1">${esc(note.title || t("untitled"))}</h3>
+          <span>${note.pinned ? "📌" : ""} ${note.favorite ? '<span class="star">★</span>' : ""}</span>
+        </div>
+        <div class="pills">
+          <span class="pill">${esc(categoryName)}</span>
+          ${note.archived ? `<span class="pill">${esc(t("archive"))}</span>` : ""}
+          ${tags.map(tag => `<span class="pill">#${esc(tag)}</span>`).join("")}
+        </div>
+        <div class="note-body">${esc(note.content || "")}</div>
+        ${note.reminder ? `<div class="note-meta">⏰ ${esc(dateText(note.reminder))}</div>` : ""}
+        <div class="note-meta">${esc(t("updated"))}: ${esc(dateText(note.updatedAt))}</div>
+        <div class="note-buttons">
+          <button data-action="edit" data-id="${esc(note.id)}">${esc(t("edit"))}</button>
+          <button data-action="favorite" data-id="${esc(note.id)}">${note.favorite ? "★" : "☆"}</button>
+          <button data-action="pin" data-id="${esc(note.id)}">${note.pinned ? "📌" : "📍"}</button>
+          <button data-action="archive" data-id="${esc(note.id)}">${note.archived ? "↩" : "▣"}</button>
+          <button class="danger" data-action="delete" data-id="${esc(note.id)}">${esc(t("delete"))}</button>
+        </div>
+      `;
+      root.append(el);
+    });
+  }
+
+  async function saveNote() {
+    const title = $("noteTitle").value.trim();
+    const content = $("noteContent").value.trim();
+    if (!title && !content) {
+      toast(t("noContent"), true);
+      return;
+    }
+
+    const oldId = $("noteId").value;
+    const id = oldId || newId();
+    const previous = notes[id] || {};
+    const tags = [...new Set(
+      $("noteTags").value.split(",").map(x => x.trim()).filter(Boolean)
+    )].slice(0,30);
+    const reminderInput = $("noteReminder").value;
+    const reminder = reminderInput ? new Date(reminderInput).getTime() : null;
+
+    const record = {
+      ...previous,
+      id,
+      title: title || t("untitled"),
+      content,
+      category: CATEGORIES.includes($("noteCategory").value) ? $("noteCategory").value : "Other",
+      tags,
+      color: /^#[0-9a-f]{6}$/i.test($("noteColor").value) ? $("noteColor").value : "#10b981",
+      favorite: $("noteFavorite").checked,
+      pinned: $("notePinned").checked,
+      archived: !!previous.archived,
+      reminder: reminder && Number.isFinite(reminder) ? reminder : null,
+      createdAt: previous.createdAt || Date.now(),
+      updatedAt: Date.now()
+    };
+
+    try {
+      await db.ref(path("notes/" + id)).set(record);
+      closeEditor();
+      toast(t("saved"));
+    } catch (error) {
+      console.error(error);
+      toast(error.code === "PERMISSION_DENIED" ? t("noPermission") : t("saveFailed"), true);
+    }
+  }
+
+  async function updateNote(id, changes) {
+    if (!notes[id]) return;
+    try {
+      await db.ref(path("notes/" + id)).update({
+        ...changes,
+        updatedAt: Date.now()
+      });
+    } catch (error) {
+      console.error(error);
+      toast(error.code === "PERMISSION_DENIED" ? t("noPermission") : t("saveFailed"), true);
+    }
+  }
+
+  async function deleteNote(id) {
+    if (!notes[id]) return;
+    if (!confirm(t("confirmDelete"))) return;
+    try {
+      await db.ref(path("notes/" + id)).remove();
+      toast(t("deleted"));
+    } catch (error) {
+      console.error(error);
+      toast(t("saveFailed"), true);
+    }
+  }
+
+  async function hashPin(pin) {
+    const data = new TextEncoder().encode(pin);
+    const digest = await crypto.subtle.digest("SHA-256", data);
+    return Array.from(new Uint8Array(digest))
+      .map(n => n.toString(16).padStart(2,"0")).join("");
+  }
+
+  async function setVaultPin() {
+    const pin = $("pin").value;
+    if (!/^\d{4}$/.test(pin)) {
+      toast(t("pinRequired"), true);
+      return;
+    }
+    if (vaultSettings.pinHash && !confirm(t("confirmPinChange"))) return;
+
+    try {
+      await db.ref(path("vault_settings")).update({
+        pinHash: await hashPin(pin),
+        updatedAt: Date.now()
+      });
+      toast(t("pinSet"));
+      $("pin").value = "";
+    } catch (error) {
+      console.error(error);
+      toast(t("vaultFailed"), true);
+    }
+  }
+
+  async function unlockVault() {
+    const pin = $("pin").value;
+    if (!/^\d{4}$/.test(pin)) {
+      toast(t("pinRequired"), true);
+      return;
+    }
+    if (!vaultSettings.pinHash) {
+      toast(t("setPinFirst"), true);
+      return;
+    }
+    try {
+      if (await hashPin(pin) !== String(vaultSettings.pinHash)) {
+        toast(t("pinMismatch"), true);
+        return;
+      }
+      unlocked = true;
+      $("pin").value = "";
+      $("vaultLock").classList.add("hidden");
+      $("vaultBody").classList.remove("hidden");
+      renderVault();
+    } catch (error) {
+      console.error(error);
+      toast(t("vaultFailed"), true);
+    }
+  }
+
+  function lockVault() {
+    unlocked = false;
+    $("pin").value = "";
+    $("vaultLock").classList.remove("hidden");
+    $("vaultBody").classList.add("hidden");
+    $("vaultList").replaceChildren();
+    toast(t("vaultLock"));
+  }
+
+  async function savePrivateNote() {
+    if (!unlocked) return;
+    const title = $("secretTitle").value.trim();
+    const content = $("secretContent").value.trim();
+    if (!title && !content) {
+      toast(t("noContent"), true);
+      return;
+    }
+
+    const id = newId();
+    const now = Date.now();
+    try {
+      await db.ref(path("secure_notes/" + id)).set({
+        id,
+        title: title || t("untitled"),
+        content,
+        createdAt: now,
+        updatedAt: now
+      });
+      $("secretTitle").value = "";
+      $("secretContent").value = "";
+      toast(t("vaultSaved"));
+    } catch (error) {
+      console.error(error);
+      toast(t("vaultFailed"), true);
+    }
+  }
+
+  async function saveDocument() {
+    if (!unlocked) return;
+    const file = $("docFile").files[0];
+    if (!file) {
+      toast(t("chooseFile"), true);
+      return;
+    }
+    if (file.size > 300 * 1024) {
+      toast(t("fileTooLarge"), true);
+      return;
+    }
+    if (!(file.type === "application/pdf" || file.type.startsWith("image/"))) {
+      toast(t("invalidFile"), true);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onerror = () => toast(t("vaultFailed"), true);
+    reader.onload = async () => {
+      const id = newId();
+      try {
+        await db.ref(path("secure_docs/" + id)).set({
+          id,
+          title: $("docTitle").value.trim() || file.name,
+          mime: file.type,
+          size: file.size,
+          data: reader.result,
+          createdAt: Date.now()
+        });
+        $("docTitle").value = "";
+        $("docFile").value = "";
+        toast(t("vaultSaved"));
+      } catch (error) {
+        console.error(error);
+        toast(t("vaultFailed"), true);
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function deleteVaultRecord(collection, id) {
+    if (!confirm(t("confirmVaultDelete"))) return;
+    try {
+      await db.ref(path(collection + "/" + id)).remove();
+      toast(collection === "secure_docs" ? t("documentDelete") : t("privateDelete"));
+    } catch (error) {
+      console.error(error);
+      toast(t("vaultFailed"), true);
+    }
+  }
+
+  function renderVault() {
+    if (!unlocked) return;
+    const root = $("vaultList");
+    root.replaceChildren();
+
+    const source = vaultTab === "notes" ? privateNotes : documents;
+    const list = Object.values(source).sort((a,b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
+
+    if (!list.length) {
+      const p = document.createElement("p");
+      p.className = "empty";
+      p.textContent = t("noVault");
+      root.append(p);
+      return;
+    }
+
+    list.forEach(item => {
+      const el = document.createElement("article");
+      el.className = "note";
+
+      if (vaultTab === "notes") {
+        el.innerHTML = `
+          <h3 class="note-title">${esc(item.title || t("untitled"))}</h3>
+          <div class="note-body">${esc(item.content || "")}</div>
+          <div class="note-meta">${esc(dateText(item.createdAt))}</div>
+          <button class="danger" data-vault-delete="secure_notes" data-id="${esc(item.id)}">${esc(t("delete"))}</button>
+        `;
+      } else {
+        el.innerHTML = `
+          <h3 class="note-title">${esc(item.title || t("documents"))}</h3>
+          <div class="note-meta">${esc(item.mime || "File")} · ${Math.ceil(Number(item.size || 0) / 1024)} KB</div>
+          ${item.mime && item.mime.startsWith("image/") ? `<img src="${esc(item.data)}" alt="" style="max-width:100%;max-height:220px;border-radius:10px">` : ""}
+          ${item.mime === "application/pdf" ? `<button data-open-doc="${esc(item.id)}">${esc(t("documents"))}</button>` : ""}
+          <button class="danger" data-vault-delete="secure_docs" data-id="${esc(item.id)}">${esc(t("delete"))}</button>
+        `;
+      }
+      root.append(el);
+    });
+  }
+
+  function listen(collection, callback) {
+    db.ref(path(collection)).on("value", snapshot => {
+      callback(snapshot.val());
+    }, error => {
+      console.error(collection, error);
+      $("sync").textContent = t("cloudError");
+      if (error.code === "PERMISSION_DENIED") toast(t("noPermission"), true);
+    });
+  }
+
+  function wireEvents() {
+    $("newNote").onclick = () => openEditor();
+    $("closeModal").onclick = $("cancelModal").onclick = closeEditor;
+    $("saveNote").onclick = saveNote;
+
+    $("search").oninput = renderNotes;
+    ["viewFilter","categoryFilter","sortFilter"].forEach(id => {
+      $(id).onchange = renderNotes;
+    });
+
+    $("clearFilters").onclick = () => {
+      $("search").value = "";
+      $("viewFilter").value = "active";
+      $("categoryFilter").value = "";
+      $("sortFilter").value = "updated";
+      renderNotes();
+    };
+
+    $("notes").onclick = event => {
+      const button = event.target.closest("[data-action]");
+      if (!button) return;
+      const id = button.dataset.id;
+      const note = notes[id];
+      if (!note) return;
+
+      switch (button.dataset.action) {
+        case "edit": openEditor(note); break;
+        case "favorite": updateNote(id, {favorite:!note.favorite}); break;
+        case "pin": updateNote(id, {pinned:!note.pinned}); break;
+        case "archive": updateNote(id, {archived:!note.archived}); break;
+        case "delete": deleteNote(id); break;
+      }
+    };
+
+    $("vaultToggle").onclick = () => {
+      const opening = $("vault").classList.contains("hidden");
+      $("vault").classList.toggle("hidden", !opening);
+      $("vaultToggle").textContent = t(opening ? "closeVault" : "openVault");
+      if (!opening) lockVault();
+    };
+
+    $("unlockVault").onclick = unlockVault;
+    $("setVaultPin").onclick = setVaultPin;
+    $("saveSecret").onclick = savePrivateNote;
+    $("saveDoc").onclick = saveDocument;
+    $("lockVault").onclick = lockVault;
+
+    $("tabSecret").onclick = () => {
+      vaultTab = "notes";
+      $("secretEditor").classList.remove("hidden");
+      $("docEditor").classList.add("hidden");
+      $("tabSecret").classList.add("primary");
+      $("tabDocs").classList.remove("primary");
+      renderVault();
+    };
+
+    $("tabDocs").onclick = () => {
+      vaultTab = "docs";
+      $("secretEditor").classList.add("hidden");
+      $("docEditor").classList.remove("hidden");
+      $("tabDocs").classList.add("primary");
+      $("tabSecret").classList.remove("primary");
+      renderVault();
+    };
+
+    $("vaultList").onclick = async event => {
+      const del = event.target.closest("[data-vault-delete]");
+      if (del) {
+        await deleteVaultRecord(del.dataset.vaultDelete, del.dataset.id);
+        return;
+      }
+      const open = event.target.closest("[data-open-doc]");
+      if (open) {
+        const doc = documents[open.dataset.openDoc];
+        if (doc && doc.data) {
+          const win = window.open();
+          if (win) {
+            const iframe = win.document.createElement("iframe");
+            iframe.src = doc.data;
+            iframe.title = "Vault document";
+            iframe.style.cssText = "width:100%;height:100vh;border:0";
+            win.document.body.style.margin = "0";
+            win.document.body.append(iframe);
+          }
+        }
+      }
+    };
+
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape") closeEditor();
+    });
+  }
+
+  function start() {
+    readPrefs();
+    applyPrefs();
+    wireEvents();
+
+    if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+    db = firebase.database();
+
+    firebase.auth().onAuthStateChanged(authUser => {
+      if (!authUser) {
+        user = null;
+        $("sync").textContent = t("authRequired");
+        document.body.classList.add("auth-pending");
+        location.replace("index.html");
+        return;
+      }
+
+      if (user && user.uid === authUser.uid) return;
+      user = authUser;
+      document.body.classList.remove("auth-pending");
+
+      $("sync").textContent = navigator.onLine ? t("connecting") : t("offline");
+
+      listen("notes", value => {
+        notes = records(value);
+        renderNotes();
+      });
+
+      listen("secure_notes", value => {
+        privateNotes = records(value);
+        if (unlocked && vaultTab === "notes") renderVault();
+      });
+
+      listen("secure_docs", value => {
+        documents = records(value);
+        if (unlocked && vaultTab === "docs") renderVault();
+      });
+
+      listen("vault_settings", value => {
+        vaultSettings = value || {};
+      });
+    });
+
+    window.addEventListener("online", () => {
+      $("sync").textContent = t("live");
+    });
+    window.addEventListener("offline", () => {
+      $("sync").textContent = t("offline");
+    });
+  }
+
+  try {
+    start();
+  } catch (error) {
+    console.error(error);
+    $("sync").textContent = t("cloudError");
+    toast(t("cloudError"), true);
+  }
 })();
 </script>
 </body>
