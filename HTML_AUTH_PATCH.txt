@@ -1,0 +1,26 @@
+# तीनवटा HTML मा अनिवार्य Authentication सुधार
+
+यी फाइलहरूमा पुरानो कोड खोज्नुहोस्:
+- add-transaction.html
+- add-income.html
+- add-saving.html
+
+पुरानो:
+```js
+auth.onAuthStateChanged(async u=>{if(!u){uid=null;showAuthGate();return}
+```
+
+त्यसलाई यसले बदल्नुहोस्:
+```js
+auth.onAuthStateChanged(async u=>{
+  if (!u) {
+    uid = null;
+    window.location.replace('./index.html');
+    return;
+  }
+```
+
+अर्को ध्यान दिनुपर्ने कुरा:
+- यो न्यूनतम सुरक्षित परिवर्तन हो; `showAuthGate()` function अब प्रयोग हुँदैन, तर बाँकी code लाई नछोई राख्दा सुविधाहरू बिग्रने जोखिम कम हुन्छ।
+- Firebase Rules ले `users/{uid}` मात्र त्यही UID भएको signed-in user लाई पढ्न/लेख्न दिन्छ। Rules deploy गर्नु अघि आफ्नै project मा Firebase Realtime Database प्रयोग भइरहेको छ र अन्य code ले `users/{uid}/...` अन्तर्गत नै लेखिरहेको छ भनी पुष्टि गर्नुहोस्।
+- Cloud Function ले वैध `expiresAt` वा `deletedAt` भएको Trash entry मात्र मेटाउँछ। मिति नभएको पुरानो Trash entry सुरक्षाका लागि राखिन्छ।
