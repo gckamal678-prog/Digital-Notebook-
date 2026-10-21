@@ -1,805 +1,835 @@
+
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Digital NoteBook - Settings & Preferences</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<!-- Firebase App (core) and Firebase Auth -->
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-<!-- EmailJS SDK -->
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-<script type="text/javascript">
-    (function(){
-        emailjs.init("K1o1WC9jydWnUnUl7");
-    })();
-</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101827">
+<title>Digital NoteBook - Settings</title>
+
 <script>
-tailwind.config = {
-    darkMode: 'class',
-    theme: {
-        extend: {
-            fontFamily: {
-                sans: ['Poppins', 'sans-serif'],
-            }
-        }
-    }
-}
+/*
+ * CANONICAL DISPLAY PREFERENCES
+ * All pages must read this same key:
+ * digital_notebook_settings
+ */
+(function () {
+  const KEY = "digital_notebook_settings";
+  const DEFAULTS = {
+    lang: "en",
+    theme: "dark",
+    font_size: "16",
+    font_family: "Poppins",
+    accentColor: "#10b981",
+    layout: "comfortable"
+  };
+
+  let saved = {};
+  try {
+    saved = JSON.parse(localStorage.getItem(KEY) || "{}");
+  } catch (_) {}
+
+  if (!saved || typeof saved !== "object" || Array.isArray(saved)) {
+    saved = {};
+  }
+
+  saved = { ...DEFAULTS, ...saved };
+
+  /* Migrate the previous theme key without losing the saved preference. */
+  if (!localStorage.getItem(KEY) && localStorage.getItem("theme")) {
+    saved.theme = localStorage.getItem("theme");
+  }
+
+  try {
+    localStorage.setItem(KEY, JSON.stringify(saved));
+    localStorage.setItem("theme", saved.theme);
+  } catch (_) {}
+
+  document.documentElement.lang = saved.lang === "ne" ? "ne" : "en";
+  document.documentElement.classList.toggle("dark", saved.theme !== "light");
+  document.documentElement.style.setProperty("--accent", saved.accentColor);
+  document.documentElement.style.setProperty(
+    "--app-font-size",
+    (Number(saved.font_size) || 16) + "px"
+  );
+  document.documentElement.style.setProperty(
+    "--app-font-family",
+    JSON.stringify(saved.font_family || "Poppins") + ", Arial, sans-serif"
+  );
+  document.documentElement.dataset.layout = saved.layout || "comfortable";
+})();
 </script>
-<script>
-    const savedSettings = JSON.parse(localStorage.getItem("digital_notebook_settings") || "{}");
-    const savedTheme = savedSettings.theme || localStorage.getItem('theme') || 'dark';
-    if (savedTheme === 'light') {
-        document.documentElement.classList.remove('dark');
-    } else {
-        document.documentElement.classList.add('dark');
-    }
-</script>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500;700&family=Georgia&family=Srikhand&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
 <style>
-    @keyframes rainbow {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
-    }
-    .animate-rainbow {
-        background-size: 300% auto;
-        animation: rainbow 5s linear infinite;
-    }
-    .more-text {
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    .more-text.show {
-        display: block;
-        overflow: visible;
-    }
-    .switch {
-        width: 60px;
-        height: 34px;
-        flex-shrink: 0;
-        border-radius: 40px;
-        background: #596273;
-        position: relative;
-        cursor: pointer;
-        border: 0;
-        padding: 0;
-        transition: background .15s;
-    }
-    .switch::after {
-        content: "";
-        position: absolute;
-        width: 26px;
-        height: 26px;
-        left: 4px;
-        top: 4px;
-        border-radius: 50%;
-        background: white;
-        transition: transform .15s;
-    }
-    .switch[aria-checked="true"] { background: var(--accent, #00ed20); }
-    .switch[aria-checked="true"]::after { transform: translateX(26px); }
+:root {
+  --bg: #0b1220;
+  --panel: #151f31;
+  --field: #1c2940;
+  --text: #edf3ff;
+  --muted: #9cacc5;
+  --line: #2b3a54;
+  --accent: #10b981;
+  --app-font-size: 16px;
+  --app-font-family: Poppins, Arial, sans-serif;
+}
+html:not(.dark) {
+  --bg: #f3f6fb;
+  --panel: #ffffff;
+  --field: #edf2f9;
+  --text: #152033;
+  --muted: #586780;
+  --line: #d7e0ed;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: var(--app-font-size)/1.55 var(--app-font-family);
+}
+button, input, select, textarea {
+  font: inherit;
+}
+button {
+  cursor: pointer;
+}
+button:disabled { opacity: .55; cursor: not-allowed; }
+header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+}
+header a {
+  color: var(--text);
+  text-decoration: none;
+  font-size: 23px;
+}
+header .brand { flex: 1; font-weight: 750; }
+main {
+  width: min(900px, 100%);
+  margin: auto;
+  padding: 16px;
+  display: grid;
+  gap: 14px;
+}
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 18px;
+}
+h1, h2, h3, p { margin-top: 0; }
+h1 { font-size: 1.4em; }
+h2 { font-size: 1.15em; }
+p, .muted { color: var(--muted); }
+.field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(135px, 42%);
+  gap: 12px;
+  align-items: center;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--line);
+}
+.field:last-child { border-bottom: 0; }
+.field label { font-weight: 650; }
+.field small {
+  display: block;
+  color: var(--muted);
+  font-weight: 400;
+  font-size: .8em;
+}
+input, select, textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 10px;
+  color: var(--text);
+  background: var(--field);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+input[type="color"] {
+  height: 44px;
+  padding: 4px;
+}
+button {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 13px;
+  background: var(--field);
+  color: var(--text);
+}
+.primary {
+  color: #062319;
+  background: var(--accent);
+  border-color: var(--accent);
+  font-weight: 750;
+}
+.danger { color: #fb7185; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.actions button { width: auto; }
+.switch {
+  justify-self: end;
+  width: 56px;
+  height: 32px;
+  position: relative;
+  border: 0;
+  border-radius: 30px;
+  background: #64748b;
+}
+.switch::after {
+  content: "";
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  left: 4px;
+  top: 4px;
+  border-radius: 50%;
+  background: white;
+  transition: transform .15s;
+}
+.switch[aria-checked="true"] { background: var(--accent); }
+.switch[aria-checked="true"]::after { transform: translateX(24px); }
+.status { font-size: .8em; color: var(--muted); }
+.toast-area {
+  position: fixed;
+  z-index: 50;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: grid;
+  gap: 6px;
+  width: min(92%, 480px);
+}
+.toast {
+  background: #166534;
+  color: white;
+  border-radius: 10px;
+  padding: 11px 14px;
+  box-shadow: 0 4px 18px #0003;
+}
+.toast.error { background: #9f1239; }
+.hidden { display: none !important; }
+body.auth-pending main { visibility: hidden; }
+body.auth-pending header { visibility: hidden; }
+body[data-layout="compact"] main { gap: 8px; padding: 8px; }
+body[data-layout="compact"] .card { padding: 12px; border-radius: 12px; }
+body[data-layout="compact"] .field { padding: 7px 0; }
+body[data-layout="comfortable"] main { gap: 14px; }
+body[data-layout="comfortable"] .card { padding: 18px; }
+@media (max-width: 520px) {
+  main { padding: 10px; }
+  .card { padding: 13px; }
+  header { padding: 10px; }
+  .field { grid-template-columns: 1fr; gap: 5px; }
+  .switch { justify-self: start; }
+}
 </style>
 </head>
-<body id="main-body" class="bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 text-xs">
 
-<!-- TOAST NOTIFICATION CONTAINER -->
-<div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2"></div>
+<body class="auth-pending">
+<header>
+  <a href="index.html" aria-label="Back">←</a>
+  <div class="brand">📘 Digital NoteBook</div>
+  <button type="button" id="headerLang" aria-label="Change language">नेपाली</button>
+</header>
 
-<div class="flex min-h-screen w-full">
-    
-    <!-- SIDEBAR SECTION -->
-    <div id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 bg-slate-900 border-r border-slate-800 transform -translate-x-full transition-transform duration-300 flex flex-col text-white">
-        
-        <div class="flex items-center justify-between px-4 py-3 border-b border-slate-800">
-            <div class="flex items-center space-x-2.5">
-                <div class="w-8 h-8 rounded-lg bg-emerald-600 border border-emerald-500 flex items-center justify-center overflow-hidden shadow-md">
-                    <img src="N1024.png" alt="Logo" class="w-full h-full object-cover">
-                </div>
-                <div>
-                    <h1 class="text-sm font-extrabold tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">
-                        Digital NoteBook
-                    </h1>
-                </div>
-            </div>
-            <button onclick="toggleSidebar()" class="text-slate-400 hover:text-white text-lg focus:outline-none">
-                ✕
-            </button>
-        </div>
+<main>
+  <section class="card">
+    <h1 data-i18n="pageTitle">Settings & Preferences</h1>
+    <p data-i18n="intro">Choose your display preferences. Changes are saved on this device and work offline.</p>
+    <p class="status" id="saveStatus" role="status">Saved on this device</p>
+  </section>
 
-        <div class="p-3 space-y-3 overflow-y-auto flex-1 text-xs">
-            <div class="bg-slate-800/50 border border-slate-700/60 rounded-xl p-3 flex items-center space-x-3">
-                <div class="relative cursor-pointer group" onclick="document.getElementById('avatar-upload-input').click()">
-                    <div class="w-11 h-11 rounded-full bg-emerald-600 border border-emerald-500 flex items-center justify-center overflow-hidden shadow-sm">
-                        <img id="sidebar-avatar-img" src="N1024.png" alt="Profile" class="w-full h-full object-cover">
-                    </div>
-                </div>
-                <input type="file" id="avatar-upload-input" accept="image/*" class="hidden" onchange="handleAvatarUpload(event)">
-                <div>
-                    <h3 id="sidebar-profile-name" class="text-white font-bold text-sm"></h3>
-                    <p class="text-[10px] text-slate-400"><span class="lang-text" data-en="Click icon to set photo" data-np="फोटो राख्न क्लिक गर्नुहोस्">Click icon to set photo</span></p>
-                </div>
-            </div>
+  <section class="card">
+    <h2>🎨 <span data-i18n="displayHeading">Display & Preferences</span></h2>
 
-            <!-- SIDEBAR NAVIGATION -->
-            <nav class="space-y-1 font-medium">
-                <a href="index.html" class="flex items-center gap-2.5 py-2.5 px-3 rounded-xl hover:bg-slate-800 text-slate-300 transition"><span>📊</span> <span class="lang-text" data-en="Overview" data-np="अवलोकन">Overview</span></a>
-                <a href="setting.html" class="flex items-center gap-2.5 py-2.5 px-3 rounded-xl bg-emerald-600 text-white shadow-md shadow-emerald-600/20 transition"><span>⚙️</span> <span class="lang-text" data-en="Settings & About" data-np="सेटिङ र बारेमा">Settings & About</span></a>
-            </nav>
-
-            <div class="space-y-2.5 bg-slate-800/50 p-3 rounded-xl border border-slate-700/60">
-                <h3 class="text-[11px] font-bold text-white flex items-center gap-1.5 mb-1">
-                    <i class="fa-solid fa-address-card text-emerald-400"></i> <span class="lang-text" data-en="Personal Info" data-np="व्यक्तिगत विवरण">Personal Info</span>
-                </h3>
-                <div>
-                    <label class="block text-[10px] font-semibold text-slate-400 mb-0.5"><span class="lang-text" data-en="Full Name" data-np="पूरा नाम">Full Name</span></label>
-                    <input type="text" id="input-full-name" placeholder="Enter Full Name" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-white text-xs focus:outline-none focus:border-emerald-500">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-semibold text-slate-400 mb-0.5"><span class="lang-text" data-en="Address" data-np="ठेगाना">Address</span></label>
-                    <input type="text" id="input-address" placeholder="Enter Address" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-white text-xs focus:outline-none focus:border-emerald-500">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-semibold text-slate-400 mb-0.5"><span class="lang-text" data-en="Mobile Number" data-np="मोबाइल नम्बर">Mobile Number</span></label>
-                    <input type="tel" id="input-mobile" placeholder="Enter Mobile Number" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-white text-xs focus:outline-none focus:border-emerald-500">
-                </div>
-                <button onclick="saveProfileDetails()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition shadow-md">
-                    <span class="lang-text" data-en="Save Info" data-np="सेभ गर्नुहोस्">Save Info</span>
-                </button>
-            </div>
-        </div>
+    <div class="field">
+      <label for="languageSelect">
+        <span data-i18n="language">Language</span>
+        <small data-i18n="languageDesc">Choose the language used throughout supported pages.</small>
+      </label>
+      <select id="languageSelect">
+        <option value="en">English</option>
+        <option value="ne">नेपाली</option>
+      </select>
     </div>
 
-    <div class="flex-1 flex flex-col w-full">
-        
-        <!-- HEADER SECTION -->
-        <header class="sticky top-0 z-40 flex items-center justify-between px-3 md:px-5 py-3.5 bg-slate-900/95 backdrop-blur border-b border-emerald-500/20 shadow-md">
-            <div class="flex items-center space-x-2.5">
-                <button onclick="toggleSidebar()" class="text-white text-xl focus:outline-none hover:text-emerald-400 transition">☰</button>
-                <div class="flex items-center space-x-2 cursor-pointer" onclick="toggleSidebar()">
-                    <div class="w-7 h-7 rounded-lg bg-emerald-600 border border-emerald-500/50 flex items-center justify-center overflow-hidden shadow-sm">
-                        <img src="N1024.png" alt="Logo" class="w-full h-full object-cover">
-                    </div>
-                    <span class="text-xs md:text-sm font-extrabold tracking-wider bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">
-                        Digital NoteBook
-                    </span>
-                </div>
-            </div>
-
-            <div class="flex items-center space-x-2">
-                <button onclick="toggleLanguage()" id="lang-toggle-btn" class="px-2 py-1 rounded-md bg-slate-800 border border-slate-700 text-[10px] font-bold text-slate-200 hover:bg-slate-700 transition">ENG</button>
-                <button onclick="toggleTheme()" id="theme-toggle-btn" class="w-7 h-7 rounded-md bg-slate-800 border border-slate-700 flex items-center justify-center text-sm hover:bg-slate-700 transition">🌛</button>
-                <div class="relative cursor-pointer" onclick="toggleSidebar()">
-                    <div class="w-8 h-8 rounded-full bg-emerald-600 border border-emerald-500 flex items-center justify-center overflow-hidden shadow-sm">
-                        <img id="header-avatar-img" src="N1024.png" alt="Profile" class="w-full h-full object-cover">
-                    </div>
-                </div>
-            </div>
-        </header>
-        
-        <main class="p-4 md:p-6 space-y-4 flex-1 w-full text-xs">
-            <div class="flex justify-between items-center px-1 py-1 text-white">
-                <div>
-                    <p id="dynamic-date" class="text-[11px] font-semibold tracking-wider text-slate-400 uppercase mb-1"></p>
-                    <h2 class="text-base md:text-lg font-bold text-slate-800 dark:text-white tracking-tight flex items-center gap-2">
-                        <i class="fa-solid fa-sliders text-emerald-500"></i> <span class="lang-text" data-en="Settings & Preferences" data-np="सेटिङ र प्राथमिकताहरू">Settings & Preferences</span>
-                    </h2>
-                </div>
-            </div>
-
-            <!-- SETTINGS & STYLING SECTION -->
-            <div class="space-y-4 w-full max-w-5xl mx-auto">
-                
-                <!-- DISPLAY & PREFERENCES SECTION -->
-                <div class="bg-white dark:bg-slate-900 p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border border-slate-200 dark:border-slate-800 transition-colors duration-300 w-full">
-                    <h4 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-200 dark:border-slate-800 pb-3" data-i18n="displayHeading">🎨 Display & Preferences</h4>
-
-                    <div class="space-y-3 w-full">
-                        <!-- Language -->
-                        <div class="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
-                            <div class="flex items-center gap-3">
-                                <div class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-base">🌐</div>
-                                <div>
-                                    <div class="font-bold text-slate-800 dark:text-slate-200" data-i18n="language">Language</div>
-                                    <div class="text-[10px] text-slate-500 dark:text-slate-400" data-i18n="languageDesc">Choose the language used by this page.</div>
-                                </div>
-                            </div>
-                            <div class="w-32">
-                                <select id="languageSelect" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs text-slate-800 dark:text-white outline-none">
-                                    <option value="en">English</option>
-                                    <option value="ne">नेपाली</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Dark Mode -->
-                        <div class="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
-                            <div class="flex items-center gap-3">
-                                <div id="themeIconContainer" class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-base">🌙</div>
-                                <div>
-                                    <div class="font-bold text-slate-800 dark:text-slate-200" data-i18n="darkMode">Dark mode</div>
-                                    <div class="text-[10px] text-slate-500 dark:text-slate-400" data-i18n="darkDesc">Use a darker appearance.</div>
-                                </div>
-                            </div>
-                            <button id="darkToggle" class="switch" type="button" role="switch" aria-checked="true" aria-label="Dark mode"></button>
-                        </div>
-
-                        <!-- Font Size -->
-                        <div class="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
-                            <div class="flex items-center gap-3">
-                                <div class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-base">🔠</div>
-                                <div>
-                                    <div class="font-bold text-slate-800 dark:text-slate-200" data-i18n="fontSize">Font size</div>
-                                    <div class="text-[10px] text-slate-500 dark:text-slate-400" data-i18n="fontSizeDesc">Adjust text size.</div>
-                                </div>
-                            </div>
-                            <div class="w-32">
-                                <select id="fontSizeSelect" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs text-slate-800 dark:text-white outline-none">
-                                    <option value="14" data-i18n="small">Small</option>
-                                    <option value="16" data-i18n="medium">Medium</option>
-                                    <option value="18" data-i18n="large">Large</option>
-                                    <option value="20" data-i18n="extraLarge">Extra large</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Font Family -->
-                        <div class="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
-                            <div class="flex items-center gap-3">
-                                <div class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-base">✍️</div>
-                                <div>
-                                    <div class="font-bold text-slate-800 dark:text-slate-200" data-i18n="fontFamily">Font family</div>
-                                    <div class="text-[10px] text-slate-500 dark:text-slate-400" data-i18n="fontFamilyDesc">Choose your preferred font.</div>
-                                </div>
-                            </div>
-                            <div class="w-32">
-                                <select id="fontFamilySelect" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs text-slate-800 dark:text-white outline-none">
-                                    <option value="Poppins">Poppins</option>
-                                    <option value="Arial">Arial</option>
-                                    <option value="Roboto">Roboto</option>
-                                    <option value="Georgia">Georgia</option>
-                                    <option value="system-ui">System</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Accent Color -->
-                        <div class="flex items-center justify-between py-2">
-                            <div class="flex items-center gap-3">
-                                <div class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-base">🎨</div>
-                                <div>
-                                    <div class="font-bold text-slate-800 dark:text-slate-200" data-i18n="accentColor">Accent color</div>
-                                    <div class="text-[10px] text-slate-500 dark:text-slate-400" data-i18n="accentDesc">Choose the main highlight color.</div>
-                                </div>
-                            </div>
-                            <div>
-                                <input id="accentColor" class="w-12 h-9 p-1 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg cursor-pointer" type="color" value="#00ed20" aria-label="Accent color">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Policy, Terms & About Section -->
-                <div class="bg-white dark:bg-slate-900 p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border border-slate-200 dark:border-slate-800 transition-colors duration-300 w-full">
-                    <h4 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-200 dark:border-slate-800 pb-3" data-i18n="policy_title">ℹ️ Policy, Terms & About</h4>
-
-                    <div class="space-y-3 w-full">
-                        <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 w-full">
-                            <h5 class="font-bold text-xs text-slate-800 dark:text-slate-200" data-i18n="policy_main_title">Policy, Terms & Overview</h5>
-                            <p class="text-xs text-slate-600 dark:text-slate-400 mt-1" data-i18n="policy_main_desc">Your financial records are secured in Firebase cloud. Third-party data sharing is restricted, and users retain complete control over their accounts.</p>
-                            
-                            <div id="more-policy" class="more-text text-xs text-slate-600 dark:text-slate-400 space-y-2 mt-2 pt-2 border-t border-slate-100 dark:border-slate-700">
-                                <p class="lang-text" 
-                                   data-en="Your complete accounts, transaction records, and bills will be kept fully secure in the cloud server. We will never sell or transfer any of your personal or financial details to any third party or anyone else, ensuring your privacy remains protected at all times. To use this system, users must log in securely and will be entirely responsible for keeping their login credentials confidential. An active internet connection is fundamentally required to keep data fresh and synchronized in real-time on the server. Furthermore, users retain the full right to request the deletion of their account and all stored details from the server whenever they wish." 
-                                   data-np="तपाईँका सबै हिसाब-किताब, कारोबारका विवरण र बिलहरू क्लाउड सर्भरमा पूर्ण रूपमा सुरक्षित रूपमा राखिनेछन्। हामी तपाईँको कुनै पनि व्यक्तिगत वा वित्तीय विवरणहरू तेस्रो पक्ष वा अन्य कसैलाई पनि बिक्री गर्ने वा हस्तान्तरण गर्ने छैनौं, जसले गर्दा तपाईँको गोपनीयता सधैं सुरक्षित रहन्छ। यो प्रणाली प्रयोग गर्नका लागि प्रयोगकर्ताहरूले सुरक्षित रूपमा लगइन गर्नुपर्ने हुन्छ र आफ्ना लगइन विवरणहरू गोप्य राख्ने पूर्ण जिम्मेवारी स्वयम् प्रयोगकर्ताकै हुनेछ। सर्भरमा डाटालाई वास्तविक समयमै ताजा राख्न र सिंक गर्नका लागि सक्रिय इन्टरनेट जडान अनिवार्य रूपमा आवश्यक पर्दछ। यसबाहेक, प्रयोगकर्ताहरूसँग पूर्ण अधिकार हुन्छ कि उनीहरूले सर्भरमा सुरक्षित राखिएको आफ्नो खाता तथा सम्पूर्ण विवरणहरू जुनसुकै बेला चाहेको बखत मेटाउनका लागि अनुरोध गर्न सक्नेछन्।">
-                                   तपाईँका सबै हिसाब-किताब, कारोबारका विवरण र बिलहरू क्लाउड सर्भरमा पूर्ण रूपमा सुरक्षित रूपमा राखिनेछन्। हामी तपाईँको कुनै पनि व्यक्तिगत वा वित्तीय विवरणहरू तेस्रो पक्ष वा अन्य कसैलाई पनि बिक्री गर्ने वा हस्तान्तरण गर्ने छैनौं, जसले गर्दा तपाईँको गोपनीयता सधैं सुरक्षित रहन्छ। यो प्रणाली प्रयोग गर्नका लागि प्रयोगकर्ताहरूले सुरक्षित रूपमा लगइन गर्नुपर्ने हुन्छ र आफ्ना लगइन विवरणहरू गोप्य राख्ने पूर्ण जिम्मेवारी स्वयम् प्रयोगकर्ताकै हुनेछ। सर्भरमा डाटालाई वास्तविक समयमै ताजा राख्न र सिंक गर्नका लागि सक्रिय इन्टरनेट जडान अनिवार्य रूपमा आवश्यक पर्दछ। यसबाहेक, प्रयोगकर्ताहरूसँग पूर्ण अधिकार हुन्छ कि उनीहरूले सर्भरमा सुरक्षित राखिएको आफ्नो खाता तथा सम्पूर्ण विवरणहरू जुनसुकै बेला चाहेको बखत मेटाउनका लागि अनुरोध गर्न सक्नेछन्।
-                                </p>
-                            </div>
-
-                            <button onclick="toggleText('policy')" id="toggle-btn-policy" class="text-emerald-600 dark:text-emerald-400 font-bold text-xs mt-3 block hover:underline" data-i18n="see_more">See More</button>
-                        </div>
-                    </div>
-                    
-                    <div class="pt-2 text-center border-t border-slate-100 dark:border-slate-800 w-full">
-                        <button onclick="checkForUpdates()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-3 py-1.5 rounded-xl text-xs shadow-md shadow-emerald-600/20 transition">
-                            <i class="fa-solid fa-rotate"></i> Version 6.7 <span id="update-status-text" class="text-[9px] font-normal opacity-80" data-i18n="check_update">(Check Update)</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Feedback & Suggestions -->
-                <div class="bg-white dark:bg-slate-900 p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border border-slate-200 dark:border-slate-800 transition-colors duration-300 w-full">
-                    <h3 class="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                        <i class="fa-solid fa-comments text-emerald-500"></i> <span data-i18n="feedback_title">Feedback & Suggestions</span>
-                    </h3>
-                    <form id="feedback-form" onsubmit="handleFeedback(event)" class="space-y-3 w-full">
-                        <div class="w-full">
-                            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1" data-i18n="your_name">Your Name:</label>
-                            <input type="text" id="fb-name" required placeholder="Enter your name" class="w-full border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 rounded-xl text-xs outline-none">
-                        </div>
-                        <div class="w-full">
-                            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1" data-i18n="your_message">Message or Feedback:</label>
-                            <textarea id="fb-msg" rows="3" required placeholder="Write your feedback..." class="w-full border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 rounded-xl text-xs outline-none"></textarea>
-                        </div>
-                        <button type="submit" id="fb-submit-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium p-2.5 rounded-xl text-xs transition" data-i18n="btn_submit">Submit</button>
-                    </form>
-                </div>
-
-                <!-- DELETE ACCOUNT SECTION -->
-                <div class="bg-white dark:bg-slate-900 border border-rose-900/40 p-5 rounded-2xl shadow-sm space-y-3">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h2 class="text-sm font-bold text-rose-600 dark:text-rose-400 lang-text" data-en="Danger Zone" data-np="Danger Zone">Danger Zone</h2>
-                            <p class="text-[10px] text-slate-500 dark:text-slate-400 lang-text" data-en="Permanently delete your account" data-np="Permanently delete your account">Permanently delete your account</p>
-                        </div>
-                        <button onclick="toggleDeleteAccountSection()" id="delete-toggle-btn" class="px-3 py-1.5 bg-rose-600/10 hover:bg-rose-600 hover:text-white text-rose-600 border border-rose-600/30 rounded-xl font-bold text-xs transition lang-text" data-en="Delete Account" data-np="Delete Account">
-                            Delete Account
-                        </button>
-                    </div>
-
-                    <!-- Hidden Delete Form -->
-                    <div id="delete-form-box" class="hidden space-y-3 pt-3 border-t border-slate-200 dark:border-slate-800 text-xs">
-                        <p class="font-semibold text-slate-700 dark:text-slate-300 lang-text" data-en="Please select a reason for deletion (Mandatory):" data-np="Please select a reason for deletion (Mandatory):">Please select a reason for deletion (Mandatory):</p>
-                        <div class="space-y-1.5 text-slate-600 dark:text-slate-400">
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="del_reason" value="No longer using the app" class="accent-rose-600"> <span class="lang-text" data-en="No longer using the app" data-np="No longer using the app">No longer using the app</span></label>
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="del_reason" value="Privacy concerns" class="accent-rose-600"> <span class="lang-text" data-en="Privacy concerns" data-np="Privacy concerns">Privacy concerns</span></label>
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="del_reason" value="Found a better alternative" class="accent-rose-600"> <span class="lang-text" data-en="Found a better alternative" data-np="Found a better alternative">Found a better alternative</span></label>
-                            <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="del_reason" value="Other reason" class="accent-rose-600"> <span class="lang-text" data-en="Other reason" data-np="Other reason">Other reason</span></label>
-                        </div>
-                        <textarea id="delete-custom-reason" class="lang-placeholder w-full p-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-rose-500 resize-none" placeholder="Write additional reasons (optional)..." rows="2"></textarea>
-                        
-                        <div class="relative">
-                            <input type="password" id="delete-confirm-password" class="w-full p-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none pr-10" placeholder="Enter your current password to confirm">
-                            <button type="button" onclick="togglePasswordVisibility('delete-confirm-password', 'del-eye')" class="absolute right-3 top-3 text-slate-400 hover:text-slate-200"><i id="del-eye" class="fa-solid fa-eye"></i></button>
-                        </div>
-
-                        <button onclick="submitDeleteAccountRequest()" class="w-full py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl font-bold transition lang-text" data-en="Submit & Delete Account" data-np="Submit & Delete Account">
-                            Submit & Delete Account
-                        </button>
-                    </div>
-                </div>
-
-            </div>
-        </main>
+    <div class="field">
+      <label>
+        <span data-i18n="theme">Dark mode</span>
+        <small data-i18n="themeDesc">Change the page appearance.</small>
+      </label>
+      <button id="themeToggle" class="switch" type="button" role="switch" aria-checked="true" data-i18n-aria="theme"> </button>
     </div>
-</div>
+
+    <div class="field">
+      <label for="fontSizeSelect">
+        <span data-i18n="fontSize">Text size</span>
+        <small data-i18n="fontSizeDesc">Adjust the text size.</small>
+      </label>
+      <select id="fontSizeSelect">
+        <option value="14" data-i18n="small">Small</option>
+        <option value="16" data-i18n="medium">Medium</option>
+        <option value="18" data-i18n="large">Large</option>
+        <option value="20" data-i18n="extraLarge">Extra large</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="fontFamilySelect">
+        <span data-i18n="fontFamily">Font family</span>
+        <small data-i18n="fontFamilyDesc">Choose your preferred font.</small>
+      </label>
+      <select id="fontFamilySelect">
+        <option value="Poppins">Poppins</option>
+        <option value="Arial">Arial</option>
+        <option value="Roboto">Roboto</option>
+        <option value="Georgia">Georgia</option>
+        <option value="system-ui">System</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="accentColor">
+        <span data-i18n="accentColor">Accent color</span>
+        <small data-i18n="accentDesc">Choose the highlight color.</small>
+      </label>
+      <input id="accentColor" type="color" value="#10b981">
+    </div>
+
+    <div class="field">
+      <label for="layoutSelect">
+        <span data-i18n="layout">Layout</span>
+        <small data-i18n="layoutDesc">Choose the spacing used by supported pages.</small>
+      </label>
+      <select id="layoutSelect">
+        <option value="comfortable" data-i18n="comfortable">Comfortable</option>
+        <option value="compact" data-i18n="compact">Compact</option>
+      </select>
+    </div>
+
+    <div class="actions" style="margin-top:14px">
+      <button class="primary" id="saveSettings" type="button" data-i18n="save">Save preferences</button>
+      <button id="resetSettings" type="button" data-i18n="reset">Reset preferences</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>👤 <span data-i18n="profile">Personal information</span></h2>
+    <p data-i18n="profileDesc">These details can be used in your PDF report banner.</p>
+
+    <div class="field">
+      <label for="profileName" data-i18n="fullName">Full name</label>
+      <input id="profileName" autocomplete="name">
+    </div>
+    <div class="field">
+      <label for="profileAddress" data-i18n="address">Address</label>
+      <input id="profileAddress" autocomplete="street-address">
+    </div>
+    <div class="field">
+      <label for="profileMobile" data-i18n="mobile">Mobile number</label>
+      <input id="profileMobile" type="tel" autocomplete="tel">
+    </div>
+    <div class="field">
+      <label for="profileEmail" data-i18n="email">Email</label>
+      <input id="profileEmail" type="email" readonly>
+    </div>
+    <div class="actions">
+      <button class="primary" id="saveProfile" type="button" data-i18n="saveInfo">Save information</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>ℹ️ <span data-i18n="about">About & help</span></h2>
+    <p data-i18n="aboutText">Display preferences are stored locally on this device. Internet access is needed for Firebase account features and cloud data synchronization.</p>
+    <div class="actions">
+      <button id="checkVersion" type="button" data-i18n="version">Version 6.7</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>✉️ <span data-i18n="feedback">Feedback & suggestions</span></h2>
+    <form id="feedbackForm">
+      <div class="field">
+        <label for="feedbackName" data-i18n="yourName">Your name</label>
+        <input id="feedbackName" required>
+      </div>
+      <div class="field">
+        <label for="feedbackMessage" data-i18n="yourMessage">Message or feedback</label>
+        <textarea id="feedbackMessage" rows="4" required></textarea>
+      </div>
+      <button class="primary" type="submit" id="feedbackSubmit" data-i18n="submit">Submit</button>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2 class="danger">⚠️ <span data-i18n="dangerZone">Danger zone</span></h2>
+    <p data-i18n="deleteWarning">Account deletion is permanent. Confirm your password before requesting deletion.</p>
+    <button id="showDelete" type="button" data-i18n="deleteAccount">Delete account</button>
+
+    <form id="deleteForm" class="hidden" style="margin-top:12px">
+      <div class="field">
+        <label for="deleteReason" data-i18n="deleteReason">Reason for deletion</label>
+        <select id="deleteReason" required>
+          <option value="" data-i18n="selectReason">Select a reason</option>
+          <option value="No longer using the app" data-i18n="reasonNotUsing">No longer using the app</option>
+          <option value="Privacy concerns" data-i18n="reasonPrivacy">Privacy concerns</option>
+          <option value="Found a better alternative" data-i18n="reasonAlternative">Found a better alternative</option>
+          <option value="Other" data-i18n="reasonOther">Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="deleteExtra" data-i18n="additionalReason">Additional details (optional)</label>
+        <textarea id="deleteExtra" rows="2"></textarea>
+      </div>
+      <div class="field">
+        <label for="deletePassword" data-i18n="password">Current password</label>
+        <input id="deletePassword" type="password" autocomplete="current-password" required>
+      </div>
+      <div class="actions">
+        <button class="danger" type="submit" data-i18n="confirmDelete">Confirm account deletion</button>
+        <button type="button" id="cancelDelete" data-i18n="cancel">Cancel</button>
+      </div>
+    </form>
+  </section>
+</main>
+
+<div id="toastArea" class="toast-area" aria-live="polite"></div>
 
 <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyDDY_v7RHnkCTI6uyV4DNDjqoaIBGweg8c",
-      authDomain: "digital-a2552.firebaseapp.com",
-      projectId: "digital-a2552",
-      storageBucket: "digital-a2552.firebasestorage.app",
-      messagingSenderId: "218135618179",
-      appId: "1:218135618179:web:821b76920d3e5669ac31b6"
-    };
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
-    const auth = firebase.auth();
+"use strict";
 
-    const STORAGE_KEY = "digital_notebook_settings";
-    const DEFAULTS = {
-      lang: "en",
-      theme: "dark",
-      font_size: "16",
-      font_family: "Poppins",
-      accentColor: "#00ed20"
-    };
+const firebaseConfig = {
+  apiKey: "AIzaSyDDY_v7RHnkCTI6uyV4DNDjqoaIBGweg8c",
+  authDomain: "digital-a2552.firebaseapp.com",
+  databaseURL: "https://digital-a2552-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "digital-a2552",
+  storageBucket: "digital-a2552.firebasestorage.app",
+  messagingSenderId: "218135618179",
+  appId: "1:218135618179:web:821b76920d3e5669ac31b6"
+};
 
-    let settings = loadLocalSettings();
+const SETTINGS_KEY = "digital_notebook_settings";
+const DEFAULTS = {
+  lang: "en",
+  theme: "dark",
+  font_size: "16",
+  font_family: "Poppins",
+  accentColor: "#10b981",
+  layout: "comfortable"
+};
 
-    function loadLocalSettings() {
-      let saved = {};
-      try {
-        saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
-      } catch (_) {}
-      if (!saved.theme) {
-        saved.theme = localStorage.getItem('theme') || DEFAULTS.theme;
-      }
-      return { ...DEFAULTS, ...saved };
-    }
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 
-    function saveLocalSettings() {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-        localStorage.setItem('theme', settings.theme);
-        return true;
-      } catch (error) {
-        console.error("Local settings save failed:", error);
-        return false;
-      }
-    }
+const auth = firebase.auth();
+const db = firebase.database();
+let currentUser = null;
+let settings = loadSettings();
 
-    function toggleSidebar() {
-        const sidebar = document.getElementById('sidebar');
-        if (sidebar) sidebar.classList.toggle('-translate-x-full');
-    }
+const translations = {
+  en: {
+    pageTitle:"Settings & Preferences",
+    intro:"Choose your display preferences. Changes are saved on this device and work offline.",
+    saved:"Saved on this device",
+    displayHeading:"Display & Preferences",
+    language:"Language",
+    languageDesc:"Choose the language used throughout supported pages.",
+    theme:"Dark mode",
+    themeDesc:"Change the page appearance.",
+    fontSize:"Text size",
+    fontSizeDesc:"Adjust the text size.",
+    fontFamily:"Font family",
+    fontFamilyDesc:"Choose your preferred font.",
+    accentColor:"Accent color",
+    accentDesc:"Choose the highlight color.",
+    layout:"Layout",
+    layoutDesc:"Choose the spacing used by supported pages.",
+    small:"Small", medium:"Medium", large:"Large", extraLarge:"Extra large",
+    comfortable:"Comfortable", compact:"Compact",
+    save:"Save preferences", reset:"Reset preferences",
+    profile:"Personal information",
+    profileDesc:"These details can be used in your PDF report banner.",
+    fullName:"Full name", address:"Address", mobile:"Mobile number", email:"Email",
+    saveInfo:"Save information",
+    about:"About & help",
+    aboutText:"Display preferences are stored locally on this device. Internet access is needed for Firebase account features and cloud data synchronization.",
+    version:"Version 6.7",
+    feedback:"Feedback & suggestions",
+    yourName:"Your name", yourMessage:"Message or feedback", submit:"Submit",
+    sending:"Sending…", feedbackSent:"Feedback sent successfully.",
+    feedbackFailed:"Could not send feedback. Check your internet connection.",
+    dangerZone:"Danger zone",
+    deleteWarning:"Account deletion is permanent. Confirm your password before requesting deletion.",
+    deleteAccount:"Delete account",
+    deleteReason:"Reason for deletion",
+    selectReason:"Select a reason",
+    reasonNotUsing:"No longer using the app",
+    reasonPrivacy:"Privacy concerns",
+    reasonAlternative:"Found a better alternative",
+    reasonOther:"Other",
+    additionalReason:"Additional details (optional)",
+    password:"Current password",
+    confirmDelete:"Confirm account deletion",
+    cancel:"Cancel",
+    savedOk:"Preferences saved on this device.",
+    resetOk:"Preferences reset to defaults.",
+    profileSaved:"Personal information saved on this device.",
+    latest:"You are using version 6.7.",
+    loginRequired:"Please sign in through index.html first.",
+    offline:"Offline: changes are saved locally on this device.",
+    deleteNeedReason:"Select a reason for deletion.",
+    deleteNeedPassword:"Enter your current password.",
+    deleteFailed:"Account deletion failed: ",
+    deleteSuccess:"Account deleted.",
+    confirmDeleteText:"Are you sure you want to permanently delete this Firebase account? This cannot be undone.",
+    accountUnavailable:"Account deletion is unavailable while offline.",
+    emailMissing:"Feedback service is not configured.",
+    languageButton:"नेपाली"
+  },
+  ne: {
+    pageTitle:"सेटिङ र प्राथमिकताहरू",
+    intro:"आफ्ना देखावट प्राथमिकता छान्नुहोस्। परिवर्तन यसै उपकरणमा सुरक्षित हुन्छ र इन्टरनेट नभए पनि काम गर्छ।",
+    saved:"यस उपकरणमा सुरक्षित",
+    displayHeading:"देखावट र प्राथमिकताहरू",
+    language:"भाषा",
+    languageDesc:"समर्थित पेजहरूमा प्रयोग हुने भाषा छान्नुहोस्।",
+    theme:"डार्क मोड",
+    themeDesc:"पेजको देखावट परिवर्तन गर्नुहोस्।",
+    fontSize:"अक्षरको आकार",
+    fontSizeDesc:"अक्षरको आकार परिवर्तन गर्नुहोस्।",
+    fontFamily:"फन्ट शैली",
+    fontFamilyDesc:"आफूलाई मन पर्ने फन्ट छान्नुहोस्।",
+    accentColor:"मुख्य रङ",
+    accentDesc:"हाइलाइटको रङ छान्नुहोस्।",
+    layout:"लेआउट",
+    layoutDesc:"समर्थित पेजहरूको खाली ठाउँ छान्नुहोस्।",
+    small:"सानो", medium:"मध्यम", large:"ठूलो", extraLarge:"अझ ठूलो",
+    comfortable:"सहज", compact:"सानो/कम्प्याक्ट",
+    save:"प्राथमिकता सेभ गर्नुहोस्", reset:"पूर्वनिर्धारित बनाउनुहोस्",
+    profile:"व्यक्तिगत विवरण",
+    profileDesc:"यी विवरण PDF रिपोर्टको ब्यानरमा प्रयोग गर्न सकिन्छ।",
+    fullName:"पूरा नाम", address:"ठेगाना", mobile:"मोबाइल नम्बर", email:"इमेल",
+    saveInfo:"विवरण सेभ गर्नुहोस्",
+    about:"जानकारी र सहायता",
+    aboutText:"देखावटका प्राथमिकता यस उपकरणमै सुरक्षित हुन्छन्। Firebase खाता र Cloud Sync का लागि इन्टरनेट चाहिन्छ।",
+    version:"संस्करण ६.७",
+    feedback:"सुझाव र प्रतिक्रिया",
+    yourName:"तपाईंको नाम", yourMessage:"सन्देश वा प्रतिक्रिया", submit:"पठाउनुहोस्",
+    sending:"पठाउँदै…", feedbackSent:"प्रतिक्रिया सफलतापूर्वक पठाइयो।",
+    feedbackFailed:"प्रतिक्रिया पठाउन सकिएन। इन्टरनेट जाँच्नुहोस्।",
+    dangerZone:"सावधानी क्षेत्र",
+    deleteWarning:"खाता हटाएपछि फिर्ता ल्याउन नमिल्न सक्छ। अनुरोध गर्नुअघि पासवर्ड पुष्टि गर्नुहोस्।",
+    deleteAccount:"खाता हटाउनुहोस्",
+    deleteReason:"खाता हटाउने कारण",
+    selectReason:"कारण छान्नुहोस्",
+    reasonNotUsing:"अब एप प्रयोग गर्दिनँ",
+    reasonPrivacy:"गोपनीयताको चिन्ता",
+    reasonAlternative:"अर्को विकल्प भेटियो",
+    reasonOther:"अन्य",
+    additionalReason:"थप विवरण (ऐच्छिक)",
+    password:"हालको पासवर्ड",
+    confirmDelete:"खाता हटाउने पुष्टि गर्नुहोस्",
+    cancel:"रद्द गर्नुहोस्",
+    savedOk:"प्राथमिकता यस उपकरणमा सुरक्षित भयो।",
+    resetOk:"प्राथमिकता पूर्वनिर्धारित अवस्थामा फर्काइयो।",
+    profileSaved:"व्यक्तिगत विवरण यस उपकरणमा सुरक्षित भयो।",
+    latest:"तपाईं संस्करण ६.७ प्रयोग गर्दै हुनुहुन्छ।",
+    loginRequired:"पहिले index.html बाट लगइन गर्नुहोस्।",
+    offline:"अफलाइन: परिवर्तन यस उपकरणमा सुरक्षित गरिएको छ।",
+    deleteNeedReason:"खाता हटाउने कारण छान्नुहोस्।",
+    deleteNeedPassword:"हालको पासवर्ड लेख्नुहोस्।",
+    deleteFailed:"खाता हटाउन सकिएन: ",
+    deleteSuccess:"खाता हटाइयो।",
+    confirmDeleteText:"के तपाईं Firebase खाता स्थायी रूपमा हटाउन चाहनुहुन्छ? यो कार्य फिर्ता गर्न सकिँदैन।",
+    accountUnavailable:"अफलाइन हुँदा खाता हटाउन मिल्दैन।",
+    emailMissing:"Feedback सेवा कन्फिगर गरिएको छैन।",
+    languageButton:"English"
+  }
+};
 
-    let currentLang = settings.lang === 'ne' ? 'NEP' : 'EN';
+function loadSettings() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
+    const merged = { ...DEFAULTS, ...(raw && typeof raw === "object" ? raw : {}) };
 
-    const translations = {
-        EN: {
-            displayHeading: "🎨 Display & Preferences",
-            language: "Language",
-            languageDesc: "Choose the language used by this page.",
-            darkMode: "Dark mode",
-            darkDesc: "Use a darker appearance.",
-            fontSize: "Font size",
-            fontSizeDesc: "Adjust text size.",
-            fontFamily: "Font family",
-            fontFamilyDesc: "Choose your preferred font.",
-            accentColor: "Accent color",
-            accentDesc: "Choose the main highlight color.",
-            small: "Small",
-            medium: "Medium",
-            large: "Large",
-            extraLarge: "Extra large",
-            policy_title: "ℹ️ Policy, Terms & About",
-            policy_main_title: "Policy, Terms & Overview",
-            policy_main_desc: "Your financial records are secured in Firebase cloud. Third-party data sharing is restricted, and users retain complete control over their accounts.",
-            see_more: "See More",
-            see_less: "See Less",
-            check_update: "(Check Update)",
-            feedback_title: "Feedback & Suggestions",
-            your_name: "Your Name:",
-            your_message: "Message or Feedback:",
-            btn_submit: "Submit"
-        },
-        NEP: {
-            displayHeading: "🎨 देखावट र प्राथमिकताहरू",
-            language: "भाषा",
-            languageDesc: "यो पेजमा प्रयोग हुने भाषा छान्नुहोस्।",
-            darkMode: "डार्क मोड",
-            darkDesc: "गाढा देखावट प्रयोग गर्नुहोस्।",
-            fontSize: "अक्षरको आकार",
-            fontSizeDesc: "अक्षरको आकार परिवर्तन गर्नुहोस्।",
-            fontFamily: "फन्ट शैली",
-            fontFamilyDesc: "आफूलाई मन पर्ने फन्ट छान्नुहोस्।",
-            accentColor: "मुख्य रङ",
-            accentDesc: "बटन र हाइलाइटको रङ छान्नुहोस्।",
-            small: "सानो",
-            medium: "मध्यम",
-            large: "ठूलो",
-            extraLarge: "अझ ठूलो",
-            policy_title: "ℹ️ नीति, सर्तहरू र बारेमा",
-            policy_main_title: "गोपनीयता नीति र सर्तहरू",
-            policy_main_desc: "तपाईँका हिसाब-किताब फायरबेस क्लाउडमा सुरक्षित छन्। तेस्रो पक्षलाई डाटा共享 गरिंदैन।",
-            see_more: "थप हेर्नुहोस्",
-            see_less: "कम देखाउनुहोस्",
-            check_update: "(अपडेट जाँच गर्नुहोस्)",
-            feedback_title: "Feedback & Suggestions",
-            your_name: "Your Name:",
-            your_message: "Message or Feedback:",
-            btn_submit: "Submit"
-        }
-    };
-
-    function updateLanguageUI() {
-        const btn = document.getElementById('lang-toggle-btn');
-        if(btn) btn.innerText = currentLang;
-
-        document.querySelectorAll('.lang-text').forEach(el => {
-            const text = currentLang === 'NEP' ? el.getAttribute('data-np') : el.getAttribute('data-en');
-            if(text) el.innerText = text;
-        });
-
-        document.querySelectorAll('[data-i18n]').forEach(el => {
-            const key = el.getAttribute('data-i18n');
-            if (translations[currentLang] && translations[currentLang][key]) {
-                el.innerText = translations[currentLang][key];
-            }
-        });
-
-        const toggleBtn = document.getElementById('toggle-btn-policy');
-        if (toggleBtn) {
-            const el = document.getElementById('more-policy');
-            const isShown = el && el.classList.contains('show');
-            toggleBtn.innerText = isShown ? (translations[currentLang]['see_less'] || 'See Less') : (translations[currentLang]['see_more'] || 'See More');
-        }
-    }
-
-    function toggleLanguage() {
-        currentLang = currentLang === 'EN' ? 'NEP' : 'EN';
-        settings.lang = currentLang === 'NEP' ? 'ne' : 'en';
-        saveLocalSettings();
-        updateLanguageUI();
-        updateDynamicHeader();
-        document.getElementById('languageSelect').value = settings.lang;
-    }
-
-    function applySettingsToPage() {
-        const light = settings.theme === "light";
-        const htmlEl = document.documentElement;
-        
-        if (light) {
-            htmlEl.classList.remove('dark');
-        } else {
-            htmlEl.classList.add('dark');
-        }
-
-        document.documentElement.style.setProperty("--accent", settings.accentColor);
-        document.body.style.fontSize = settings.font_size + "px";
-        document.body.style.fontFamily = settings.font_family + ", Arial, sans-serif";
-
-        const fontSizeSelect = document.getElementById('fontSizeSelect');
-        const fontFamilySelect = document.getElementById('fontFamilySelect');
-        const accentColorInput = document.getElementById('accentColor');
-        const darkToggle = document.getElementById('darkToggle');
-        const themeIcon = document.getElementById('themeIconContainer');
-        const languageSelect = document.getElementById('languageSelect');
-
-        if(fontSizeSelect) fontSizeSelect.value = settings.font_size;
-        if(fontFamilySelect) fontFamilySelect.value = settings.font_family;
-        if(accentColorInput) accentColorInput.value = settings.accentColor;
-        if(darkToggle) darkToggle.setAttribute("aria-checked", String(!light));
-        if(themeIcon) themeIcon.textContent = light ? "☀️" : "🌙";
-        if(languageSelect) languageSelect.value = settings.lang;
-
-        updateThemeUI();
-        updateLanguageUI();
+    if (!raw || !raw.theme) {
+      merged.theme = localStorage.getItem("theme") || merged.theme;
     }
 
-    function updateThemeUI() {
-        const isDark = document.documentElement.classList.contains('dark');
-        const themeBtn = document.getElementById('theme-toggle-btn');
-        if(themeBtn) themeBtn.innerText = isDark ? '🌛' : '🌞';
-    }
+    return merged;
+  } catch (_) {
+    return { ...DEFAULTS };
+  }
+}
 
-    function toggleTheme() {
-        settings.theme = settings.theme === 'dark' ? 'light' : 'dark';
-        saveLocalSettings();
-        applySettingsToPage();
-    }
+function saveSettings() {
+  try {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    /* Keep compatibility with older pages that read this key. */
+    localStorage.setItem("theme", settings.theme);
+    return true;
+  } catch (error) {
+    console.error("Unable to save preferences", error);
+    toast("Could not save settings. Device storage may be full.", true);
+    return false;
+  }
+}
 
-    function updateOneSetting(key, value) {
-        settings[key] = value;
-        saveLocalSettings();
-        applySettingsToPage();
-    }
+function applySettings() {
+  const html = document.documentElement;
+  html.lang = settings.lang === "ne" ? "ne" : "en";
+  html.classList.toggle("dark", settings.theme !== "light");
+  html.style.setProperty("--accent", settings.accentColor);
+  html.style.setProperty("--app-font-size", (Number(settings.font_size) || 16) + "px");
+  html.style.setProperty("--app-font-family",
+    JSON.stringify(settings.font_family || "Poppins") + ", Arial, sans-serif");
+  html.dataset.layout = settings.layout || "comfortable";
+  document.body.dataset.layout = settings.layout || "comfortable";
 
-    document.getElementById('languageSelect').addEventListener("change", event => {
-        settings.lang = event.target.value;
-        currentLang = settings.lang === 'ne' ? 'NEP' : 'EN';
-        saveLocalSettings();
-        updateLanguageUI();
+  $("languageSelect").value = settings.lang;
+  $("fontSizeSelect").value = settings.font_size;
+  $("fontFamilySelect").value = settings.font_family;
+  $("accentColor").value = settings.accentColor;
+  $("layoutSelect").value = settings.layout;
+  $("themeToggle").setAttribute("aria-checked", String(settings.theme === "dark"));
+  $("headerLang").textContent = t("languageButton");
+
+  translatePage();
+}
+
+function t(key) {
+  return (translations[settings.lang] || translations.en)[key] ||
+         translations.en[key] || key;
+}
+
+function translatePage() {
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const key = el.getAttribute("data-i18n");
+    const value = t(key);
+    if (value) el.textContent = value;
+  });
+
+  document.querySelectorAll("[data-i18n-aria]").forEach(el => {
+    el.setAttribute("aria-label", t(el.getAttribute("data-i18n-aria")));
+  });
+
+  document.title = "Digital NoteBook - " + t("pageTitle");
+  $("saveStatus").textContent = t("saved");
+}
+
+function $(id) {
+  return document.getElementById(id);
+}
+
+function toast(message, error = false) {
+  const item = document.createElement("div");
+  item.className = "toast" + (error ? " error" : "");
+  item.textContent = message;
+  $("toastArea").appendChild(item);
+  setTimeout(() => item.remove(), 3000);
+}
+
+function changeSetting(key, value) {
+  settings[key] = value;
+  saveSettings();
+  applySettings();
+}
+
+$("languageSelect").addEventListener("change", event => {
+  changeSetting("lang", event.target.value);
+});
+
+$("headerLang").addEventListener("click", () => {
+  changeSetting("lang", settings.lang === "en" ? "ne" : "en");
+});
+
+$("themeToggle").addEventListener("click", () => {
+  changeSetting("theme", settings.theme === "dark" ? "light" : "dark");
+});
+
+$("fontSizeSelect").addEventListener("change", event => {
+  changeSetting("font_size", event.target.value);
+});
+
+$("fontFamilySelect").addEventListener("change", event => {
+  changeSetting("font_family", event.target.value);
+});
+
+$("accentColor").addEventListener("input", event => {
+  changeSetting("accentColor", event.target.value);
+});
+
+$("layoutSelect").addEventListener("change", event => {
+  changeSetting("layout", event.target.value);
+});
+
+$("saveSettings").addEventListener("click", () => {
+  if (saveSettings()) toast(t("savedOk"));
+});
+
+$("resetSettings").addEventListener("click", () => {
+  settings = { ...DEFAULTS };
+  saveSettings();
+  applySettings();
+  toast(t("resetOk"));
+});
+
+/* Keep settings in sync between tabs on this same device. */
+window.addEventListener("storage", event => {
+  if (event.key !== SETTINGS_KEY || !event.newValue) return;
+  try {
+    const next = JSON.parse(event.newValue);
+    settings = { ...DEFAULTS, ...next };
+    applySettings();
+  } catch (_) {}
+});
+
+function loadProfile() {
+  $("profileName").value = localStorage.getItem("profile_name") || "";
+  $("profileAddress").value = localStorage.getItem("profile_address") || "";
+  $("profileMobile").value = localStorage.getItem("profile_mobile") || "";
+  $("profileEmail").value = currentUser?.email || "";
+  $("feedbackName").value = localStorage.getItem("profile_name") || "";
+}
+
+$("saveProfile").addEventListener("click", () => {
+  try {
+    localStorage.setItem("profile_name", $("profileName").value.trim());
+    localStorage.setItem("profile_address", $("profileAddress").value.trim());
+    localStorage.setItem("profile_mobile", $("profileMobile").value.trim());
+    toast(t("profileSaved"));
+  } catch (_) {
+    toast("Could not save profile information.", true);
+  }
+});
+
+$("checkVersion").addEventListener("click", () => toast(t("latest")));
+
+$("showDelete").addEventListener("click", () => {
+  $("deleteForm").classList.toggle("hidden");
+});
+
+$("cancelDelete").addEventListener("click", () => {
+  $("deleteForm").reset();
+  $("deleteForm").classList.add("hidden");
+});
+
+/* Feedback is optional; do not break the Settings page if EmailJS is offline. */
+$("feedbackForm").addEventListener("submit", async event => {
+  event.preventDefault();
+
+  if (!navigator.onLine) {
+    toast(t("offline"), true);
+    return;
+  }
+
+  if (!window.emailjs) {
+    toast(t("emailMissing"), true);
+    return;
+  }
+
+  const button = $("feedbackSubmit");
+  button.disabled = true;
+  button.textContent = t("sending");
+
+  try {
+    emailjs.init({ publicKey: "K1o1WC9jydWnUnUl7" });
+
+    await emailjs.send("service_8zfv1vu", "template_36j91tf", {
+      name: $("feedbackName").value.trim(),
+      email: currentUser?.email || "",
+      title: "Digital NoteBook Feedback",
+      message: $("feedbackMessage").value.trim(),
+      time: new Date().toLocaleString()
     });
 
-    document.getElementById('darkToggle').addEventListener("click", () => {
-        toggleTheme();
-    });
+    $("feedbackForm").reset();
+    loadProfile();
+    toast(t("feedbackSent"));
+  } catch (error) {
+    console.error(error);
+    toast(t("feedbackFailed"), true);
+  } finally {
+    button.disabled = false;
+    button.textContent = t("submit");
+    translatePage();
+  }
+});
 
-    document.getElementById('fontSizeSelect').addEventListener("change", event => {
-        updateOneSetting("font_size", event.target.value);
-    });
+$("deleteForm").addEventListener("submit", async event => {
+  event.preventDefault();
 
-    document.getElementById('fontFamilySelect').addEventListener("change", event => {
-        updateOneSetting("font_family", event.target.value);
-    });
+  if (!currentUser) {
+    toast(t("loginRequired"), true);
+    return;
+  }
+  if (!navigator.onLine) {
+    toast(t("accountUnavailable"), true);
+    return;
+  }
 
-    document.getElementById('accentColor').addEventListener("input", event => {
-        updateOneSetting("accentColor", event.target.value);
-    });
+  const reason = $("deleteReason").value;
+  const password = $("deletePassword").value;
 
-    function updateDynamicHeader() {
-        const now = new Date();
-        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        const dateString = now.toLocaleDateString(currentLang === 'NEP' ? 'ne-NP' : 'en-US', options).toUpperCase();
-        const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
-        const timeString = now.toLocaleTimeString('en-US', timeOptions);
+  if (!reason) {
+    toast(t("deleteNeedReason"), true);
+    return;
+  }
+  if (!password) {
+    toast(t("deleteNeedPassword"), true);
+    return;
+  }
+  if (!confirm(t("confirmDeleteText"))) return;
 
-        const dateEl = document.getElementById('dynamic-date');
-        if (dateEl) dateEl.innerText = `${dateString} | ${timeString}`;
-    }
+  try {
+    const credential = firebase.auth.EmailAuthProvider.credential(
+      currentUser.email,
+      password
+    );
 
-    setInterval(updateDynamicHeader, 1000);
+    await currentUser.reauthenticateWithCredential(credential);
 
-    function showToast(message, type = 'success') {
-        const container = document.getElementById('toast-container');
-        if(!container) return;
-        const toast = document.createElement('div');
-        const bgColor = type === 'success' ? 'bg-emerald-600' : 'bg-rose-600';
-        
-        toast.className = `${bgColor} text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-semibold transform transition-all duration-100 translate-y-2 opacity-0 flex items-center gap-2`;
-        toast.innerHTML = `<span>${type === 'success' ? '✅' : '⚠️'}</span> <span>${message}</span>`;
-        container.appendChild(toast);
-        
-        setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 20);
-        
-        setTimeout(() => {
-            toast.classList.add('translate-y-2', 'opacity-0');
-            setTimeout(() => toast.remove(), 100);
-        }, 1500);
-    }
+    /*
+     * Account deletion is destructive. This action is deliberately explicit.
+     * It does not pretend that removing the Auth account automatically
+     * removes the user's Realtime Database records.
+     */
+    await currentUser.delete();
+    window.location.replace("index.html");
+  } catch (error) {
+    console.error(error);
+    toast(t("deleteFailed") + (error.message || "Unknown error"), true);
+  }
+});
 
-    function toggleText(id) {
-        const el = document.getElementById(`more-${id}`);
-        const btn = document.getElementById(`toggle-btn-${id}`);
-        if (el && btn) {
-            el.classList.toggle('show');
-            const isShown = el.classList.contains('show');
-            if (currentLang === 'NEP') {
-                btn.innerText = isShown ? 'कम देखाउनुहोस्' : 'थप हेर्नुहोस्';
-            } else {
-                btn.innerText = isShown ? 'See Less' : 'See More';
-            }
-        }
-    }
+/* Authentication gate: unauthenticated users cannot use Settings. */
+auth.onAuthStateChanged(user => {
+  if (!user) {
+    currentUser = null;
+    window.location.replace("index.html");
+    return;
+  }
 
-    function checkForUpdates() {
-        showToast(currentLang === 'NEP' ? 'तपाईंसँग नवीनतम संस्करण (Version 6.7) छ!' : 'You are running the latest version (6.7)!', 'success');
-    }
+  currentUser = user;
+  document.body.classList.remove("auth-pending");
+  loadProfile();
+});
 
-    function toggleDeleteAccountSection() {
-        const box = document.getElementById('delete-form-box');
-        if (box) box.classList.toggle('hidden');
-    }
-
-    function togglePasswordVisibility(fieldId, iconId) {
-        const field = document.getElementById(fieldId);
-        const icon = document.getElementById(iconId);
-        if (field.type === "password") {
-            field.type = "text";
-            icon.classList.remove("fa-eye");
-            icon.classList.add("fa-eye-slash");
-        } else {
-            field.type = "password";
-            icon.classList.remove("fa-eye-slash");
-            icon.classList.add("fa-eye");
-        }
-    }
-
-    // EmailJS Feedback Handler
-    function handleFeedback(event) {
-        event.preventDefault();
-        const name = document.getElementById('fb-name').value;
-        const msg = document.getElementById('fb-msg').value;
-        const submitBtn = document.getElementById('fb-submit-btn');
-
-        if(name && msg) {
-            submitBtn.disabled = true;
-            submitBtn.innerText = currentLang === 'NEP' ? 'Sending...' : 'Sending...';
-
-            const now = new Date();
-            const timeString = now.toLocaleString();
-
-            const templateParams = {
-                name: name,
-                email: 'gckamal67@gmail.com',
-                title: 'Digital NoteBook Feedback',
-                message: msg,
-                time: timeString
-            };
-
-            emailjs.send('service_8zfv1vu', 'template_36j91tf', templateParams)
-                .then(function(response) {
-                    showToast(currentLang === 'NEP' ? 'Feedback sent successfully!' : 'Feedback sent successfully!', 'success');
-                    document.getElementById('feedback-form').reset();
-                    submitBtn.disabled = false;
-                    submitBtn.innerText = currentLang === 'NEP' ? 'Submit' : 'Submit';
-                }, function(error) {
-                    console.log('FAILED...', error);
-                    showToast(currentLang === 'NEP' ? 'Failed to send email.' : 'Failed to send email.', 'error');
-                    submitBtn.disabled = false;
-                    submitBtn.innerText = currentLang === 'NEP' ? 'Submit' : 'Submit';
-                });
-        }
-    }
-
-    // Delete Account Handler with EmailJS notification
-    function submitDeleteAccountRequest() {
-        const checkboxes = document.querySelectorAll('input[name="del_reason"]:checked');
-        let reasons = Array.from(checkboxes).map(cb => cb.value).join(', ');
-        const customReason = document.getElementById('delete-custom-reason').value;
-        if (customReason) reasons += (reasons ? '; ' : '') + customReason;
-        
-        const password = document.getElementById('delete-confirm-password').value;
-        const user = auth.currentUser;
-
-        if (!reasons) {
-            showToast("Please select at least one reason for deletion.", 'error');
-            return;
-        }
-        if (!password) {
-            showToast("Please confirm your password.", 'error');
-            return;
-        }
-
-        if (!user) {
-            showToast("No user logged in.", 'error');
-            return;
-        }
-
-        const credential = firebase.auth.EmailAuthProvider.credential(user.email, password);
-
-        user.reauthenticateWithCredential(credential).then(() => {
-            const now = new Date();
-            const timeString = now.toLocaleString();
-            const deleteParams = {
-                name: user.email,
-                email: user.email,
-                title: 'Digital NoteBook - Account Deletion Alert',
-                message: `User Account Deleted.\nEmail: ${user.email}\nReasons: ${reasons}`,
-                time: timeString
-            };
-
-            emailjs.send('service_8zfv1vu', 'template_36j91tf', deleteParams)
-                .then(function(response) {
-                    console.log('Deletion email sent successfully', response);
-                }, function(error) {
-                    console.log('Failed to send deletion email', error);
-                });
-
-            user.delete().then(() => {
-                showToast("Account successfully deleted.");
-                window.location.href = 'index.html';
-            }).catch((error) => {
-                showToast("Error: " + error.message, 'error');
-            });
-        }).catch((error) => {
-            showToast("Incorrect password. Please try again.", 'error');
-        });
-    }
-
-    function saveProfileDetails() {
-        const name = document.getElementById('input-full-name').value;
-        const address = document.getElementById('input-address').value;
-        const mobile = document.getElementById('input-mobile').value;
-
-        if(name) localStorage.setItem('profile_name', name);
-        localStorage.setItem('profile_address', address);
-        localStorage.setItem('profile_mobile', mobile);
-
-        loadUserData();
-        showToast(currentLang === 'NEP' ? 'Details saved successfully!' : 'Details saved successfully!', 'success');
-    }
-
-    function loadUserData() {
-        const savedName = localStorage.getItem('profile_name') || '';
-        const savedAddress = localStorage.getItem('profile_address') || '';
-        const savedMobile = localStorage.getItem('profile_mobile') || '';
-
-        if(document.getElementById('input-full-name')) document.getElementById('input-full-name').value = savedName;
-        if(document.getElementById('input-address')) document.getElementById('input-address').value = savedAddress;
-        if(document.getElementById('input-mobile')) document.getElementById('input-mobile').value = savedMobile;
-
-        const nameEl = document.getElementById('sidebar-profile-name');
-        if(nameEl) nameEl.innerText = savedName;
-    }
-
-    function handleAvatarUpload(event) {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const base64Image = e.target.result;
-                localStorage.setItem('profile_avatar', base64Image);
-                loadAvatar();
-                showToast(currentLang === 'NEP' ? 'Profile photo updated!' : 'Profile photo updated!', 'success');
-            };
-            reader.readAsDataURL(file);
-        }
-    }
-
-    function loadAvatar() {
-        const savedImage = localStorage.getItem('profile_avatar') || 'N1024.png';
-        ['sidebar-avatar-img', 'header-avatar-img'].forEach(id => {
-            const img = document.getElementById(id);
-            if(img) img.src = savedImage;
-        });
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-        applySettingsToPage();
-        updateDynamicHeader();
-        loadUserData();
-        loadAvatar();
-    });
+applySettings();
 </script>
 </body>
 </html>
