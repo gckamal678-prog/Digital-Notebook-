@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ne" class="dark">
 <head>
@@ -144,8 +143,6 @@ body[data-layout="compact"] .record { padding:9px; }
 <header>
   <a href="index.html" aria-label="Back">←</a>
   <strong>📘 Digital NoteBook · <span data-i18n="appTitle">Savings</span></strong>
-  <span class="status" id="syncStatus" role="status">Checking sign-in…</span>
-  <button type="button" id="langToggle">नेपाली</button>
 </header>
 
 <main>
@@ -285,7 +282,6 @@ const I18N = {
     noLocal:"No local savings records were found.",
     importDone:"Import finished. Imported records: ",
     importFailed:"Import failed: ",
-    sync:"Cloud sync", offline:"Offline", connected:"Connected",
     syncError:"Cloud sync error: ", localGoal:"Goal saved on this device.",
     pdfLoading:"Preparing PDF…", pdfError:"Could not create PDF: ",
     pdfLibrary:"PDF library did not load. Check your connection.",
@@ -297,12 +293,11 @@ const I18N = {
     totalLabel:"Total NPR", remarksLabel:"Remarks",
     summary:"SUMMARY", goalLabel:"Savings goal", progress:"Goal progress",
     noName:"Unnamed", localStorageError:"Could not save preferences on this device.",
-    languageButton:"नेपाली", saving:"Saving…",
+    saving:"Saving…",
     invalidAmount:"Enter valid non-negative amounts and a positive exchange rate.",
     recordChanged:"This record changed or was deleted elsewhere. Refresh and try again.",
     profileFallback:"Profile details not filled in",
-    migrationOffline:"Import requires an internet connection.",
-    loginWaiting:"Checking sign-in…"
+    migrationOffline:"Import requires an internet connection."
   },
   ne: {
     appTitle:"बचत", pageTitle:"बचत रेकर्ड",
@@ -337,7 +332,6 @@ const I18N = {
     noLocal:"स्थानीय पुरानो बचत डाटा भेटिएन।",
     importDone:"Import पूरा भयो। Import गरिएका रेकर्ड: ",
     importFailed:"Import असफल: ",
-    sync:"Cloud Sync", offline:"अफलाइन", connected:"जडान भयो",
     syncError:"Cloud Sync त्रुटि: ", localGoal:"लक्ष्य यस उपकरणमा सेभ भयो।",
     pdfLoading:"PDF तयार हुँदैछ…", pdfError:"PDF बनाउन सकिएन: ",
     pdfLibrary:"PDF library लोड भएन। इन्टरनेट जाँच्नुहोस्।",
@@ -349,12 +343,11 @@ const I18N = {
     totalLabel:"कुल NPR", remarksLabel:"कैफियत",
     summary:"सारांश", goalLabel:"बचत लक्ष्य", progress:"लक्ष्य प्रगति",
     noName:"नाम नभएको", localStorageError:"यस उपकरणमा प्राथमिकता सेभ गर्न सकिएन।",
-    languageButton:"English", saving:"सेभ हुँदैछ…",
+    saving:"सेभ हुँदैछ…",
     invalidAmount:"शून्यभन्दा कम नभएको रकम र शून्यभन्दा ठूलो INR दर राख्नुहोस्।",
     recordChanged:"यो रेकर्ड अरू ठाउँबाट परिवर्तन वा हटाइएको छ। Refresh गरेर फेरि प्रयास गर्नुहोस्।",
     profileFallback:"प्रोफाइल विवरण भरिएको छैन",
-    migrationOffline:"पुरानो डाटा Import गर्न इन्टरनेट चाहिन्छ।",
-    loginWaiting:"लगइन जाँच हुँदैछ…"
+    migrationOffline:"पुरानो डाटा Import गर्न इन्टरनेट चाहिन्छ।"
   }
 };
 
@@ -416,7 +409,6 @@ function applySettings() {
   document.querySelectorAll("[data-i18n]").forEach(el => {
     el.textContent = tr(el.dataset.i18n);
   });
-  $("langToggle").textContent = tr("languageButton");
   $("formHeading").textContent = $("recordId").value ? tr("editTitle") : tr("formTitle");
   $("saveButton").textContent = $("recordId").value ? tr("update") : tr("save");
   $("exchangeHint").textContent = state.settings.lang === "ne"
@@ -429,7 +421,6 @@ function applySettings() {
 function persistSettings() {
   try {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings));
-    /* Backward compatibility for older pages. */
     localStorage.setItem("theme", state.settings.theme);
     return true;
   } catch (e) {
@@ -437,11 +428,6 @@ function persistSettings() {
     return false;
   }
 }
-$("langToggle").addEventListener("click", () => {
-  state.settings.lang = state.settings.lang === "ne" ? "en" : "ne";
-  persistSettings();
-  applySettings();
-});
 window.addEventListener("storage", event => {
   if (event.key !== SETTINGS_KEY || !event.newValue) return;
   try {
@@ -530,7 +516,6 @@ async function moveToTrash(id) {
   };
 
   try {
-    /* Only this record and its matching Trash entry are touched. */
     const updates = {};
     updates[PATH + "/" + id] = null;
     updates["trash/" + PATH + "/" + id] = entry;
@@ -624,7 +609,7 @@ function render() {
     );
     const details = expanded ? `<div class="group-records">${
       records.map(r => `<div class="record">
-        <div class="record-title">${esc(r.date || "—")} · ${esc(r.category || "")}</div>
+        <div class="record-title">${esc(r.date \vert{}\vert{} "—")} · ${esc(r.category || "")}</div>
         <div>${esc(money(totalOf(r)))}</div>
         <div class="record-detail">${esc(r.note || "")}</div>
         <div class="actions" style="margin-top:8px">
@@ -732,10 +717,6 @@ $("goal").addEventListener("change", () => {
   render();
 });
 
-/*
- * Import legacy local data only if the cloud list is empty.
- * Never overwrite existing cloud records or delete local source data.
- */
 async function importLegacyData() {
   if (!state.uid) return toast(tr("noLogin"), true);
   if (!navigator.onLine) return toast(tr("migrationOffline"), true);
@@ -765,7 +746,6 @@ async function importLegacyData() {
     legacy = legacy.filter(v => v && typeof v === "object" && !Array.isArray(v));
     if (!legacy.length) return toast(tr("noLocal"), true);
 
-    /* Recheck immediately before import to avoid racing with cloud writes. */
     const cloudAgain = await userRef(PATH).once("value");
     if (cloudAgain.exists() && Object.keys(cloudAgain.val() || {}).length) {
       return toast(tr("cloudNotEmpty"), true);
@@ -896,10 +876,6 @@ $("pdfButton").addEventListener("click", async () => {
   }
 });
 
-function setSyncStatus(text) {
-  $("syncStatus").textContent = text;
-}
-
 function detachListeners() {
   if (state.dataRef && state.dataCallback) {
     state.dataRef.off("value", state.dataCallback);
@@ -918,10 +894,6 @@ function attachListeners() {
   state.dataCallback = snapshot => {
     const value = snapshot.val() || {};
     if (Array.isArray(value)) {
-      /*
-       * Do not silently rewrite the entire legacy array.
-       * Show it safely with stable display IDs until explicitly imported.
-       */
       const mapped = {};
       value.forEach((record,index) => {
         if (!record || typeof record !== "object") return;
@@ -930,16 +902,13 @@ function attachListeners() {
         mapped[id] = { ...record, id };
       });
       state.records = mapped;
-      setSyncStatus(tr("sync") + " · legacy data");
     } else {
       state.records = value && typeof value === "object" ? value : {};
-      setSyncStatus(navigator.onLine ? tr("connected") : tr("offline"));
     }
     render();
   };
 
   state.dataRef.on("value", state.dataCallback, error => {
-    setSyncStatus(tr("sync") + " · error");
     toast(tr("syncError") + error.message, true);
   });
 
@@ -969,13 +938,6 @@ auth.onAuthStateChanged(user => {
   state.user = user;
   document.body.classList.remove("auth-pending");
   attachListeners();
-});
-
-window.addEventListener("online", () => {
-  if (state.uid) setSyncStatus(tr("connected"));
-});
-window.addEventListener("offline", () => {
-  setSyncStatus(tr("offline"));
 });
 
 $("date").value = new Date().toISOString().slice(0,10);
