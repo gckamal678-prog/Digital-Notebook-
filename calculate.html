@@ -1,480 +1,232 @@
+
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#101827">
 <title>Digital NoteBook · Calculator</title>
-
-<!-- Shared Display Preferences: works offline -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0b1220; --panel:#151f31; --field:#1c2940;
+  --text:#edf3ff; --muted:#9cacc5; --line:#2b3a54;
+  --accent:#10b981; --app-font-size:16px;
+  --app-font-family:Poppins,Arial,sans-serif;
+}
+html:not(.dark) {
+  --bg:#f3f6fb; --panel:#fff; --field:#edf2f9;
+  --text:#152033; --muted:#586780; --line:#d7e0ed;
+}
+* {box-sizing:border-box}
+body {
+  margin:0; min-height:100vh; background:var(--bg); color:var(--text);
+  font:var(--app-font-size)/1.5 var(--app-font-family);
+}
+button,input,select {font:inherit}
+button {cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible {
+  outline:2px solid var(--accent); outline-offset:2px;
+}
+.topbar {
+  position:sticky; top:0; z-index:10; display:flex; align-items:center;
+  gap:12px; padding:12px 15px; padding-top:max(12px,env(safe-area-inset-top));
+  background:var(--panel); border-bottom:1px solid var(--line);
+}
+.back {
+  color:var(--text); text-decoration:none; font-size:27px; line-height:1;
+  padding:3px 6px; flex:none;
+}
+.brand {font-weight:700; min-width:0}
+main {width:min(960px,100%); margin:auto; padding:14px; display:grid; gap:14px}
+.card {
+  min-width:0; background:var(--panel); border:1px solid var(--line);
+  border-radius:17px; padding:16px;
+}
+h1,h2,h3,p {margin-top:0}
+h1 {font-size:1.4em; margin-bottom:5px}
+h2 {font-size:1.12em; margin-bottom:7px}
+h3 {font-size:1.05em; margin-bottom:8px}
+.muted {color:var(--muted)}
+.small {font-size:.85em}
+.display {
+  min-height:116px; display:flex; flex-direction:column; justify-content:flex-end;
+  text-align:right; background:var(--bg); border:1px solid var(--line);
+  border-radius:14px; padding:13px; margin:14px 0; overflow:hidden;
+}
+.history {min-height:22px; color:var(--muted); font-size:.9em; overflow-x:auto; white-space:nowrap}
+.screen {font-size:clamp(2rem,8vw,3rem); font-weight:700; line-height:1.3; overflow-x:auto; white-space:nowrap}
+.keypad {display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px}
+.key {
+  min-height:56px; border:1px solid var(--line); border-radius:13px;
+  background:var(--field); color:var(--text); font-size:1.12em; font-weight:650;
+}
+.key:active {transform:scale(.97)}
+.key.operator {color:var(--accent)}
+.key.clear {color:#fb7185}
+.key.equal {background:var(--accent); color:#05251b; border-color:var(--accent)}
+.key.wide {grid-column:span 2}
+.calc-actions {display:flex; flex-wrap:wrap; gap:8px; margin-top:10px}
+.action {
+  border:1px solid var(--line); border-radius:10px; padding:9px 12px;
+  background:var(--field); color:var(--text);
+}
+.action.primary {background:var(--accent); color:#05251b; font-weight:700}
+.tools-grid {display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px}
+.tool {min-width:0; padding:14px; border:1px solid var(--line); border-radius:14px; background:var(--bg)}
+.tool-icon {font-size:1.5em; margin-bottom:5px}
+.field {display:grid; gap:6px; margin-top:11px}
+label {font-weight:600}
+input,select {
+  width:100%; min-width:0; padding:11px; color:var(--text);
+  background:var(--field); border:1px solid var(--line); border-radius:10px;
+}
+.result {
+  margin-top:10px; padding:10px; border-radius:10px;
+  background:var(--field); overflow-wrap:anywhere;
+}
+.result strong {color:var(--accent)}
+.status {margin-top:8px; color:var(--muted); font-size:.88em}
+.status.error {color:#fb7185}
+footer {text-align:center; padding:4px 12px 22px; color:var(--muted); font-size:.8em}
+body[data-layout="compact"] main {padding:8px; gap:8px}
+body[data-layout="compact"] .card {padding:11px; border-radius:12px}
+body[data-layout="compact"] .key {min-height:47px}
+@media(min-width:700px) {
+  .calculator-layout {display:grid; grid-template-columns:minmax(0,1fr) minmax(270px,.85fr); gap:14px; align-items:start}
+}
+@media(max-width:440px) {
+  main {padding:9px; gap:10px}
+  .card {padding:12px}
+  .tools-grid {grid-template-columns:1fr}
+  .key {min-height:51px}
+}
+</style>
 <script>
+/* Read the same display preferences used by setting.html. */
 (function () {
-  const KEY = "digital_notebook_settings";
+  const key = "digital_notebook_settings";
   const defaults = {
-    lang: "en",
-    theme: "dark",
-    font_size: "16",
-    font_family: "Poppins",
-    accentColor: "#10b981",
-    layout: "comfortable"
+    lang:"en", theme:"dark", font_size:"16",
+    font_family:"Poppins", accentColor:"#10b981", layout:"comfortable"
   };
   let p = {};
-  try { p = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (_) {}
+  try { p = JSON.parse(localStorage.getItem(key) || "{}"); } catch (_) {}
   if (!p || typeof p !== "object" || Array.isArray(p)) p = {};
-  p = { ...defaults, ...p };
-  if (!localStorage.getItem(KEY) && localStorage.getItem("theme")) {
+  p = {...defaults, ...p};
+  if (!localStorage.getItem(key) && localStorage.getItem("theme")) {
     p.theme = localStorage.getItem("theme");
   }
   document.documentElement.lang = p.lang === "ne" ? "ne" : "en";
   document.documentElement.classList.toggle("dark", p.theme !== "light");
   document.documentElement.style.setProperty("--accent", p.accentColor);
   document.documentElement.style.setProperty("--app-font-size", (Number(p.font_size) || 16) + "px");
-  document.documentElement.style.setProperty("--app-font-family", '"' + String(p.font_family || "Poppins").replace(/[^a-zA-Z0-9 -]/g, "") + '", Arial, sans-serif');
+  document.documentElement.style.setProperty("--app-font-family", '"' +
+    String(p.font_family || "Poppins").replace(/[^a-zA-Z0-9 -]/g, "") + '",Arial,sans-serif');
   document.documentElement.dataset.layout = p.layout || "comfortable";
 })();
 </script>
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-
-<style>
-:root {
-  --bg:#0b1220;
-  --panel:#151f31;
-  --field:#1c2940;
-  --text:#edf3ff;
-  --muted:#9cacc5;
-  --line:#2b3a54;
-  --accent:#10b981;
-  --app-font-size:16px;
-  --app-font-family:Poppins,Arial,sans-serif;
-}
-html:not(.dark) {
-  --bg:#f3f6fb;
-  --panel:#fff;
-  --field:#edf2f9;
-  --text:#152033;
-  --muted:#586780;
-  --line:#d7e0ed;
-}
-* { box-sizing:border-box; }
-body {
-  margin:0;
-  min-height:100vh;
-  background:var(--bg);
-  color:var(--text);
-  font:var(--app-font-size)/1.5 var(--app-font-family);
-}
-button,input,select { font:inherit; }
-button { cursor:pointer; }
-button:focus-visible,input:focus-visible,select:focus-visible {
-  outline:2px solid var(--accent);
-  outline-offset:2px;
-}
-.topbar {
-  position:sticky;
-  top:0;
-  z-index:10;
-  display:flex;
-  align-items:center;
-  gap:12px;
-  padding:12px 15px;
-  padding-top:max(12px,env(safe-area-inset-top));
-  background:var(--panel);
-  border-bottom:1px solid var(--line);
-}
-.back {
-  color:var(--text);
-  text-decoration:none;
-  font-size:25px;
-  line-height:1;
-  padding:4px 5px;
-}
-.brand {
-  display:flex;
-  align-items:center;
-  gap:9px;
-  flex:1;
-  min-width:0;
-  font-weight:700;
-}
-.brand-icon { font-size:23px; }
-.header-actions { display:flex; gap:6px; }
-.icon-btn {
-  border:1px solid var(--line);
-  border-radius:9px;
-  background:var(--field);
-  color:var(--text);
-  min-width:38px;
-  min-height:36px;
-  padding:6px 9px;
-}
-main {
-  width:min(960px,100%);
-  margin:auto;
-  padding:14px;
-  display:grid;
-  gap:14px;
-}
-.card {
-  min-width:0;
-  background:var(--panel);
-  border:1px solid var(--line);
-  border-radius:17px;
-  padding:16px;
-}
-h1,h2,h3,p { margin-top:0; }
-h1 { font-size:1.4em; margin-bottom:5px; }
-h2 { font-size:1.12em; margin-bottom:7px; }
-.muted { color:var(--muted); }
-.small { font-size:.85em; }
-.display {
-  min-height:116px;
-  display:flex;
-  flex-direction:column;
-  justify-content:flex-end;
-  text-align:right;
-  background:var(--bg);
-  border:1px solid var(--line);
-  border-radius:14px;
-  padding:13px;
-  margin:14px 0;
-  overflow:hidden;
-}
-.history {
-  min-height:22px;
-  color:var(--muted);
-  font-size:.9em;
-  overflow-x:auto;
-  white-space:nowrap;
-}
-.screen {
-  font-size:clamp(2rem,8vw,3rem);
-  font-weight:700;
-  line-height:1.3;
-  overflow-x:auto;
-  white-space:nowrap;
-  scrollbar-width:thin;
-}
-.keypad {
-  display:grid;
-  grid-template-columns:repeat(4,minmax(0,1fr));
-  gap:8px;
-}
-.key {
-  min-height:56px;
-  border:1px solid var(--line);
-  border-radius:13px;
-  background:var(--field);
-  color:var(--text);
-  font-size:1.12em;
-  font-weight:650;
-}
-.key:active { transform:scale(.97); }
-.key.operator { color:var(--accent); }
-.key.clear { color:#fb7185; }
-.key.equal {
-  background:var(--accent);
-  color:#05251b;
-  border-color:var(--accent);
-}
-.key.wide { grid-column:span 2; }
-.calc-actions {
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-  margin-top:10px;
-}
-.action {
-  border:1px solid var(--line);
-  border-radius:10px;
-  padding:9px 12px;
-  background:var(--field);
-  color:var(--text);
-}
-.action.primary { background:var(--accent); color:#05251b; font-weight:700; }
-.tools-grid {
-  display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:12px;
-}
-.tool {
-  min-width:0;
-  padding:14px;
-  border:1px solid var(--line);
-  border-radius:14px;
-  background:var(--bg);
-}
-.tool-icon { font-size:1.5em; margin-bottom:5px; }
-.field { display:grid; gap:6px; margin-top:11px; }
-label { font-weight:600; }
-input,select {
-  width:100%;
-  min-width:0;
-  padding:11px;
-  color:var(--text);
-  background:var(--field);
-  border:1px solid var(--line);
-  border-radius:10px;
-}
-.result {
-  margin-top:10px;
-  padding:10px;
-  border-radius:10px;
-  background:var(--field);
-  overflow-wrap:anywhere;
-}
-.result strong { color:var(--accent); }
-footer {
-  text-align:center;
-  padding:4px 12px 22px;
-  color:var(--muted);
-  font-size:.8em;
-}
-body[data-layout="compact"] main { padding:8px; gap:8px; }
-body[data-layout="compact"] .card { padding:11px; border-radius:12px; }
-body[data-layout="compact"] .key { min-height:47px; }
-.toast-area {
-  position:fixed;
-  bottom:15px;
-  left:50%;
-  transform:translateX(-50%);
-  z-index:50;
-  width:min(92%,420px);
-}
-.toast {
-  padding:11px 14px;
-  margin-top:6px;
-  border-radius:10px;
-  background:#166534;
-  color:white;
-  box-shadow:0 4px 18px #0003;
-}
-.toast.error { background:#9f1239; }
-@media(min-width:700px) {
-  .calculator-layout {
-    display:grid;
-    grid-template-columns:minmax(0,1fr) minmax(270px,.85fr);
-    gap:14px;
-    align-items:start;
-  }
-  .calculator-layout .card { height:100%; }
-}
-@media(max-width:440px) {
-  main { padding:9px; gap:10px; }
-  .card { padding:12px; }
-  .tools-grid { grid-template-columns:1fr; }
-  .key { min-height:51px; }
-  .brand { font-size:.9em; }
-}
-</style>
 </head>
-
 <body>
 <header class="topbar">
-  <a class="back" href="index.html" aria-label="Back to home" title="Back">←</a>
-  <div class="brand">
-    <span class="brand-icon">📘</span>
-    <span>Digital NoteBook · <span data-i18n="appTitle">Calculator</span></span>
-  </div>
-  <div class="header-actions">
-    <button class="icon-btn" id="languageBtn" type="button" aria-label="Change language">नेपाली</button>
-  </div>
+  <a class="back" id="backButton" href="index.html" aria-label="Back" title="Back">←</a>
+  <div class="brand">📘 Digital NoteBook</div>
 </header>
 
 <main>
   <section>
-    <h1 data-i18n="pageTitle">Calculator & Converters</h1>
+    <h1 data-i18n="pageTitle">Calculator &amp; Converters</h1>
     <p class="muted small" data-i18n="pageIntro">Everyday calculations and useful measurement tools. Works without Firebase.</p>
   </section>
 
   <div class="calculator-layout">
-    <section class="card" aria-label="Calculator">
+    <section class="card">
       <h2>🧮 <span data-i18n="basicCalc">Basic calculator</span></h2>
       <div class="display" aria-live="polite">
         <div class="history" id="historyDisplay"></div>
         <div class="screen" id="calcDisplay">0</div>
       </div>
-
       <div class="keypad" id="keypad">
         <button class="key clear" data-action="clear">AC</button>
         <button class="key" data-action="backspace" aria-label="Delete last digit">⌫</button>
         <button class="key operator" data-value="%">%</button>
         <button class="key operator" data-value="/">÷</button>
-
         <button class="key" data-value="7">7</button>
         <button class="key" data-value="8">8</button>
         <button class="key" data-value="9">9</button>
         <button class="key operator" data-value="*">×</button>
-
         <button class="key" data-value="4">4</button>
         <button class="key" data-value="5">5</button>
         <button class="key" data-value="6">6</button>
         <button class="key operator" data-value="-">−</button>
-
         <button class="key" data-value="1">1</button>
         <button class="key" data-value="2">2</button>
         <button class="key" data-value="3">3</button>
         <button class="key operator" data-value="+">+</button>
-
         <button class="key wide" data-value="0">0</button>
         <button class="key" data-value=".">.</button>
         <button class="key equal" data-action="equals">=</button>
       </div>
-
       <div class="calc-actions">
         <button class="action" id="copyBtn" type="button" data-i18n="copy">Copy result</button>
         <button class="action" id="clearHistoryBtn" type="button" data-i18n="clearHistory">Clear display</button>
       </div>
+      <div id="copyStatus" class="status" role="status" aria-live="polite"></div>
       <p class="muted small" style="margin:12px 0 0" data-i18n="calcHint">Operators replace one another when pressed consecutively.</p>
     </section>
 
     <section class="card">
       <h2>📐 <span data-i18n="quickTools">Quick tools</span></h2>
       <p class="muted small" data-i18n="toolsIntro">Choose a tool below to calculate a measurement or value.</p>
-
       <div class="tools-grid">
         <div class="tool">
           <div class="tool-icon">⚖️</div>
           <h3 data-i18n="bmiTitle">BMI calculator</h3>
-          <div class="field">
-            <label for="height" data-i18n="heightCm">Height (cm)</label>
-            <input id="height" type="number" min="1" max="300" step="any" inputmode="decimal" placeholder="170">
-          </div>
-          <div class="field">
-            <label for="weight" data-i18n="weightKg">Weight (kg)</label>
-            <input id="weight" type="number" min="1" max="700" step="any" inputmode="decimal" placeholder="65">
-          </div>
-          <div class="calc-actions">
-            <button class="action primary" id="bmiBtn" type="button" data-i18n="calculate">Calculate</button>
-          </div>
+          <div class="field"><label for="height" data-i18n="heightCm">Height (cm)</label><input id="height" type="number" min="1" max="300" step="any" inputmode="decimal" placeholder="170"></div>
+          <div class="field"><label for="weight" data-i18n="weightKg">Weight (kg)</label><input id="weight" type="number" min="1" max="700" step="any" inputmode="decimal" placeholder="65"></div>
+          <div class="calc-actions"><button class="action primary" id="bmiBtn" type="button" data-i18n="calculate">Calculate</button></div>
           <div class="result" id="bmiResult" aria-live="polite">—</div>
           <p class="muted small" data-i18n="bmiNote">BMI is a screening measure, not a diagnosis. For children and teens, interpretation depends on age and sex.</p>
         </div>
 
         <div class="tool">
-          <div class="tool-icon">🔄</div>
-          <h3 data-i18n="weightConvert">Weight converter</h3>
-          <div class="field">
-            <label for="weightValue" data-i18n="value">Value</label>
-            <input id="weightValue" type="number" step="any" inputmode="decimal" value="1">
-          </div>
-          <div class="field">
-            <label for="weightFrom" data-i18n="from">From</label>
-            <select id="weightFrom">
-              <option value="kg">Kilogram (kg)</option>
-              <option value="g">Gram (g)</option>
-              <option value="lb">Pound (lb)</option>
-              <option value="oz">Ounce (oz)</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="weightTo" data-i18n="to">To</label>
-            <select id="weightTo">
-              <option value="lb">Pound (lb)</option>
-              <option value="kg">Kilogram (kg)</option>
-              <option value="g">Gram (g)</option>
-              <option value="oz">Ounce (oz)</option>
-            </select>
-          </div>
+          <div class="tool-icon">🔄</div><h3 data-i18n="weightConvert">Weight converter</h3>
+          <div class="field"><label for="weightValue" data-i18n="value">Value</label><input id="weightValue" type="number" step="any" inputmode="decimal" value="1"></div>
+          <div class="field"><label for="weightFrom" data-i18n="from">From</label><select id="weightFrom"><option value="kg">Kilogram (kg)</option><option value="g">Gram (g)</option><option value="lb">Pound (lb)</option><option value="oz">Ounce (oz)</option></select></div>
+          <div class="field"><label for="weightTo" data-i18n="to">To</label><select id="weightTo"><option value="lb">Pound (lb)</option><option value="kg">Kilogram (kg)</option><option value="g">Gram (g)</option><option value="oz">Ounce (oz)</option></select></div>
           <div class="result" id="weightResult" aria-live="polite">—</div>
         </div>
 
         <div class="tool">
-          <div class="tool-icon">📏</div>
-          <h3 data-i18n="lengthConvert">Length converter</h3>
-          <div class="field">
-            <label for="lengthValue" data-i18n="value">Value</label>
-            <input id="lengthValue" type="number" step="any" inputmode="decimal" value="1">
-          </div>
-          <div class="field">
-            <label for="lengthFrom" data-i18n="from">From</label>
-            <select id="lengthFrom">
-              <option value="m">Meter (m)</option>
-              <option value="km">Kilometer (km)</option>
-              <option value="cm">Centimeter (cm)</option>
-              <option value="mm">Millimeter (mm)</option>
-              <option value="ft">Foot (ft)</option>
-              <option value="in">Inch (in)</option>
-              <option value="mi">Mile (mi)</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="lengthTo" data-i18n="to">To</label>
-            <select id="lengthTo">
-              <option value="ft">Foot (ft)</option>
-              <option value="m">Meter (m)</option>
-              <option value="km">Kilometer (km)</option>
-              <option value="cm">Centimeter (cm)</option>
-              <option value="mm">Millimeter (mm)</option>
-              <option value="in">Inch (in)</option>
-              <option value="mi">Mile (mi)</option>
-            </select>
-          </div>
+          <div class="tool-icon">📏</div><h3 data-i18n="lengthConvert">Length converter</h3>
+          <div class="field"><label for="lengthValue" data-i18n="value">Value</label><input id="lengthValue" type="number" step="any" inputmode="decimal" value="1"></div>
+          <div class="field"><label for="lengthFrom" data-i18n="from">From</label><select id="lengthFrom"><option value="m">Meter (m)</option><option value="km">Kilometer (km)</option><option value="cm">Centimeter (cm)</option><option value="mm">Millimeter (mm)</option><option value="ft">Foot (ft)</option><option value="in">Inch (in)</option><option value="mi">Mile (mi)</option></select></div>
+          <div class="field"><label for="lengthTo" data-i18n="to">To</label><select id="lengthTo"><option value="ft">Foot (ft)</option><option value="m">Meter (m)</option><option value="km">Kilometer (km)</option><option value="cm">Centimeter (cm)</option><option value="mm">Millimeter (mm)</option><option value="in">Inch (in)</option><option value="mi">Mile (mi)</option></select></div>
           <div class="result" id="lengthResult" aria-live="polite">—</div>
         </div>
 
         <div class="tool">
-          <div class="tool-icon">🌡️</div>
-          <h3 data-i18n="tempConvert">Temperature converter</h3>
-          <div class="field">
-            <label for="tempValue" data-i18n="value">Value</label>
-            <input id="tempValue" type="number" step="any" inputmode="decimal" value="0">
-          </div>
-          <div class="field">
-            <label for="tempFrom" data-i18n="from">From</label>
-            <select id="tempFrom">
-              <option value="C">Celsius (°C)</option>
-              <option value="F">Fahrenheit (°F)</option>
-              <option value="K">Kelvin (K)</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="tempTo" data-i18n="to">To</label>
-            <select id="tempTo">
-              <option value="F">Fahrenheit (°F)</option>
-              <option value="C">Celsius (°C)</option>
-              <option value="K">Kelvin (K)</option>
-            </select>
-          </div>
+          <div class="tool-icon">🌡️</div><h3 data-i18n="tempConvert">Temperature converter</h3>
+          <div class="field"><label for="tempValue" data-i18n="value">Value</label><input id="tempValue" type="number" step="any" inputmode="decimal" value="0"></div>
+          <div class="field"><label for="tempFrom" data-i18n="from">From</label><select id="tempFrom"><option value="C">Celsius (°C)</option><option value="F">Fahrenheit (°F)</option><option value="K">Kelvin (K)</option></select></div>
+          <div class="field"><label for="tempTo" data-i18n="to">To</label><select id="tempTo"><option value="F">Fahrenheit (°F)</option><option value="C">Celsius (°C)</option><option value="K">Kelvin (K)</option></select></div>
           <div class="result" id="tempResult" aria-live="polite">—</div>
         </div>
 
         <div class="tool">
-          <div class="tool-icon">💰</div>
-          <h3 data-i18n="interestTitle">Simple interest</h3>
-          <div class="field">
-            <label for="principal" data-i18n="principal">Principal amount</label>
-            <input id="principal" type="number" min="0" step="any" inputmode="decimal" value="10000">
-          </div>
-          <div class="field">
-            <label for="rate" data-i18n="rate">Annual interest rate (%)</label>
-            <input id="rate" type="number" min="0" step="any" inputmode="decimal" value="10">
-          </div>
-          <div class="field">
-            <label for="years" data-i18n="years">Time (years)</label>
-            <input id="years" type="number" min="0" step="any" inputmode="decimal" value="1">
-          </div>
-          <div class="calc-actions">
-            <button class="action primary" id="interestBtn" type="button" data-i18n="calculate">Calculate</button>
-          </div>
+          <div class="tool-icon">💰</div><h3 data-i18n="interestTitle">Simple interest</h3>
+          <div class="field"><label for="principal" data-i18n="principal">Principal amount</label><input id="principal" type="number" min="0" step="any" inputmode="decimal" value="10000"></div>
+          <div class="field"><label for="rate" data-i18n="rate">Annual interest rate (%)</label><input id="rate" type="number" min="0" step="any" inputmode="decimal" value="10"></div>
+          <div class="field"><label for="years" data-i18n="years">Time (years)</label><input id="years" type="number" min="0" step="any" inputmode="decimal" value="1"></div>
+          <div class="calc-actions"><button class="action primary" id="interestBtn" type="button" data-i18n="calculate">Calculate</button></div>
           <div class="result" id="interestResult" aria-live="polite">—</div>
         </div>
 
         <div class="tool">
-          <div class="tool-icon">📊</div>
-          <h3 data-i18n="percentageTitle">Percentage calculator</h3>
-          <div class="field">
-            <label for="percentValue" data-i18n="percentOf">What is this percentage?</label>
-            <input id="percentValue" type="number" step="any" inputmode="decimal" value="10">
-          </div>
-          <div class="field">
-            <label for="percentTotal" data-i18n="ofValue">Of this value</label>
-            <input id="percentTotal" type="number" step="any" inputmode="decimal" value="1000">
-          </div>
-          <div class="calc-actions">
-            <button class="action primary" id="percentBtn" type="button" data-i18n="calculate">Calculate</button>
-          </div>
+          <div class="tool-icon">📊</div><h3 data-i18n="percentageTitle">Percentage calculator</h3>
+          <div class="field"><label for="percentValue" data-i18n="percentOf">What is this percentage?</label><input id="percentValue" type="number" step="any" inputmode="decimal" value="10"></div>
+          <div class="field"><label for="percentTotal" data-i18n="ofValue">Of this value</label><input id="percentTotal" type="number" step="any" inputmode="decimal" value="1000"></div>
+          <div class="calc-actions"><button class="action primary" id="percentBtn" type="button" data-i18n="calculate">Calculate</button></div>
           <div class="result" id="percentResult" aria-live="polite">—</div>
         </div>
       </div>
@@ -482,10 +234,7 @@ body[data-layout="compact"] .key { min-height:47px; }
   </div>
 </main>
 
-<footer>
-  <span>Digital NoteBook</span> · <span data-i18n="offlineNote">Display preferences are stored on this device.</span>
-</footer>
-<div id="toastArea" class="toast-area" aria-live="polite"></div>
+<footer>Digital NoteBook · <span data-i18n="offlineNote">Display preferences are stored on this device.</span></footer>
 
 <script>
 "use strict";
@@ -498,53 +247,43 @@ const DEFAULTS = {
 
 const words = {
   en: {
-    appTitle:"Calculator", pageTitle:"Calculator & Converters",
-    pageIntro:"Everyday calculations and useful measurement tools. Works without Firebase.",
+    pageTitle:"Calculator & Converters", pageIntro:"Everyday calculations and useful measurement tools. Works without Firebase.",
     basicCalc:"Basic calculator", copy:"Copy result", clearHistory:"Clear display",
     calcHint:"Operators replace one another when pressed consecutively.",
     quickTools:"Quick tools", toolsIntro:"Choose a tool below to calculate a measurement or value.",
-    bmiTitle:"BMI calculator", heightCm:"Height (cm)", weightKg:"Weight (kg)",
-    calculate:"Calculate", bmiNote:"BMI is a screening measure, not a diagnosis. For children and teens, interpretation depends on age and sex.",
-    weightConvert:"Weight converter", lengthConvert:"Length converter",
-    tempConvert:"Temperature converter", value:"Value", from:"From", to:"To",
-    interestTitle:"Simple interest", principal:"Principal amount",
-    rate:"Annual interest rate (%)", years:"Time (years)",
-    percentageTitle:"Percentage calculator", percentOf:"Percentage (%)", ofValue:"Of this value",
-    offlineNote:"Display preferences are stored on this device.",
-    copied:"Result copied.", copyFailed:"Could not copy the result.",
-    invalid:"Please enter valid numbers.", bmiResult:"BMI",
-    bmiLow:"Below the usual adult range", bmiNormal:"Within the usual adult range",
+    bmiTitle:"BMI calculator", heightCm:"Height (cm)", weightKg:"Weight (kg)", calculate:"Calculate",
+    bmiNote:"BMI is a screening measure, not a diagnosis. For children and teens, interpretation depends on age and sex.",
+    weightConvert:"Weight converter", lengthConvert:"Length converter", tempConvert:"Temperature converter",
+    value:"Value", from:"From", to:"To", interestTitle:"Simple interest", principal:"Principal amount",
+    rate:"Annual interest rate (%)", years:"Time (years)", percentageTitle:"Percentage calculator",
+    percentOf:"Percentage (%)", ofValue:"Of this value", offlineNote:"Display preferences are stored on this device.",
+    copied:"Result copied.", copyFailed:"Could not copy the result.", invalid:"Please enter valid numbers.",
+    bmiResult:"BMI", bmiLow:"Below the usual adult range", bmiNormal:"Within the usual adult range",
     bmiHigh:"Above the usual adult range",
-    bmiTeen:"For people under 18, BMI must be interpreted using age- and sex-specific growth charts.",
+    bmiTeen:"For people under 18, BMI should be interpreted using age- and sex-specific growth charts.",
     bmiAdult:"Adult BMI categories are not intended for people under 18.",
-    interestResult:"Interest", totalResult:"Total amount",
-    percentageResult:"Result", error:"Invalid calculation",
-    divisionZero:"Cannot divide by zero."
+    interestResult:"Interest", totalResult:"Total amount", percentageResult:"Result",
+    error:"Invalid calculation", divisionZero:"Cannot divide by zero."
   },
   ne: {
-    appTitle:"क्याल्कुलेटर", pageTitle:"क्याल्कुलेटर र रूपान्तरण",
-    pageIntro:"दैनिक हिसाब र नापतौलका उपयोगी उपकरण। Firebase बिना पनि चल्छ।",
+    pageTitle:"क्याल्कुलेटर र रूपान्तरण", pageIntro:"दैनिक हिसाब र नापतौलका उपयोगी उपकरण। Firebase बिना पनि चल्छ।",
     basicCalc:"साधारण क्याल्कुलेटर", copy:"नतिजा कपी", clearHistory:"डिस्प्ले खाली",
     calcHint:"लगातार Operator थिच्दा अन्तिम Operator प्रतिस्थापन हुन्छ।",
     quickTools:"अन्य उपयोगी उपकरण", toolsIntro:"तलको उपकरण छानेर हिसाब गर्नुहोस्।",
     bmiTitle:"BMI क्याल्कुलेटर", heightCm:"उचाइ (से.मी.)", weightKg:"तौल (के.जी.)",
-    calculate:"हिसाब गर्नुहोस्", bmiNote:"BMI सामान्य जाँचको सूचक हो, रोग निदान होइन। बालबालिका र किशोरकिशोरीको BMI उमेर र लिङ्गअनुसार बुझ्नुपर्छ।",
-    weightConvert:"तौल रूपान्तरण", lengthConvert:"लम्बाइ रूपान्तरण",
-    tempConvert:"तापक्रम रूपान्तरण", value:"मान", from:"बाट", to:"मा",
-    interestTitle:"साधारण ब्याज", principal:"मूलधन",
-    rate:"वार्षिक ब्याजदर (%)", years:"समय (वर्ष)",
-    percentageTitle:"प्रतिशत हिसाब", percentOf:"प्रतिशत (%)", ofValue:"यो रकमको",
-    offlineNote:"देखावटका प्राथमिकता यस उपकरणमा सुरक्षित हुन्छन्।",
-    copied:"नतिजा कपी भयो।", copyFailed:"नतिजा कपी गर्न सकिएन।",
-    invalid:"कृपया सही सङ्ख्या राख्नुहोस्।", bmiResult:"BMI",
-    bmiLow:"सामान्य वयस्क दायराभन्दा कम",
-    bmiNormal:"सामान्य वयस्क दायराभित्र",
-    bmiHigh:"सामान्य वयस्क दायराभन्दा बढी",
+    calculate:"हिसाब गर्नुहोस्",
+    bmiNote:"BMI सामान्य जाँचको सूचक हो, रोग निदान होइन। बालबालिका र किशोरकिशोरीको BMI उमेर र लिङ्गअनुसार बुझ्नुपर्छ।",
+    weightConvert:"तौल रूपान्तरण", lengthConvert:"लम्बाइ रूपान्तरण", tempConvert:"तापक्रम रूपान्तरण",
+    value:"मान", from:"बाट", to:"मा", interestTitle:"साधारण ब्याज", principal:"मूलधन",
+    rate:"वार्षिक ब्याजदर (%)", years:"समय (वर्ष)", percentageTitle:"प्रतिशत हिसाब",
+    percentOf:"प्रतिशत (%)", ofValue:"यो रकमको", offlineNote:"देखावटका प्राथमिकता यस उपकरणमा सुरक्षित हुन्छन्।",
+    copied:"नतिजा कपी भयो।", copyFailed:"नतिजा कपी गर्न सकिएन।", invalid:"कृपया सही सङ्ख्या राख्नुहोस्।",
+    bmiResult:"BMI", bmiLow:"सामान्य वयस्क दायराभन्दा कम",
+    bmiNormal:"सामान्य वयस्क दायराभित्र", bmiHigh:"सामान्य वयस्क दायराभन्दा बढी",
     bmiTeen:"१८ वर्षमुनिका लागि BMI उमेर र लिङ्गअनुसारको वृद्धि चार्टबाट बुझ्नुपर्छ।",
     bmiAdult:"वयस्क BMI वर्गीकरण १८ वर्षमुनिका लागि लागू हुँदैन।",
-    interestResult:"ब्याज", totalResult:"कुल रकम",
-    percentageResult:"नतिजा", error:"हिसाब मिलेन",
-    divisionZero:"शून्यले भाग गर्न मिल्दैन।"
+    interestResult:"ब्याज", totalResult:"कुल रकम", percentageResult:"नतिजा",
+    error:"हिसाब मिलेन", divisionZero:"शून्यले भाग गर्न मिल्दैन।"
   }
 };
 
@@ -552,67 +291,58 @@ function readSettings() {
   let p = {};
   try { p = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}"); } catch (_) {}
   if (!p || typeof p !== "object" || Array.isArray(p)) p = {};
-  p = { ...DEFAULTS, ...p };
-  if (!localStorage.getItem(SETTINGS_KEY) && localStorage.getItem("theme")) {
-    p.theme = localStorage.getItem("theme");
-  }
+  p = {...DEFAULTS, ...p};
+  if (!localStorage.getItem(SETTINGS_KEY) && localStorage.getItem("theme")) p.theme = localStorage.getItem("theme");
   return p;
 }
-
 let prefs = readSettings();
 let expression = "0";
 let justCalculated = false;
-let lastResult = 0;
-
-function saveSettings() {
-  try {
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(prefs));
-  } catch (e) {
-    console.error("Could not save display preferences", e);
-  }
-}
 
 function tr(key) {
-  return (words[prefs.lang === "ne" ? "ne" : "en"][key] ||
-          words.en[key] || key);
+  const language = prefs.lang === "ne" ? "ne" : "en";
+  return words[language][key] || words.en[key] || key;
 }
-
 function applyPreferences() {
+  prefs = {...DEFAULTS, ...readSettings()};
   const root = document.documentElement;
   root.lang = prefs.lang === "ne" ? "ne" : "en";
   root.classList.toggle("dark", prefs.theme !== "light");
   root.style.setProperty("--accent", prefs.accentColor || DEFAULTS.accentColor);
   root.style.setProperty("--app-font-size", (Number(prefs.font_size) || 16) + "px");
-
   const font = String(prefs.font_family || "Poppins").replace(/[^a-zA-Z0-9 -]/g, "");
-  root.style.setProperty("--app-font-family", '"' + font + '", Arial, sans-serif');
+  root.style.setProperty("--app-font-family", '"' + font + '",Arial,sans-serif');
   root.dataset.layout = prefs.layout || "comfortable";
   document.body.dataset.layout = prefs.layout || "comfortable";
-
   document.querySelectorAll("[data-i18n]").forEach(el => {
-    const key = el.getAttribute("data-i18n");
-    if (tr(key)) el.textContent = tr(key);
+    const key = el.dataset.i18n;
+    el.textContent = tr(key);
   });
-
-  document.title = "Digital NoteBook · " + tr("appTitle");
-  document.getElementById("languageBtn").textContent =
-    prefs.lang === "ne" ? "English" : "नेपाली";
+  document.title = "Digital NoteBook · " + tr("pageTitle");
+  updateConverters();
   renderDisplay();
 }
 
-document.getElementById("languageBtn").addEventListener("click", () => {
-  prefs.lang = prefs.lang === "ne" ? "en" : "ne";
-  saveSettings();
-  applyPreferences();
-});
-
+/* Preferences changed in setting.html: refresh on return and cross-tab update. */
 window.addEventListener("storage", event => {
-  if (event.key !== SETTINGS_KEY || !event.newValue) return;
-  try {
-    const next = JSON.parse(event.newValue);
-    prefs = { ...DEFAULTS, ...next };
-    applyPreferences();
-  } catch (_) {}
+  if (event.key === SETTINGS_KEY || event.key === "theme") applyPreferences();
+});
+window.addEventListener("pageshow", applyPreferences);
+window.addEventListener("focus", applyPreferences);
+
+/* Back arrow: return to previous page; never logs out or asks for a lock. */
+document.getElementById("backButton").addEventListener("click", event => {
+  event.preventDefault();
+  if (document.referrer) {
+    try {
+      const previous = new URL(document.referrer);
+      if (previous.origin === location.origin && history.length > 1) {
+        history.back();
+        return;
+      }
+    } catch (_) {}
+  }
+  location.href = "index.html";
 });
 
 function displayNumber(n) {
@@ -620,310 +350,200 @@ function displayNumber(n) {
   if (Object.is(n, -0)) n = 0;
   return String(Number(n.toPrecision(12)));
 }
-
 function renderDisplay() {
   document.getElementById("calcDisplay").textContent = expression;
 }
-
 function renderHistory(text) {
   document.getElementById("historyDisplay").textContent = text || "";
 }
-
-function isOperator(ch) {
-  return ["+","-","*","/"].includes(ch);
-}
+function isOperator(ch) { return ["+","-","*","/"].includes(ch); }
 
 function appendDigit(digit) {
-  if (justCalculated) {
-    expression = "0";
-    justCalculated = false;
-    renderHistory("");
-  }
-
+  if (justCalculated) { expression = "0"; justCalculated = false; renderHistory(""); }
   if (expression === "Error") expression = "0";
-
   if (digit === ".") {
-    const currentNumber = expression.split(/[+\-*/]/).pop();
-    if (currentNumber.includes(".")) return;
-    if (!currentNumber) expression += "0.";
-    else expression += ".";
-  } else if (expression === "0") {
-    expression = digit;
-  } else if (/([+\-*/])0$/.test(expression)) {
-    expression += digit;
-  } else {
-    expression += digit;
-  }
+    const current = expression.split(/[+\-*/]/).pop();
+    if (current.includes(".")) return;
+    expression += current ? "." : "0.";
+  } else if (expression === "0") expression = digit;
+  else expression += digit;
   renderDisplay();
 }
-
 function appendOperator(operator) {
   if (expression === "Error") expression = "0";
   if (justCalculated) justCalculated = false;
-
   const last = expression.slice(-1);
-
   if (isOperator(last)) {
-    if (operator === "-" && last !== "-") {
-      expression += operator;
-    } else {
-      expression = expression.slice(0, -1) + operator;
-    }
-  } else if (last === ".") {
-    expression = expression.slice(0, -1) + operator;
-  } else {
-    expression += operator;
-  }
+    if (operator === "-" && last !== "-") expression += operator;
+    else expression = expression.slice(0,-1) + operator;
+  } else if (last === ".") expression = expression.slice(0,-1) + operator;
+  else expression += operator;
   renderDisplay();
 }
-
 function clearCalc() {
-  expression = "0";
-  justCalculated = false;
-  lastResult = 0;
-  renderHistory("");
-  renderDisplay();
+  expression = "0"; justCalculated = false; renderHistory(""); renderDisplay();
 }
-
 function backspace() {
   if (justCalculated || expression === "Error" || expression.length <= 1) {
-    expression = "0";
-    justCalculated = false;
+    expression = "0"; justCalculated = false;
   } else {
-    expression = expression.slice(0, -1);
-    if (expression === "" || expression === "-") expression = "0";
+    expression = expression.slice(0,-1);
+    if (!expression || expression === "-") expression = "0";
   }
   renderDisplay();
 }
-
 function tokenize(input) {
-  const tokens = [];
-  let i = 0;
-
+  const tokens = []; let i = 0;
   while (i < input.length) {
     const ch = input[i];
     if (/\s/.test(ch)) { i++; continue; }
-
     if (/[0-9.]/.test(ch)) {
-      let num = "";
-      let dots = 0;
+      let num = "", dots = 0;
       while (i < input.length && /[0-9.]/.test(input[i])) {
         if (input[i] === ".") dots++;
         num += input[i++];
       }
-      if (dots > 1 || num === ".") throw new Error("Invalid number");
-      tokens.push(Number(num));
-      continue;
+      if (dots > 1 || num === ".") throw Error("Invalid number");
+      tokens.push(Number(num)); continue;
     }
-
-    if ("+-*/%()".includes(ch)) {
-      tokens.push(ch);
-      i++;
-      continue;
-    }
-    throw new Error("Invalid character");
+    if ("+-*/%()".includes(ch)) { tokens.push(ch); i++; continue; }
+    throw Error("Invalid character");
   }
   return tokens;
 }
-
 function evaluateExpression(input) {
-  const tokens = tokenize(input);
-  let pos = 0;
-
+  const tokens = tokenize(input); let pos = 0;
   function primary() {
     const token = tokens[pos++];
-
     if (token === "+" || token === "-") {
-      const n = primary();
-      return token === "-" ? -n : n;
+      const n = primary(); return token === "-" ? -n : n;
     }
     if (token === "(") {
-      const value = addSub();
-      if (tokens[pos++] !== ")") throw new Error("Missing closing bracket");
-      return value;
+      const n = addSub();
+      if (tokens[pos++] !== ")") throw Error("Missing closing bracket");
+      return n;
     }
     if (typeof token === "number") return token;
-    throw new Error("Expected a number");
+    throw Error("Expected a number");
   }
-
   function percent() {
-    let value = primary();
-    while (tokens[pos] === "%") {
-      pos++;
-      value = value / 100;
-    }
-    return value;
+    let n = primary();
+    while (tokens[pos] === "%") { pos++; n /= 100; }
+    return n;
   }
-
   function mulDiv() {
-    let value = percent();
+    let n = percent();
     while (tokens[pos] === "*" || tokens[pos] === "/") {
-      const op = tokens[pos++];
-      const right = percent();
-      if (op === "/" && right === 0) throw new Error(tr("divisionZero"));
-      value = op === "*" ? value * right : value / right;
+      const op = tokens[pos++], r = percent();
+      if (op === "/" && r === 0) throw Error(tr("divisionZero"));
+      n = op === "*" ? n * r : n / r;
     }
-    return value;
+    return n;
   }
-
   function addSub() {
-    let value = mulDiv();
+    let n = mulDiv();
     while (tokens[pos] === "+" || tokens[pos] === "-") {
-      const op = tokens[pos++];
-      const right = mulDiv();
-      value = op === "+" ? value + right : value - right;
+      const op = tokens[pos++], r = mulDiv();
+      n = op === "+" ? n + r : n - r;
     }
-    return value;
+    return n;
   }
-
-  if (!tokens.length) throw new Error("Empty expression");
+  if (!tokens.length) throw Error("Empty expression");
   const result = addSub();
-  if (pos !== tokens.length || !Number.isFinite(result)) {
-    throw new Error("Invalid expression");
-  }
+  if (pos !== tokens.length || !Number.isFinite(result)) throw Error("Invalid expression");
   return result;
 }
-
 function calculate() {
   try {
     let input = expression;
-    if (isOperator(input.slice(-1)) || input.endsWith(".")) {
-      input = input.slice(0, -1);
-    }
-    if (!input || input === "-") throw new Error("Incomplete expression");
-
+    if (isOperator(input.slice(-1)) || input.endsWith(".")) input = input.slice(0,-1);
+    if (!input || input === "-") throw Error("Incomplete expression");
     const result = evaluateExpression(input);
     renderHistory(input + " =");
     expression = displayNumber(result);
-    lastResult = result;
     justCalculated = true;
     renderDisplay();
   } catch (e) {
     renderHistory(e.message === tr("divisionZero") ? tr("divisionZero") : tr("error"));
-    expression = "Error";
-    justCalculated = true;
-    renderDisplay();
+    expression = "Error"; justCalculated = true; renderDisplay();
   }
 }
-
 document.getElementById("keypad").addEventListener("click", event => {
   const button = event.target.closest("button");
   if (!button) return;
-
-  const action = button.dataset.action;
-  const value = button.dataset.value;
-
+  const action = button.dataset.action, value = button.dataset.value;
   if (action === "clear") clearCalc();
   else if (action === "backspace") backspace();
   else if (action === "equals") calculate();
   else if (value && isOperator(value)) appendOperator(value);
   else if (value === "%") {
     if (expression === "Error") expression = "0";
-    if (justCalculated) justCalculated = false;
     if (!isOperator(expression.slice(-1)) && !expression.endsWith(".")) {
-      expression += "%";
-      renderDisplay();
+      expression += "%"; justCalculated = false; renderDisplay();
     }
   } else if (value !== undefined) appendDigit(value);
 });
-
 document.addEventListener("keydown", event => {
   if (event.ctrlKey || event.metaKey || event.altKey) return;
   if (/^[0-9.]$/.test(event.key)) appendDigit(event.key);
-  else if (["+", "-", "*", "/"].includes(event.key)) appendOperator(event.key);
-  else if (event.key === "Enter" || event.key === "=") {
-    event.preventDefault();
-    calculate();
-  } else if (event.key === "Backspace") backspace();
+  else if (["+","-","*","/"].includes(event.key)) appendOperator(event.key);
+  else if (event.key === "Enter" || event.key === "=") { event.preventDefault(); calculate(); }
+  else if (event.key === "Backspace") backspace();
   else if (event.key === "Escape") clearCalc();
-  else if (event.key === "%") {
-    if (!isOperator(expression.slice(-1)) && !expression.endsWith(".")) {
-      expression += "%";
-      renderDisplay();
-    }
+  else if (event.key === "%" && !isOperator(expression.slice(-1)) && !expression.endsWith(".")) {
+    expression += "%"; renderDisplay();
   }
 });
 
 document.getElementById("copyBtn").addEventListener("click", async () => {
-  const text = expression === "Error" ? "" : expression;
-  if (!text) return toast(tr("copyFailed"), true);
+  const status = document.getElementById("copyStatus");
+  status.textContent = ""; status.className = "status";
+  if (!expression || expression === "Error") {
+    status.textContent = tr("copyFailed"); status.classList.add("error"); return;
+  }
   try {
-    await navigator.clipboard.writeText(text);
-    toast(tr("copied"));
+    if (!navigator.clipboard || !navigator.clipboard.writeText) throw Error("Clipboard unavailable");
+    await navigator.clipboard.writeText(expression);
   } catch (_) {
-    toast(tr("copyFailed"), true);
+    status.textContent = tr("copyFailed"); status.classList.add("error");
   }
 });
-
 document.getElementById("clearHistoryBtn").addEventListener("click", clearCalc);
-
-function toast(message, error = false) {
-  const area = document.getElementById("toastArea");
-  const item = document.createElement("div");
-  item.className = "toast" + (error ? " error" : "");
-  item.textContent = message;
-  area.appendChild(item);
-  setTimeout(() => item.remove(), 2500);
-}
 
 function numberValue(id) {
   const raw = document.getElementById(id).value.trim();
-  if (raw === "") return NaN;
-  return Number(raw);
+  return raw === "" ? NaN : Number(raw);
 }
-
-function formatValue(n, digits = 4) {
+function formatValue(n, digits=4) {
   if (!Number.isFinite(n)) return "—";
-  return n.toLocaleString(prefs.lang === "ne" ? "ne-NP" : "en-US", {
-    maximumFractionDigits: digits
-  });
+  return n.toLocaleString(prefs.lang === "ne" ? "ne-NP" : "en-US", {maximumFractionDigits:digits});
 }
-
 function convertWeight() {
-  const factors = { kg:1, g:0.001, lb:0.45359237, oz:0.028349523125 };
-  const value = numberValue("weightValue");
-  if (!Number.isFinite(value)) return "—";
-  const kg = value * factors[document.getElementById("weightFrom").value];
-  return formatValue(kg / factors[document.getElementById("weightTo").value], 6);
+  const f = {kg:1,g:.001,lb:.45359237,oz:.028349523125};
+  const v = numberValue("weightValue");
+  if (!Number.isFinite(v)) return "—";
+  return formatValue(v*f[weightFrom.value]/f[weightTo.value],6);
 }
-
 function convertLength() {
-  const factors = {
-    m:1, km:1000, cm:0.01, mm:0.001,
-    ft:0.3048, in:0.0254, mi:1609.344
-  };
-  const value = numberValue("lengthValue");
-  if (!Number.isFinite(value)) return "—";
-  const meters = value * factors[document.getElementById("lengthFrom").value];
-  return formatValue(meters / factors[document.getElementById("lengthTo").value], 6);
+  const f = {m:1,km:1000,cm:.01,mm:.001,ft:.3048,in:.0254,mi:1609.344};
+  const v = numberValue("lengthValue");
+  if (!Number.isFinite(v)) return "—";
+  return formatValue(v*f[lengthFrom.value]/f[lengthTo.value],6);
 }
-
 function convertTemperature() {
-  const value = numberValue("tempValue");
-  if (!Number.isFinite(value)) return "—";
-  const from = document.getElementById("tempFrom").value;
-  const to = document.getElementById("tempTo").value;
-
-  let celsius;
-  if (from === "C") celsius = value;
-  else if (from === "F") celsius = (value - 32) * 5 / 9;
-  else celsius = value - 273.15;
-
-  let result;
-  if (to === "C") result = celsius;
-  else if (to === "F") result = celsius * 9 / 5 + 32;
-  else result = celsius + 273.15;
-
+  const v = numberValue("tempValue");
+  if (!Number.isFinite(v)) return "—";
+  const from = tempFrom.value, to = tempTo.value;
+  let c = from === "C" ? v : from === "F" ? (v-32)*5/9 : v-273.15;
+  const result = to === "C" ? c : to === "F" ? c*9/5+32 : c+273.15;
   if (to === "K" && result < 0) return "—";
-  return formatValue(result, 4);
+  return formatValue(result,4);
 }
-
 function updateConverters() {
   document.getElementById("weightResult").textContent = convertWeight();
   document.getElementById("lengthResult").textContent = convertLength();
   document.getElementById("tempResult").textContent = convertTemperature();
 }
-
 ["weightValue","weightFrom","weightTo"].forEach(id =>
   document.getElementById(id).addEventListener("input", () =>
     document.getElementById("weightResult").textContent = convertWeight()
@@ -941,78 +561,45 @@ function updateConverters() {
 );
 
 document.getElementById("bmiBtn").addEventListener("click", () => {
-  const heightCm = numberValue("height");
-  const weightKg = numberValue("weight");
+  const h = numberValue("height"), w = numberValue("weight");
   const result = document.getElementById("bmiResult");
-
-  if (!Number.isFinite(heightCm) || !Number.isFinite(weightKg) ||
-      heightCm <= 0 || weightKg <= 0 || heightCm > 300 || weightKg > 700) {
-    result.textContent = tr("invalid");
-    return;
+  if (!Number.isFinite(h) || !Number.isFinite(w) || h <= 0 || w <= 0 || h > 300 || w > 700) {
+    result.textContent = tr("invalid"); return;
   }
-
-  const heightM = heightCm / 100;
-  const bmi = weightKg / (heightM * heightM);
-  let category;
-
-  if (bmi < 18.5) category = tr("bmiLow");
-  else if (bmi < 25) category = tr("bmiNormal");
-  else category = tr("bmiHigh");
-
+  const bmi = w / ((h/100)**2);
+  const category = bmi < 18.5 ? tr("bmiLow") : bmi < 25 ? tr("bmiNormal") : tr("bmiHigh");
   result.replaceChildren();
   const heading = document.createElement("strong");
-  heading.textContent = tr("bmiResult") + ": " + formatValue(bmi, 1);
-  const detail = document.createElement("div");
-  detail.textContent = category;
-  const note = document.createElement("div");
-  note.className = "muted small";
-  note.style.marginTop = "6px";
-  note.textContent = tr("bmiAdult");
-  result.append(heading, detail, note);
+  heading.textContent = tr("bmiResult") + ": " + formatValue(bmi,1);
+  const detail = document.createElement("div"); detail.textContent = category;
+  const note = document.createElement("div"); note.className = "muted small";
+  note.style.marginTop = "6px"; note.textContent = tr("bmiAdult");
+  result.append(heading,detail,note);
 });
-
 document.getElementById("interestBtn").addEventListener("click", () => {
-  const principal = numberValue("principal");
-  const rate = numberValue("rate");
-  const years = numberValue("years");
+  const p = numberValue("principal"), r = numberValue("rate"), y = numberValue("years");
   const result = document.getElementById("interestResult");
-
-  if (![principal, rate, years].every(Number.isFinite) ||
-      principal < 0 || rate < 0 || years < 0) {
-    result.textContent = tr("invalid");
-    return;
+  if (![p,r,y].every(Number.isFinite) || p < 0 || r < 0 || y < 0) {
+    result.textContent = tr("invalid"); return;
   }
-
-  const interest = principal * rate * years / 100;
-  const total = principal + interest;
+  const interest = p*r*y/100;
   result.replaceChildren();
-
   const line1 = document.createElement("div");
-  const strong1 = document.createElement("strong");
-  strong1.textContent = tr("interestResult") + ": " + formatValue(interest, 2);
-  line1.appendChild(strong1);
-
+  const strong = document.createElement("strong");
+  strong.textContent = tr("interestResult") + ": " + formatValue(interest,2);
+  line1.appendChild(strong);
   const line2 = document.createElement("div");
-  line2.textContent = tr("totalResult") + ": " + formatValue(total, 2);
-  result.append(line1, line2);
+  line2.textContent = tr("totalResult") + ": " + formatValue(p+interest,2);
+  result.append(line1,line2);
 });
-
 document.getElementById("percentBtn").addEventListener("click", () => {
-  const percent = numberValue("percentValue");
-  const total = numberValue("percentTotal");
+  const p = numberValue("percentValue"), total = numberValue("percentTotal");
   const result = document.getElementById("percentResult");
-
-  if (![percent, total].every(Number.isFinite)) {
-    result.textContent = tr("invalid");
-    return;
-  }
-
-  result.textContent = tr("percentageResult") + ": " +
-    formatValue(percent * total / 100, 4);
+  if (![p,total].every(Number.isFinite)) { result.textContent = tr("invalid"); return; }
+  result.textContent = tr("percentageResult") + ": " + formatValue(p*total/100,4);
 });
 
 applyPreferences();
-updateConverters();
 </script>
 </body>
 </html>
