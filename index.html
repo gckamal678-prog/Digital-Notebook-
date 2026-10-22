@@ -7,13 +7,7 @@
 <title>Digital NoteBook</title>
 <link rel="icon" href="N1024.png">
 <script src="https://cdn.tailwindcss.com"></script>
-<script>
-tailwind.config={darkMode:'class'};
-try{
- const s=JSON.parse(localStorage.getItem('digital_notebook_settings')||'{}');
- document.documentElement.classList.toggle('dark',(s.theme||localStorage.getItem('theme')||'dark')==='dark');
-}catch(e){document.documentElement.classList.add('dark')}
-</script>
+<script>tailwind.config={darkMode:'class'};</script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
 body{font-family:Arial,sans-serif}
@@ -26,437 +20,338 @@ button,a{touch-action:manipulation}
 body:not(.dark) .card{background:white;border-color:#e2e8f0}
 body:not(.dark) input,body:not(.dark) textarea{background:white;border-color:#cbd5e1;color:#0f172a}
 body:not(.dark) #topbar{background:#fff;color:#0f172a}
-#sidebar{transition:transform .2s}
 .money{overflow-wrap:anywhere}
 </style>
+<script>
+try{
+ const s=JSON.parse(localStorage.getItem('digital_notebook_settings')||'{}');
+ document.documentElement.classList.toggle('dark',(s.theme||localStorage.getItem('theme')||'dark')==='dark');
+}catch(e){}
+</script>
 </head>
 <body class="min-h-screen bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
 
-<!-- Authentication is required before dashboard use -->
 <div id="login-overlay" class="fixed inset-0 z-[100] bg-slate-950 flex items-center justify-center p-5">
- <form id="login-form" class="w-full max-w-sm rounded-3xl border border-slate-700 bg-slate-900 p-6 text-white space-y-4">
-  <div class="text-center">
-   <img src="N1024.png" class="w-16 h-16 rounded-2xl mx-auto mb-3" alt="Digital NoteBook">
-   <h1 class="text-xl font-bold text-emerald-400">Digital NoteBook</h1>
-   <p id="auth-subtitle" class="text-slate-400 text-sm mt-1">Login to your account</p>
-  </div>
-  <input id="auth-email" type="email" autocomplete="email" required placeholder="Email address">
-  <input id="auth-password" type="password" autocomplete="current-password" required minlength="6" placeholder="Password">
-  <input id="auth-confirm" class="hidden" type="password" autocomplete="new-password" placeholder="Confirm password">
-  <p id="auth-error" role="alert" class="text-sm text-rose-400"></p>
-  <button id="auth-submit" class="btn w-full" type="submit">Login</button>
-  <button id="auth-forgot" type="button" class="w-full text-sm text-emerald-400">Forgot password?</button>
-  <button id="auth-switch" type="button" class="w-full text-sm text-slate-300">Create a new account</button>
- </form>
+<form id="login-form" class="w-full max-w-sm rounded-3xl border border-slate-700 bg-slate-900 p-6 text-white space-y-4">
+<div class="text-center">
+<img src="N1024.png" class="w-16 h-16 rounded-2xl mx-auto mb-3" alt="Logo">
+<h1 class="text-xl font-bold text-emerald-400">Digital NoteBook</h1>
+<p id="auth-subtitle" class="text-slate-400 text-sm mt-1">Login to your account</p>
+</div>
+<input id="auth-email" type="email" autocomplete="email" required placeholder="Email address">
+<input id="auth-password" type="password" autocomplete="current-password" required minlength="6" placeholder="Password">
+<input id="auth-confirm" class="hidden" type="password" autocomplete="new-password" placeholder="Confirm password">
+<p id="auth-error" role="alert" class="text-sm text-rose-400"></p>
+<button id="auth-submit" class="btn w-full" type="submit">Login</button>
+<button id="auth-forgot" type="button" class="w-full text-sm text-emerald-400">Forgot password?</button>
+<button id="auth-switch" type="button" class="w-full text-sm text-slate-300">Create a new account</button>
+</form>
 </div>
 
-<div id="sidebar-backdrop" class="hidden fixed inset-0 bg-black/50 z-40" onclick="toggleSidebar()"></div>
-<aside id="sidebar" class="fixed z-50 inset-y-0 left-0 w-72 -translate-x-full bg-slate-900 text-white border-r border-slate-700 p-4 overflow-y-auto">
- <div class="flex items-center justify-between mb-5">
-  <div class="flex items-center gap-2"><img src="N1024.png" class="w-9 h-9 rounded-lg" alt="Logo"><b>Digital NoteBook</b></div>
-  <button onclick="toggleSidebar()" aria-label="Close menu">✕</button>
- </div>
- <div class="flex items-center gap-3 mb-4 p-3 rounded-xl bg-slate-800">
-  <label class="cursor-pointer">
-   <img id="sidebar-avatar" src="N1024.png" class="w-12 h-12 rounded-full object-cover" alt="Profile photo">
-   <input id="avatar-file" type="file" accept="image/*" class="hidden">
-  </label>
-  <div class="min-w-0"><b id="sidebar-name" class="block truncate">My Account</b><span id="sidebar-email" class="text-xs text-slate-400 break-all"></span></div>
- </div>
- <div class="space-y-2 mb-5">
-  <label class="text-xs muted">Full name</label><input id="profile-name" placeholder="Full name">
-  <label class="text-xs muted">Address</label><input id="profile-address" placeholder="Address">
-  <label class="text-xs muted">Mobile</label><input id="profile-mobile" placeholder="Mobile number">
-  <button id="save-profile" class="btn w-full">Save profile</button>
- </div>
- <div class="space-y-2">
-  <button class="btn w-full" onclick="backupData()">Backup to cloud</button>
-  <button class="btn w-full bg-teal-700" onclick="restoreData()">Restore from cloud</button>
-  <button class="w-full p-2 rounded-lg bg-rose-900 text-white" onclick="logout()">Log out</button>
- </div>
- <p class="text-xs text-slate-500 mt-4">Settings are managed from Setting page.</p>
+<div id="sidebar-backdrop" class="hidden fixed inset-0 bg-black/50 z-40"></div>
+<aside id="sidebar" class="hidden fixed z-50 inset-y-0 left-0 w-72 bg-slate-900 text-white border-r border-slate-700 p-4 overflow-y-auto">
+<div class="flex justify-between items-center mb-5">
+<b>Digital NoteBook</b>
+<button id="close-sidebar" aria-label="Close menu">✕</button>
+</div>
+<div class="flex items-center gap-3 mb-4 p-3 rounded-xl bg-slate-800">
+<img id="sidebar-avatar" src="N1024.png" class="w-12 h-12 rounded-full object-cover" alt="Profile">
+<div class="min-w-0"><b id="sidebar-name" class="block truncate">My Account</b><span id="sidebar-email" class="text-xs text-slate-400 break-all"></span></div>
+</div>
+<div class="space-y-2 mb-5">
+<label class="text-xs muted">Full name</label><input id="profile-name" placeholder="Full name">
+<label class="text-xs muted">Address</label><input id="profile-address" placeholder="Address">
+<label class="text-xs muted">Mobile</label><input id="profile-mobile" placeholder="Mobile number">
+<button id="save-profile" class="btn w-full">Save profile</button>
+</div>
+<div class="space-y-2">
+<button id="backup-button" class="btn w-full">Merge local records to cloud</button>
+<button id="restore-button" class="btn w-full bg-teal-700">Refresh from cloud</button>
+<button id="logout-button" class="w-full p-2 rounded-lg bg-rose-900 text-white">Log out</button>
+</div>
+<p class="text-xs text-slate-500 mt-4">Display preferences are managed from Settings.</p>
 </aside>
 
-<div id="app" class="min-h-screen">
- <header id="topbar" class="sticky top-0 z-30 flex items-center justify-between gap-3 p-3 bg-slate-900 text-white border-b border-emerald-600/40">
-  <div class="flex items-center gap-2 min-w-0">
-   <button onclick="toggleSidebar()" class="text-xl px-1" aria-label="Open menu">☰</button>
-   <img src="N1024.png" class="w-8 h-8 rounded-lg" alt="Logo">
-   <b class="truncate">Digital NoteBook</b>
-  </div>
-  <div class="flex items-center gap-3">
-   <button onclick="togglePrivacy()" title="Hide/show amounts" aria-label="Hide or show amounts"><i id="privacy-icon" class="fa-solid fa-eye"></i></button>
-   <img id="header-avatar" src="N1024.png" class="w-8 h-8 rounded-full object-cover" alt="Profile" onclick="toggleSidebar()">
-  </div>
- </header>
+<div id="app" class="min-h-screen hidden">
+<header id="topbar" class="sticky top-0 z-30 flex items-center justify-between gap-3 p-3 bg-slate-900 text-white border-b border-emerald-600/40">
+<div class="flex items-center gap-2 min-w-0">
+<button id="open-sidebar" class="text-xl px-1" aria-label="Open menu">☰</button>
+<img src="N1024.png" class="w-8 h-8 rounded-lg" alt="Logo">
+<b class="truncate">Digital NoteBook</b>
+</div>
+<div class="flex items-center gap-3">
+<button id="privacy-button" title="Hide/show amounts" aria-label="Hide or show amounts"><i id="privacy-icon" class="fa-solid fa-eye"></i></button>
+<img id="header-avatar" src="N1024.png" class="w-8 h-8 rounded-full object-cover" alt="Profile">
+</div>
+</header>
 
- <main class="max-w-6xl mx-auto p-4 md:p-6 space-y-5">
-  <section class="flex items-start justify-between gap-3">
-   <div>
-    <p id="today" class="text-xs font-bold tracking-wide text-emerald-500"></p>
-    <h1 id="greeting" class="text-xl font-bold mt-1">Welcome</h1>
-    <p class="text-sm muted mt-1">Your financial overview</p>
-   </div>
-   <a href="qrscan.html" class="card text-center text-sm">📷<br>QR Scan</a>
-  </section>
+<main class="max-w-6xl mx-auto p-4 md:p-6 space-y-5">
+<section class="flex items-start justify-between gap-3">
+<div><p id="today" class="text-xs font-bold tracking-wide text-emerald-500"></p><h1 id="greeting" class="text-xl font-bold mt-1">Welcome</h1><p class="text-sm muted mt-1">Your financial overview</p></div>
+<a href="qrscan.html" class="card text-center text-sm">📷<br>QR Scan</a>
+</section>
 
-  <!-- Four dashboard metrics; savings intentionally excluded -->
-  <section class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-   <article class="card border-emerald-600/50">
-    <p class="text-sm muted">Net Balance</p><p id="summary-net-balance" class="money text-xl font-extrabold text-emerald-500 mt-2">NPR 0</p>
-    <p class="text-xs muted mt-2">Income + Receivable − Payable − Expenses</p>
-   </article>
-   <article class="card">
-    <p class="text-sm muted">लिनुपर्ने · Receivable</p><p id="summary-receivable" class="money text-xl font-bold text-cyan-500 mt-2">NPR 0</p>
-   </article>
-   <article class="card">
-    <p class="text-sm muted">दिनुपर्ने · Payable</p><p id="summary-payable" class="money text-xl font-bold text-rose-500 mt-2">NPR 0</p>
-   </article>
-   <article class="card">
-    <p class="text-sm muted">This Month's Expenses</p><p id="summary-expenses" class="money text-xl font-bold text-amber-500 mt-2">NPR 0</p>
-    <p class="text-xs muted mt-2">Transaction + House Expense</p>
-   </article>
-  </section>
+<section class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+<article class="card border-emerald-600/50"><p class="text-sm muted">Net Balance</p><p id="summary-net-balance" class="money text-xl font-extrabold text-emerald-500 mt-2">NPR 0</p><p class="text-xs muted mt-2">Income + Receivable − Payable − Expenses</p></article>
+<article class="card"><p class="text-sm muted">लिनुपर्ने · Receivable</p><p id="summary-receivable" class="money text-xl font-bold text-cyan-500 mt-2">NPR 0</p></article>
+<article class="card"><p class="text-sm muted">दिनुपर्ने · Payable</p><p id="summary-payable" class="money text-xl font-bold text-rose-500 mt-2">NPR 0</p></article>
+<article class="card"><p class="text-sm muted">This Month's Expenses</p><p id="summary-expenses" class="money text-xl font-bold text-amber-500 mt-2">NPR 0</p><p class="text-xs muted mt-2">Transaction + House Expense</p></article>
+</section>
 
-  <section class="card">
-   <div class="flex justify-between items-center gap-3 mb-3">
-    <div><h2 class="font-bold text-lg">Reminder</h2><p class="text-xs muted">Syncs with your account across devices</p></div>
-    <span class="text-xl">🔔</span>
-   </div>
-   <textarea id="reminder-text" rows="3" maxlength="2000" placeholder="Write a reminder..."></textarea>
-   <div class="flex gap-2 mt-3">
-    <button id="save-reminder" class="btn">Save reminder</button>
-    <button id="clear-reminder" class="px-3 py-2 rounded-lg border border-slate-500">Clear</button>
-   </div>
-   <p id="reminder-status" class="text-xs muted mt-2" aria-live="polite"></p>
-  </section>
+<section class="card">
+<div class="flex justify-between items-center gap-3 mb-3"><div><h2 class="font-bold text-lg">Reminder</h2><p class="text-xs muted">Syncs across devices</p></div><span class="text-xl">🔔</span></div>
+<textarea id="reminder-text" rows="3" maxlength="2000" placeholder="Write a reminder..."></textarea>
+<div class="flex gap-2 mt-3"><button id="save-reminder" class="btn">Save reminder</button><button id="clear-reminder" class="px-3 py-2 rounded-lg border border-slate-500">Clear</button></div>
+<p id="reminder-status" class="text-xs muted mt-2" aria-live="polite"></p>
+</section>
 
-  <section id="custom-banner-ad" class="overflow-hidden rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-900">
-   <a href="https://kids.kamalgc.com.np" target="_blank" rel="noopener noreferrer">
-    <video src="bannerads.mp4" autoplay loop muted playsinline class="w-full h-auto"></video>
-   </a>
-  </section>
+<section id="custom-banner-ad" class="overflow-hidden rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-900">
+<a href="https://kids.kamalgc.com.np" target="_blank" rel="noopener noreferrer"><video src="bannerads.mp4" autoplay loop muted playsinline class="w-full h-auto"></video></a>
+</section>
 
-  <section class="space-y-3">
-   <h2 class="text-lg font-bold">Quick Actions</h2>
-   <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-    <a href="add-transaction.html" class="card hover:border-emerald-500"><span class="text-2xl">💳</span><b class="block mt-2">Transactions & Ledger</b></a>
-    <a href="add-income.html" class="card hover:border-emerald-500"><span class="text-2xl">💰</span><b class="block mt-2">Income</b></a>
-    <a href="add-saving.html" class="card hover:border-emerald-500"><span class="text-2xl">🏦</span><b class="block mt-2">Savings</b></a>
-    <a href="house-expense.html" class="card hover:border-emerald-500"><span class="text-2xl">🏠</span><b class="block mt-2">House Expense</b></a>
-    <a href="calculate.html" class="card hover:border-emerald-500"><span class="text-2xl">🧮</span><b class="block mt-2">Calculator</b></a>
-    <a href="notebook.html" class="card hover:border-emerald-500"><span class="text-2xl">📓</span><b class="block mt-2">Notebook</b></a>
-    <a href="calendar.html" class="card hover:border-emerald-500"><span class="text-2xl">📅</span><b class="block mt-2">Calendar</b></a>
-    <a href="qrscan.html" class="card hover:border-emerald-500"><span class="text-2xl">🔎</span><b class="block mt-2">QR Scan</b></a>
-    <a href="setting.html" class="card hover:border-emerald-500"><span class="text-2xl">⚙️</span><b class="block mt-2">Settings</b></a>
-    <a href="account.html" class="card hover:border-emerald-500"><span class="text-2xl">👤</span><b class="block mt-2">Account & Trash</b></a>
-   </div>
-  </section>
+<section class="space-y-3"><h2 class="text-lg font-bold">Quick Actions</h2>
+<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+<a href="add-transaction.html" class="card hover:border-emerald-500">💳<b class="block mt-2">Transactions & Ledger</b></a>
+<a href="add-income.html" class="card hover:border-emerald-500">💰<b class="block mt-2">Income</b></a>
+<a href="add-saving.html" class="card hover:border-emerald-500">🏦<b class="block mt-2">Savings</b></a>
+<a href="house-expense.html" class="card hover:border-emerald-500">🏠<b class="block mt-2">House Expense</b></a>
+<a href="calculate.html" class="card hover:border-emerald-500">🧮<b class="block mt-2">Calculator</b></a>
+<a href="notebook.html" class="card hover:border-emerald-500">📓<b class="block mt-2">Notebook</b></a>
+<a href="calendar.html" class="card hover:border-emerald-500">📅<b class="block mt-2">Calendar</b></a>
+<a href="qrscan.html" class="card hover:border-emerald-500">🔎<b class="block mt-2">QR Scan</b></a>
+<a href="setting.html" class="card hover:border-emerald-500">⚙️<b class="block mt-2">Settings</b></a>
+<a href="account.html" class="card hover:border-emerald-500">👤<b class="block mt-2">Account & Trash</b></a>
+</div></section>
 
-  <section class="grid md:grid-cols-2 gap-3">
-   <article class="card">
-    <h2 class="font-bold text-lg">Monthly Insight</h2>
-    <p id="monthly-insight" class="muted mt-2">Calculating this month's expenses…</p>
-   </article>
-   <article class="card">
-    <h2 class="font-bold text-lg">Recent Activity</h2>
-    <p class="text-xs muted mt-1">Recent activity summary from this device's available records.</p>
-    <div id="recent-activity" class="mt-3 space-y-2"></div>
-   </article>
-  </section>
-  <footer class="text-center text-xs muted py-3">Digital NoteBook</footer>
- </main>
+<section class="grid md:grid-cols-2 gap-3">
+<article class="card"><h2 class="font-bold text-lg">Monthly Insight</h2><p id="monthly-insight" class="muted mt-2">Loading…</p></article>
+<article class="card"><h2 class="font-bold text-lg">Recent Activity</h2><div id="recent-activity" class="mt-3 space-y-2"></div></article>
+</section>
+<footer class="text-center text-xs muted py-3">Digital NoteBook</footer>
+</main>
 </div>
 
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,sendPasswordResetEmail,signOut} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import {getDatabase,ref,get,update,onValue,off} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+import {getDatabase,ref,get,update,onValue,off,push} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
 const firebaseConfig={
- apiKey:"AIzaSyDDY_v7RHnkCTI6uyV4DNDjqoaIBGweg8c",
- authDomain:"digital-a2552.firebaseapp.com",
- projectId:"digital-a2552",
- databaseURL:"https://digital-a2552-default-rtdb.asia-southeast1.firebasedatabase.app",
- storageBucket:"digital-a2552.firebasestorage.app",
- messagingSenderId:"218135618179",
- appId:"1:218135618179:web:821b76920d3e5669ac31b6"
+apiKey:"AIzaSyDDY_v7RHnkCTI6uyV4DNDjqoaIBGweg8c",
+authDomain:"digital-a2552.firebaseapp.com",
+projectId:"digital-a2552",
+databaseURL:"https://digital-a2552-default-rtdb.asia-southeast1.firebasedatabase.app",
+storageBucket:"digital-a2552.firebasestorage.app",
+messagingSenderId:"218135618179",
+appId:"1:218135618179:web:821b76920d3e5669ac31b6"
 };
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getDatabase(app);
 const $=id=>document.getElementById(id);
 const LOCAL={
- incomes:["digital_notebook_incomes","incomes","income_data","add_income_list"],
- transactions:["digital_notebook_transactions","transactions","transaction_list"],
- notes:["advanced_notebook_notes","notes"],
- savings:["digital_notebook_savings","savings","saving_data","add_saving_list"],
- house:["digital_notebook_house_expenses","house_expenses","houseExpenses","house_expense_list"]
+incomes:["digital_notebook_incomes","incomes","income_data","add_income_list"],
+transactions:["digital_notebook_transactions","transactions","transaction_list"],
+notes:["advanced_notebook_notes","notes"],
+savings:["digital_notebook_savings","savings","saving_data","add_saving_list"],
+house:["digital_notebook_house_expenses","house_expenses","houseExpenses","house_expense_list"]
 };
-let uid=null,mode="login",unsubs=[],privacy=localStorage.getItem("balance_privacy")==="hidden";
-let cloudData={};
+let uid=null,mode="login",unsubs=[],privacy=localStorage.getItem("balance_privacy")==="hidden",cloudData={};
 
-function safeParse(raw){try{return JSON.parse(raw)}catch{return null}}
-function localList(keys){
- for(const k of keys){
-  const v=safeParse(localStorage.getItem(k)||"null");
-  if(Array.isArray(v)&&v.length)return v;
-  if(v&&typeof v==="object"&&!Array.isArray(v))return Object.entries(v).map(([id,x])=>({...x,id:x?.id||id}));
- }
- return [];
-}
+function parse(v){try{return JSON.parse(v)}catch{return null}}
 function num(v){if(typeof v==="string")v=v.replace(/[,\s]/g,"");const n=Number(v);return Number.isFinite(n)?n:0}
+function localList(keys){
+for(const k of keys){const v=parse(localStorage.getItem(k)||"null");
+if(Array.isArray(v)&&v.length)return v.filter(x=>x&&typeof x==="object");
+if(v&&typeof v==="object")return Object.entries(v).map(([id,x])=>({...x,id:x?.id||id}));}
+return [];
+}
 function amount(r){
- for(const k of ["total","amount","incomeAmount","savingAmount","txAmount","principalAmount","val","price","npr"]){
-  if(r?.[k]!==undefined&&r[k]!==null&&r[k]!=="")return num(r[k]);
- }
- return 0;
+for(const k of ["total","amount","incomeAmount","savingAmount","txAmount","principalAmount","val","price","npr"])
+if(r?.[k]!==undefined&&r[k]!==null&&r[k]!=="")return num(r[k]);
+return 0;
 }
-function recordDate(r){
- const d=r?.date||r?.dateExpense||r?.createdAt||r?.timestamp||r?.datedAt||"";
- if(typeof d==="number")return new Date(d);
- const x=new Date(d);
- return Number.isNaN(x.getTime())?null:x;
+function typeOf(r){return String(r?.type||r?.category||r?.transactionType||r?.action||r?.kind||"").toLowerCase()}
+function dateOf(r){const d=r?.date||r?.dateExpense||r?.createdAt||r?.timestamp||r?.datedAt||"";const x=typeof d==="number"?new Date(d):new Date(d);return Number.isNaN(x.getTime())?null:x}
+function deleted(r){return !!(r?.deletedAt||r?.isDeleted||r?.deleted===true)}
+function records(path){
+const v=cloudData[path];
+if(v&&typeof v==="object")return Object.entries(v).filter(([,r])=>r&&typeof r==="object"&&!Array.isArray(r)).map(([id,r])=>({...r,id:r.id||id})).filter(r=>!deleted(r));
+return localList(LOCAL[path]||[]).filter(r=>!deleted(r));
 }
-function typeOf(r){
- return String(r?.type||r?.category||r?.transactionType||r?.action||r?.kind||"").toLowerCase();
-}
-function isDeleted(r){return !!(r?.deletedAt||r?.isDeleted||r?.deleted===true)}
-function recordsFrom(path){
- const v=cloudData[path];
- if(v&&typeof v==="object"){
-  return Object.entries(v).filter(([,r])=>r&&typeof r==="object"&&!Array.isArray(r))
-   .map(([id,r])=>({...r,id:r.id||id})).filter(r=>!isDeleted(r));
- }
- return localList(LOCAL[path]||[]);
-}
-function valueFor(path){
- if(cloudData[path]!==undefined)return recordsFrom(path);
- return localList(LOCAL[path]||[]);
-}
-function money(v){
- if(privacy)return "••••••";
- return "NPR "+Math.round(v).toLocaleString("en-IN");
-}
-function setText(id,value){const el=$(id);if(el)el.textContent=value}
-function calcDashboard(){
- const incomes=valueFor("incomes");
- const tx=valueFor("transactions").concat(valueFor("notes"));
- const house=valueFor("house");
- const incomeTotal=incomes.reduce((s,r)=>s+amount(r),0);
- let receivable=0,payable=0,txExpense=0;
- tx.forEach(r=>{
-  const t=typeOf(r),a=amount(r);
-  if(t.includes("expense")||t.includes("खर्च")||t.includes("invest"))txExpense+=a;
-  else if(t.includes("payable")||t.includes("give")||t.includes("pay")||t.includes("दिनुपर्ने")||t.includes("दिनु"))payable+=a;
-  else if(t.includes("receivable")||t.includes("receive")||t.includes("लिनुपर्ने")||t.includes("पाउनुपर्ने")||t.includes("लिनु"))receivable+=a;
- });
- // Avoid silently treating unknown transaction types as receivables.
- const now=new Date(),month=now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0");
- const thisMonthTx=tx.reduce((s,r)=>{
-  const t=typeOf(r),d=recordDate(r);
-  return (t.includes("expense")||t.includes("खर्च")||t.includes("invest"))&&d&&d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth()?s+amount(r):s;
- },0);
- const thisMonthHouse=house.reduce((s,r)=>{
-  const d=recordDate(r);
-  return d&&d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth()?s+amount(r):s;
- },0);
- const monthlyExpense=thisMonthTx+thisMonthHouse;
- const net=incomeTotal+receivable-payable-txExpense-house.reduce((s,r)=>s+amount(r),0);
- setText("summary-net-balance",money(net));
- setText("summary-receivable",money(receivable));
- setText("summary-payable",money(payable));
- setText("summary-expenses",money(monthlyExpense));
- setText("monthly-insight",`This month: ${money(monthlyExpense)} in combined transaction and house expenses.`);
- renderRecent([...incomes.map(r=>({...r,_kind:"Income"})),...tx.map(r=>({...r,_kind:"Transaction"})),...house.map(r=>({...r,_kind:"House expense"}))]);
+function money(v){return privacy?"••••••":"NPR "+Math.round(v).toLocaleString("en-IN")}
+function setText(id,v){if($(id))$(id).textContent=v}
+function calc(){
+const incomes=records("incomes"),tx=[...records("transactions"),...records("notes")],house=records("house");
+const income=incomes.reduce((s,r)=>s+amount(r),0);
+let recv=0,pay=0,expense=0;
+tx.forEach(r=>{const t=typeOf(r),a=amount(r);
+if(t.includes("expense")||t.includes("खर्च")||t.includes("invest"))expense+=a;
+else if(t.includes("payable")||t.includes("give")||t==="pay"||t.includes("दिनुपर्ने")||t.includes("दिनु"))pay+=a;
+else if(t.includes("receivable")||t.includes("receive")||t.includes("लिनुपर्ने")||t.includes("पाउनुपर्ने")||t.includes("लिनु"))recv+=a;
+});
+const now=new Date();
+const isThisMonth=r=>{const d=dateOf(r);return d&&d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth()};
+const monthly=tx.filter(r=>isThisMonth(r)&&/(expense|खर्च|invest)/.test(typeOf(r))).reduce((s,r)=>s+amount(r),0)+house.filter(isThisMonth).reduce((s,r)=>s+amount(r),0);
+const net=income+recv-pay-expense-house.reduce((s,r)=>s+amount(r),0);
+setText("summary-net-balance",money(net));setText("summary-receivable",money(recv));setText("summary-payable",money(pay));setText("summary-expenses",money(monthly));
+setText("monthly-insight",`This month: ${money(monthly)} in transaction and house expenses.`);
+renderRecent([...incomes.map(r=>({...r,_kind:"Income"})),...tx.map(r=>({...r,_kind:"Transaction"})),...house.map(r=>({...r,_kind:"House expense"}))]);
 }
 function renderRecent(list){
- const root=$("recent-activity");if(!root)return;
- list.sort((a,b)=>num(b.updatedAt||b.createdAt||b.timestamp)-num(a.updatedAt||a.createdAt||a.timestamp));
- root.replaceChildren();
- if(!list.length){root.textContent="No records available to summarize yet.";return}
- list.slice(0,5).forEach(r=>{
-  const el=document.createElement("div");el.className="flex justify-between gap-3 border-b border-slate-300 dark:border-slate-700 pb-2";
-  const left=document.createElement("div");left.className="min-w-0";
-  const title=document.createElement("b");title.className="block truncate";title.textContent=r.party||r.title||r.sourceName||r.name||r._kind;
-  const sub=document.createElement("span");sub.className="text-xs muted";sub.textContent=r._kind;
-  const right=document.createElement("span");right.className="font-semibold";right.textContent=money(amount(r));
-  left.append(title,sub);el.append(left,right);root.append(el);
- });
+const root=$("recent-activity");root.replaceChildren();
+list.sort((a,b)=>num(b.updatedAt||b.createdAt||b.timestamp)-num(a.updatedAt||a.createdAt||a.timestamp));
+if(!list.length){root.textContent="No records available yet.";return}
+list.slice(0,5).forEach(r=>{
+const row=document.createElement("div");row.className="flex justify-between gap-3 border-b border-slate-300 dark:border-slate-700 pb-2";
+const left=document.createElement("div");left.className="min-w-0";
+const title=document.createElement("b");title.className="block truncate";title.textContent=r.party||r.title||r.sourceName||r.name||r._kind;
+const sub=document.createElement("span");sub.className="text-xs muted";sub.textContent=r._kind;
+const right=document.createElement("span");right.className="font-semibold";right.textContent=money(amount(r));
+left.append(title,sub);row.append(left,right);root.append(row);
+});
 }
 function applySettings(){
- const s=safeParse(localStorage.getItem("digital_notebook_settings")||"{}")||{};
- const theme=s.theme||localStorage.getItem("theme")||"dark";
- document.documentElement.classList.toggle("dark",theme==="dark");
- if(s.accentColor)document.documentElement.style.setProperty("--accent",s.accentColor);
- if(s.font_size)document.documentElement.style.fontSize=({small:"14px",medium:"16px",large:"18px"}[s.font_size]||s.font_size);
- if(s.font_family)document.body.style.fontFamily=s.font_family;
- document.body.dataset.layout=s.layout||"comfortable";
+const s=parse(localStorage.getItem("digital_notebook_settings")||"{}")||{};
+document.documentElement.classList.toggle("dark",(s.theme||localStorage.getItem("theme")||"dark")==="dark");
+if(s.accentColor)document.documentElement.style.setProperty("--accent",s.accentColor);
+if(s.font_size)document.documentElement.style.fontSize=({small:"14px",medium:"16px",large:"18px"}[s.font_size]||s.font_size);
+if(s.font_family)document.body.style.fontFamily=s.font_family;
+document.body.dataset.layout=s.layout||"comfortable";
 }
-function applyProfile(){
- const name=localStorage.getItem("profile_name")||localStorage.getItem("user_profile_name")||"";
- $("profile-name").value=name;
- $("profile-address").value=localStorage.getItem("profile_address")||"";
- $("profile-mobile").value=localStorage.getItem("profile_mobile")||"";
- $("sidebar-name").textContent=name||"My Account";
- $("sidebar-email").textContent=auth.currentUser?.email||"";
- const avatar=localStorage.getItem("profile_avatar")||"N1024.png";
- $("sidebar-avatar").src=avatar;$("header-avatar").src=avatar;
- $("greeting").textContent=(name?"Welcome, "+name:"Welcome");
+function applyProfile(p={}){
+const name=p.name||localStorage.getItem("profile_name")||localStorage.getItem("user_profile_name")||"";
+$("profile-name").value=name;$("profile-address").value=p.address||localStorage.getItem("profile_address")||"";
+$("profile-mobile").value=p.mobile||localStorage.getItem("profile_mobile")||"";
+$("sidebar-name").textContent=name||"My Account";$("sidebar-email").textContent=auth.currentUser?.email||"";
+$("greeting").textContent=name?"Welcome, "+name:"Welcome";
+const avatar=localStorage.getItem("profile_avatar")||"N1024.png";$("sidebar-avatar").src=avatar;$("header-avatar").src=avatar;
 }
-function headerDate(){
- const now=new Date();
- setText("today",now.toLocaleDateString("en-GB",{weekday:"long",year:"numeric",month:"long",day:"numeric"}));
+function applyProfileCloud(s){if(s.exists())applyProfile(s.val()||{});else applyProfile()}
+function stopListeners(){unsubs.forEach(fn=>{try{fn()}catch{}});unsubs=[];cloudData={}}
+function listen(path){
+const r=ref(db,`users/${uid}/${path}`);
+const cb=onValue(r,s=>{
+if(auth.currentUser?.uid!==uid)return;
+cloudData[path]=s.val();
+if(LOCAL[path]&&s.exists()){
+const v=s.val(),arr=Array.isArray(v)?v:Object.entries(v||{}).map(([id,x])=>({...x,id:x?.id||id}));
+try{localStorage.setItem(LOCAL[path][0],JSON.stringify(arr))}catch(e){}
 }
-function setError(message){$("auth-error").textContent=message||""}
-function showLogin(show){$("login-overlay").classList.toggle("hidden",!show)}
-function stopListeners(){unsubs.forEach(fn=>{try{fn()}catch{}});unsubs=[]}
-function listenBranch(path){
- const r=ref(db,`users/${uid}/${path}`);
- const cb=onValue(r,s=>{
-  if(!auth.currentUser||auth.currentUser.uid!==uid)return;
-  cloudData[path]=s.val();
-  if(LOCAL[path]&&s.exists()){
-   const val=s.val();
-   const arr=Array.isArray(val)?val:Object.entries(val||{}).map(([id,x])=>({...x,id:x?.id||id}));
-   // Local copies are for compatibility with existing pages; RTDB remains source of truth.
-   try{localStorage.setItem(LOCAL[path][0],JSON.stringify(arr))}catch(e){console.warn(e)}
-  }
-  calcDashboard();
- },e=>console.error("Realtime listener failed:",path,e));
- unsubs.push(()=>off(r,"value",cb));
+calc();
+},e=>console.error("Realtime listener failed",path,e));
+unsubs.push(()=>off(r,"value",cb));
 }
-function listenReminder(){
- const r=ref(db,`users/${uid}/dashboardReminder`);
- const cb=onValue(r,s=>{
-  const v=s.val();
-  if(v&&typeof v.text==="string"&&document.activeElement!==$("reminder-text"))$("reminder-text").value=v.text;
-  if(v)setText("reminder-status",v.updatedAt?"Synced · "+new Date(v.updatedAt).toLocaleString():"Synced");
- });
- unsubs.push(()=>off(r,"value",cb));
+function listenSimple(path,callback){
+const r=ref(db,`users/${uid}/${path}`),cb=onValue(r,s=>{if(auth.currentUser?.uid===uid)callback(s)});
+unsubs.push(()=>off(r,"value",cb));
 }
 onAuthStateChanged(auth,user=>{
- stopListeners();uid=user?.uid||null;
- if(!user){showLogin(true);$("app").classList.add("hidden");return}
- showLogin(false);$("app").classList.remove("hidden");
- applySettings();applyProfile();headerDate();
- ["incomes","transactions","notes","house","savings"].forEach(listenBranch);
- listenReminder();
+stopListeners();uid=user?.uid||null;
+$("app").classList.toggle("hidden",!user);$("login-overlay").classList.toggle("hidden",!!user);
+if(!user)return;
+applySettings();setText("today",new Date().toLocaleDateString("en-GB",{weekday:"long",year:"numeric",month:"long",day:"numeric"}));
+["incomes","transactions","notes","house","savings"].forEach(listen);
+listenSimple("dashboardReminder",s=>{const v=s.val();if(v&&document.activeElement!==$("reminder-text"))$("reminder-text").value=v.text||"";});
+listenSimple("profile",applyProfileCloud);
 });
 $("login-form").addEventListener("submit",async e=>{
- e.preventDefault();setError("");
- const email=$("auth-email").value.trim(),password=$("auth-password").value;
- $("auth-submit").disabled=true;
- try{
-  if(mode==="signup"){
-   if(password!==$("auth-confirm").value)throw Error("Passwords do not match.");
-   if(password.length<6)throw Error("Password must contain at least 6 characters.");
-   await createUserWithEmailAndPassword(auth,email,password);
-  }else await signInWithEmailAndPassword(auth,email,password);
- }catch(e){
-  const messages={"auth/invalid-email":"Invalid email address.","auth/invalid-credential":"Email or password is incorrect.","auth/email-already-in-use":"This email is already registered.","auth/weak-password":"Choose a stronger password.","auth/network-request-failed":"Check your internet connection.","auth/too-many-requests":"Too many attempts. Try again later."};
-  setError(messages[e.code]||e.message||"Authentication failed.");
- }finally{$("auth-submit").disabled=false}
+e.preventDefault();setText("auth-error","");$("auth-submit").disabled=true;
+const email=$("auth-email").value.trim(),password=$("auth-password").value;
+try{
+if(mode==="signup"){
+if(password!==$("auth-confirm").value)throw Error("Passwords do not match.");
+if(password.length<6)throw Error("Password must contain at least 6 characters.");
+await createUserWithEmailAndPassword(auth,email,password);
+}else await signInWithEmailAndPassword(auth,email,password);
+}catch(e){
+const m={"auth/invalid-email":"Invalid email address.","auth/invalid-credential":"Email or password is incorrect.","auth/email-already-in-use":"This email is already registered.","auth/weak-password":"Choose a stronger password.","auth/network-request-failed":"Check your internet connection.","auth/too-many-requests":"Too many attempts. Try again later."};
+setText("auth-error",m[e.code]||e.message||"Authentication failed.");
+}finally{$("auth-submit").disabled=false}
 });
 $("auth-switch").addEventListener("click",()=>{
- mode=mode==="login"?"signup":"login";
- $("auth-subtitle").textContent=mode==="login"?"Login to your account":"Create your account";
- $("auth-submit").textContent=mode==="login"?"Login":"Sign up";
- $("auth-confirm").classList.toggle("hidden",mode!=="signup");
- $("auth-confirm").required=mode==="signup";
- $("auth-password").autocomplete=mode==="login"?"current-password":"new-password";
- $("auth-switch").textContent=mode==="login"?"Create a new account":"Already have an account? Login";
- $("auth-forgot").classList.toggle("hidden",mode!=="login");
- setError("");
+mode=mode==="login"?"signup":"login";
+setText("auth-subtitle",mode==="login"?"Login to your account":"Create your account");
+setText("auth-submit",mode==="login"?"Login":"Sign up");
+$("auth-confirm").classList.toggle("hidden",mode!=="signup");$("auth-confirm").required=mode==="signup";
+$("auth-password").autocomplete=mode==="login"?"current-password":"new-password";
+setText("auth-switch",mode==="login"?"Create a new account":"Already have an account? Login");
+$("auth-forgot").classList.toggle("hidden",mode!=="login");setText("auth-error","");
 });
 $("auth-forgot").addEventListener("click",async()=>{
- const email=$("auth-email").value.trim();if(!email){setError("Enter your email address first.");return}
- try{await sendPasswordResetEmail(auth,email);setError("Password reset email sent. Check your inbox and spam folder.")}
- catch(e){setError("Could not send reset email: "+(e.code||"unknown error"))}
+const email=$("auth-email").value.trim();if(!email){setText("auth-error","Enter your email address first.");return}
+try{await sendPasswordResetEmail(auth,email);setText("auth-error","Password reset email sent. Check your inbox and spam folder.");}
+catch(e){setText("auth-error","Could not send reset email: "+(e.code||"unknown error"))}
 });
-window.logout=async()=>{try{await signOut(auth)}catch(e){console.error(e)}};
-window.toggleSidebar=()=>{
- const open=$("sidebar").classList.contains("-translate-x-full");
- $("sidebar").classList.toggle("-translate-x-full",!open);
- $("sidebar-backdrop").classList.toggle("hidden",!open);
-};
-window.togglePrivacy=()=>{
- privacy=!privacy;localStorage.setItem("balance_privacy",privacy?"hidden":"visible");
- $("privacy-icon").className=privacy?"fa-solid fa-eye-slash":"fa-solid fa-eye";calcDashboard();
-};
+$("logout-button").addEventListener("click",()=>signOut(auth));
+function sidebar(open){$("sidebar").classList.toggle("hidden",!open);$("sidebar-backdrop").classList.toggle("hidden",!open)}
+$("open-sidebar").addEventListener("click",()=>sidebar(true));$("close-sidebar").addEventListener("click",()=>sidebar(false));$("sidebar-backdrop").addEventListener("click",()=>sidebar(false));
+$("header-avatar").addEventListener("click",()=>sidebar(true));
+$("privacy-button").addEventListener("click",()=>{privacy=!privacy;localStorage.setItem("balance_privacy",privacy?"hidden":"visible");$("privacy-icon").className=privacy?"fa-solid fa-eye-slash":"fa-solid fa-eye";calc()});
 $("save-profile").addEventListener("click",async()=>{
- const name=$("profile-name").value.trim();
- localStorage.setItem("profile_name",name);localStorage.setItem("user_profile_name",name);
- localStorage.setItem("profile_address",$("profile-address").value.trim());
- localStorage.setItem("profile_mobile",$("profile-mobile").value.trim());
- applyProfile();
- if(uid){
-  try{await update(ref(db,`users/${uid}/profile`),{
-   name,address:$("profile-address").value.trim(),mobile:$("profile-mobile").value.trim(),email:auth.currentUser?.email||""
-  })}catch(e){console.error(e);alert("Profile saved on this device, but cloud sync failed.")}
- }
-});
-$("avatar-file").addEventListener("change",e=>{
- const f=e.target.files?.[0];if(!f)return;
- if(f.size>2*1024*1024){alert("Please choose an image smaller than 2 MB.");e.target.value="";return}
- const reader=new FileReader();
- reader.onload=()=>{localStorage.setItem("profile_avatar",reader.result);applyProfile()};
- reader.readAsDataURL(f);
+if(!uid)return;
+const profile={name:$("profile-name").value.trim(),address:$("profile-address").value.trim(),mobile:$("profile-mobile").value.trim(),email:auth.currentUser?.email||"",updatedAt:Date.now()};
+try{await update(ref(db,`users/${uid}/profile`),profile);
+localStorage.setItem("profile_name",profile.name);localStorage.setItem("user_profile_name",profile.name);localStorage.setItem("profile_address",profile.address);localStorage.setItem("profile_mobile",profile.mobile);
+applyProfile(profile);setText("reminder-status","Profile saved and synced.");
+}catch(e){alert("Profile cloud save failed. Check internet and Firebase Rules.");}
 });
 $("save-reminder").addEventListener("click",async()=>{
- if(!uid)return;
- const text=$("reminder-text").value.trim();
- try{
-  await update(ref(db,`users/${uid}/dashboardReminder`),{text,updatedAt:Date.now()});
-  setText("reminder-status","Reminder saved and synced.");
- }catch(e){console.error(e);setText("Could not sync reminder. Check connection and Firebase Rules.")}
+if(!uid)return;
+try{await update(ref(db,`users/${uid}/dashboardReminder`),{text:$("reminder-text").value.trim(),updatedAt:Date.now()});setText("reminder-status","Reminder saved and synced.");}
+catch(e){setText("reminder-status","Could not sync reminder. Check connection and Firebase Rules.");}
 });
 $("clear-reminder").addEventListener("click",async()=>{
- if(!uid)return;
- if(!confirm("Clear the shared dashboard reminder?"))return;
- try{
-  await update(ref(db,`users/${uid}/dashboardReminder`),{text:"",updatedAt:Date.now()});
-  $("reminder-text").value="";setText("reminder-status","Reminder cleared.");
- }catch(e){setText("Could not clear reminder. Check connection and Firebase Rules.")}
+if(!uid||!confirm("Clear the shared dashboard reminder?"))return;
+try{await update(ref(db,`users/${uid}/dashboardReminder`),{text:"",updatedAt:Date.now()});$("reminder-text").value="";setText("reminder-status","Reminder cleared.");}
+catch(e){setText("reminder-status","Could not clear reminder. Check connection and Firebase Rules.");}
 });
+
+/* Backup merges individual records. It never replaces users/{uid} or a complete section. */
 async function backupData(){
- if(!uid)return alert("Please log in first.");
- if(!confirm("Back up this device's lists to the cloud? Existing matching cloud lists may be replaced."))return;
- try{
-  const updates={};
-  for(const [path,keys] of Object.entries(LOCAL)){
-   if(path==="house")continue;
-   const data=localList(keys);
-   if(data.length)updates[path]=Object.fromEntries(data.map((r,i)=>[String(r.id||("legacy-"+i)),r]));
-  }
-  updates["preferences/theme"]=localStorage.getItem("theme")||"dark";
-  updates["preferences/language"]=localStorage.getItem("userLang")||localStorage.getItem("lang")||"en";
-  await update(ref(db,`users/${uid}`),updates);
-  alert("Backup completed.");
- }catch(e){console.error(e);alert("Backup failed. Check internet and Firebase Rules.")}
+if(!uid)return alert("Please log in first.");
+if(!confirm("Merge this device's local records into cloud? Existing records with the same ID will be updated."))return;
+try{
+const updates={};
+for(const [path,keys] of Object.entries(LOCAL)){
+const local=localList(keys);
+const snap=await get(ref(db,`users/${uid}/${path}`));
+const cloud=snap.val()||{};
+for(const r of local){
+if(!r||typeof r!=="object")continue;
+let id=String(r.id||"").trim();
+if(!id||id.startsWith("legacy-")){
+/* A stable Firebase key is generated once and saved to local storage. */
+id=push(ref(db,`users/${uid}/${path}`)).key;
+r.id=id;
+}
+updates[`${path}/${id}`]=r;
+}
+if(Object.keys(cloud).length){} 
+}
+if(Object.keys(updates).length)await update(ref(db,`users/${uid}`),updates);
+alert("Backup merge completed.");
+}catch(e){console.error(e);alert("Backup failed. Check internet and Firebase Rules.")}
 }
 async function restoreData(){
- if(!uid)return alert("Please log in first.");
- if(!confirm("Restore cloud lists to this device? Local copies of these lists will be replaced."))return;
- try{
-  const snap=await get(ref(db,`users/${uid}`));if(!snap.exists())return alert("No cloud backup found.");
-  const data=snap.val()||{};
-  for(const path of ["incomes","transactions","notes","savings","house"]){
-   if(data[path]===undefined)continue;
-   const v=data[path],arr=Array.isArray(v)?v:Object.entries(v||{}).map(([id,r])=>({...r,id:r?.id||id}));
-   const key=(LOCAL[path]||[])[0];if(key)localStorage.setItem(key,JSON.stringify(arr));
-  }
-  if(data.preferences?.theme)localStorage.setItem("theme",data.preferences.theme);
-  if(data.preferences?.language){localStorage.setItem("lang",data.preferences.language);localStorage.setItem("userLang",data.preferences.language)}
-  applySettings();calcDashboard();alert("Restore completed.");
- }catch(e){console.error(e);alert("Restore failed. Check internet and Firebase Rules.")}
-}
-window.backupData=backupData;window.restoreData=restoreData;
-window.addEventListener("storage",e=>{
- if(e.key==="digital_notebook_settings"||e.key==="theme")applySettings();
- if(Object.values(LOCAL).flat().includes(e.key))calcDashboard();
+if(!uid)return alert("Please log in first.");
+if(!confirm("Refresh local copies from cloud? This changes local copies only."))return;
+try{
+const paths=Object.keys(LOCAL),snaps=await Promise.all(paths.map(p=>get(ref(db,`users/${uid}/${p}`))));
+let found=false;
+snaps.forEach((s,i)=>{
+if(!s.exists())return;
+found=true;const v=s.val(),arr=Array.isArray(v)?v:Object.entries(v||{}).map(([id,r])=>({...r,id:r?.id||id}));
+localStorage.setItem(LOCAL[paths[i]][0],JSON.stringify(arr));
+cloudData[paths[i]]=v;
 });
-window.addEventListener("focus",()=>{applySettings();calcDashboard();applyProfile()});
-window.addEventListener("pageshow",calcDashboard);
-applySettings();applyProfile();headerDate();calcDashboard();
+if(!found){alert("No cloud records found.");return}
+calc();alert("Local lists refreshed from cloud.");
+}catch(e){console.error(e);alert("Restore failed. Check internet and Firebase Rules.")}
+}
+$("backup-button").addEventListener("click",backupData);$("restore-button").addEventListener("click",restoreData);
+window.addEventListener("storage",e=>{if(["digital_notebook_settings","theme"].includes(e.key))applySettings();if(Object.values(LOCAL).flat().includes(e.key))calc()});
+window.addEventListener("focus",()=>{applySettings();calc()});
+window.addEventListener("pageshow",calc);
+applySettings();
 </script>
 <script>
 if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
