@@ -2,1177 +2,464 @@
 <html lang="en" class="dark">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Digital NoteBook</title>
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="NoteBook">
-<link rel="apple-touch-icon" href="N1024.png">
-<meta name="keywords" content="digital notebook, transaction manager, nepali finance app, income expense tracker, note taking app, KAMAL G.C.">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
-<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
-
-<!-- Open Graph / Facebook / WhatsApp -->
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://dn.kamalgc.com.np">
-<meta property="og:title" content="Digital NoteBook - Transactions & Notes">
-<meta property="og:description" content="Manage your daily transactions, receivables, payables, and personal notes securely in one place.">
-<meta property="og:image" content="https://raw.githubusercontent.com/gckamal678-prog/Digital-Nepal/main/N1024.png">
-
-<!-- Twitter -->
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Digital NoteBook">
-<meta name="twitter:description" content="Digital notebook and transaction management application.">
-<meta name="twitter:image" content="https://raw.githubusercontent.com/gckamal678-prog/Digital-Nepal/main/N1024.png">
-
-<meta name="description" content="Digital notebook and transaction management application.">
-<meta name="author" content="Kamal GC">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#090d16">
+<title>Digital NoteBook</title>
+<link rel="icon" href="N1024.png">
 <script src="https://cdn.tailwindcss.com"></script>
-
 <script>
-tailwind.config = {
-    darkMode: 'class',
-    theme: {
-        extend: {
-            fontFamily: {
-                sans: ['Inter', 'sans-serif'],
-            },
-            colors: {
-                mint: {
-                    50: '#ecfdf5',
-                    500: '#10b981',
-                    600: '#059669',
-                    400: '#34d399',
-                }
-            }
-        }
-    }
-}
-</script>
-<script>
-    const savedTheme = localStorage.getItem('theme') || 'dark';
-    if (savedTheme === 'light') {
-        document.documentElement.classList.remove('dark');
-    } else {
-        document.documentElement.classList.add('dark');
-    }
+tailwind.config={darkMode:'class'};
+try{
+ const s=JSON.parse(localStorage.getItem('digital_notebook_settings')||'{}');
+ document.documentElement.classList.toggle('dark',(s.theme||localStorage.getItem('theme')||'dark')==='dark');
+}catch(e){document.documentElement.classList.add('dark')}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="manifest" href="manifest.json"> 
 <style>
-    @keyframes pulseGlow {
-        0%, 100% { opacity: 1; filter: drop-shadow(0 0 2px rgba(16, 185, 129, 0.4)); }
-        50% { opacity: 0.8; filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.8)); }
-    }
-    .animated-title { animation: pulseGlow 3s infinite ease-in-out; }
-    @keyframes spinSlow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-    .animate-spin-slow { animation: spinSlow 8s linear infinite; }
-    @keyframes pulse-slow { 0%, 100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.1); opacity: 1; } }
-    .animate-pulse-slow { animation: pulse-slow 2s infinite; }
-    #tour-card.active-card { opacity: 1; transform: scale(1); }
+body{font-family:Arial,sans-serif}
+.card{border:1px solid #334155;border-radius:16px;padding:16px;background:rgba(15,23,42,.75)}
+input,textarea{color:inherit;background:#1e293b;border:1px solid #475569;border-radius:9px;padding:10px;width:100%}
+button,a{touch-action:manipulation}
+.btn{padding:10px 13px;border-radius:10px;background:#059669;color:white;font-weight:700}
+.muted{color:#94a3b8}
+.hidden{display:none!important}
+body:not(.dark) .card{background:white;border-color:#e2e8f0}
+body:not(.dark) input,body:not(.dark) textarea{background:white;border-color:#cbd5e1;color:#0f172a}
+body:not(.dark) #topbar{background:#fff;color:#0f172a}
+#sidebar{transition:transform .2s}
+.money{overflow-wrap:anywhere}
 </style>
 </head>
-<body class="bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 text-xs font-sans">
+<body class="min-h-screen bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
 
-<!-- SECURITY LOCK SCREEN -->
-<div id="security-lock-screen" class="fixed inset-0 bg-slate-950 z-[100] flex flex-col items-center justify-center p-4 hidden">
-    <div class="max-w-sm w-full bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-2xl space-y-6 text-white text-center">
-        <div class="w-16 h-16 mx-auto rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-2xl">
-            🔒
-        </div>
-        <div class="space-y-1">
-            <h2 id="lock-title" class="text-base font-bold text-emerald-400">App Is Locked</h2>
-            <p id="lock-subtitle" class="text-xs text-slate-400">Enter your 4-digit MPIN or use Biometric</p>
-        </div>
-
-        <div class="flex justify-center gap-3 py-2">
-            <div class="w-4 h-4 rounded-full border-2 border-emerald-500 bg-slate-800 pin-dot" id="dot-0"></div>
-            <div class="w-4 h-4 rounded-full border-2 border-emerald-500 bg-slate-800 pin-dot" id="dot-1"></div>
-            <div class="w-4 h-4 rounded-full border-2 border-emerald-500 bg-slate-800 pin-dot" id="dot-2"></div>
-            <div class="w-4 h-4 rounded-full border-2 border-emerald-500 bg-slate-800 pin-dot" id="dot-3"></div>
-        </div>
-
-        <div id="biometric-container" class="hidden">
-            <button onclick="triggerBiometricAuth()" class="w-full py-3 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 rounded-xl font-bold text-xs text-emerald-300 flex items-center justify-center gap-2 transition">
-                <i class="fa-solid fa-fingerprint text-lg"></i> <span id="biometric-btn-text">Use Fingerprint / FaceID</span>
-            </button>
-        </div>
-
-        <div class="grid grid-cols-3 gap-3 pt-2">
-            <button onclick="pressPinKey('1')" class="py-3 bg-slate-800 hover:bg-slate-700 rounded-xl font-bold text-sm transition">1</button>
-            <button onclick="pressPinKey('2')" class="py-3 bg-slate-800 hover:bg-slate-700 rounded-xl font-bold text-sm transition">2</button>
-            <button onclick="pressPinKey('3')" class="py-3 bg-slate-800 hover:bg-slate-700 rounded-xl font-bold text-sm transition">3</button>
-            <button onclick="pressPinKey('4')" class="py-3 bg-slate-800 hover:bg-slate-700 rounded-xl font-bold text-sm transition">4</button>
-            <button onclick="pressPinKey('5')" class="py-3 bg-slate-800 hover:bg-slate-700 rounded-xl font-bold text-sm transition">5</button>
-            <button onclick="pressPinKey('6')" class="py-3 bg-slate-800 hover:bg-slate-700 rounded-xl font-bold text-sm transition">6</button>
-            <button onclick="pressPinKey('7')" class="py-3 bg-slate-800 hover:bg-slate-700 rounded-xl font-bold text-sm transition">7</button>
-            <button onclick="pressPinKey('8')" class="py-3 bg-slate-800 hover:bg-slate-700 rounded-xl font-bold text-sm transition">8</button>
-            <button onclick="pressPinKey('9')" class="py-3 bg-slate-800 hover:bg-slate-700 rounded-xl font-bold text-sm transition">9</button>
-            <button onclick="clearPinKey()" class="py-3 bg-slate-800/50 hover:bg-slate-800 rounded-xl font-bold text-xs text-rose-400 transition">Clear</button>
-            <button onclick="pressPinKey('0')" class="py-3 bg-slate-800 hover:bg-slate-700 rounded-xl font-bold text-sm transition">0</button>
-            <button onclick="deletePinKey()" class="py-3 bg-slate-800/50 hover:bg-slate-800 rounded-xl font-bold text-xs text-slate-300 transition">⌫</button>
-        </div>
-    </div>
+<!-- Authentication is required before dashboard use -->
+<div id="login-overlay" class="fixed inset-0 z-[100] bg-slate-950 flex items-center justify-center p-5">
+ <form id="login-form" class="w-full max-w-sm rounded-3xl border border-slate-700 bg-slate-900 p-6 text-white space-y-4">
+  <div class="text-center">
+   <img src="N1024.png" class="w-16 h-16 rounded-2xl mx-auto mb-3" alt="Digital NoteBook">
+   <h1 class="text-xl font-bold text-emerald-400">Digital NoteBook</h1>
+   <p id="auth-subtitle" class="text-slate-400 text-sm mt-1">Login to your account</p>
+  </div>
+  <input id="auth-email" type="email" autocomplete="email" required placeholder="Email address">
+  <input id="auth-password" type="password" autocomplete="current-password" required minlength="6" placeholder="Password">
+  <input id="auth-confirm" class="hidden" type="password" autocomplete="new-password" placeholder="Confirm password">
+  <p id="auth-error" role="alert" class="text-sm text-rose-400"></p>
+  <button id="auth-submit" class="btn w-full" type="submit">Login</button>
+  <button id="auth-forgot" type="button" class="w-full text-sm text-emerald-400">Forgot password?</button>
+  <button id="auth-switch" type="button" class="w-full text-sm text-slate-300">Create a new account</button>
+ </form>
 </div>
 
-<!-- MANDATORY AUTHENTICATION & LOGIN OVERLAY -->
-<div id="login-overlay" class="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center p-4 hidden">
-    <div class="max-w-sm w-full bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-2xl space-y-5 text-white">
-        
-        <div class="relative w-20 h-20 mx-auto rounded-2xl p-[2px] bg-gradient-to-r from-emerald-500 via-blue-500 to-purple-500 animate-spin-slow">
-            <div class="w-full h-full bg-slate-900 rounded-2xl flex items-center justify-center overflow-hidden">
-                <img src="N1024.png" alt="Logo" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/150'">
-            </div>
-        </div>
+<div id="sidebar-backdrop" class="hidden fixed inset-0 bg-black/50 z-40" onclick="toggleSidebar()"></div>
+<aside id="sidebar" class="fixed z-50 inset-y-0 left-0 w-72 -translate-x-full bg-slate-900 text-white border-r border-slate-700 p-4 overflow-y-auto">
+ <div class="flex items-center justify-between mb-5">
+  <div class="flex items-center gap-2"><img src="N1024.png" class="w-9 h-9 rounded-lg" alt="Logo"><b>Digital NoteBook</b></div>
+  <button onclick="toggleSidebar()" aria-label="Close menu">✕</button>
+ </div>
+ <div class="flex items-center gap-3 mb-4 p-3 rounded-xl bg-slate-800">
+  <label class="cursor-pointer">
+   <img id="sidebar-avatar" src="N1024.png" class="w-12 h-12 rounded-full object-cover" alt="Profile photo">
+   <input id="avatar-file" type="file" accept="image/*" class="hidden">
+  </label>
+  <div class="min-w-0"><b id="sidebar-name" class="block truncate">My Account</b><span id="sidebar-email" class="text-xs text-slate-400 break-all"></span></div>
+ </div>
+ <div class="space-y-2 mb-5">
+  <label class="text-xs muted">Full name</label><input id="profile-name" placeholder="Full name">
+  <label class="text-xs muted">Address</label><input id="profile-address" placeholder="Address">
+  <label class="text-xs muted">Mobile</label><input id="profile-mobile" placeholder="Mobile number">
+  <button id="save-profile" class="btn w-full">Save profile</button>
+ </div>
+ <div class="space-y-2">
+  <button class="btn w-full" onclick="backupData()">Backup to cloud</button>
+  <button class="btn w-full bg-teal-700" onclick="restoreData()">Restore from cloud</button>
+  <button class="w-full p-2 rounded-lg bg-rose-900 text-white" onclick="logout()">Log out</button>
+ </div>
+ <p class="text-xs text-slate-500 mt-4">Settings are managed from Setting page.</p>
+</aside>
 
-        <div class="text-center space-y-1">
-            <h2 id="auth-form-title" class="text-base font-bold text-emerald-400">Sign Up</h2>
-            <p id="auth-form-subtitle" class="text-xs text-slate-400">Welcome to Digital NoteBook</p>
-        </div>
+<div id="app" class="min-h-screen">
+ <header id="topbar" class="sticky top-0 z-30 flex items-center justify-between gap-3 p-3 bg-slate-900 text-white border-b border-emerald-600/40">
+  <div class="flex items-center gap-2 min-w-0">
+   <button onclick="toggleSidebar()" class="text-xl px-1" aria-label="Open menu">☰</button>
+   <img src="N1024.png" class="w-8 h-8 rounded-lg" alt="Logo">
+   <b class="truncate">Digital NoteBook</b>
+  </div>
+  <div class="flex items-center gap-3">
+   <button onclick="togglePrivacy()" title="Hide/show amounts" aria-label="Hide or show amounts"><i id="privacy-icon" class="fa-solid fa-eye"></i></button>
+   <img id="header-avatar" src="N1024.png" class="w-8 h-8 rounded-full object-cover" alt="Profile" onclick="toggleSidebar()">
+  </div>
+ </header>
 
-        <div class="space-y-3">
-            <input type="email" id="auth-email" placeholder="Enter email address" class="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-emerald-500">
-            
-            <div class="relative">
-                <input type="password" id="auth-password" placeholder="Enter password" class="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-emerald-500 pr-10">
-                <button type="button" onclick="togglePasswordVisibility('auth-password', 'eye-icon-1')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">
-                    <i id="eye-icon-1" class="fa-solid fa-eye"></i>
-                </button>
-            </div>
+ <main class="max-w-6xl mx-auto p-4 md:p-6 space-y-5">
+  <section class="flex items-start justify-between gap-3">
+   <div>
+    <p id="today" class="text-xs font-bold tracking-wide text-emerald-500"></p>
+    <h1 id="greeting" class="text-xl font-bold mt-1">Welcome</h1>
+    <p class="text-sm muted mt-1">Your financial overview</p>
+   </div>
+   <a href="qrscan.html" class="card text-center text-sm">📷<br>QR Scan</a>
+  </section>
 
-            <div id="confirm-password-container" class="relative">
-                <input type="password" id="auth-confirm-password" placeholder="Confirm password" class="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-emerald-500 pr-10">
-                <button type="button" onclick="togglePasswordVisibility('auth-confirm-password', 'eye-icon-2')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">
-                    <i id="eye-icon-2" class="fa-solid fa-eye"></i>
-                </button>
-            </div>
-            
-            <div id="forgot-password-container" class="text-right hidden">
-                <button onclick="handleForgotPassword()" class="text-[11px] text-emerald-400 hover:underline">Forgot Password?</button>
-            </div>
-        </div>
+  <!-- Four dashboard metrics; savings intentionally excluded -->
+  <section class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+   <article class="card border-emerald-600/50">
+    <p class="text-sm muted">Net Balance</p><p id="summary-net-balance" class="money text-xl font-extrabold text-emerald-500 mt-2">NPR 0</p>
+    <p class="text-xs muted mt-2">Income + Receivable − Payable − Expenses</p>
+   </article>
+   <article class="card">
+    <p class="text-sm muted">लिनुपर्ने · Receivable</p><p id="summary-receivable" class="money text-xl font-bold text-cyan-500 mt-2">NPR 0</p>
+   </article>
+   <article class="card">
+    <p class="text-sm muted">दिनुपर्ने · Payable</p><p id="summary-payable" class="money text-xl font-bold text-rose-500 mt-2">NPR 0</p>
+   </article>
+   <article class="card">
+    <p class="text-sm muted">This Month's Expenses</p><p id="summary-expenses" class="money text-xl font-bold text-amber-500 mt-2">NPR 0</p>
+    <p class="text-xs muted mt-2">Transaction + House Expense</p>
+   </article>
+  </section>
 
-        <div class="pt-1">
-            <button id="auth-action-btn" onclick="handleAuthSubmit()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs transition shadow-lg">Sign Up</button>
-        </div>
+  <section class="card">
+   <div class="flex justify-between items-center gap-3 mb-3">
+    <div><h2 class="font-bold text-lg">Reminder</h2><p class="text-xs muted">Syncs with your account across devices</p></div>
+    <span class="text-xl">🔔</span>
+   </div>
+   <textarea id="reminder-text" rows="3" maxlength="2000" placeholder="Write a reminder..."></textarea>
+   <div class="flex gap-2 mt-3">
+    <button id="save-reminder" class="btn">Save reminder</button>
+    <button id="clear-reminder" class="px-3 py-2 rounded-lg border border-slate-500">Clear</button>
+   </div>
+   <p id="reminder-status" class="text-xs muted mt-2" aria-live="polite"></p>
+  </section>
 
-        <div class="text-center pt-2 border-t border-slate-800">
-            <p id="auth-switch-text" class="text-xs text-slate-400">
-                Already have an account? 
-                <button onclick="toggleAuthMode('login')" class="text-emerald-400 font-bold hover:underline ml-1">Log In</button>
-            </p>
-        </div>
+  <section id="custom-banner-ad" class="overflow-hidden rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-900">
+   <a href="https://kids.kamalgc.com.np" target="_blank" rel="noopener noreferrer">
+    <video src="bannerads.mp4" autoplay loop muted playsinline class="w-full h-auto"></video>
+   </a>
+  </section>
 
-    </div>
+  <section class="space-y-3">
+   <h2 class="text-lg font-bold">Quick Actions</h2>
+   <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+    <a href="add-transaction.html" class="card hover:border-emerald-500"><span class="text-2xl">💳</span><b class="block mt-2">Transactions & Ledger</b></a>
+    <a href="add-income.html" class="card hover:border-emerald-500"><span class="text-2xl">💰</span><b class="block mt-2">Income</b></a>
+    <a href="add-saving.html" class="card hover:border-emerald-500"><span class="text-2xl">🏦</span><b class="block mt-2">Savings</b></a>
+    <a href="house-expense.html" class="card hover:border-emerald-500"><span class="text-2xl">🏠</span><b class="block mt-2">House Expense</b></a>
+    <a href="calculate.html" class="card hover:border-emerald-500"><span class="text-2xl">🧮</span><b class="block mt-2">Calculator</b></a>
+    <a href="notebook.html" class="card hover:border-emerald-500"><span class="text-2xl">📓</span><b class="block mt-2">Notebook</b></a>
+    <a href="calendar.html" class="card hover:border-emerald-500"><span class="text-2xl">📅</span><b class="block mt-2">Calendar</b></a>
+    <a href="qrscan.html" class="card hover:border-emerald-500"><span class="text-2xl">🔎</span><b class="block mt-2">QR Scan</b></a>
+    <a href="setting.html" class="card hover:border-emerald-500"><span class="text-2xl">⚙️</span><b class="block mt-2">Settings</b></a>
+    <a href="account.html" class="card hover:border-emerald-500"><span class="text-2xl">👤</span><b class="block mt-2">Account & Trash</b></a>
+   </div>
+  </section>
+
+  <section class="grid md:grid-cols-2 gap-3">
+   <article class="card">
+    <h2 class="font-bold text-lg">Monthly Insight</h2>
+    <p id="monthly-insight" class="muted mt-2">Calculating this month's expenses…</p>
+   </article>
+   <article class="card">
+    <h2 class="font-bold text-lg">Recent Activity</h2>
+    <p class="text-xs muted mt-1">Recent activity summary from this device's available records.</p>
+    <div id="recent-activity" class="mt-3 space-y-2"></div>
+   </article>
+  </section>
+  <footer class="text-center text-xs muted py-3">Digital NoteBook</footer>
+ </main>
 </div>
 
-<!-- WELCOME SPLASH SCREEN -->
-<div id="splash-screen" class="fixed inset-0 bg-slate-950 z-50 flex flex-col items-center justify-center text-white transition-opacity duration-700 overflow-hidden select-none">
-    <div class="absolute inset-0 bg-[linear-gradient(to_right,#065f4615_1px,transparent_1px),linear-gradient(to_bottom,#065f4615_1px,transparent_1px)] bg-[size:3rem_3rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none"></div>
-    <div class="relative z-10 text-center space-y-6 max-w-sm px-6">
-        <div class="flex justify-center">
-            <div class="relative">
-                <div class="absolute -inset-1 rounded-full bg-gradient-to-r from-emerald-500 to-teal-400 opacity-75 blur-sm animate-spin-slow"></div>
-                <div class="relative w-20 h-20 rounded-full bg-slate-900/90 border-2 border-emerald-500/60 p-2 shadow-2xl flex items-center justify-center backdrop-blur-md overflow-hidden">
-                    <img src="N1024.png" alt="Logo" class="w-full h-full object-cover rounded-full" onerror="this.src='https://via.placeholder.com/150'">
-                </div>
-            </div>
-        </div>
-        <div class="space-y-2">
-            <p class="text-emerald-400 text-[11px] font-mono tracking-widest uppercase flex items-center justify-center gap-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> System Initializing...
-            </p>
-            <h1 id="typing-title" class="text-xl font-extrabold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-emerald-300 via-teal-200 to-white font-mono h-8"></h1>
-        </div>
-        <div class="space-y-1.5 w-48 mx-auto">
-            <div class="flex justify-between text-[10px] font-mono text-emerald-400/80">
-                <span>LOADING</span><span id="load-percent">0%</span>
-            </div>
-            <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden p-[1px] border border-emerald-500/20">
-                <div id="progress-bar" class="h-full bg-gradient-to-r from-emerald-500 to-teal-300 rounded-full transition-all duration-100" style="width: 0%;"></div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="flex min-h-screen w-full">
-    
-    <!-- SIDEBAR SECTION -->
-    <div id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 bg-slate-900 border-r border-slate-800 transform -translate-x-full transition-transform duration-300 flex flex-col text-white">
-        <div class="flex items-center justify-between px-4 py-3 border-b border-slate-800">
-            <div class="flex items-center space-x-2.5">
-                <div class="w-8 h-8 rounded-lg bg-emerald-600 border border-emerald-500 flex items-center justify-center overflow-hidden shadow-md">
-                    <img src="N1024.png" alt="Logo" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/150'">
-                </div>
-                <div>
-                    <h1 class="text-sm font-extrabold tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-white via-emerald-300 to-teal-400">
-                        Digital <span class="text-emerald-400">NoteBook</span>
-                    </h1>
-                </div>
-            </div>
-            <button onclick="toggleSidebar()" class="text-slate-400 hover:text-white text-lg focus:outline-none">✕</button>
-        </div>
-
-        <div class="p-3 space-y-3 overflow-y-auto flex-1 text-xs">
-            <div class="bg-slate-800/50 border border-slate-700/60 rounded-xl p-3 flex items-center space-x-3">
-                <div class="relative cursor-pointer group" onclick="document.getElementById('avatar-upload-input').click()">
-                    <div class="w-11 h-11 rounded-full bg-emerald-600 border border-emerald-500 flex items-center justify-center overflow-hidden shadow-sm">
-                        <img id="sidebar-avatar-img" src="N1024.png" alt="Profile" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/150'">
-                    </div>
-                </div>
-                <input type="file" id="avatar-upload-input" accept="image/*" class="hidden" onchange="handleAvatarUpload(event)">
-                <div>
-                    <h3 id="sidebar-profile-name" class="text-white font-bold text-sm"></h3>
-                    <p class="text-[10px] text-slate-400">Click icon to set photo</p>
-                </div>
-            </div>
-
-            <nav class="space-y-1 font-medium">
-                <a href="index.html" class="flex items-center gap-2.5 py-2.5 px-3 rounded-xl bg-emerald-600 text-white shadow-md shadow-emerald-600/20 transition"><span>📊</span> <span class="lang-text" data-en="Overview" data-np="अवलोकन">Overview</span></a>
-                <a href="account.html" class="flex items-center gap-2.5 py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 transition"><span>👤</span> <span class="lang-text" data-en="Account & Backup" data-np="खाता र ब्याकअप">Account & Backup</span></a>
-            </nav>
-
-            <div class="space-y-2.5 bg-slate-800/50 p-3 rounded-xl border border-slate-700/60">
-                <h3 class="text-[11px] font-bold text-white flex items-center gap-1.5 mb-1">
-                    <i class="fa-solid fa-address-card text-emerald-400"></i> <span class="lang-text" data-en="Personal Info" data-np="व्यक्तिगत विवरण">Personal Info</span>
-                </h3>
-                <div>
-                    <label class="block text-[10px] font-semibold text-slate-400 mb-0.5"><span class="lang-text" data-en="Full Name" data-np="पूरा नाम">Full Name</span></label>
-                    <input type="text" id="input-full-name" placeholder="Enter Full Name" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-white text-xs focus:outline-none focus:border-emerald-500">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-semibold text-slate-400 mb-0.5"><span class="lang-text" data-en="Email" data-np="इमेल">Email</span></label>
-                    <input type="email" id="input-email" placeholder="Enter Email Address" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-white text-xs focus:outline-none focus:border-emerald-500">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-semibold text-slate-400 mb-0.5"><span class="lang-text" data-en="Address" data-np="ठेगाना">Address</span></label>
-                    <input type="text" id="input-address" placeholder="Enter Address" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-white text-xs focus:outline-none focus:border-emerald-500">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-semibold text-slate-400 mb-0.5"><span class="lang-text" data-en="Mobile Number" data-np="मोबाइल नम्बर">Mobile Number</span></label>
-                    <input type="tel" id="input-mobile" placeholder="Enter Mobile Number" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-white text-xs focus:outline-none focus:border-emerald-500">
-                </div>
-                <button onclick="saveProfileDetails()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition shadow-md">
-                    <span class="lang-text" data-en="Save Info" data-np="सेभ गर्नुहोस्">Save Info</span>
-                </button>
-            </div>
-
-            <div class="space-y-2 bg-slate-800/50 p-3 rounded-xl border border-slate-700/60">
-                <h3 class="text-[11px] font-bold text-white flex items-center gap-1.5 mb-1">
-                    <i class="fa-solid fa-cloud text-emerald-400"></i> <span class="lang-text" data-en="Cloud Sync" data-np="क्लाउड सिंक">Cloud Sync</span>
-                </h3>
-                <div class="flex gap-2">
-                    <button onclick="handleCloudBackup()" class="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition text-[10px]">
-                        <span class="lang-text" data-en="Backup" data-np="ब्याकअप">Backup</span>
-                    </button>
-                    <button onclick="handleCloudRestore()" class="flex-1 py-1.5 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-lg transition text-[10px]">
-                        <span class="lang-text" data-en="Restore" data-np="पुनः भण्डारण">Restore</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="flex-1 flex flex-col w-full">
-        
-        <!-- HEADER SECTION -->
-        <header id="top-controls-area" class="sticky top-0 z-30 flex items-center justify-between px-3 md:px-5 py-3.5 bg-slate-900/95 backdrop-blur border-b border-emerald-500/20 shadow-md">
-            <div class="flex items-center space-x-2.5">
-                <button onclick="toggleSidebar()" class="text-white text-xl focus:outline-none hover:text-emerald-400 transition">☰</button>
-                <div class="flex items-center space-x-2 cursor-pointer" onclick="toggleSidebar()">
-                    <div class="w-7 h-7 rounded-lg bg-emerald-600 border border-emerald-500/50 flex items-center justify-center overflow-hidden shadow-sm">
-                        <img src="N1024.png" alt="Logo" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/150'">
-                    </div>
-                    <span class="text-xs md:text-sm font-extrabold tracking-wider bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">
-                        Digital NoteBook
-                    </span>
-                </div>
-            </div>
-
-            <div class="flex items-center space-x-2">
-                <button onclick="toggleBalancePrivacy()" id="privacy-toggle-btn" class="w-7 h-7 rounded-md bg-slate-800 border border-slate-700 flex items-center justify-center text-sm text-slate-300 hover:text-white hover:bg-slate-700 transition" title="Toggle Amount Privacy">
-                    <i id="privacy-eye-icon" class="fa-solid fa-eye"></i>
-                </button>
-                <button onclick="toggleLanguage()" id="lang-toggle-btn" class="px-2 py-1 rounded-md bg-slate-800 border border-slate-700 text-[10px] font-bold text-slate-200 hover:bg-slate-700 transition">ENG</button>
-                <button onclick="toggleTheme()" id="theme-toggle-btn" class="w-7 h-7 rounded-md bg-slate-800 border border-slate-700 flex items-center justify-center text-sm hover:bg-slate-700 transition">🌛</button>
-                <div class="relative cursor-pointer" onclick="toggleSidebar()">
-                    <div class="w-8 h-8 rounded-full bg-emerald-600 border border-emerald-500 flex items-center justify-center overflow-hidden shadow-sm">
-                        <img id="header-avatar-img" src="N1024.png" alt="Profile" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/150'">
-                    </div>
-                </div>
-            </div>
-        </header>
-
-        <main class="p-4 md:p-6 space-y-4 flex-1 w-full text-xs">
-            
-            <div class="flex justify-between items-start px-1 py-1 text-white">
-                <div>
-                    <p id="dynamic-date" class="text-[11px] font-semibold tracking-wider text-emerald-500 dark:text-emerald-400 uppercase mb-1"></p>
-                    <h2 id="dynamic-greeting" class="text-base md:text-lg font-bold text-slate-800 dark:text-white tracking-tight"></h2>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5"><span class="lang-text" data-en="Here is what is happening with your money today." data-np="आज तपाईंको पैसाको स्थिति यहाँ छ।">Here is what is happening with your money today.</span></p>
-                </div>
-                <a href="qrscan.html" class="bg-white dark:bg-slate-900 p-1.5 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col items-center shrink-0 hover:border-emerald-500 transition">
-                    <div class="w-12 h-12 bg-white flex items-center justify-center p-0.5 rounded">
-                        <img src="N1024.png" alt="QR Code" class="w-full h-full object-contain" onerror="this.src='https://via.placeholder.com/150'">
-                    </div>
-                    <span class="text-[9px] text-slate-400 mt-0.5 font-medium"><span class="lang-text" data-en="QR Scan" data-np="क्यूआर स्क्यान">QR Scan</span></span>
-                </a>
-            </div>
-
-            <!-- ROW 1 & 2: Financial Summaries (3x2 Grid with Larger Text) -->
-            <div id="summary-cards-area" class="grid grid-cols-3 gap-2 text-center pt-2 bg-slate-200/30 dark:bg-slate-900/40 p-3 rounded-xl border border-slate-200 dark:border-slate-800/80">
-                <div class="flex flex-col items-center p-1 bg-slate-800/40 rounded-lg border border-slate-700/50">
-                    <span class="text-lg mb-0.5">💵</span>
-                    <span class="text-[10px] font-semibold text-emerald-400 truncate w-full"><span class="lang-text" data-en="Total Income" data-np="कुल आम्दानी">Total Income</span></span>
-                    <span id="summary-income" class="text-sm md:text-base font-extrabold text-slate-800 dark:text-slate-100 mt-0.5">Rs 0</span>
-                </div>
-                <div class="flex flex-col items-center p-1 bg-slate-800/40 rounded-lg border border-slate-700/50">
-                    <span class="text-lg mb-0.5">📈</span>
-                    <span class="text-[10px] font-semibold text-teal-400 truncate w-full"><span class="lang-text" data-en="Total Expense" data-np="कुल खर्च">Total Expense</span></span>
-                    <span id="summary-expenses" class="text-sm md:text-base font-extrabold text-slate-800 dark:text-slate-100 mt-0.5">Rs 0</span>
-                </div>
-                <div class="flex flex-col items-center p-1 bg-slate-800/40 rounded-lg border border-slate-700/50">
-                    <span class="text-lg mb-0.5">🏦</span>
-                    <span class="text-[10px] font-semibold text-amber-400 truncate w-full"><span class="lang-text" data-en="Total Saving" data-np="कुल बचत">Total Saving</span></span>
-                    <span id="summary-saving" class="text-sm md:text-base font-extrabold text-slate-800 dark:text-slate-100 mt-0.5">Rs 0</span>
-                </div>
-                <div class="flex flex-col items-center p-1 bg-slate-800/40 rounded-lg border border-slate-700/50">
-                    <span class="text-lg mb-0.5">📥</span>
-                    <span class="text-[10px] font-semibold text-cyan-400 truncate w-full"><span class="lang-text" data-en="Total Receivable" data-np="पाउनुपर्ने">Total Receivable</span></span>
-                    <span id="summary-receivable" class="text-sm md:text-base font-extrabold text-slate-800 dark:text-slate-100 mt-0.5">Rs 0</span>
-                </div>
-                <div class="flex flex-col items-center p-1 bg-slate-800/40 rounded-lg border border-slate-700/50">
-                    <span class="text-lg mb-0.5">📤</span>
-                    <span class="text-[10px] font-semibold text-rose-400 truncate w-full"><span class="lang-text" data-en="Total Giveble" data-np="दिनुपर्ने">Total Giveble</span></span>
-                    <span id="summary-payable" class="text-sm md:text-base font-extrabold text-slate-800 dark:text-slate-100 mt-0.5">Rs 0</span>
-                </div>
-                <div class="flex flex-col items-center p-1 bg-emerald-950/40 rounded-lg border border-emerald-500/40">
-                    <span class="text-lg mb-0.5">💰</span>
-                    <span class="text-[10px] font-semibold text-emerald-300 truncate w-full"><span class="lang-text" data-en="Net Balance" data-np="खुद बचत बाहेक">Net Balance</span></span>
-                    <span id="summary-net-balance" class="text-sm md:text-base font-extrabold text-emerald-400 mt-0.5">Rs 0</span>
-                </div>
-            </div>
-
-            <hr class="border-slate-200 dark:border-slate-800 my-2">
-            <!-- BANNER ADS SECTION -->
-            <div id="custom-banner-ad" class="mt-4 w-full overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 shadow-lg bg-slate-900">
-                <a href="https://kids.kamalgc.com.np" target="_blank" class="block w-full h-full">
-                    <video 
-                        src="bannerads.mp4" 
-                        autoplay 
-                        loop 
-                        muted 
-                        playsinline 
-                        class="w-full h-auto object-cover rounded-xl pointer-events-none">
-                    </video>
-                </a>
-            </div>
-
-            <!-- Connected Features -->
-            <div id="quick-action-area" class="space-y-2">
-                <div class="grid grid-cols-3 gap-2 text-center">
-                    <a href="add-transaction.html" class="flex flex-col items-center p-2 rounded-xl bg-slate-200/50 dark:bg-slate-900/65 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-900 transition">
-                        <span class="text-base mb-1">💳</span>
-                        <span class="text-[11px] font-medium text-slate-700 dark:text-slate-300"><span class="lang-text" data-en="Add transaction" data-np="कारोबार थप्नुहोस्">Add transaction</span></span>
-                    </a>
-                    <a href="add-income.html" class="flex flex-col items-center p-2 rounded-xl bg-slate-200/50 dark:bg-slate-900/65 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-900 transition">
-                        <span class="text-base mb-1">💰</span>
-                        <span class="text-[11px] font-medium text-slate-700 dark:text-slate-300"><span class="lang-text" data-en="Add Income" data-np="आम्दानी थप्नुहोस्">Add Income</span></span>
-                    </a>
-                    <a href="add-saving.html" class="flex flex-col items-center p-2 rounded-xl bg-slate-200/50 dark:bg-slate-900/65 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-900 transition">
-                        <span class="text-base mb-1">🏦</span>
-                        <span class="text-[11px] font-medium text-slate-700 dark:text-slate-300"><span class="lang-text" data-en="Add Saving" data-np="बचत थप्नुहोस्">Add Saving</span></span>
-                    </a>
-                </div>
-
-                <div class="grid grid-cols-3 gap-2 text-center">
-                    <a href="calculate.html" class="flex flex-col items-center p-2 rounded-xl bg-slate-200/50 dark:bg-slate-900/65 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-900 transition">
-                        <span class="text-base mb-1">🧮</span>
-                        <span class="text-[11px] font-medium text-slate-700 dark:text-slate-300"><span class="lang-text" data-en="Calculate" data-np="हिसाब गर्नुहोस्">Calculate</span></span>
-                    </a>
-                    <a href="notebook.html" class="flex flex-col items-center p-2 rounded-xl bg-slate-200/50 dark:bg-slate-900/65 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-900 transition">
-                        <span class="text-base mb-1">📓</span>
-                        <span class="text-[11px] font-medium text-slate-700 dark:text-slate-300"><span class="lang-text" data-en="Notebook" data-np="नोटबुक">Notebook</span></span>
-                    </a>
-                    <a href="calendar.html" class="flex flex-col items-center p-2 rounded-xl bg-slate-200/50 dark:bg-slate-900/65 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-900 transition">
-                        <span class="text-base mb-1">📅</span>
-                        <span class="text-[11px] font-medium text-slate-700 dark:text-slate-300"><span class="lang-text" data-en="Calendar" data-np="पात्रो">Calendar</span></span>
-                    </a>
-                </div>
-
-                <div class="grid grid-cols-2 gap-2 text-center">
-                    <a href="setting.html" class="flex flex-col items-center p-2.5 rounded-xl bg-slate-200/50 dark:bg-slate-900/65 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-900 transition">
-                        <span class="text-base mb-1">⚙️</span>
-                        <span class="text-[11px] font-medium text-slate-700 dark:text-slate-300"><span class="lang-text" data-en="Setting" data-np="सेटिङ">Setting</span></span>
-                    </a>
-                    <a href="account.html" class="flex flex-col items-center p-2.5 rounded-xl bg-slate-200/50 dark:bg-slate-900/65 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-900 transition">
-                        <span class="text-base mb-1">👤</span>
-                        <span class="text-[11px] font-medium text-slate-700 dark:text-slate-300"><span class="lang-text" data-en="Account" data-np="खाता">Account</span></span>
-                    </a>
-                    
-             <a href="house-expense.html" class="flex flex-col items-center p-5 rounded-xl bg-slate-200/50 dark:bg-slate-900/65 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-900 transition">
-                 <span class="text-base mb-1">🏠</span>
-                 <span class="text-[11px] font-medium text-slate-700 dark:text-slate-300"><span class="lang-text" data-en="House Expense" data-np="घरखर्च हिसाब">House Expense</span></span>
-             </a>
-
-                </div>
-            </div>
-
-        </main>
-    </div>
-</div>
-
-<!-- Firebase & Application Scripts -->
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import {
-        getAuth,
-        onAuthStateChanged,
-        createUserWithEmailAndPassword,
-        signInWithEmailAndPassword,
-        sendPasswordResetEmail
-    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import {
-        getDatabase,
-        ref,
-        get,
-        update,
-        onValue
-    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-    const firebaseConfig = {
-        apiKey: "AIzaSyDDY_v7RHnkCTI6uyV4DNDjqoaIBGweg8c",
-        authDomain: "digital-a2552.firebaseapp.com",
-        projectId: "digital-a2552",
-        databaseURL: "https://digital-a2552-default-rtdb.asia-southeast1.firebasedatabase.app",
-        storageBucket: "digital-a2552.firebasestorage.app",
-        messagingSenderId: "218135618179",
-        appId: "1:218135618179:web:821b76920d3e5669ac31b6"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getDatabase(app);
-
-    let unsubscribeCloud = null;
-    let activeUid = null;
-    let isLoginMode = false;
-
-    const $ = id => document.getElementById(id);
-
-    function showMessage(message) {
-        alert(message);
-    }
-
-    function readLocalArray(keys) {
-        for (const key of keys) {
-            const raw = localStorage.getItem(key);
-            if (raw === null) continue;
-
-            try {
-                const value = JSON.parse(raw);
-                if (Array.isArray(value)) return value;
-            } catch (error) {
-                console.warn("Invalid local data:", key, error);
-            }
-        }
-        return [];
-    }
-
-    function saveCloudListToLocal(cloudData, cloudKey, localKey) {
-        if (!Object.prototype.hasOwnProperty.call(cloudData, cloudKey)) {
-            return false;
-        }
-
-        const value = cloudData[cloudKey];
-
-        if (value === null || value === undefined) return false;
-
-        const list = Array.isArray(value)
-            ? value
-            : (typeof value === "object" ? Object.values(value) : null);
-
-        if (!list) return false;
-
-        localStorage.setItem(localKey, JSON.stringify(list));
-        return true;
-    }
-
-    function stopCloudListener() {
-        if (typeof unsubscribeCloud === "function") {
-            unsubscribeCloud();
-        }
-        unsubscribeCloud = null;
-        activeUid = null;
-    }
-
-    function listenToCloudChanges(uid) {
-        if (activeUid === uid && unsubscribeCloud) return;
-
-        stopCloudListener();
-        activeUid = uid;
-
-        const userRef = ref(db, `users/${uid}`);
-
-        unsubscribeCloud = onValue(
-            userRef,
-            snapshot => {
-                if (auth.currentUser?.uid !== uid) return;
-                if (!snapshot.exists()) return;
-
-                const data = snapshot.val() || {};
-                let changed = false;
-
-                changed = saveCloudListToLocal(
-                    data, "notes", "advanced_notebook_notes"
-                ) || changed;
-
-                changed = saveCloudListToLocal(
-                    data, "incomes", "digital_notebook_incomes"
-                ) || changed;
-
-                changed = saveCloudListToLocal(
-                    data, "savings", "digital_notebook_savings"
-                ) || changed;
-
-                changed = saveCloudListToLocal(
-                    data, "transactions", "digital_notebook_transactions"
-                ) || changed;
-
-                if (data.theme === "light" || data.theme === "dark") {
-                    if (localStorage.getItem("theme") !== data.theme) {
-                        localStorage.setItem("theme", data.theme);
-                        document.documentElement.classList.toggle(
-                            "dark", data.theme === "dark"
-                        );
-                    }
-                }
-
-                if (data.language === "en" || data.language === "np") {
-                    localStorage.setItem("userLang", data.language);
-                    localStorage.setItem("lang", data.language);
-                }
-
-                if (changed) {
-                    window.updateSummaryCards?.();
-                    window.updateLanguageUI?.();
-                    window.updateThemeUI?.();
-                }
-            },
-            error => {
-                console.error("Cloud listener error:", error);
-                showMessage(
-                    "क्लाउड डेटा पढ्न सकिएन। इन्टरनेट र Firebase Database Rules जाँच गर्नुहोस्।"
-                );
-            }
-        );
-    }
-
-    onAuthStateChanged(auth, user => {
-        const loginOverlay = $("login-overlay");
-
-        if (user) {
-            if (loginOverlay) loginOverlay.classList.add("hidden");
-            listenToCloudChanges(user.uid);
-        } else {
-            stopCloudListener();
-            if (loginOverlay) loginOverlay.classList.remove("hidden");
-        }
-    });
-
-    window.toggleAuthMode = function(mode) {
-        isLoginMode = mode === "login";
-
-        const title = $("auth-form-title");
-        const subtitle = $("auth-form-subtitle");
-        const confirm = $("confirm-password-container");
-        const forgot = $("forgot-password-container");
-        const button = $("auth-action-btn");
-        const switchText = $("auth-switch-text");
-
-        if (isLoginMode) {
-            title.innerText = "Log In";
-            subtitle.innerText = "Access your account";
-            confirm.classList.add("hidden");
-            forgot.classList.remove("hidden");
-            button.innerText = "Login";
-            switchText.innerHTML =
-                `Don't have an account?
-                <button onclick="toggleAuthMode('signup')"
-                class="text-emerald-400 font-bold hover:underline ml-1">
-                Sign Up</button>`;
-        } else {
-            title.innerText = "Sign Up";
-            subtitle.innerText = "Welcome to Digital NoteBook";
-            confirm.classList.remove("hidden");
-            forgot.classList.add("hidden");
-            button.innerText = "Sign Up";
-            switchText.innerHTML =
-                `Already have an account?
-                <button onclick="toggleAuthMode('login')"
-                class="text-emerald-400 font-bold hover:underline ml-1">
-                Log In</button>`;
-        }
-    };
-
-    window.togglePasswordVisibility = function(inputId, iconId) {
-        const input = $(inputId);
-        const icon = $(iconId);
-
-        if (!input || !icon) return;
-
-        const show = input.type === "password";
-        input.type = show ? "text" : "password";
-        icon.classList.toggle("fa-eye", !show);
-        icon.classList.toggle("fa-eye-slash", show);
-    };
-
-    window.handleAuthSubmit = async function() {
-        const email = $("auth-email").value.trim();
-        const password = $("auth-password").value;
-
-        if (!email || !password) {
-            showMessage("इमेल र पासवर्ड दुवै भर्नुहोस्।");
-            return;
-        }
-
-        const button = $("auth-action-btn");
-        button.disabled = true;
-
-        try {
-            if (isLoginMode) {
-                await signInWithEmailAndPassword(auth, email, password);
-            } else {
-                const confirmPassword = $("auth-confirm-password").value;
-
-                if (password !== confirmPassword) {
-                    showMessage("दुवै पासवर्ड मिलेनन्।");
-                    return;
-                }
-
-                if (password.length < 6) {
-                    showMessage("पासवर्ड कम्तीमा ६ अक्षरको हुनुपर्छ।");
-                    return;
-                }
-
-                await createUserWithEmailAndPassword(auth, email, password);
-            }
-        } catch (error) {
-            const messages = {
-                "auth/invalid-email": "इमेल ठेगाना सही छैन।",
-                "auth/user-not-found": "यो इमेलको खाता भेटिएन।",
-                "auth/wrong-password": "पासवर्ड मिलेन।",
-                "auth/invalid-credential": "इमेल वा पासवर्ड मिलेन।",
-                "auth/email-already-in-use": "यो इमेलबाट खाता पहिल्यै बनिसकेको छ।",
-                "auth/weak-password": "अझ बलियो पासवर्ड राख्नुहोस्।",
-                "auth/network-request-failed": "इन्टरनेट जडान जाँच गर्नुहोस्।",
-                "auth/too-many-requests": "धेरै पटक प्रयास भयो। केही समयपछि पुनः प्रयास गर्नुहोस्।"
-            };
-
-            showMessage(messages[error.code] ||
-                `लगइन प्रक्रिया सफल भएन। (${error.code || "unknown-error"})`);
-        } finally {
-            button.disabled = false;
-        }
-    };
-
-    window.handleForgotPassword = async function() {
-        const email = $("auth-email").value.trim();
-
-        if (!email) {
-            showMessage("पहिले आफ्नो इमेल लेख्नुहोस्।");
-            return;
-        }
-
-        try {
-            await sendPasswordResetEmail(auth, email);
-            showMessage("पासवर्ड रिसेट इमेल पठाइएको छ। Inbox र Spam जाँच गर्नुहोस्।");
-        } catch (error) {
-            showMessage("पासवर्ड रिसेट इमेल पठाउन सकिएन: " + error.code);
-        }
-    };
-
-    function collectLocalData() {
-        return {
-            notes: readLocalArray([
-                "advanced_notebook_notes", "notes"
-            ]),
-            incomes: readLocalArray([
-                "digital_notebook_incomes", "incomes",
-                "income_data", "add_income_list"
-            ]),
-            savings: readLocalArray([
-                "digital_notebook_savings", "savings",
-                "saving_data", "add_saving_list"
-            ]),
-            transactions: readLocalArray([
-                "digital_notebook_transactions", "transactions",
-                "transaction_list"
-            ]),
-            theme: localStorage.getItem("theme") || "dark",
-            language: localStorage.getItem("userLang") ||
-                      localStorage.getItem("lang") || "en",
-            updatedAt: new Date().toISOString()
-        };
-    }
-
-    window.handleCloudBackup = async function() {
-        const user = auth.currentUser;
-
-        if (!user) {
-            showMessage("पहिले आफ्नो खातामा लगइन गर्नुहोस्।");
-            return;
-        }
-
-        const confirmed = confirm(
-            "ब्याकअप गर्दा यस फोनको सूचीसम्बन्धी डेटा क्लाउडमा लेखिनेछ। " +
-            "यस फोनको पुरानो डेटा र क्लाउडको डेटा फरक भएमा क्लाउडका सूचीहरू बदलिन सक्छन्। " +
-            "तपाईंले डेटा जाँच गरेर ब्याकअप गर्नुभएको हो?"
-        );
-
-        if (!confirmed) return;
-
-        try {
-            const localData = collectLocalData();
-            await update(ref(db, `users/${user.uid}`), localData);
-
-            showMessage("ब्याकअप सफल भयो।");
-        } catch (error) {
-            console.error("Backup failed:", error);
-            showMessage(
-                "ब्याकअप असफल भयो। इन्टरनेट, लगइन र Firebase Rules जाँच गर्नुहोस्।"
-            );
-        }
-    };
-
-    window.handleCloudRestore = async function() {
-        const user = auth.currentUser;
-
-        if (!user) {
-            showMessage("पहिले आफ्नो खातामा लगइन गर्नुहोस्।");
-            return;
-        }
-
-        if (!confirm(
-            "क्लाउडको डेटा यो फोनमा ल्याउने हो? " +
-            "यसले यो फोनका सम्बन्धित स्थानीय सूचीहरू बदल्न सक्छ।"
-        )) return;
-
-        try {
-            const snapshot = await get(ref(db, `users/${user.uid}`));
-
-            if (!snapshot.exists()) {
-                showMessage("यो खातामा क्लाउड ब्याकअप भेटिएन।");
-                return;
-            }
-
-            const data = snapshot.val() || {};
-
-            saveCloudListToLocal(
-                data, "notes", "advanced_notebook_notes"
-            );
-            saveCloudListToLocal(
-                data, "incomes", "digital_notebook_incomes"
-            );
-            saveCloudListToLocal(
-                data, "savings", "digital_notebook_savings"
-            );
-            saveCloudListToLocal(
-                data, "transactions", "digital_notebook_transactions"
-            );
-
-            if (data.theme === "light" || data.theme === "dark") {
-                localStorage.setItem("theme", data.theme);
-            }
-
-            if (data.language === "en" || data.language === "np") {
-                localStorage.setItem("userLang", data.language);
-                localStorage.setItem("lang", data.language);
-            }
-
-            showMessage("क्लाउडबाट डेटा ल्याइयो। पृष्ठ पुनः लोड हुँदैछ।");
-            location.reload();
-        } catch (error) {
-            console.error("Restore failed:", error);
-            showMessage(
-                "डेटा पुनः ल्याउन सकिएन। इन्टरनेट र Firebase Rules जाँच गर्नुहोस्।"
-            );
-        }
-    };
-</script>
-
-<script>
-    let currentEnteredPin = "";
-    let isPrivacyHidden = localStorage.getItem('balance_privacy') === 'hidden';
-    
-    async function checkSecurityLock() {
-    const savedPin = localStorage.getItem('app_mpin');
-    const savedBiometric = localStorage.getItem('app_biometric');
-    const lockScreen = document.getElementById('security-lock-screen');
-    const biometricContainer = document.getElementById('biometric-container');
-
-    if ((savedPin && savedPin.length === 4) || savedBiometric === 'enabled') {
-        lockScreen.classList.remove('hidden');
-
-        if (savedBiometric === 'enabled' && window.PublicKeyCredential) {
-            if (biometricContainer) biometricContainer.classList.remove('hidden');
-            
-            setTimeout(() => {
-                triggerBiometricAuth();
-            }, 500);
-        } else {
-            if (biometricContainer) biometricContainer.classList.add('hidden');
-        }
-    } else {
-        lockScreen.classList.add('hidden');
-    }
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,sendPasswordResetEmail,signOut} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import {getDatabase,ref,get,update,onValue,off} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+const firebaseConfig={
+ apiKey:"AIzaSyDDY_v7RHnkCTI6uyV4DNDjqoaIBGweg8c",
+ authDomain:"digital-a2552.firebaseapp.com",
+ projectId:"digital-a2552",
+ databaseURL:"https://digital-a2552-default-rtdb.asia-southeast1.firebasedatabase.app",
+ storageBucket:"digital-a2552.firebasestorage.app",
+ messagingSenderId:"218135618179",
+ appId:"1:218135618179:web:821b76920d3e5669ac31b6"
+};
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getDatabase(app);
+const $=id=>document.getElementById(id);
+const LOCAL={
+ incomes:["digital_notebook_incomes","incomes","income_data","add_income_list"],
+ transactions:["digital_notebook_transactions","transactions","transaction_list"],
+ notes:["advanced_notebook_notes","notes"],
+ savings:["digital_notebook_savings","savings","saving_data","add_saving_list"],
+ house:["digital_notebook_house_expenses","house_expenses","houseExpenses","house_expense_list"]
+};
+let uid=null,mode="login",unsubs=[],privacy=localStorage.getItem("balance_privacy")==="hidden";
+let cloudData={};
+
+function safeParse(raw){try{return JSON.parse(raw)}catch{return null}}
+function localList(keys){
+ for(const k of keys){
+  const v=safeParse(localStorage.getItem(k)||"null");
+  if(Array.isArray(v)&&v.length)return v;
+  if(v&&typeof v==="object"&&!Array.isArray(v))return Object.entries(v).map(([id,x])=>({...x,id:x?.id||id}));
+ }
+ return [];
 }
-
-
-    window.pressPinKey = function(digit) {
-        if (currentEnteredPin.length < 4) {
-            currentEnteredPin += digit;
-            updatePinDots();
-            if (currentEnteredPin.length === 4) {
-                verifyEnteredPin();
-            }
-        }
-    }
-
-    window.deletePinKey = function() {
-        if (currentEnteredPin.length > 0) {
-            currentEnteredPin = currentEnteredPin.slice(0, -1);
-            updatePinDots();
-        }
-    }
-
-    window.clearPinKey = function() {
-        currentEnteredPin = "";
-        updatePinDots();
-    }
-
-    function updatePinDots() {
-        for (let i = 0; i < 4; i++) {
-            const dot = document.getElementById(`dot-${i}`);
-            if (i < currentEnteredPin.length) {
-                dot.classList.add('bg-emerald-500');
-                dot.classList.remove('bg-slate-800');
-            } else {
-                dot.classList.remove('bg-emerald-500');
-                dot.classList.add('bg-slate-800');
-            }
-        }
-    }
-
-    function verifyEnteredPin() {
-        const savedPin = localStorage.getItem('app_mpin') || '1234';
-        if (currentEnteredPin === savedPin) {
-            document.getElementById('security-lock-screen').classList.add('hidden');
-            currentEnteredPin = "";
-            updatePinDots();
-        } else {
-            currentEnteredPin = "";
-            updatePinDots();
-        }
-    }
-
-    window.triggerBiometricAuth = async function() {
-        try {
-            if (window.PublicKeyCredential) {
-                const publicKey = {
-                    challenge: new Uint8Array([21, 31, 105, 78, 18, 45, 7, 88]),
-                    timeout: 60000,
-                    userVerification: "required"
-                };
-                const credential = await navigator.credentials.get({ publicKey });
-                if (credential) {
-                    document.getElementById('security-lock-screen').classList.add('hidden');
-                    currentEnteredPin = "";
-                    updatePinDots();
-                }
-            }
-        } catch (error) {}
-    }
-
-    let currentLang = localStorage.getItem('userLang') || localStorage.getItem('lang') || 'en';
-
-    function toggleSidebar() {
-        const sidebar = document.getElementById('sidebar');
-        if (sidebar) sidebar.classList.toggle('-translate-x-full');
-    }
-
-    function updateLanguageUI() {
-        const btn = document.getElementById('lang-toggle-btn');
-        if(btn) btn.innerText = currentLang.toUpperCase();
-
-        document.querySelectorAll('.lang-text').forEach(el => {
-            const text = currentLang === 'np' ? el.getAttribute('data-np') : el.getAttribute('data-en');
-            if(text) el.innerText = text;
-        });
-    }
-
-    function toggleLanguage() {
-        currentLang = currentLang === 'en' ? 'np' : 'en';
-        localStorage.setItem('userLang', currentLang);
-        localStorage.setItem('lang', currentLang);
-        updateLanguageUI();
-        updateDynamicHeader();
-    }
-
-    function updateThemeUI() {
-        const isDark = document.documentElement.classList.contains('dark');
-        const themeBtn = document.getElementById('theme-toggle-btn');
-        if(themeBtn) themeBtn.innerText = isDark ? '🌛' : '🌞';
-    }
-
-    function toggleTheme() {
-        const htmlEl = document.documentElement;
-        if (htmlEl.classList.contains('dark')) {
-            htmlEl.classList.remove('dark');
-            localStorage.setItem('theme', 'light');
-        } else {
-            htmlEl.classList.add('dark');
-            localStorage.setItem('theme', 'dark');
-        }
-        updateThemeUI();
-    }
-
-    function toggleBalancePrivacy() {
-        isPrivacyHidden = !isPrivacyHidden;
-        localStorage.setItem('balance_privacy', isPrivacyHidden ? 'hidden' : 'visible');
-        updatePrivacyIcon();
-        updateSummaryCards();
-    }
-
-    function updatePrivacyIcon() {
-        const icon = document.getElementById('privacy-eye-icon');
-        if (icon) {
-            if (isPrivacyHidden) {
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
-            } else {
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
-            }
-        }
-    }
-
-    function formatAmount(amount) {
-        if (isPrivacyHidden) {
-            return '••••••';
-        }
-        return `Rs ${amount.toLocaleString()}`;
-    }
-
-    function updateDynamicHeader() {
-        const now = new Date();
-        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        const dateString = now.toLocaleDateString(currentLang === 'np' ? 'ne-NP' : 'en-US', options).toUpperCase();
-        
-        const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
-        const timeString = now.toLocaleTimeString('en-US', timeOptions);
-
-        const dateEl = document.getElementById('dynamic-date');
-        if (dateEl) dateEl.innerText = `${dateString} | ${timeString}`;
-
-        const hours = now.getHours();
-        let greetingText = currentLang === 'np' ? 'शुभ प्रभात' : 'Good morning';
-        if (hours >= 12 && hours < 17) {
-            greetingText = currentLang === 'np' ? 'शुभ दिन' : 'Good afternoon';
-        } else if (hours >= 17) {
-            greetingText = currentLang === 'np' ? 'शुभ साँझ' : 'Good evening';
-        }
-
-        const savedName = localStorage.getItem('profile_name') || localStorage.getItem('user_profile_name') || '';
-        const greetingEl = document.getElementById('dynamic-greeting');
-        if (greetingEl) {
-            greetingEl.innerText = savedName ? `${greetingText}, ${savedName}` : greetingText;
-        }
-    }
-
-    setInterval(updateDynamicHeader, 1000);
-
-    function updateSummaryCards() {
-        const incomeKeys = ['digital_notebook_incomes', 'incomes', 'income_data', 'add_income_list'];
-        let incomes = [];
-        for (let key of incomeKeys) {
-            const data = localStorage.getItem(key);
-            if (data) {
-                try {
-                    const parsed = JSON.parse(data);
-                    if (Array.isArray(parsed) && parsed.length > 0) { incomes = parsed; break; }
-                } catch(e) {}
-            }
-        }
-        const totalIncome = incomes.reduce((sum, item) => sum + Number(item.amount || item.incomeAmount || item.val || item.total || item.price || 0), 0);
-        if(document.getElementById('summary-income')) document.getElementById('summary-income').innerText = formatAmount(totalIncome);
-
-        const savingKeys = ['digital_notebook_savings', 'savings', 'saving_data', 'add_saving_list'];
-        let savings = [];
-        for (let key of savingKeys) {
-            const data = localStorage.getItem(key);
-            if (data) {
-                try {
-                    const parsed = JSON.parse(data);
-                    if (Array.isArray(parsed) && parsed.length > 0) { savings = parsed; break; }
-                } catch(e) {}
-            }
-        }
-        const totalSaving = savings.reduce((sum, item) => sum + Number(item.amount || item.savingAmount || item.val || item.total || item.price || 0), 0);
-        if(document.getElementById('summary-saving')) document.getElementById('summary-saving').innerText = formatAmount(totalSaving);
-
-        const txKeys = ['digital_notebook_transactions', 'transactions', 'advanced_notebook_notes', 'notes', 'transaction_list'];
-        let transactions = [];
-        for (let key of txKeys) {
-            const data = localStorage.getItem(key);
-            if (data) {
-                try {
-                    const parsed = JSON.parse(data);
-                    if (Array.isArray(parsed) && parsed.length > 0) { transactions = parsed; break; }
-                } catch(e) {}
-            }
-        }
-
-        let totalExpense = 0, totalReceivable = 0, totalPayable = 0;
-        transactions.forEach(tx => {
-            const amt = Number(tx.amount || tx.txAmount || tx.val || tx.principalAmount || tx.total || tx.price || 0);
-            const tType = String(tx.type || tx.category || tx.transactionType || tx.action || '').toLowerCase();
-            
-            if (tType.includes('expense') || tType.includes('खर्च') || tType.includes('invest')) {
-                totalExpense += amt;
-            } else if (tType.includes('receive') || tType.includes('लिनु') || tType.includes('पाउनुपर्ने')) {
-                totalReceivable += amt;
-            } else if (tType.includes('give') || tType.includes('payable') || tType.includes('दिनुपर्ने') || tType.includes('दिनु') || tType.includes('pay')) {
-                totalPayable += amt;
-            } else {
-                totalReceivable += amt;
-            }
-        });
-
-        const netBalance = (totalIncome + totalReceivable) - (totalExpense + totalPayable);
-
-        if(document.getElementById('summary-expenses')) document.getElementById('summary-expenses').innerText = formatAmount(totalExpense);
-        if(document.getElementById('summary-receivable')) document.getElementById('summary-receivable').innerText = formatAmount(totalReceivable);
-        if(document.getElementById('summary-payable')) document.getElementById('summary-payable').innerText = formatAmount(totalPayable);
-        if(document.getElementById('summary-net-balance')) document.getElementById('summary-net-balance').innerText = formatAmount(netBalance);
-    }
-
-    window.addEventListener('pageshow', (event) => { updateSummaryCards(); });
-    window.addEventListener('focus', () => { updateSummaryCards(); });
-    window.addEventListener('storage', (event) => { updateSummaryCards(); });
-
-    function saveProfileDetails() {
-        const name = document.getElementById('input-full-name').value;
-        const email = document.getElementById('input-email').value;
-        const address = document.getElementById('input-address').value;
-        const mobile = document.getElementById('input-mobile').value;
-
-        if(name) {
-            localStorage.setItem('profile_name', name);
-            localStorage.setItem('user_profile_name', name);
-        }
-        localStorage.setItem('profile_email', email);
-        localStorage.setItem('profile_address', address);
-        localStorage.setItem('profile_mobile', mobile);
-
-        loadUserData();
-        updateDynamicHeader();
-    }
-
-    function loadUserData() {
-        const savedName = localStorage.getItem('profile_name') || localStorage.getItem('user_profile_name') || '';
-        const savedEmail = localStorage.getItem('profile_email') || '';
-        const savedAddress = localStorage.getItem('profile_address') || '';
-        const savedMobile = localStorage.getItem('profile_mobile') || '';
-
-        if(document.getElementById('input-full-name')) document.getElementById('input-full-name').value = savedName;
-        if(document.getElementById('input-email')) document.getElementById('input-email').value = savedEmail;
-        if(document.getElementById('input-address')) document.getElementById('input-address').value = savedAddress;
-        if(document.getElementById('input-mobile')) document.getElementById('input-mobile').value = savedMobile;
-
-        const nameEl = document.getElementById('sidebar-profile-name');
-        if(nameEl) nameEl.innerText = savedName;
-    }
-
-    function handleAvatarUpload(event) {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                localStorage.setItem('profile_avatar', e.target.result);
-                loadAvatar();
-            };
-            reader.readAsDataURL(file);
-        }
-    }
-
-    function loadAvatar() {
-        const savedImage = localStorage.getItem('profile_avatar') || 'N1024.png';
-        ['sidebar-avatar-img', 'header-avatar-img'].forEach(id => {
-            const img = document.getElementById(id);
-            if(img) {
-                img.src = savedImage;
-                img.classList.remove('hidden');
-            }
-        });
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-        updateLanguageUI();
-        updateThemeUI();
-        updatePrivacyIcon();
-        updateDynamicHeader();
-        loadUserData();
-        loadAvatar();
-        updateSummaryCards();
-        checkSecurityLock();
-
-        const text = "DIGITAL NOTEBOOK";
-        const typingElement = document.getElementById("typing-title");
-        const progressBar = document.getElementById("progress-bar");
-        const loadPercent = document.getElementById("load-percent");
-
-        let i = 0;
-        function typeWriter() {
-            if (i < text.length) {
-                typingElement.textContent += text.charAt(i);
-                i++;
-                setTimeout(typeWriter, 70);
-            }
-        }
-
-        let progress = 0;
-        const loadingInterval = setInterval(() => {
-            progress += 1;
-            if (progress >= 100) {
-                progress = 100;
-                clearInterval(loadingInterval);
-                setTimeout(() => {
-                    const splash = document.getElementById('splash-screen');
-                    if (splash) {
-                        splash.style.opacity = '0';
-                        setTimeout(() => splash.remove(), 700);
-                    }
-                }, 200);
-            }
-            progressBar.style.width = progress + '%';
-            loadPercent.textContent = progress + '%';
-        }, 28);
-
-        setTimeout(typeWriter, 200);
-    });
+function num(v){if(typeof v==="string")v=v.replace(/[,\s]/g,"");const n=Number(v);return Number.isFinite(n)?n:0}
+function amount(r){
+ for(const k of ["total","amount","incomeAmount","savingAmount","txAmount","principalAmount","val","price","npr"]){
+  if(r?.[k]!==undefined&&r[k]!==null&&r[k]!=="")return num(r[k]);
+ }
+ return 0;
+}
+function recordDate(r){
+ const d=r?.date||r?.dateExpense||r?.createdAt||r?.timestamp||r?.datedAt||"";
+ if(typeof d==="number")return new Date(d);
+ const x=new Date(d);
+ return Number.isNaN(x.getTime())?null:x;
+}
+function typeOf(r){
+ return String(r?.type||r?.category||r?.transactionType||r?.action||r?.kind||"").toLowerCase();
+}
+function isDeleted(r){return !!(r?.deletedAt||r?.isDeleted||r?.deleted===true)}
+function recordsFrom(path){
+ const v=cloudData[path];
+ if(v&&typeof v==="object"){
+  return Object.entries(v).filter(([,r])=>r&&typeof r==="object"&&!Array.isArray(r))
+   .map(([id,r])=>({...r,id:r.id||id})).filter(r=>!isDeleted(r));
+ }
+ return localList(LOCAL[path]||[]);
+}
+function valueFor(path){
+ if(cloudData[path]!==undefined)return recordsFrom(path);
+ return localList(LOCAL[path]||[]);
+}
+function money(v){
+ if(privacy)return "••••••";
+ return "NPR "+Math.round(v).toLocaleString("en-IN");
+}
+function setText(id,value){const el=$(id);if(el)el.textContent=value}
+function calcDashboard(){
+ const incomes=valueFor("incomes");
+ const tx=valueFor("transactions").concat(valueFor("notes"));
+ const house=valueFor("house");
+ const incomeTotal=incomes.reduce((s,r)=>s+amount(r),0);
+ let receivable=0,payable=0,txExpense=0;
+ tx.forEach(r=>{
+  const t=typeOf(r),a=amount(r);
+  if(t.includes("expense")||t.includes("खर्च")||t.includes("invest"))txExpense+=a;
+  else if(t.includes("payable")||t.includes("give")||t.includes("pay")||t.includes("दिनुपर्ने")||t.includes("दिनु"))payable+=a;
+  else if(t.includes("receivable")||t.includes("receive")||t.includes("लिनुपर्ने")||t.includes("पाउनुपर्ने")||t.includes("लिनु"))receivable+=a;
+ });
+ // Avoid silently treating unknown transaction types as receivables.
+ const now=new Date(),month=now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0");
+ const thisMonthTx=tx.reduce((s,r)=>{
+  const t=typeOf(r),d=recordDate(r);
+  return (t.includes("expense")||t.includes("खर्च")||t.includes("invest"))&&d&&d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth()?s+amount(r):s;
+ },0);
+ const thisMonthHouse=house.reduce((s,r)=>{
+  const d=recordDate(r);
+  return d&&d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth()?s+amount(r):s;
+ },0);
+ const monthlyExpense=thisMonthTx+thisMonthHouse;
+ const net=incomeTotal+receivable-payable-txExpense-house.reduce((s,r)=>s+amount(r),0);
+ setText("summary-net-balance",money(net));
+ setText("summary-receivable",money(receivable));
+ setText("summary-payable",money(payable));
+ setText("summary-expenses",money(monthlyExpense));
+ setText("monthly-insight",`This month: ${money(monthlyExpense)} in combined transaction and house expenses.`);
+ renderRecent([...incomes.map(r=>({...r,_kind:"Income"})),...tx.map(r=>({...r,_kind:"Transaction"})),...house.map(r=>({...r,_kind:"House expense"}))]);
+}
+function renderRecent(list){
+ const root=$("recent-activity");if(!root)return;
+ list.sort((a,b)=>num(b.updatedAt||b.createdAt||b.timestamp)-num(a.updatedAt||a.createdAt||a.timestamp));
+ root.replaceChildren();
+ if(!list.length){root.textContent="No records available to summarize yet.";return}
+ list.slice(0,5).forEach(r=>{
+  const el=document.createElement("div");el.className="flex justify-between gap-3 border-b border-slate-300 dark:border-slate-700 pb-2";
+  const left=document.createElement("div");left.className="min-w-0";
+  const title=document.createElement("b");title.className="block truncate";title.textContent=r.party||r.title||r.sourceName||r.name||r._kind;
+  const sub=document.createElement("span");sub.className="text-xs muted";sub.textContent=r._kind;
+  const right=document.createElement("span");right.className="font-semibold";right.textContent=money(amount(r));
+  left.append(title,sub);el.append(left,right);root.append(el);
+ });
+}
+function applySettings(){
+ const s=safeParse(localStorage.getItem("digital_notebook_settings")||"{}")||{};
+ const theme=s.theme||localStorage.getItem("theme")||"dark";
+ document.documentElement.classList.toggle("dark",theme==="dark");
+ if(s.accentColor)document.documentElement.style.setProperty("--accent",s.accentColor);
+ if(s.font_size)document.documentElement.style.fontSize=({small:"14px",medium:"16px",large:"18px"}[s.font_size]||s.font_size);
+ if(s.font_family)document.body.style.fontFamily=s.font_family;
+ document.body.dataset.layout=s.layout||"comfortable";
+}
+function applyProfile(){
+ const name=localStorage.getItem("profile_name")||localStorage.getItem("user_profile_name")||"";
+ $("profile-name").value=name;
+ $("profile-address").value=localStorage.getItem("profile_address")||"";
+ $("profile-mobile").value=localStorage.getItem("profile_mobile")||"";
+ $("sidebar-name").textContent=name||"My Account";
+ $("sidebar-email").textContent=auth.currentUser?.email||"";
+ const avatar=localStorage.getItem("profile_avatar")||"N1024.png";
+ $("sidebar-avatar").src=avatar;$("header-avatar").src=avatar;
+ $("greeting").textContent=(name?"Welcome, "+name:"Welcome");
+}
+function headerDate(){
+ const now=new Date();
+ setText("today",now.toLocaleDateString("en-GB",{weekday:"long",year:"numeric",month:"long",day:"numeric"}));
+}
+function setError(message){$("auth-error").textContent=message||""}
+function showLogin(show){$("login-overlay").classList.toggle("hidden",!show)}
+function stopListeners(){unsubs.forEach(fn=>{try{fn()}catch{}});unsubs=[]}
+function listenBranch(path){
+ const r=ref(db,`users/${uid}/${path}`);
+ const cb=onValue(r,s=>{
+  if(!auth.currentUser||auth.currentUser.uid!==uid)return;
+  cloudData[path]=s.val();
+  if(LOCAL[path]&&s.exists()){
+   const val=s.val();
+   const arr=Array.isArray(val)?val:Object.entries(val||{}).map(([id,x])=>({...x,id:x?.id||id}));
+   // Local copies are for compatibility with existing pages; RTDB remains source of truth.
+   try{localStorage.setItem(LOCAL[path][0],JSON.stringify(arr))}catch(e){console.warn(e)}
+  }
+  calcDashboard();
+ },e=>console.error("Realtime listener failed:",path,e));
+ unsubs.push(()=>off(r,"value",cb));
+}
+function listenReminder(){
+ const r=ref(db,`users/${uid}/dashboardReminder`);
+ const cb=onValue(r,s=>{
+  const v=s.val();
+  if(v&&typeof v.text==="string"&&document.activeElement!==$("reminder-text"))$("reminder-text").value=v.text;
+  if(v)setText("reminder-status",v.updatedAt?"Synced · "+new Date(v.updatedAt).toLocaleString():"Synced");
+ });
+ unsubs.push(()=>off(r,"value",cb));
+}
+onAuthStateChanged(auth,user=>{
+ stopListeners();uid=user?.uid||null;
+ if(!user){showLogin(true);$("app").classList.add("hidden");return}
+ showLogin(false);$("app").classList.remove("hidden");
+ applySettings();applyProfile();headerDate();
+ ["incomes","transactions","notes","house","savings"].forEach(listenBranch);
+ listenReminder();
+});
+$("login-form").addEventListener("submit",async e=>{
+ e.preventDefault();setError("");
+ const email=$("auth-email").value.trim(),password=$("auth-password").value;
+ $("auth-submit").disabled=true;
+ try{
+  if(mode==="signup"){
+   if(password!==$("auth-confirm").value)throw Error("Passwords do not match.");
+   if(password.length<6)throw Error("Password must contain at least 6 characters.");
+   await createUserWithEmailAndPassword(auth,email,password);
+  }else await signInWithEmailAndPassword(auth,email,password);
+ }catch(e){
+  const messages={"auth/invalid-email":"Invalid email address.","auth/invalid-credential":"Email or password is incorrect.","auth/email-already-in-use":"This email is already registered.","auth/weak-password":"Choose a stronger password.","auth/network-request-failed":"Check your internet connection.","auth/too-many-requests":"Too many attempts. Try again later."};
+  setError(messages[e.code]||e.message||"Authentication failed.");
+ }finally{$("auth-submit").disabled=false}
+});
+$("auth-switch").addEventListener("click",()=>{
+ mode=mode==="login"?"signup":"login";
+ $("auth-subtitle").textContent=mode==="login"?"Login to your account":"Create your account";
+ $("auth-submit").textContent=mode==="login"?"Login":"Sign up";
+ $("auth-confirm").classList.toggle("hidden",mode!=="signup");
+ $("auth-confirm").required=mode==="signup";
+ $("auth-password").autocomplete=mode==="login"?"current-password":"new-password";
+ $("auth-switch").textContent=mode==="login"?"Create a new account":"Already have an account? Login";
+ $("auth-forgot").classList.toggle("hidden",mode!=="login");
+ setError("");
+});
+$("auth-forgot").addEventListener("click",async()=>{
+ const email=$("auth-email").value.trim();if(!email){setError("Enter your email address first.");return}
+ try{await sendPasswordResetEmail(auth,email);setError("Password reset email sent. Check your inbox and spam folder.")}
+ catch(e){setError("Could not send reset email: "+(e.code||"unknown error"))}
+});
+window.logout=async()=>{try{await signOut(auth)}catch(e){console.error(e)}};
+window.toggleSidebar=()=>{
+ const open=$("sidebar").classList.contains("-translate-x-full");
+ $("sidebar").classList.toggle("-translate-x-full",!open);
+ $("sidebar-backdrop").classList.toggle("hidden",!open);
+};
+window.togglePrivacy=()=>{
+ privacy=!privacy;localStorage.setItem("balance_privacy",privacy?"hidden":"visible");
+ $("privacy-icon").className=privacy?"fa-solid fa-eye-slash":"fa-solid fa-eye";calcDashboard();
+};
+$("save-profile").addEventListener("click",async()=>{
+ const name=$("profile-name").value.trim();
+ localStorage.setItem("profile_name",name);localStorage.setItem("user_profile_name",name);
+ localStorage.setItem("profile_address",$("profile-address").value.trim());
+ localStorage.setItem("profile_mobile",$("profile-mobile").value.trim());
+ applyProfile();
+ if(uid){
+  try{await update(ref(db,`users/${uid}/profile`),{
+   name,address:$("profile-address").value.trim(),mobile:$("profile-mobile").value.trim(),email:auth.currentUser?.email||""
+  })}catch(e){console.error(e);alert("Profile saved on this device, but cloud sync failed.")}
+ }
+});
+$("avatar-file").addEventListener("change",e=>{
+ const f=e.target.files?.[0];if(!f)return;
+ if(f.size>2*1024*1024){alert("Please choose an image smaller than 2 MB.");e.target.value="";return}
+ const reader=new FileReader();
+ reader.onload=()=>{localStorage.setItem("profile_avatar",reader.result);applyProfile()};
+ reader.readAsDataURL(f);
+});
+$("save-reminder").addEventListener("click",async()=>{
+ if(!uid)return;
+ const text=$("reminder-text").value.trim();
+ try{
+  await update(ref(db,`users/${uid}/dashboardReminder`),{text,updatedAt:Date.now()});
+  setText("reminder-status","Reminder saved and synced.");
+ }catch(e){console.error(e);setText("Could not sync reminder. Check connection and Firebase Rules.")}
+});
+$("clear-reminder").addEventListener("click",async()=>{
+ if(!uid)return;
+ if(!confirm("Clear the shared dashboard reminder?"))return;
+ try{
+  await update(ref(db,`users/${uid}/dashboardReminder`),{text:"",updatedAt:Date.now()});
+  $("reminder-text").value="";setText("reminder-status","Reminder cleared.");
+ }catch(e){setText("Could not clear reminder. Check connection and Firebase Rules.")}
+});
+async function backupData(){
+ if(!uid)return alert("Please log in first.");
+ if(!confirm("Back up this device's lists to the cloud? Existing matching cloud lists may be replaced."))return;
+ try{
+  const updates={};
+  for(const [path,keys] of Object.entries(LOCAL)){
+   if(path==="house")continue;
+   const data=localList(keys);
+   if(data.length)updates[path]=Object.fromEntries(data.map((r,i)=>[String(r.id||("legacy-"+i)),r]));
+  }
+  updates["preferences/theme"]=localStorage.getItem("theme")||"dark";
+  updates["preferences/language"]=localStorage.getItem("userLang")||localStorage.getItem("lang")||"en";
+  await update(ref(db,`users/${uid}`),updates);
+  alert("Backup completed.");
+ }catch(e){console.error(e);alert("Backup failed. Check internet and Firebase Rules.")}
+}
+async function restoreData(){
+ if(!uid)return alert("Please log in first.");
+ if(!confirm("Restore cloud lists to this device? Local copies of these lists will be replaced."))return;
+ try{
+  const snap=await get(ref(db,`users/${uid}`));if(!snap.exists())return alert("No cloud backup found.");
+  const data=snap.val()||{};
+  for(const path of ["incomes","transactions","notes","savings","house"]){
+   if(data[path]===undefined)continue;
+   const v=data[path],arr=Array.isArray(v)?v:Object.entries(v||{}).map(([id,r])=>({...r,id:r?.id||id}));
+   const key=(LOCAL[path]||[])[0];if(key)localStorage.setItem(key,JSON.stringify(arr));
+  }
+  if(data.preferences?.theme)localStorage.setItem("theme",data.preferences.theme);
+  if(data.preferences?.language){localStorage.setItem("lang",data.preferences.language);localStorage.setItem("userLang",data.preferences.language)}
+  applySettings();calcDashboard();alert("Restore completed.");
+ }catch(e){console.error(e);alert("Restore failed. Check internet and Firebase Rules.")}
+}
+window.backupData=backupData;window.restoreData=restoreData;
+window.addEventListener("storage",e=>{
+ if(e.key==="digital_notebook_settings"||e.key==="theme")applySettings();
+ if(Object.values(LOCAL).flat().includes(e.key))calcDashboard();
+});
+window.addEventListener("focus",()=>{applySettings();calcDashboard();applyProfile()});
+window.addEventListener("pageshow",calcDashboard);
+applySettings();applyProfile();headerDate();calcDashboard();
 </script>
-
 <script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js').catch(() => {});
-        });
-    }
+if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
 </script>
 </body>
 </html>
