@@ -1,34 +1,23 @@
 
 <!DOCTYPE html>
-<html lang="ne" class="dark">
+<html lang="en" class="dark">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#101827">
 <title>Digital NoteBook · Savings</title>
 
-<!-- Apply saved Display & Preferences before rendering -->
 <script>
-(function () {
-  const KEY = "digital_notebook_settings";
-  const defaults = {
-    lang: "en", theme: "dark", font_size: "16",
-    font_family: "Poppins", accentColor: "#10b981",
-    layout: "comfortable"
-  };
-  let s = {};
-  try { s = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; }
-  catch (_) {}
-  s = { ...defaults, ...s };
-  if (!localStorage.getItem(KEY) && localStorage.getItem("theme")) {
-    s.theme = localStorage.getItem("theme");
-  }
-  document.documentElement.lang = s.lang === "ne" ? "ne" : "en";
-  document.documentElement.classList.toggle("light", s.theme === "light");
-  document.documentElement.style.setProperty("--accent", s.accentColor);
-  document.documentElement.style.setProperty("--font-size", (Number(s.font_size) || 16) + "px");
-  document.documentElement.style.setProperty("--font-family", '"' + String(s.font_family || "Poppins").replace(/["\\]/g, "") + '", Arial, sans-serif');
-  document.documentElement.dataset.layout = s.layout || "comfortable";
+(function(){
+  let s={};
+  try{s=JSON.parse(localStorage.getItem("digital_notebook_settings")||"{}")||{};}catch(e){}
+  const root=document.documentElement;
+  root.lang=s.lang==="ne"?"ne":"en";
+  root.classList.toggle("light",s.theme==="light");
+  root.style.setProperty("--accent",/^#[0-9a-f]{6}$/i.test(s.accentColor||"")?s.accentColor:"#10b981");
+  root.style.setProperty("--font-size",(Number(s.font_size)||16)+"px");
+  root.style.setProperty("--font-family",'"'+String(s.font_family||"Poppins").replace(/["\\]/g,"")+'",Arial,sans-serif');
+  root.dataset.layout=s.layout||"comfortable";
 })();
 </script>
 
@@ -36,952 +25,519 @@
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
-:root {
-  --bg:#0b1220; --panel:#151f31; --field:#1c2940;
-  --text:#edf3ff; --muted:#9cacc5; --line:#2b3a54;
-  --accent:#10b981; --danger:#fb7185;
-  --font-size:16px; --font-family:Poppins,Arial,sans-serif;
-}
-html.light {
-  --bg:#f3f6fb; --panel:#fff; --field:#edf2f9;
-  --text:#152033; --muted:#586780; --line:#d7e0ed;
-  --danger:#be123c;
-}
-* { box-sizing:border-box; }
-body {
-  margin:0; background:var(--bg); color:var(--text);
-  font:var(--font-size)/1.55 var(--font-family);
-}
-button,input,select,textarea { font:inherit; }
-header {
-  position:sticky; top:0; z-index:5;
-  display:flex; align-items:center; gap:12px;
-  padding:12px 15px; background:var(--panel);
-  border-bottom:1px solid var(--line);
-}
-header a { color:var(--text); text-decoration:none; font-size:24px; }
-header strong { flex:1; }
-main { width:min(1050px,100%); margin:auto; padding:15px; display:grid; gap:14px; }
-.card { background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:17px; }
-h1 { font-size:1.45em; margin:0 0 8px; }
-h2 { font-size:1.2em; margin:0 0 12px; }
-p { margin:8px 0; }
-.muted,.status { color:var(--muted); }
-.status { font-size:.78em; }
-.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:11px; }
-label { display:block; color:var(--muted); font-size:.88em; }
-input,select,textarea {
-  width:100%; min-width:0; margin-top:4px; padding:11px;
-  color:var(--text); background:var(--field);
-  border:1px solid var(--line); border-radius:10px;
-}
-input:focus,select:focus,textarea:focus,button:focus-visible {
-  outline:2px solid var(--accent); outline-offset:2px;
-}
-button {
-  width:auto; padding:10px 13px; border:1px solid var(--line);
-  border-radius:10px; color:var(--text); background:var(--field);
-  cursor:pointer; font-weight:650;
-}
-button:disabled { opacity:.55; cursor:not-allowed; }
-.primary { background:var(--accent); color:#05291e; border-color:var(--accent); }
-.danger { color:var(--danger); }
-.row,.actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
-.row { margin-top:14px; }
-.record {
-  border:1px solid var(--line); background:var(--field);
-  border-radius:12px; padding:13px; margin-top:9px;
-}
-.record-title { font-weight:700; overflow-wrap:anywhere; }
-.record-detail { margin-top:7px; color:var(--muted); font-size:.9em; }
-.stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:9px; }
-.stat { padding:12px; border-radius:12px; background:var(--field); }
-.stat small { display:block; color:var(--muted); }
-.stat strong { display:block; overflow-wrap:anywhere; }
-.progress { height:9px; background:var(--line); border-radius:20px; overflow:hidden; margin-top:8px; }
-.progress span { display:block; height:100%; background:var(--accent); width:0; }
-.group-head {
-  display:flex; justify-content:space-between; align-items:center;
-  gap:10px; flex-wrap:wrap; width:100%; text-align:left;
-}
-.group-total { color:var(--accent); }
-.hidden { display:none!important; }
-body.auth-pending main { visibility:hidden; }
-.toast-area {
-  position:fixed; z-index:30; bottom:12px; left:50%;
-  transform:translateX(-50%); width:min(92%,480px);
-  display:grid; gap:7px;
-}
-.toast { background:#166534; color:white; padding:11px 14px; border-radius:10px; box-shadow:0 4px 18px #0003; }
-.toast.error { background:#9f1239; }
-body[data-layout="compact"] main { padding:8px; gap:8px; }
-body[data-layout="compact"] .card { padding:11px; border-radius:12px; }
-body[data-layout="compact"] .record { padding:9px; }
-#pdfStage {
-  position:fixed; left:-20000px; top:0; width:780px;
-  background:white; color:#111; padding:22px;
-  font:12px Arial,sans-serif;
-}
-#pdfStage h1,#pdfStage h2,#pdfStage p { color:#111; }
-#pdfStage table { border-collapse:collapse; width:100%; margin-top:12px; }
-#pdfStage th,#pdfStage td { border:1px solid #777; padding:6px; text-align:left; }
-#pdfStage th { background:#e9eef5; }
-#pdfStage .pdf-banner { border:2px solid #333; padding:12px; margin-bottom:15px; }
-#pdfStage .pdf-muted { color:#444; }
-@media(max-width:560px) {
-  main { padding:9px; }
-  .card { padding:12px; }
-  header { padding:10px; }
-  .row button,.actions button { flex:1 1 auto; }
-}
+:root{--bg:#0b1220;--panel:#151f31;--field:#1c2940;--text:#edf3ff;--muted:#9cacc5;--line:#2b3a54;--accent:#10b981;--danger:#fb7185;--font-size:16px;--font-family:Poppins,Arial,sans-serif}
+html.light{--bg:#f3f6fb;--panel:#fff;--field:#edf2f9;--text:#152033;--muted:#586780;--line:#d7e0ed;--danger:#be123c}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:var(--font-size)/1.55 var(--font-family)}
+button,input,select,textarea{font:inherit}
+header{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;padding:12px 15px;background:var(--panel);border-bottom:1px solid var(--line)}
+header a{color:var(--text);text-decoration:none;font-size:25px}
+header strong{font-size:1rem}
+main{width:min(1050px,100%);margin:auto;padding:14px;display:grid;gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:16px}
+h1{font-size:1.4rem;margin:0 0 8px}h2{font-size:1.15rem;margin:0 0 12px}
+p{margin:8px 0}.muted,.status{color:var(--muted)}
+.status{margin-left:auto;font-size:.75rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:10px}
+label{display:block;color:var(--muted);font-size:.88rem}
+input,select,textarea{width:100%;margin-top:4px;padding:10px;color:var(--text);background:var(--field);border:1px solid var(--line);border-radius:9px}
+button{padding:9px 12px;border:1px solid var(--line);border-radius:9px;color:var(--text);background:var(--field);cursor:pointer;font-weight:600}
+button:disabled{opacity:.5;cursor:not-allowed}
+.primary{background:var(--accent);color:#05291e;border-color:var(--accent)}
+.danger{color:var(--danger)}
+.row,.actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px}
+.record{border:1px solid var(--line);background:var(--field);border-radius:11px;padding:12px;margin-top:9px}
+.record-title{font-weight:700;overflow-wrap:anywhere}
+.record-detail{font-size:.88rem;color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere}
+.group-head{display:flex;width:100%;justify-content:space-between;align-items:center;gap:8px;text-align:left}
+.group-total{color:var(--accent)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:9px;margin-top:12px}
+.stat{padding:11px;border-radius:10px;background:var(--field)}
+.stat small{display:block;color:var(--muted)}.stat strong{overflow-wrap:anywhere}
+.progress{height:8px;background:var(--line);border-radius:20px;overflow:hidden;margin-top:6px}
+.progress span{display:block;height:100%;background:var(--accent);width:0}
+#pageStatus{padding:9px 11px;border-radius:8px;background:var(--field);white-space:pre-wrap;overflow-wrap:anywhere}
+#pageStatus:empty{display:none}
+body.auth-pending main{visibility:hidden}
+body[data-layout="compact"] main{padding:8px;gap:8px}
+body[data-layout="compact"] .card{padding:10px}
+#pdfStage{position:fixed;left:-20000px;top:0;width:1000px;background:white;color:#111;padding:22px;font:12px Arial,sans-serif}
+#pdfStage h1,#pdfStage h2,#pdfStage p{color:#111}
+#pdfStage table{border-collapse:collapse;width:100%;margin-top:10px}
+#pdfStage th,#pdfStage td{border:1px solid #777;padding:6px;text-align:left;overflow-wrap:anywhere}
+#pdfStage th{background:#e9eef5}
+#pdfStage .banner{border:2px solid #333;padding:12px;margin-bottom:14px}
+@media(max-width:560px){main{padding:8px}.card{padding:11px}.status{max-width:100px}.row button,.actions button{flex:1 1 auto}}
 </style>
 </head>
 
 <body class="auth-pending">
 <header>
-  <a href="index.html" aria-label="Back">←</a>
-  <strong>📘 Digital NoteBook · <span data-i18n="appTitle">Savings</span></strong>
-  <span class="status" id="syncStatus" role="status">Checking sign-in…</span>
-  <button type="button" id="langToggle">नेपाली</button>
+  <a href="index.html" id="backButton" aria-label="Back">←</a>
+  <strong>📘 Digital NoteBook · Savings</strong>
+  <span class="status" id="syncStatus">Checking sign-in…</span>
 </header>
 
 <main>
+  <div id="pageStatus" role="status" aria-live="polite"></div>
+
   <section class="card">
-    <h1 data-i18n="pageTitle">Savings / बचत</h1>
-    <p class="muted" data-i18n="intro">Save records, group records by name, and track your savings goal.</p>
+    <h1>बचत / Savings</h1>
+    <p class="muted">बचतको रेकर्ड राख्नुहोस्। एउटै नामका रेकर्ड खोल्न नाममा थिच्नुहोस्।</p>
     <p class="muted" id="exchangeHint">1 INR = 1.6 NPR</p>
   </section>
 
   <section class="card">
-    <h2 id="formHeading" data-i18n="formTitle">Add savings record</h2>
+    <h2 id="formHeading">बचत रेकर्ड थप्नुहोस्</h2>
     <form id="savingForm">
       <input id="recordId" type="hidden">
       <div class="grid">
-        <label><span data-i18n="savingName">Saving name</span>
+        <label>बचतको नाम
           <input id="title" maxlength="120" required>
         </label>
-        <label><span data-i18n="category">Category</span>
+        <label>श्रेणी
           <select id="category">
-            <option value="General" data-i18n="general">General</option>
-            <option value="Bank" data-i18n="bank">Bank</option>
-            <option value="Cash" data-i18n="cash">Cash</option>
-            <option value="Education" data-i18n="education">Education</option>
-            <option value="Home" data-i18n="home">Home</option>
-            <option value="Other" data-i18n="other">Other</option>
+            <option value="General">सामान्य</option>
+            <option value="Bank">बैंक</option>
+            <option value="Cash">नगद</option>
+            <option value="Education">शिक्षा</option>
+            <option value="Home">घर</option>
+            <option value="Other">अन्य</option>
           </select>
         </label>
-        <label><span data-i18n="date">Date</span>
+        <label>मिति
           <input id="date" type="date" required>
         </label>
-        <label><span data-i18n="amountNPR">Amount NPR</span>
-          <input id="npr" type="number" min="0" step=".01" value="0" required>
+        <label>रकम NPR
+          <input id="npr" type="number" min="0" step="0.01" value="0" required>
         </label>
-        <label><span data-i18n="amountINR">Amount INR</span>
-          <input id="inr" type="number" min="0" step=".01" value="0" required>
+        <label>रकम INR
+          <input id="inr" type="number" min="0" step="0.01" value="0" required>
         </label>
-        <label><span data-i18n="exchangeRate">INR rate (NPR per INR)</span>
-          <input id="rate" type="number" min=".01" step=".01" value="1.6" required>
+        <label>INR दर (१ INR बराबर NPR)
+          <input id="rate" type="number" min="0.01" step="0.01" value="1.6" required>
         </label>
-        <label><span data-i18n="totalNPR">Total NPR</span>
+        <label>कुल NPR
           <input id="total" readonly>
         </label>
-        <label><span data-i18n="remarks">Remarks / Details</span>
+        <label>कैफियत / विवरण
           <input id="note" maxlength="1000">
         </label>
       </div>
       <div class="row">
-        <button class="primary" id="saveButton" type="submit" data-i18n="save">Save saving</button>
-        <button type="button" id="cancelButton" data-i18n="cancel">Cancel</button>
-        <button type="button" id="importButton" data-i18n="import">Import old data</button>
-        <button type="button" id="pdfButton" data-i18n="pdf">PDF Group Ledger</button>
+        <button class="primary" id="saveButton" type="submit">बचत सेभ</button>
+        <button id="cancelButton" type="button">रद्द</button>
+        <button id="importButton" type="button">पुरानो डाटा Import</button>
+        <button id="pdfButton" type="button">PDF बनाउनुहोस्</button>
       </div>
     </form>
   </section>
 
   <section class="card">
-    <h2 data-i18n="overview">Savings overview</h2>
+    <h2>बचतको सारांश</h2>
     <div class="grid">
-      <label><span data-i18n="goal">Savings goal NPR</span>
-        <input id="goal" type="number" min="0" step=".01">
+      <label>बचत लक्ष्य NPR
+        <input id="goal" type="number" min="0" step="0.01">
       </label>
-      <label><span data-i18n="search">Search by name, category or details</span>
-        <input id="search" type="search">
+      <label>खोज्नुहोस्
+        <input id="search" type="search" placeholder="नाम, श्रेणी वा विवरण">
       </label>
     </div>
-    <div class="stats" style="margin-top:12px">
-      <div class="stat"><small data-i18n="totalSaved">Total savings</small><strong id="totalSaved">NPR 0.00</strong></div>
-      <div class="stat"><small data-i18n="groupCount">Name groups</small><strong id="groupCount">0</strong></div>
-      <div class="stat"><small data-i18n="recordCount">Records</small><strong id="recordCount">0</strong></div>
-      <div class="stat"><small data-i18n="goalProgress">Goal progress</small><strong id="goalProgress">—</strong><div class="progress"><span id="goalBar"></span></div></div>
+    <div class="stats">
+      <div class="stat"><small>कुल बचत</small><strong id="totalSaved">NPR 0.00</strong></div>
+      <div class="stat"><small>नामका समूह</small><strong id="groupCount">0</strong></div>
+      <div class="stat"><small>रेकर्ड संख्या</small><strong id="recordCount">0</strong></div>
+      <div class="stat"><small>लक्ष्य प्रगति</small><strong id="goalProgress">—</strong><div class="progress"><span id="goalBar"></span></div></div>
     </div>
-    <div id="groupList" style="margin-top:14px"></div>
+    <div id="groupList"></div>
   </section>
 
   <section class="card">
-    <h2 data-i18n="trashTitle">Recently deleted</h2>
-    <p class="muted" data-i18n="trashHint">Deleted records are moved to the shared account Trash. Restore is available for up to 30 days.</p>
+    <h2>यस पेजमा हालै हटाइएका बचत</h2>
+    <p class="muted">यहाँबाट Restore गर्न सकिन्छ। सबै पेजको साझा Trash हेर्न Account खोल्नुहोस्।</p>
     <div id="trashList"></div>
+    <div class="row"><button type="button" id="accountButton">Account · Central Trash</button></div>
   </section>
 </main>
 
 <div id="pdfStage" aria-hidden="true"></div>
-<div id="toastArea" class="toast-area" aria-live="polite"></div>
 
 <script>
 "use strict";
 
-const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyDDY_v7RHnkCTI6uyV4DNDjqoaIBGweg8c",
-  authDomain: "digital-a2552.firebaseapp.com",
-  databaseURL: "https://digital-a2552-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "digital-a2552",
-  storageBucket: "digital-a2552.firebasestorage.app",
-  messagingSenderId: "218135618179",
-  appId: "1:218135618179:web:821b76920d3e5669ac31b6"
+const FIREBASE_CONFIG={
+  apiKey:"AIzaSyDDY_v7RHnkCTI6uyV4DNDjqoaIBGweg8c",
+  authDomain:"digital-a2552.firebaseapp.com",
+  databaseURL:"https://digital-a2552-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:"digital-a2552",
+  storageBucket:"digital-a2552.firebasestorage.app",
+  messagingSenderId:"218135618179",
+  appId:"1:218135618179:web:821b76920d3e5669ac31b6"
 };
 
-const SETTINGS_KEY = "digital_notebook_settings";
-const PATH = "savings";
-const DAY = 86400000;
-const DEFAULT_SETTINGS = {
-  lang:"en", theme:"dark", font_size:"16",
-  font_family:"Poppins", accentColor:"#10b981", layout:"comfortable"
+const PATH="savings";
+const DAY=86400000;
+const SETTINGS_KEY="digital_notebook_settings";
+const $=id=>document.getElementById(id);
+const state={
+  uid:null,user:null,records:{},trash:{},expanded:{},
+  settings:readSettings(),dataRef:null,trashRef:null,
+  dataCallback:null,trashCallback:null
 };
 
-const I18N = {
-  en: {
-    appTitle:"Savings", pageTitle:"Savings / बचत",
-    intro:"Save records, group records by name, and track your savings goal.",
-    formTitle:"Add savings record", editTitle:"Edit savings record",
-    savingName:"Saving name", category:"Category", general:"General",
-    bank:"Bank", cash:"Cash", education:"Education", home:"Home", other:"Other",
-    date:"Date", amountNPR:"Amount NPR", amountINR:"Amount INR",
-    exchangeRate:"INR rate (NPR per INR)", totalNPR:"Total NPR",
-    remarks:"Remarks / Details", save:"Save saving", update:"Update saving",
-    cancel:"Cancel", import:"Import old data", pdf:"PDF Group Ledger",
-    overview:"Savings overview", goal:"Savings goal NPR",
-    search:"Search by name, category or details", totalSaved:"Total savings",
-    groupCount:"Name groups", recordCount:"Records", goalProgress:"Goal progress",
-    group:"Group", records:"records", details:"Details",
-    hideDetails:"Hide details", edit:"Edit", trash:"Move to Trash",
-    empty:"No savings records found.", noTrash:"No deleted savings found.",
-    trashTitle:"Recently deleted",
-    trashHint:"Deleted records are moved to the shared account Trash. Restore is available for up to 30 days.",
-    restore:"Restore", expired:"Expired", expires:"Expires",
-    noLogin:"Please sign in through index.html first.",
-    saved:"Saving record saved.", updated:"Saving record updated.",
-    saveFailed:"Could not save record: ", moved:"Record moved to shared Trash.",
-    moveFailed:"Could not move record to Trash: ",
-    restoreSuccess:"Record restored.", restoreFailed:"Could not restore record: ",
-    restoreConflict:"A record with the same ID already exists. Nothing was overwritten.",
-    restoreExpired:"This record is past its 30-day restore period.",
-    confirmTrash:"Move this record to the shared Trash?",
-    importConfirm:"Import local savings into cloud? Existing cloud records will not be overwritten. Local data will not be deleted.",
-    alreadyImported:"Local migration has already been recorded.",
-    cloudNotEmpty:"Cloud savings already exist. Import stopped to prevent accidental overwrite.",
-    noLocal:"No local savings records were found.",
-    importDone:"Import finished. Imported records: ",
-    importFailed:"Import failed: ",
-    sync:"Cloud sync", offline:"Offline", connected:"Connected",
-    syncError:"Cloud sync error: ", localGoal:"Goal saved on this device.",
-    pdfLoading:"Preparing PDF…", pdfError:"Could not create PDF: ",
-    pdfLibrary:"PDF library did not load. Check your connection.",
-    pdfTitle:"SAVINGS GROUP LEDGER", userDetails:"USER DETAILS",
-    name:"Name", address:"Address", mobile:"Mobile", email:"Email",
-    generated:"Generated", total:"Total", dateLabel:"Date",
-    titleLabel:"Saving name", categoryLabel:"Category",
-    nprLabel:"NPR", inrLabel:"INR", rateLabel:"Rate",
-    totalLabel:"Total NPR", remarksLabel:"Remarks",
-    summary:"SUMMARY", goalLabel:"Savings goal", progress:"Goal progress",
-    noName:"Unnamed", localStorageError:"Could not save preferences on this device.",
-    languageButton:"नेपाली", saving:"Saving…",
-    invalidAmount:"Enter valid non-negative amounts and a positive exchange rate.",
-    recordChanged:"This record changed or was deleted elsewhere. Refresh and try again.",
-    profileFallback:"Profile details not filled in",
-    migrationOffline:"Import requires an internet connection.",
-    loginWaiting:"Checking sign-in…"
-  },
-  ne: {
-    appTitle:"बचत", pageTitle:"बचत रेकर्ड",
-    intro:"बचत रेकर्ड राख्नुहोस्, एउटै नामका रेकर्ड समूहमा हेर्नुहोस् र बचत लक्ष्य जाँच्नुहोस्।",
-    formTitle:"बचत रेकर्ड थप्नुहोस्", editTitle:"बचत रेकर्ड सम्पादन",
-    savingName:"बचतको नाम", category:"श्रेणी", general:"सामान्य",
-    bank:"बैंक", cash:"नगद", education:"शिक्षा", home:"घर", other:"अन्य",
-    date:"मिति", amountNPR:"रकम NPR", amountINR:"रकम INR",
-    exchangeRate:"INR दर (१ INR बराबर NPR)", totalNPR:"कुल NPR",
-    remarks:"कैफियत / विवरण", save:"बचत सेभ", update:"बचत अपडेट",
-    cancel:"रद्द", import:"पुरानो डाटा Import", pdf:"PDF समूहगत हिसाब",
-    overview:"बचतको सारांश", goal:"बचत लक्ष्य NPR",
-    search:"नाम, श्रेणी वा विवरण खोज्नुहोस्", totalSaved:"कुल बचत",
-    groupCount:"नामका समूह", recordCount:"रेकर्ड संख्या", goalProgress:"लक्ष्य प्रगति",
-    group:"समूह", records:"रेकर्ड", details:"विवरण",
-    hideDetails:"विवरण लुकाउनुहोस्", edit:"सम्पादन", trash:"Trash मा सार्नुहोस्",
-    empty:"बचत रेकर्ड भेटिएन।", noTrash:"हटाइएका बचत रेकर्ड छैनन्।",
-    trashTitle:"हालै हटाइएका रेकर्ड",
-    trashHint:"हटाइएका रेकर्ड साझा Account Trash मा जान्छन्। ३० दिनसम्म Restore गर्न सकिन्छ।",
-    restore:"Restore", expired:"म्याद सकियो", expires:"म्याद",
-    noLogin:"पहिले index.html बाट लगइन गर्नुहोस्।",
-    saved:"बचत रेकर्ड सेभ भयो।", updated:"बचत रेकर्ड अपडेट भयो।",
-    saveFailed:"रेकर्ड सेभ भएन: ", moved:"रेकर्ड साझा Trash मा सारियो।",
-    moveFailed:"Trash मा सार्न सकिएन: ",
-    restoreSuccess:"रेकर्ड Restore भयो।", restoreFailed:"Restore गर्न सकिएन: ",
-    restoreConflict:"यही ID को रेकर्ड पहिल्यै छ। पुरानो रेकर्ड overwrite गरिएको छैन।",
-    restoreExpired:"यस रेकर्डको ३० दिनको Restore म्याद सकिएको छ।",
-    confirmTrash:"यो रेकर्ड साझा Trash मा सार्ने?",
-    importConfirm:"स्थानीय बचत Cloud मा Import गर्ने? Cloud मा भएका रेकर्ड overwrite हुँदैनन्। स्थानीय डाटा मेटाइँदैन।",
-    alreadyImported:"स्थानीय डाटा Import पहिले नै गरिएको छ।",
-    cloudNotEmpty:"Cloud मा बचत डाटा छ। डाटा सुरक्षित राख्न Import रोकियो।",
-    noLocal:"स्थानीय पुरानो बचत डाटा भेटिएन।",
-    importDone:"Import पूरा भयो। Import गरिएका रेकर्ड: ",
-    importFailed:"Import असफल: ",
-    sync:"Cloud Sync", offline:"अफलाइन", connected:"जडान भयो",
-    syncError:"Cloud Sync त्रुटि: ", localGoal:"लक्ष्य यस उपकरणमा सेभ भयो।",
-    pdfLoading:"PDF तयार हुँदैछ…", pdfError:"PDF बनाउन सकिएन: ",
-    pdfLibrary:"PDF library लोड भएन। इन्टरनेट जाँच्नुहोस्।",
-    pdfTitle:"बचतको समूहगत हिसाब", userDetails:"प्रयोगकर्ताको विवरण",
-    name:"नाम", address:"ठेगाना", mobile:"मोबाइल", email:"इमेल",
-    generated:"बनाइएको मिति", total:"जम्मा", dateLabel:"मिति",
-    titleLabel:"बचतको नाम", categoryLabel:"श्रेणी",
-    nprLabel:"NPR", inrLabel:"INR", rateLabel:"दर",
-    totalLabel:"कुल NPR", remarksLabel:"कैफियत",
-    summary:"सारांश", goalLabel:"बचत लक्ष्य", progress:"लक्ष्य प्रगति",
-    noName:"नाम नभएको", localStorageError:"यस उपकरणमा प्राथमिकता सेभ गर्न सकिएन।",
-    languageButton:"English", saving:"सेभ हुँदैछ…",
-    invalidAmount:"शून्यभन्दा कम नभएको रकम र शून्यभन्दा ठूलो INR दर राख्नुहोस्।",
-    recordChanged:"यो रेकर्ड अरू ठाउँबाट परिवर्तन वा हटाइएको छ। Refresh गरेर फेरि प्रयास गर्नुहोस्।",
-    profileFallback:"प्रोफाइल विवरण भरिएको छैन",
-    migrationOffline:"पुरानो डाटा Import गर्न इन्टरनेट चाहिन्छ।",
-    loginWaiting:"लगइन जाँच हुँदैछ…"
-  }
-};
-
-function $(id) { return document.getElementById(id); }
-function tr(key) {
-  const lang = state.settings.lang === "ne" ? "ne" : "en";
-  return I18N[lang][key] ?? I18N.en[key] ?? key;
+function readSettings(){
+  let s={};
+  try{s=JSON.parse(localStorage.getItem(SETTINGS_KEY)||"{}")||{};}catch(e){}
+  return {lang:"en",theme:localStorage.getItem("theme")||"dark",font_size:"16",font_family:"Poppins",accentColor:"#10b981",layout:"comfortable",...s};
 }
-function esc(value) {
-  return String(value ?? "").replace(/[&<>"']/g, c => ({
-    "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
-  })[c]);
+function esc(v){
+  return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 }
-function num(value) {
-  const x = Number(value);
-  return Number.isFinite(x) ? x : 0;
+function num(v){const n=Number(v);return Number.isFinite(n)?n:0;}
+function money(v){return "NPR "+num(v).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2});}
+function showStatus(message,error=false){
+  const el=$("pageStatus");
+  el.textContent=message||"";
+  el.style.borderLeft=message?(error?"4px solid #fb7185":"4px solid var(--accent)"):"";
 }
-function money(value) {
-  return "NPR " + num(value).toLocaleString("en-IN", {
-    minimumFractionDigits:2, maximumFractionDigits:2
-  });
+function userRef(path=""){
+  if(!state.uid)throw new Error("पहिले index.html बाट लगइन गर्नुहोस्।");
+  return firebase.database().ref("users/"+state.uid+(path?"/"+path:""));
 }
-function toast(message, error=false) {
-  const el = document.createElement("div");
-  el.className = "toast" + (error ? " error" : "");
-  el.textContent = message;
-  $("toastArea").appendChild(el);
-  window.setTimeout(() => el.remove(), 3500);
+function applySettings(){
+  const s=state.settings,root=document.documentElement;
+  root.lang=s.lang==="ne"?"ne":"en";
+  root.classList.toggle("light",s.theme==="light");
+  root.classList.toggle("dark",s.theme!=="light");
+  root.style.setProperty("--accent",/^#[0-9a-f]{6}$/i.test(s.accentColor||"")?s.accentColor:"#10b981");
+  root.style.setProperty("--font-size",(Number(s.font_size)||16)+"px");
+  root.style.setProperty("--font-family",'"'+String(s.font_family||"Poppins").replace(/["\\]/g,"")+'",Arial,sans-serif');
+  root.dataset.layout=s.layout||"comfortable";
+  document.body.dataset.layout=s.layout||"comfortable";
 }
-function readSettings() {
-  let saved = {};
-  try { saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}") || {}; }
-  catch (_) {}
-  saved = { ...DEFAULT_SETTINGS, ...saved };
-  if (!localStorage.getItem(SETTINGS_KEY) && localStorage.getItem("theme")) {
-    saved.theme = localStorage.getItem("theme");
-  }
-  return saved;
-}
-
-const state = {
-  uid:null, user:null, settings:readSettings(),
-  records:{}, trash:{}, expanded:{}, dataRef:null, trashRef:null,
-  dataCallback:null, trashCallback:null, connected:false
-};
-
-function applySettings() {
-  const s = state.settings;
-  const html = document.documentElement;
-  html.lang = s.lang === "ne" ? "ne" : "en";
-  html.classList.toggle("light", s.theme === "light");
-  html.classList.toggle("dark", s.theme !== "light");
-  html.style.setProperty("--accent", /^#[0-9a-f]{6}$/i.test(s.accentColor || "") ? s.accentColor : "#10b981");
-  html.style.setProperty("--font-size", (Number(s.font_size) || 16) + "px");
-  const font = String(s.font_family || "Poppins").replace(/["\\]/g, "");
-  html.style.setProperty("--font-family", '"' + font + '", Arial, sans-serif');
-  html.dataset.layout = s.layout || "comfortable";
-  document.body.dataset.layout = s.layout || "comfortable";
-  document.querySelectorAll("[data-i18n]").forEach(el => {
-    el.textContent = tr(el.dataset.i18n);
-  });
-  $("langToggle").textContent = tr("languageButton");
-  $("formHeading").textContent = $("recordId").value ? tr("editTitle") : tr("formTitle");
-  $("saveButton").textContent = $("recordId").value ? tr("update") : tr("save");
-  $("exchangeHint").textContent = state.settings.lang === "ne"
-    ? "१ INR = " + (num($("rate").value) || 1.6) + " NPR"
-    : "1 INR = " + (num($("rate").value) || 1.6) + " NPR";
-  document.title = "Digital NoteBook · " + tr("appTitle");
-  render();
-}
-
-function persistSettings() {
-  try {
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings));
-    /* Backward compatibility for older pages. */
-    localStorage.setItem("theme", state.settings.theme);
-    return true;
-  } catch (e) {
-    toast(tr("localStorageError"), true);
-    return false;
-  }
-}
-$("langToggle").addEventListener("click", () => {
-  state.settings.lang = state.settings.lang === "ne" ? "en" : "ne";
-  persistSettings();
-  applySettings();
+window.addEventListener("storage",e=>{
+  if(e.key!==SETTINGS_KEY||!e.newValue)return;
+  try{state.settings={...state.settings,...JSON.parse(e.newValue)};applySettings();}catch(_){}
 });
-window.addEventListener("storage", event => {
-  if (event.key !== SETTINGS_KEY || !event.newValue) return;
-  try {
-    state.settings = { ...DEFAULT_SETTINGS, ...JSON.parse(event.newValue) };
-    applySettings();
-  } catch (_) {}
-});
+function entries(){
+  return Object.entries(state.records||{}).filter(([,r])=>r&&typeof r==="object"&&!Array.isArray(r))
+    .map(([id,r])=>({...r,id:validKey(r.id)?r.id:id}));
+}
+function validKey(id){return typeof id==="string"&&!!id&&!/[.#$\[\]\/]/.test(id);}
+function totalOf(r){
+  if(r.total!==undefined&&Number.isFinite(Number(r.total)))return num(r.total);
+  return num(r.npr)+num(r.inr)*(num(r.rate)||1.6);
+}
+function calc(){
+  const rate=num($("rate").value);
+  $("total").value=(num($("npr").value)+num($("inr").value)*rate).toFixed(2);
+  $("exchangeHint").textContent="1 INR = "+(rate||1.6)+" NPR";
+}
+["npr","inr","rate"].forEach(id=>$(id).addEventListener("input",calc));
 
-function userRef(path="") {
-  if (!state.uid) throw new Error(tr("noLogin"));
-  return firebase.database().ref("users/" + state.uid + (path ? "/" + path : ""));
-}
-function getRecordEntries() {
-  return Object.entries(state.records || {}).filter(([, value]) =>
-    value && typeof value === "object" && !Array.isArray(value)
-  ).map(([key, value]) => ({
-    ...value,
-    id: typeof value.id === "string" && value.id ? value.id : key
-  }));
-}
-function totalOf(record) {
-  if (record.total !== undefined && Number.isFinite(Number(record.total))) {
-    return num(record.total);
-  }
-  return num(record.npr) + num(record.inr) * (num(record.rate) || 1.6);
-}
-
-function calculateTotal() {
-  const npr = num($("npr").value);
-  const inr = num($("inr").value);
-  const rate = num($("rate").value);
-  $("total").value = (npr + inr * rate).toFixed(2);
-  $("exchangeHint").textContent = state.settings.lang === "ne"
-    ? "१ INR = " + (rate || 1.6) + " NPR"
-    : "1 INR = " + (rate || 1.6) + " NPR";
-}
-["npr","inr","rate"].forEach(id => $(id).addEventListener("input", calculateTotal));
-
-function resetForm() {
+function resetForm(){
   $("savingForm").reset();
-  $("recordId").value = "";
-  $("date").value = new Date().toISOString().slice(0,10);
-  $("npr").value = "0";
-  $("inr").value = "0";
-  $("rate").value = "1.6";
-  $("formHeading").textContent = tr("formTitle");
-  $("saveButton").textContent = tr("save");
-  calculateTotal();
+  $("recordId").value="";
+  $("date").value=new Date().toISOString().slice(0,10);
+  $("npr").value="0";$("inr").value="0";$("rate").value="1.6";
+  $("formHeading").textContent="बचत रेकर्ड थप्नुहोस्";
+  $("saveButton").textContent="बचत सेभ";
+  calc();
 }
 
-async function saveRecord(id, data, editing) {
-  const target = userRef(PATH + "/" + id);
-  const result = await target.transaction(old => {
-    if (editing && old === null) return;
-    if (!editing && old !== null) return;
-    return {
-      ...(old || {}),
-      ...data,
-      id,
-      createdAt: old && old.createdAt ? old.createdAt : Date.now(),
-      updatedAt: Date.now()
-    };
-  }, undefined, false);
-
-  if (!result.committed) throw new Error(tr("recordChanged"));
+async function saveRecord(id,data,editing){
+  const ref=userRef(PATH+"/"+id);
+  const result=await ref.transaction(old=>{
+    if(editing&&old===null)return;
+    if(!editing&&old!==null)return;
+    return {...(old||{}),...data,id,
+      createdAt:old&&old.createdAt?old.createdAt:Date.now(),
+      updatedAt:Date.now()};
+  },undefined,false);
+  if(!result.committed)throw new Error("रेकर्ड परिवर्तन भएको वा हटाइएको हुन सक्छ। फेरि लोड गरेर प्रयास गर्नुहोस्।");
 }
 
-async function moveToTrash(id) {
-  const record = state.records[id];
-  if (!record || typeof record !== "object") {
-    toast(tr("recordChanged"), true);
-    return;
+async function moveToTrash(id){
+  /* केवल छनोट गरिएको एउटै record लाई मात्र सारिन्छ। */
+  const record=state.records[id];
+  if(!record||typeof record!=="object"){
+    showStatus("यो रेकर्ड भेटिएन। पेज Refresh गरेर प्रयास गर्नुहोस्।",true);return;
   }
-  if (!confirm(tr("confirmTrash"))) return;
+  if(!confirm("‘"+String(record.title||"बचत रेकर्ड")+"’ लाई साझा Account Trash मा सार्ने? अन्य रेकर्ड मेटिँदैनन्।"))return;
 
-  const now = Date.now();
-  const entry = {
-    id,
-    category: PATH,
-    recordType: PATH,
-    originalPath: "users/" + state.uid + "/" + PATH + "/" + id,
-    data: { ...record, id: typeof record.id === "string" ? record.id : id },
-    deletedAt: now,
-    expiresAt: now + 30 * DAY,
-    schemaVersion: 1
+  const now=Date.now();
+  const entry={
+    id,category:PATH,recordType:PATH,
+    originalPath:"users/"+state.uid+"/"+PATH+"/"+id,
+    data:{...record,id},
+    deletedAt:now,expiresAt:now+30*DAY,schemaVersion:1
   };
 
-  try {
-    /* Only this record and its matching Trash entry are touched. */
-    const updates = {};
-    updates[PATH + "/" + id] = null;
-    updates["trash/" + PATH + "/" + id] = entry;
+  try{
+    /* एउटै atomic update: यही record हटाउने र यही record को Trash entry बनाउने। */
+    const updates={};
+    updates[PATH+"/"+id]=null;
+    updates["trash/"+PATH+"/"+id]=entry;
     await userRef("").update(updates);
-    toast(tr("moved"));
-  } catch (e) {
-    toast(tr("moveFailed") + e.message, true);
+    showStatus("यो बचत रेकर्ड साझा Account Trash मा सारियो।");
+  }catch(e){
+    showStatus("Trash मा सार्न सकिएन: "+(e.message||e),true);
   }
 }
 
-async function restoreTrashRecord(id) {
-  const entry = state.trash?.[PATH]?.[id];
-  if (!entry || !entry.data) return;
-  if (num(entry.expiresAt) <= Date.now()) {
-    toast(tr("restoreExpired"), true);
-    return;
-  }
-  try {
-    const result = await userRef(PATH + "/" + id).transaction(old => {
-      return old === null ? { ...entry.data, id } : undefined;
-    }, undefined, false);
-
-    if (!result.committed) {
-      toast(tr("restoreConflict"), true);
-      return;
-    }
-    await userRef("trash/" + PATH + "/" + id).remove();
-    toast(tr("restoreSuccess"));
-  } catch (e) {
-    toast(tr("restoreFailed") + e.message, true);
-  }
+async function restoreRecord(id){
+  const entry=(state.trash||{})[id];
+  if(!entry||!entry.data){showStatus("Trash रेकर्ड वा विवरण भेटिएन।",true);return;}
+  if(num(entry.expiresAt)<=Date.now()){showStatus("यस रेकर्डको ३० दिनको Restore म्याद सकिएको छ।",true);return;}
+  try{
+    const result=await userRef(PATH+"/"+id).transaction(old=>old===null?{...entry.data,id}:undefined,undefined,false);
+    if(!result.committed){showStatus("मूल स्थानमा यही ID को रेकर्ड पहिल्यै छ। कुनै रेकर्ड overwrite गरिएको छैन।",true);return;}
+    await userRef("trash/"+PATH+"/"+id).remove();
+    showStatus("बचत रेकर्ड Restore भयो।");
+  }catch(e){showStatus("Restore असफल: "+(e.message||e),true);}
 }
 
-function renderTrash() {
-  const entries = Object.entries(state.trash?.[PATH] || {})
-    .filter(([, value]) => value && typeof value === "object" && value.data)
-    .sort((a,b) => num(b[1].deletedAt) - num(a[1].deletedAt));
-
-  $("trashList").innerHTML = entries.map(([id, entry]) => {
-    const expired = num(entry.expiresAt) <= Date.now();
-    const name = entry.data.title || tr("noName");
-    const expiry = entry.expiresAt ? new Date(entry.expiresAt).toLocaleDateString() : "—";
-    return `<div class="record">
-      <div class="record-title">${esc(name)}</div>
-      <p class="record-detail">${esc(tr("expires"))}: ${esc(expiry)}</p>
-      <button type="button" data-restore="${esc(id)}" ${expired ? "disabled" : ""}>
-        ${expired ? esc(tr("expired")) : esc(tr("restore"))}
-      </button>
-    </div>`;
-  }).join("") || `<p class="muted">${esc(tr("noTrash"))}</p>`;
+function renderTrash(){
+  const list=$("trashList");
+  const rows=Object.entries(state.trash||{}).filter(([,x])=>x&&x.data);
+  if(!rows.length){list.innerHTML='<p class="muted">यस पेजका Trash रेकर्ड छैनन्। सबै पेजको साझा Trash Account मा हेर्नुहोस्।</p>';return;}
+  list.innerHTML=rows.sort((a,b)=>num(b[1].deletedAt)-num(a[1].deletedAt)).map(([id,x])=>{
+    const expired=num(x.expiresAt)<=Date.now();
+    return `<article class="record">
+      <div class="record-title">${esc(x.data.title||"बचत रेकर्ड")}</div>
+      <div class="record-detail">हटाइएको: ${esc(x.deletedAt?new Date(x.deletedAt).toLocaleString():"—")}<br>म्याद: ${esc(x.expiresAt?new Date(x.expiresAt).toLocaleDateString():"—")}</div>
+      <button type="button" data-restore="${esc(id)}" ${expired?"disabled":""}>${expired?"म्याद सकियो":"Restore"}</button>
+    </article>`;
+  }).join("");
 }
 
-function render() {
-  const all = getRecordEntries();
-  const query = $("search").value.trim().toLocaleLowerCase();
-  const visible = all.filter(r => [
-    r.title, r.category, r.note, r.date
-  ].some(v => String(v ?? "").toLocaleLowerCase().includes(query)));
+function render(){
+  const all=entries();
+  const q=$("search").value.trim().toLocaleLowerCase();
+  const visible=all.filter(r=>[r.title,r.category,r.note,r.date].some(v=>String(v??"").toLocaleLowerCase().includes(q)));
+  const total=all.reduce((s,r)=>s+totalOf(r),0);
+  const goal=Math.max(0,num($("goal").value));
+  const groups=new Map();
 
-  const total = all.reduce((sum, record) => sum + totalOf(record), 0);
-  const goal = Math.max(0, num($("goal").value));
-  const groups = new Map();
+  visible.forEach(r=>{
+    const name=String(r.title||"नाम नभएको").trim()||"नाम नभएको";
+    const key=name.toLocaleLowerCase();
+    if(!groups.has(key))groups.set(key,{name,records:[],total:0});
+    groups.get(key).records.push(r);
+    groups.get(key).total+=totalOf(r);
+  });
 
-  for (const record of visible) {
-    const name = String(record.title || "").trim() || tr("noName");
-    const key = name.toLocaleLowerCase();
-    if (!groups.has(key)) groups.set(key, { title:name, records:[], total:0 });
-    const group = groups.get(key);
-    group.records.push(record);
-    group.total += totalOf(record);
-  }
+  $("totalSaved").textContent=money(total);
+  $("groupCount").textContent=String(new Set(all.map(r=>String(r.title||"").trim().toLocaleLowerCase()||"__unnamed__")).size);
+  $("recordCount").textContent=String(all.length);
+  const pct=goal>0?Math.min(100,total/goal*100):0;
+  $("goalProgress").textContent=goal>0?pct.toFixed(1)+"%":"—";
+  $("goalBar").style.width=pct+"%";
 
-  $("totalSaved").textContent = money(total);
-  $("groupCount").textContent = new Set(all.map(r =>
-    String(r.title || "").trim().toLocaleLowerCase() || "__unnamed__"
-  )).size;
-  $("recordCount").textContent = all.length;
-  const pct = goal > 0 ? Math.min(100, total / goal * 100) : 0;
-  $("goalProgress").textContent = goal > 0 ? pct.toFixed(1) + "%" : "—";
-  $("goalBar").style.width = pct + "%";
-
-  const sortedGroups = [...groups.values()].sort((a,b) =>
-    a.title.localeCompare(b.title)
-  );
-
-  $("groupList").innerHTML = sortedGroups.map((group, index) => {
-    const key = group.title.toLocaleLowerCase();
-    const expanded = !!state.expanded[key];
-    const records = group.records.sort((a,b) =>
-      String(b.date || "").localeCompare(String(a.date || ""))
-    );
-    const details = expanded ? `<div class="group-records">${
-      records.map(r => `<div class="record">
-        <div class="record-title">${esc(r.date || "—")} · ${esc(r.category || "")}</div>
-        <div>${esc(money(totalOf(r)))}</div>
-        <div class="record-detail">${esc(r.note || "")}</div>
-        <div class="actions" style="margin-top:8px">
-          <button type="button" data-edit="${esc(r.id)}">${esc(tr("edit"))}</button>
-          <button type="button" class="danger" data-trash="${esc(r.id)}">${esc(tr("trash"))}</button>
-        </div>
-      </div>`).join("")
-    }</div>` : "";
-
+  $("groupList").innerHTML=[...groups.values()].sort((a,b)=>a.name.localeCompare(b.name)).map(g=>{
+    const key=g.name.toLocaleLowerCase(),open=!!state.expanded[key];
+    g.records.sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
+    const details=open?g.records.map(r=>`<div class="record">
+      <div class="record-title">${esc(r.date||"—")} · ${esc(r.category||"")}</div>
+      <div><strong>${esc(money(totalOf(r)))}</strong></div>
+      <div class="record-detail">NPR: ${esc(num(r.npr).toFixed(2))} · INR: ${esc(num(r.inr).toFixed(2))} · दर: ${esc(num(r.rate||1.6).toFixed(2))}<br>${esc(r.note||"")}</div>
+      <div class="actions">
+        <button type="button" data-edit="${esc(r.id)}">सम्पादन</button>
+        <button type="button" class="danger" data-trash="${esc(r.id)}">यो रेकर्ड Trash मा सार्नुहोस्</button>
+      </div>
+    </div>`).join(""):"";
     return `<section class="record">
-      <button type="button" class="group-head" data-group="${esc(key)}" aria-expanded="${expanded}">
-        <span><strong>${esc(group.title)}</strong> (${group.records.length} ${esc(tr("records"))})</span>
-        <span class="group-total">${esc(money(group.total))}　${expanded ? "−" : "+"}</span>
-      </button>
-      ${details}
+      <button type="button" class="group-head" data-group="${esc(key)}" aria-expanded="${open}">
+        <span><strong>${esc(g.name)}</strong> (${g.records.length} रेकर्ड)</span>
+        <span class="group-total">${esc(money(g.total))} ${open?"−":"+"}</span>
+      </button>${details}
     </section>`;
-  }).join("") || `<p class="muted">${esc(tr("empty"))}</p>`;
-
+  }).join("")||'<p class="muted">बचत रेकर्ड भेटिएन।</p>';
   renderTrash();
 }
 
-$("savingForm").addEventListener("submit", async event => {
-  event.preventDefault();
-  if (!state.uid) return toast(tr("noLogin"), true);
-
-  const npr = num($("npr").value);
-  const inr = num($("inr").value);
-  const rate = num($("rate").value);
-  if (npr < 0 || inr < 0 || rate <= 0 ||
-      !Number.isFinite(npr) || !Number.isFinite(inr) || !Number.isFinite(rate)) {
-    return toast(tr("invalidAmount"), true);
+$("savingForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  if(!state.uid){showStatus("पहिले index.html बाट लगइन गर्नुहोस्।",true);return;}
+  const npr=num($("npr").value),inr=num($("inr").value),rate=num($("rate").value);
+  if(npr<0||inr<0||rate<=0||![npr,inr,rate].every(Number.isFinite)){
+    showStatus("NPR/INR रकम शून्य वा बढी र INR दर शून्यभन्दा बढी राख्नुहोस्।",true);return;
   }
-
-  const editing = !!$("recordId").value;
-  const id = $("recordId").value || userRef(PATH).push().key;
-  const data = {
-    title:$("title").value.trim(),
-    category:$("category").value,
-    date:$("date").value,
-    npr, inr, rate,
-    total:Number((npr + inr * rate).toFixed(2)),
-    note:$("note").value.trim()
+  const editing=!!$("recordId").value;
+  const id=$("recordId").value||userRef(PATH).push().key;
+  if(!validKey(id)){showStatus("रेकर्ड ID मान्य छैन।",true);return;}
+  const data={
+    title:$("title").value.trim(),category:$("category").value,
+    date:$("date").value,npr,inr,rate,
+    total:Number((npr+inr*rate).toFixed(2)),note:$("note").value.trim()
   };
-  if (!data.title || !data.date) return;
+  if(!data.title||!data.date){showStatus("नाम र मिति अनिवार्य छन्।",true);return;}
 
-  $("saveButton").disabled = true;
-  $("saveButton").textContent = tr("saving");
-  try {
-    await saveRecord(id, data, editing);
+  $("saveButton").disabled=true;
+  try{
+    await saveRecord(id,data,editing);
     resetForm();
-    toast(editing ? tr("updated") : tr("saved"));
-  } catch (e) {
-    toast(tr("saveFailed") + e.message, true);
-  } finally {
-    $("saveButton").disabled = false;
-    $("saveButton").textContent = $("recordId").value ? tr("update") : tr("save");
-  }
+    showStatus(editing?"बचत रेकर्ड अपडेट भयो।":"बचत रेकर्ड सेभ भयो।");
+  }catch(err){showStatus("सेभ गर्न सकिएन: "+(err.message||err),true);}
+  finally{$("saveButton").disabled=false;}
 });
 
-$("groupList").addEventListener("click", async event => {
-  const groupButton = event.target.closest("[data-group]");
-  if (groupButton) {
-    const key = groupButton.dataset.group;
-    state.expanded[key] = !state.expanded[key];
-    render();
-    return;
+$("groupList").addEventListener("click",async e=>{
+  const group=e.target.closest("[data-group]");
+  if(group){state.expanded[group.dataset.group]=!state.expanded[group.dataset.group];render();return;}
+  const edit=e.target.closest("[data-edit]");
+  if(edit){
+    const id=edit.dataset.edit,r=state.records[id];
+    if(!r){showStatus("रेकर्ड भेटिएन। Refresh गरेर प्रयास गर्नुहोस्।",true);return;}
+    $("recordId").value=id;
+    ["title","category","date","npr","inr","rate","note"].forEach(k=>$(k).value=r[k]??(k==="rate"?"1.6":""));
+    $("formHeading").textContent="बचत रेकर्ड सम्पादन";
+    $("saveButton").textContent="अपडेट गर्नुहोस्";
+    calc();window.scrollTo({top:0,behavior:"smooth"});return;
   }
-
-  const editButton = event.target.closest("[data-edit]");
-  if (editButton) {
-    const id = editButton.dataset.edit;
-    const r = state.records[id];
-    if (!r) return toast(tr("recordChanged"), true);
-    $("recordId").value = id;
-    ["title","category","date","npr","inr","rate","note"].forEach(key => {
-      $(key).value = r[key] ?? (key === "rate" ? "1.6" : "");
-    });
-    calculateTotal();
-    $("formHeading").textContent = tr("editTitle");
-    $("saveButton").textContent = tr("update");
-    window.scrollTo({top:0,behavior:"smooth"});
-    return;
-  }
-
-  const trashButton = event.target.closest("[data-trash]");
-  if (trashButton) await moveToTrash(trashButton.dataset.trash);
+  const del=e.target.closest("[data-trash]");
+  if(del)await moveToTrash(del.dataset.trash);
 });
-
-$("trashList").addEventListener("click", async event => {
-  const button = event.target.closest("[data-restore]");
-  if (button) await restoreTrashRecord(button.dataset.restore);
+$("trashList").addEventListener("click",e=>{
+  const b=e.target.closest("[data-restore]");
+  if(b)restoreRecord(b.dataset.restore);
 });
-
-$("search").addEventListener("input", render);
-$("cancelButton").addEventListener("click", resetForm);
-
-$("goal").value = localStorage.getItem("savings_target_amount") || "";
-$("goal").addEventListener("change", () => {
-  try {
-    localStorage.setItem("savings_target_amount", $("goal").value);
-    toast(tr("localGoal"));
-  } catch (_) {
-    toast(tr("localStorageError"), true);
-  }
+$("search").addEventListener("input",render);
+$("cancelButton").addEventListener("click",resetForm);
+$("accountButton").addEventListener("click",()=>location.href="account.html");
+$("goal").value=localStorage.getItem("savings_target_amount")||"";
+$("goal").addEventListener("change",()=>{
+  try{localStorage.setItem("savings_target_amount",$("goal").value);showStatus("बचत लक्ष्य यस उपकरणमा सेभ भयो।");}
+  catch(e){showStatus("बचत लक्ष्य स्थानीय रूपमा सेभ गर्न सकिएन।",true);}
   render();
 });
 
-/*
- * Import legacy local data only if the cloud list is empty.
- * Never overwrite existing cloud records or delete local source data.
- */
-async function importLegacyData() {
-  if (!state.uid) return toast(tr("noLogin"), true);
-  if (!navigator.onLine) return toast(tr("migrationOffline"), true);
-  if (!confirm(tr("importConfirm"))) return;
-
-  const marker = userRef("migration/local-savings-v2");
-  try {
-    if ((await marker.once("value")).exists()) {
-      return toast(tr("alreadyImported"), true);
+async function importLegacyData(){
+  if(!state.uid){showStatus("पहिले लगइन गर्नुहोस्।",true);return;}
+  if(!navigator.onLine){showStatus("पुरानो डाटा Import गर्न इन्टरनेट चाहिन्छ।",true);return;}
+  if(!confirm("स्थानीय पुरानो बचत Cloud मा Import गर्ने? Cloud मा भएका रेकर्ड overwrite गरिने छैनन्।"))return;
+  try{
+    const marker=userRef("migration/local-savings-v2");
+    if((await marker.once("value")).exists()){showStatus("स्थानीय बचत Import पहिले नै गरिएको छ।",true);return;}
+    const cloud=await userRef(PATH).once("value");
+    if(cloud.exists()&&Object.keys(cloud.val()||{}).length){showStatus("Cloud मा बचत रेकर्ड छन्। डाटा सुरक्षित राख्न Import रोकियो।",true);return;}
+    let old=[];
+    ["digital_notebook_savings","savings","saving_data","add_saving_list"].forEach(k=>{
+      try{
+        const x=JSON.parse(localStorage.getItem(k)||"null");
+        if(Array.isArray(x))old.push(...x);
+        else if(x&&typeof x==="object")old.push(...Object.values(x));
+      }catch(_){}
+    });
+    old=old.filter(x=>x&&typeof x==="object"&&!Array.isArray(x));
+    if(!old.length){showStatus("स्थानीय पुरानो बचत डाटा भेटिएन।",true);return;}
+    let count=0;
+    for(const r of old){
+      const id=validKey(r.id)?r.id:userRef(PATH).push().key;
+      const result=await userRef(PATH+"/"+id).transaction(current=>current===null?{...r,id,createdAt:r.createdAt||Date.now(),updatedAt:Date.now(),migratedFromLocal:true}:undefined,undefined,false);
+      if(result.committed)count++;
     }
-
-    const cloud = await userRef(PATH).once("value");
-    if (cloud.exists() && Object.keys(cloud.val() || {}).length) {
-      return toast(tr("cloudNotEmpty"), true);
-    }
-
-    let legacy = [];
-    for (const key of [
-      "digital_notebook_savings", "savings", "saving_data", "add_saving_list"
-    ]) {
-      try {
-        const parsed = JSON.parse(localStorage.getItem(key) || "null");
-        if (Array.isArray(parsed)) legacy.push(...parsed);
-        else if (parsed && typeof parsed === "object") legacy.push(...Object.values(parsed));
-      } catch (_) {}
-    }
-    legacy = legacy.filter(v => v && typeof v === "object" && !Array.isArray(v));
-    if (!legacy.length) return toast(tr("noLocal"), true);
-
-    /* Recheck immediately before import to avoid racing with cloud writes. */
-    const cloudAgain = await userRef(PATH).once("value");
-    if (cloudAgain.exists() && Object.keys(cloudAgain.val() || {}).length) {
-      return toast(tr("cloudNotEmpty"), true);
-    }
-
-    let imported = 0;
-    for (const old of legacy) {
-      let id = typeof old.id === "string" && old.id &&
-        !/[.#$\[\]\/]/.test(old.id) ? old.id : userRef(PATH).push().key;
-
-      const data = { ...old, id };
-      const result = await userRef(PATH + "/" + id).transaction(current => {
-        return current === null ? {
-          ...data,
-          createdAt:data.createdAt || Date.now(),
-          updatedAt:Date.now(),
-          migratedFromLocal:true
-        } : undefined;
-      }, undefined, false);
-      if (result.committed) imported++;
-    }
-
-    await marker.set({completedAt:Date.now(), imported, source:"localStorage"});
-    toast(tr("importDone") + imported);
-  } catch (e) {
-    toast(tr("importFailed") + e.message, true);
-  }
+    await marker.set({completedAt:Date.now(),imported:count,source:"localStorage"});
+    showStatus("Import पूरा भयो। आयात गरिएका रेकर्ड: "+count);
+  }catch(err){showStatus("Import असफल: "+(err.message||err),true);}
 }
-$("importButton").addEventListener("click", importLegacyData);
+$("importButton").addEventListener("click",importLegacyData);
 
-function profileValue(keys) {
-  for (const key of keys) {
-    const value = localStorage.getItem(key);
-    if (value && value.trim()) return value.trim();
-  }
+function profileValue(keys){
+  for(const k of keys){const v=localStorage.getItem(k);if(v&&v.trim())return v.trim();}
   return "";
 }
-
-function createPdfHtml() {
-  const all = getRecordEntries().sort((a,b) =>
-    String(a.title || "").localeCompare(String(b.title || "")) ||
-    String(a.date || "").localeCompare(String(b.date || ""))
-  );
-  const fullName = profileValue(["profile_name","user_full_name","fullName"]);
-  const address = profileValue(["profile_address","user_address","address"]);
-  const mobile = profileValue(["profile_mobile","user_mobile","mobile"]);
-  const email = state.user?.email || profileValue(["profile_email","user_email"]);
-  const total = all.reduce((sum,r) => sum + totalOf(r),0);
-  const goal = num($("goal").value);
-  const groups = new Map();
-
-  for (const r of all) {
-    const name = String(r.title || "").trim() || tr("noName");
-    const key = name.toLocaleLowerCase();
-    if (!groups.has(key)) groups.set(key,{title:name,records:[],total:0});
-    groups.get(key).records.push(r);
-    groups.get(key).total += totalOf(r);
-  }
-
-  let html = `<div class="pdf-banner">
-    <h1>📘 Digital NoteBook</h1>
-    <h2>${esc(tr("pdfTitle"))}</h2>
-    <h3>${esc(tr("userDetails"))}</h3>
-    <p><b>${esc(tr("name"))}:</b> ${esc(fullName || "—")}</p>
-    <p><b>${esc(tr("address"))}:</b> ${esc(address || "—")}</p>
-    <p><b>${esc(tr("mobile"))}:</b> ${esc(mobile || "—")}</p>
-    <p><b>${esc(tr("email"))}:</b> ${esc(email || "—")}</p>
-    <p><b>${esc(tr("generated"))}:</b> ${esc(new Date().toLocaleString())}</p>
-  </div>
-  <h2>${esc(tr("summary"))}</h2>
-  <p><b>${esc(tr("totalSaved"))}:</b> ${esc(money(total))}</p>
-  <p><b>${esc(tr("goalLabel"))}:</b> ${esc(goal ? money(goal) : "—")}</p>
-  <p><b>${esc(tr("progress"))}:</b> ${esc(goal ? Math.min(100,total/goal*100).toFixed(1)+"%" : "—")}</p>`;
-
-  for (const group of groups.values()) {
-    html += `<h2>${esc(group.title)} — ${esc(money(group.total))}</h2>
-    <table><thead><tr>
-      <th>${esc(tr("dateLabel"))}</th>
-      <th>${esc(tr("categoryLabel"))}</th>
-      <th>${esc(tr("nprLabel"))}</th>
-      <th>${esc(tr("inrLabel"))}</th>
-      <th>${esc(tr("rateLabel"))}</th>
-      <th>${esc(tr("totalLabel"))}</th>
-      <th>${esc(tr("remarksLabel"))}</th>
-    </tr></thead><tbody>`;
-
-    for (const r of group.records) {
-      html += `<tr>
-        <td>${esc(r.date || "—")}</td>
-        <td>${esc(r.category || "—")}</td>
-        <td>${esc(num(r.npr).toFixed(2))}</td>
-        <td>${esc(num(r.inr).toFixed(2))}</td>
-        <td>${esc(num(r.rate || 1.6).toFixed(2))}</td>
-        <td>${esc(totalOf(r).toFixed(2))}</td>
-        <td>${esc(r.note || "")}</td>
-      </tr>`;
-    }
-    html += `</tbody></table>`;
-  }
-
-  html += `<h2>${esc(tr("total"))}: ${esc(money(total))}</h2>`;
-  return html;
+function pdfHtml(){
+  const all=entries().sort((a,b)=>String(a.title||"").localeCompare(String(b.title||""))||String(a.date||"").localeCompare(String(b.date||"")));
+  const name=profileValue(["profile_name","user_full_name","fullName"]);
+  const address=profileValue(["profile_address","user_address","address"]);
+  const mobile=profileValue(["profile_mobile","user_mobile","mobile"]);
+  const email=state.user?.email||profileValue(["profile_email","user_email"]);
+  const total=all.reduce((s,r)=>s+totalOf(r),0),goal=num($("goal").value);
+  let html=`<div class="banner">
+    <h1>📘 Digital NoteBook</h1><h2>बचतको हिसाब</h2>
+    <h3>प्रयोगकर्ताको विवरण</h3>
+    <p><b>नाम:</b> ${esc(name||"—")}</p>
+    <p><b>ठेगाना:</b> ${esc(address||"—")}</p>
+    <p><b>मोबाइल:</b> ${esc(mobile||"—")}</p>
+    <p><b>इमेल:</b> ${esc(email||"—")}</p>
+    <p><b>बनाइएको मिति:</b> ${esc(new Date().toLocaleString())}</p>
+  </div><h2>सारांश</h2>
+  <p><b>कुल बचत:</b> ${esc(money(total))}</p>
+  <p><b>बचत लक्ष्य:</b> ${esc(goal?money(goal):"—")}</p>
+  <p><b>लक्ष्य प्रगति:</b> ${esc(goal?Math.min(100,total/goal*100).toFixed(1)+"%":"—")}</p>
+  <table><thead><tr><th>मिति</th><th>बचतको नाम</th><th>श्रेणी</th><th>NPR</th><th>INR</th><th>दर</th><th>कुल NPR</th><th>कैफियत</th></tr></thead><tbody>`;
+  all.forEach(r=>{
+    html+=`<tr><td>${esc(r.date||"—")}</td><td>${esc(r.title||"—")}</td><td>${esc(r.category||"—")}</td><td>${esc(num(r.npr).toFixed(2))}</td><td>${esc(num(r.inr).toFixed(2))}</td><td>${esc(num(r.rate||1.6).toFixed(2))}</td><td>${esc(totalOf(r).toFixed(2))}</td><td>${esc(r.note||"")}</td></tr>`;
+  });
+  return html+"</tbody></table>";
 }
-
-$("pdfButton").addEventListener("click", async () => {
-  if (!window.html2pdf) return toast(tr("pdfLibrary"), true);
-  $("pdfButton").disabled = true;
-  const original = $("pdfButton").textContent;
-  $("pdfButton").textContent = tr("pdfLoading");
-
-  try {
-    const stage = $("pdfStage");
-    stage.innerHTML = createPdfHtml();
-    const safeDate = new Date().toISOString().slice(0,10);
+$("pdfButton").addEventListener("click",async()=>{
+  if(!window.html2pdf){showStatus("PDF library लोड भएन। इन्टरनेट जाँच्नुहोस्।",true);return;}
+  $("pdfButton").disabled=true;
+  try{
+    $("pdfStage").innerHTML=pdfHtml();
     await html2pdf().set({
-      margin:8,
-      filename:"Digital-Notebook-Savings-" + safeDate + ".pdf",
-      image:{type:"jpeg",quality:0.98},
-      html2canvas:{scale:2,useCORS:true,backgroundColor:"#ffffff"},
+      margin:8,filename:"Digital-Notebook-Savings-"+new Date().toISOString().slice(0,10)+".pdf",
+      image:{type:"jpeg",quality:.98},
+      html2canvas:{scale:2,useCORS:true,backgroundColor:"#fff"},
       jsPDF:{unit:"mm",format:"a4",orientation:"landscape"},
       pagebreak:{mode:["css","legacy"]}
-    }).from(stage).save();
-  } catch (e) {
-    toast(tr("pdfError") + e.message, true);
-  } finally {
-    $("pdfButton").disabled = false;
-    $("pdfButton").textContent = original;
-  }
+    }).from($("pdfStage")).save();
+    showStatus("PDF तयार भयो।");
+  }catch(e){showStatus("PDF बनाउन सकिएन: "+(e.message||e),true);}
+  finally{$("pdfButton").disabled=false;}
 });
 
-function setSyncStatus(text) {
-  $("syncStatus").textContent = text;
+function detach(){
+  if(state.dataRef&&state.dataCallback)state.dataRef.off("value",state.dataCallback);
+  if(state.trashRef&&state.trashCallback)state.trashRef.off("value",state.trashCallback);
+  state.dataRef=state.trashRef=state.dataCallback=state.trashCallback=null;
 }
-
-function detachListeners() {
-  if (state.dataRef && state.dataCallback) {
-    state.dataRef.off("value", state.dataCallback);
-  }
-  if (state.trashRef && state.trashCallback) {
-    state.trashRef.off("value", state.trashCallback);
-  }
-  state.dataRef = state.trashRef = null;
-  state.dataCallback = state.trashCallback = null;
-}
-
-function attachListeners() {
-  detachListeners();
-
-  state.dataRef = userRef(PATH);
-  state.dataCallback = snapshot => {
-    const value = snapshot.val() || {};
-    if (Array.isArray(value)) {
-      /*
-       * Do not silently rewrite the entire legacy array.
-       * Show it safely with stable display IDs until explicitly imported.
-       */
-      const mapped = {};
-      value.forEach((record,index) => {
-        if (!record || typeof record !== "object") return;
-        const id = typeof record.id === "string" && record.id &&
-          !/[.#$\[\]\/]/.test(record.id) ? record.id : "legacy-" + index;
-        mapped[id] = { ...record, id };
-      });
-      state.records = mapped;
-      setSyncStatus(tr("sync") + " · legacy data");
-    } else {
-      state.records = value && typeof value === "object" ? value : {};
-      setSyncStatus(navigator.onLine ? tr("connected") : tr("offline"));
-    }
+function attach(){
+  detach();
+  state.dataRef=userRef(PATH);
+  state.dataCallback=snap=>{
+    const value=snap.val()||{};
+    if(Array.isArray(value)){
+      /* Legacy array लाई स्वतः rewrite नगरी सुरक्षित रूपमा देखाउने। */
+      const mapped={};
+      value.forEach((r,i)=>{if(r&&typeof r==="object"){const id=validKey(r.id)?r.id:"legacy-"+i;mapped[id]={...r,id};}});
+      state.records=mapped;
+    }else state.records=value&&typeof value==="object"?value:{};
+    $("syncStatus").textContent=navigator.onLine?"Cloud Sync · Connected":"Cloud Sync · Offline";
     render();
   };
-
-  state.dataRef.on("value", state.dataCallback, error => {
-    setSyncStatus(tr("sync") + " · error");
-    toast(tr("syncError") + error.message, true);
+  state.dataRef.on("value",state.dataCallback,e=>{
+    $("syncStatus").textContent="Cloud Sync · Error";
+    showStatus("Cloud डाटा पढ्न सकिएन। Firebase Rules र इन्टरनेट जाँच्नुहोस्: "+(e.message||e),true);
   });
 
-  state.trashRef = userRef("trash/" + PATH);
-  state.trashCallback = snapshot => {
-    state.trash = { [PATH]: snapshot.val() || {} };
-    renderTrash();
-  };
-  state.trashRef.on("value", state.trashCallback, error => {
-    toast(tr("syncError") + error.message, true);
+  state.trashRef=userRef("trash/"+PATH);
+  state.trashCallback=snap=>{state.trash=snap.val()||{};renderTrash();};
+  state.trashRef.on("value",state.trashCallback,e=>{
+    showStatus("Trash पढ्न सकिएन। Firebase Rules जाँच्नुहोस्: "+(e.message||e),true);
   });
 }
 
-if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
-const auth = firebase.auth();
-
-auth.onAuthStateChanged(user => {
-  if (!user) {
-    state.uid = null;
-    state.user = null;
-    detachListeners();
-    window.location.replace("./index.html");
-    return;
+if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);
+firebase.auth().onAuthStateChanged(user=>{
+  if(!user){
+    state.uid=null;state.user=null;detach();
+    location.replace("./index.html");return;
   }
-
-  state.uid = user.uid;
-  state.user = user;
+  state.uid=user.uid;state.user=user;
   document.body.classList.remove("auth-pending");
-  attachListeners();
+  attach();
 });
-
-window.addEventListener("online", () => {
-  if (state.uid) setSyncStatus(tr("connected"));
-});
-window.addEventListener("offline", () => {
-  setSyncStatus(tr("offline"));
-});
-
-$("date").value = new Date().toISOString().slice(0,10);
-$("rate").value = "1.6";
-calculateTotal();
-applySettings();
+window.addEventListener("online",()=>{if(state.uid)$("syncStatus").textContent="Cloud Sync · Connected";});
+window.addEventListener("offline",()=>{$("syncStatus").textContent="Cloud Sync · Offline";});
+$("date").value=new Date().toISOString().slice(0,10);
+$("rate").value="1.6";
+calc();applySettings();
 </script>
 </body>
 </html>
