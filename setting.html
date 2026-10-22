@@ -8,11 +8,6 @@
 <title>Digital NoteBook - Settings</title>
 
 <script>
-/*
- * CANONICAL DISPLAY PREFERENCES
- * All pages must read this same key:
- * digital_notebook_settings
- */
 (function () {
   const KEY = "digital_notebook_settings";
   const DEFAULTS = {
@@ -24,45 +19,50 @@
     layout: "comfortable"
   };
 
-  let saved = {};
   try {
-    saved = JSON.parse(localStorage.getItem(KEY) || "{}");
-  } catch (_) {}
+    let saved = JSON.parse(localStorage.getItem(KEY) || "{}");
+    if (!saved || typeof saved !== "object" || Array.isArray(saved)) {
+      saved = {};
+    }
 
-  if (!saved || typeof saved !== "object" || Array.isArray(saved)) {
-    saved = {};
-  }
+    const hadSettings = localStorage.getItem(KEY) !== null;
+    saved = { ...DEFAULTS, ...saved };
 
-  saved = { ...DEFAULTS, ...saved };
+    if (!hadSettings && localStorage.getItem("theme")) {
+      saved.theme = localStorage.getItem("theme");
+    }
 
-  /* Migrate the previous theme key without losing the saved preference. */
-  if (!localStorage.getItem(KEY) && localStorage.getItem("theme")) {
-    saved.theme = localStorage.getItem("theme");
-  }
+    if (!["en", "ne"].includes(saved.lang)) saved.lang = "en";
+    if (!["dark", "light"].includes(saved.theme)) saved.theme = "dark";
+    if (!["14", "16", "18", "20"].includes(String(saved.font_size))) {
+      saved.font_size = "16";
+    }
+    if (!["Poppins", "Arial", "Roboto", "Georgia", "system-ui"].includes(saved.font_family)) {
+      saved.font_family = "Poppins";
+    }
+    if (!/^#[0-9a-f]{6}$/i.test(saved.accentColor)) {
+      saved.accentColor = "#10b981";
+    }
+    if (!["comfortable", "compact"].includes(saved.layout)) {
+      saved.layout = "comfortable";
+    }
 
-  try {
     localStorage.setItem(KEY, JSON.stringify(saved));
     localStorage.setItem("theme", saved.theme);
-  } catch (_) {}
 
-  document.documentElement.lang = saved.lang === "ne" ? "ne" : "en";
-  document.documentElement.classList.toggle("dark", saved.theme !== "light");
-  document.documentElement.style.setProperty("--accent", saved.accentColor);
-  document.documentElement.style.setProperty(
-    "--app-font-size",
-    (Number(saved.font_size) || 16) + "px"
-  );
-  document.documentElement.style.setProperty(
-    "--app-font-family",
-    JSON.stringify(saved.font_family || "Poppins") + ", Arial, sans-serif"
-  );
-  document.documentElement.dataset.layout = saved.layout || "comfortable";
+    const root = document.documentElement;
+    root.lang = saved.lang === "ne" ? "ne" : "en";
+    root.classList.toggle("dark", saved.theme === "dark");
+    root.style.setProperty("--accent", saved.accentColor);
+    root.style.setProperty("--app-font-size", Number(saved.font_size) + "px");
+    root.style.setProperty("--app-font-family", '"' + saved.font_family + '", Arial, sans-serif');
+    root.dataset.layout = saved.layout;
+  } catch (_) {}
 })();
 </script>
 
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -82,7 +82,7 @@
 }
 html:not(.dark) {
   --bg: #f3f6fb;
-  --panel: #ffffff;
+  --panel: #fff;
   --field: #edf2f9;
   --text: #152033;
   --muted: #586780;
@@ -95,30 +95,32 @@ body {
   color: var(--text);
   font: var(--app-font-size)/1.55 var(--app-font-family);
 }
-button, input, select, textarea {
-  font: inherit;
-}
-button {
-  cursor: pointer;
-}
+button, input, select, textarea { font: inherit; }
+button { cursor: pointer; }
 button:disabled { opacity: .55; cursor: not-allowed; }
+
 header {
   position: sticky;
   top: 0;
   z-index: 10;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   padding: 12px 16px;
   background: var(--panel);
   border-bottom: 1px solid var(--line);
 }
 header a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
   color: var(--text);
   text-decoration: none;
-  font-size: 23px;
+  font-size: 25px;
 }
-header .brand { flex: 1; font-weight: 750; }
+header .brand { font-weight: 750; }
+
 main {
   width: min(900px, 100%);
   margin: auto;
@@ -136,6 +138,7 @@ h1, h2, h3, p { margin-top: 0; }
 h1 { font-size: 1.4em; }
 h2 { font-size: 1.15em; }
 p, .muted { color: var(--muted); }
+
 .field {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(135px, 42%);
@@ -161,10 +164,7 @@ input, select, textarea {
   border: 1px solid var(--line);
   border-radius: 10px;
 }
-input[type="color"] {
-  height: 44px;
-  padding: 4px;
-}
+input[type="color"] { height: 44px; padding: 4px; }
 button {
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -180,7 +180,6 @@ button {
 }
 .danger { color: #fb7185; }
 .actions { display: flex; gap: 8px; flex-wrap: wrap; }
-.actions button { width: auto; }
 .switch {
   justify-self: end;
   width: 56px;
@@ -203,33 +202,24 @@ button {
 }
 .switch[aria-checked="true"] { background: var(--accent); }
 .switch[aria-checked="true"]::after { transform: translateX(24px); }
-.status { font-size: .8em; color: var(--muted); }
-.toast-area {
-  position: fixed;
-  z-index: 50;
-  bottom: 14px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: grid;
-  gap: 6px;
-  width: min(92%, 480px);
+
+.status { font-size: .85em; color: var(--muted); }
+.status.error {
+  color: #fb7185;
+  padding: 10px;
+  border: 1px solid #9f1239;
+  border-radius: 8px;
 }
-.toast {
-  background: #166534;
-  color: white;
-  border-radius: 10px;
-  padding: 11px 14px;
-  box-shadow: 0 4px 18px #0003;
-}
-.toast.error { background: #9f1239; }
+.status.success { color: #34d399; }
 .hidden { display: none !important; }
-body.auth-pending main { visibility: hidden; }
+body.auth-pending main,
 body.auth-pending header { visibility: hidden; }
 body[data-layout="compact"] main { gap: 8px; padding: 8px; }
 body[data-layout="compact"] .card { padding: 12px; border-radius: 12px; }
 body[data-layout="compact"] .field { padding: 7px 0; }
 body[data-layout="comfortable"] main { gap: 14px; }
 body[data-layout="comfortable"] .card { padding: 18px; }
+
 @media (max-width: 520px) {
   main { padding: 10px; }
   .card { padding: 13px; }
@@ -242,16 +232,15 @@ body[data-layout="comfortable"] .card { padding: 18px; }
 
 <body class="auth-pending">
 <header>
-  <a href="index.html" aria-label="Back">←</a>
+  <a href="index.html" id="backButton" aria-label="Back" title="Back">←</a>
   <div class="brand">📘 Digital NoteBook</div>
-  <button type="button" id="headerLang" aria-label="Change language">नेपाली</button>
 </header>
 
 <main>
   <section class="card">
     <h1 data-i18n="pageTitle">Settings & Preferences</h1>
     <p data-i18n="intro">Choose your display preferences. Changes are saved on this device and work offline.</p>
-    <p class="status" id="saveStatus" role="status">Saved on this device</p>
+    <p class="status" id="pageStatus" role="status" aria-live="polite"></p>
   </section>
 
   <section class="card">
@@ -273,7 +262,7 @@ body[data-layout="comfortable"] .card { padding: 18px; }
         <span data-i18n="theme">Dark mode</span>
         <small data-i18n="themeDesc">Change the page appearance.</small>
       </label>
-      <button id="themeToggle" class="switch" type="button" role="switch" aria-checked="true" data-i18n-aria="theme"> </button>
+      <button id="themeToggle" class="switch" type="button" role="switch" aria-checked="true" aria-label="Dark mode"></button>
     </div>
 
     <div class="field">
@@ -373,6 +362,7 @@ body[data-layout="comfortable"] .card { padding: 18px; }
         <textarea id="feedbackMessage" rows="4" required></textarea>
       </div>
       <button class="primary" type="submit" id="feedbackSubmit" data-i18n="submit">Submit</button>
+      <p id="feedbackStatus" class="status" role="status" aria-live="polite"></p>
     </form>
   </section>
 
@@ -404,11 +394,10 @@ body[data-layout="comfortable"] .card { padding: 18px; }
         <button class="danger" type="submit" data-i18n="confirmDelete">Confirm account deletion</button>
         <button type="button" id="cancelDelete" data-i18n="cancel">Cancel</button>
       </div>
+      <p id="deleteStatus" class="status" role="status" aria-live="polite"></p>
     </form>
   </section>
 </main>
-
-<div id="toastArea" class="toast-area" aria-live="polite"></div>
 
 <script>
 "use strict";
@@ -420,7 +409,7 @@ const firebaseConfig = {
   projectId: "digital-a2552",
   storageBucket: "digital-a2552.firebasestorage.app",
   messagingSenderId: "218135618179",
-  appId: "1:218135618179:web:821b76920d3e5669ac31b6"
+  appId: "1:135135618179:web:821b76920d3e5669ac31b6"
 };
 
 const SETTINGS_KEY = "digital_notebook_settings";
@@ -434,30 +423,59 @@ const DEFAULTS = {
 };
 
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-
 const auth = firebase.auth();
-const db = firebase.database();
 let currentUser = null;
+
+function $(id) {
+  return document.getElementById(id);
+}
+
+function normalizeSettings(value) {
+  const input = value && typeof value === "object" && !Array.isArray(value)
+    ? value : {};
+
+  const result = { ...DEFAULTS, ...input };
+
+  if (!["en", "ne"].includes(result.lang)) result.lang = "en";
+  if (!["dark", "light"].includes(result.theme)) result.theme = "dark";
+  if (!["14", "16", "18", "20"].includes(String(result.font_size))) result.font_size = "16";
+  if (!["Poppins", "Arial", "Roboto", "Georgia", "system-ui"].includes(result.font_family)) {
+    result.font_family = "Poppins";
+  }
+  if (!/^#[0-9a-f]{6}$/i.test(result.accentColor)) result.accentColor = "#10b981";
+  if (!["comfortable", "compact"].includes(result.layout)) result.layout = "comfortable";
+
+  result.font_size = String(result.font_size);
+  return result;
+}
+
+function loadSettings() {
+  try {
+    const raw = localStorage.getItem(SETTINGS_KEY);
+    if (raw !== null) return normalizeSettings(JSON.parse(raw));
+
+    const initial = { ...DEFAULTS };
+    const oldTheme = localStorage.getItem("theme");
+    if (oldTheme === "light" || oldTheme === "dark") initial.theme = oldTheme;
+    return normalizeSettings(initial);
+  } catch (_) {
+    return { ...DEFAULTS };
+  }
+}
+
 let settings = loadSettings();
 
 const translations = {
   en: {
     pageTitle:"Settings & Preferences",
     intro:"Choose your display preferences. Changes are saved on this device and work offline.",
-    saved:"Saved on this device",
     displayHeading:"Display & Preferences",
-    language:"Language",
-    languageDesc:"Choose the language used throughout supported pages.",
-    theme:"Dark mode",
-    themeDesc:"Change the page appearance.",
-    fontSize:"Text size",
-    fontSizeDesc:"Adjust the text size.",
-    fontFamily:"Font family",
-    fontFamilyDesc:"Choose your preferred font.",
-    accentColor:"Accent color",
-    accentDesc:"Choose the highlight color.",
-    layout:"Layout",
-    layoutDesc:"Choose the spacing used by supported pages.",
+    language:"Language", languageDesc:"Choose the language used throughout supported pages.",
+    theme:"Dark mode", themeDesc:"Change the page appearance.",
+    fontSize:"Text size", fontSizeDesc:"Adjust the text size.",
+    fontFamily:"Font family", fontFamilyDesc:"Choose your preferred font.",
+    accentColor:"Accent color", accentDesc:"Choose the highlight color.",
+    layout:"Layout", layoutDesc:"Choose the spacing used by supported pages.",
     small:"Small", medium:"Medium", large:"Large", extraLarge:"Extra large",
     comfortable:"Comfortable", compact:"Compact",
     save:"Save preferences", reset:"Reset preferences",
@@ -468,137 +486,118 @@ const translations = {
     about:"About & help",
     aboutText:"Display preferences are stored locally on this device. Internet access is needed for Firebase account features and cloud data synchronization.",
     version:"Version 6.7",
-    feedback:"Feedback & suggestions",
-    yourName:"Your name", yourMessage:"Message or feedback", submit:"Submit",
-    sending:"Sending…", feedbackSent:"Feedback sent successfully.",
+    feedback:"Feedback & suggestions", yourName:"Your name",
+    yourMessage:"Message or feedback", submit:"Submit", sending:"Sending…",
+    feedbackSent:"Feedback sent successfully.",
     feedbackFailed:"Could not send feedback. Check your internet connection.",
     dangerZone:"Danger zone",
     deleteWarning:"Account deletion is permanent. Confirm your password before requesting deletion.",
-    deleteAccount:"Delete account",
-    deleteReason:"Reason for deletion",
-    selectReason:"Select a reason",
-    reasonNotUsing:"No longer using the app",
-    reasonPrivacy:"Privacy concerns",
-    reasonAlternative:"Found a better alternative",
-    reasonOther:"Other",
-    additionalReason:"Additional details (optional)",
-    password:"Current password",
-    confirmDelete:"Confirm account deletion",
-    cancel:"Cancel",
-    savedOk:"Preferences saved on this device.",
+    deleteAccount:"Delete account", deleteReason:"Reason for deletion",
+    selectReason:"Select a reason", reasonNotUsing:"No longer using the app",
+    reasonPrivacy:"Privacy concerns", reasonAlternative:"Found a better alternative",
+    reasonOther:"Other", additionalReason:"Additional details (optional)",
+    password:"Current password", confirmDelete:"Confirm account deletion",
+    cancel:"Cancel", savedOk:"Preferences saved on this device.",
     resetOk:"Preferences reset to defaults.",
     profileSaved:"Personal information saved on this device.",
     latest:"You are using version 6.7.",
     loginRequired:"Please sign in through index.html first.",
-    offline:"Offline: changes are saved locally on this device.",
+    offline:"You are offline. Connect to the internet and try again.",
     deleteNeedReason:"Select a reason for deletion.",
     deleteNeedPassword:"Enter your current password.",
     deleteFailed:"Account deletion failed: ",
-    deleteSuccess:"Account deleted.",
     confirmDeleteText:"Are you sure you want to permanently delete this Firebase account? This cannot be undone.",
     accountUnavailable:"Account deletion is unavailable while offline.",
     emailMissing:"Feedback service is not configured.",
-    languageButton:"नेपाली"
+    storageFailed:"Could not save to this device. Check available device storage.",
+    back:"Back"
   },
   ne: {
     pageTitle:"सेटिङ र प्राथमिकताहरू",
     intro:"आफ्ना देखावट प्राथमिकता छान्नुहोस्। परिवर्तन यसै उपकरणमा सुरक्षित हुन्छ र इन्टरनेट नभए पनि काम गर्छ।",
-    saved:"यस उपकरणमा सुरक्षित",
     displayHeading:"देखावट र प्राथमिकताहरू",
-    language:"भाषा",
-    languageDesc:"समर्थित पेजहरूमा प्रयोग हुने भाषा छान्नुहोस्।",
-    theme:"डार्क मोड",
-    themeDesc:"पेजको देखावट परिवर्तन गर्नुहोस्।",
-    fontSize:"अक्षरको आकार",
-    fontSizeDesc:"अक्षरको आकार परिवर्तन गर्नुहोस्।",
-    fontFamily:"फन्ट शैली",
-    fontFamilyDesc:"आफूलाई मन पर्ने फन्ट छान्नुहोस्।",
-    accentColor:"मुख्य रङ",
-    accentDesc:"हाइलाइटको रङ छान्नुहोस्।",
-    layout:"लेआउट",
-    layoutDesc:"समर्थित पेजहरूको खाली ठाउँ छान्नुहोस्।",
+    language:"भाषा", languageDesc:"समर्थित पेजहरूमा प्रयोग हुने भाषा छान्नुहोस्।",
+    theme:"डार्क मोड", themeDesc:"पेजको देखावट परिवर्तन गर्नुहोस्।",
+    fontSize:"अक्षरको आकार", fontSizeDesc:"अक्षरको आकार परिवर्तन गर्नुहोस्।",
+    fontFamily:"फन्ट शैली", fontFamilyDesc:"आफूलाई मन पर्ने फन्ट छान्नुहोस्।",
+    accentColor:"मुख्य रङ", accentDesc:"हाइलाइटको रङ छान्नुहोस्।",
+    layout:"लेआउट", layoutDesc:"समर्थित पेजहरूको खाली ठाउँ छान्नुहोस्।",
     small:"सानो", medium:"मध्यम", large:"ठूलो", extraLarge:"अझ ठूलो",
-    comfortable:"सहज", compact:"सानो/कम्प्याक्ट",
-    save:"प्राथमिकता सेभ गर्नुहोस्", reset:"पूर्वनिर्धारित बनाउनुहोस्",
+    comfortable:"सहज", compact:"कम्प्याक्ट",
+    save:"प्राथमिकता सुरक्षित गर्नुहोस्", reset:"पूर्वनिर्धारित बनाउनुहोस्",
     profile:"व्यक्तिगत विवरण",
     profileDesc:"यी विवरण PDF रिपोर्टको ब्यानरमा प्रयोग गर्न सकिन्छ।",
     fullName:"पूरा नाम", address:"ठेगाना", mobile:"मोबाइल नम्बर", email:"इमेल",
-    saveInfo:"विवरण सेभ गर्नुहोस्",
+    saveInfo:"विवरण सुरक्षित गर्नुहोस्",
     about:"जानकारी र सहायता",
     aboutText:"देखावटका प्राथमिकता यस उपकरणमै सुरक्षित हुन्छन्। Firebase खाता र Cloud Sync का लागि इन्टरनेट चाहिन्छ।",
     version:"संस्करण ६.७",
-    feedback:"सुझाव र प्रतिक्रिया",
-    yourName:"तपाईंको नाम", yourMessage:"सन्देश वा प्रतिक्रिया", submit:"पठाउनुहोस्",
-    sending:"पठाउँदै…", feedbackSent:"प्रतिक्रिया सफलतापूर्वक पठाइयो।",
+    feedback:"सुझाव र प्रतिक्रिया", yourName:"तपाईंको नाम",
+    yourMessage:"सन्देश वा प्रतिक्रिया", submit:"पठाउनुहोस्", sending:"पठाउँदै…",
+    feedbackSent:"प्रतिक्रिया सफलतापूर्वक पठाइयो।",
     feedbackFailed:"प्रतिक्रिया पठाउन सकिएन। इन्टरनेट जाँच्नुहोस्।",
     dangerZone:"सावधानी क्षेत्र",
     deleteWarning:"खाता हटाएपछि फिर्ता ल्याउन नमिल्न सक्छ। अनुरोध गर्नुअघि पासवर्ड पुष्टि गर्नुहोस्।",
-    deleteAccount:"खाता हटाउनुहोस्",
-    deleteReason:"खाता हटाउने कारण",
-    selectReason:"कारण छान्नुहोस्",
-    reasonNotUsing:"अब एप प्रयोग गर्दिनँ",
-    reasonPrivacy:"गोपनीयताको चिन्ता",
-    reasonAlternative:"अर्को विकल्प भेटियो",
-    reasonOther:"अन्य",
-    additionalReason:"थप विवरण (ऐच्छिक)",
-    password:"हालको पासवर्ड",
-    confirmDelete:"खाता हटाउने पुष्टि गर्नुहोस्",
-    cancel:"रद्द गर्नुहोस्",
-    savedOk:"प्राथमिकता यस उपकरणमा सुरक्षित भयो।",
+    deleteAccount:"खाता हटाउनुहोस्", deleteReason:"खाता हटाउने कारण",
+    selectReason:"कारण छान्नुहोस्", reasonNotUsing:"अब एप प्रयोग गर्दिनँ",
+    reasonPrivacy:"गोपनीयताको चिन्ता", reasonAlternative:"अर्को विकल्प भेटियो",
+    reasonOther:"अन्य", additionalReason:"थप विवरण (ऐच्छिक)",
+    password:"हालको पासवर्ड", confirmDelete:"खाता हटाउने पुष्टि गर्नुहोस्",
+    cancel:"रद्द गर्नुहोस्", savedOk:"प्राथमिकता यस उपकरणमा सुरक्षित भयो।",
     resetOk:"प्राथमिकता पूर्वनिर्धारित अवस्थामा फर्काइयो।",
     profileSaved:"व्यक्तिगत विवरण यस उपकरणमा सुरक्षित भयो।",
     latest:"तपाईं संस्करण ६.७ प्रयोग गर्दै हुनुहुन्छ।",
     loginRequired:"पहिले index.html बाट लगइन गर्नुहोस्।",
-    offline:"अफलाइन: परिवर्तन यस उपकरणमा सुरक्षित गरिएको छ।",
+    offline:"इन्टरनेट छैन। जडान गरेर फेरि प्रयास गर्नुहोस्।",
     deleteNeedReason:"खाता हटाउने कारण छान्नुहोस्।",
     deleteNeedPassword:"हालको पासवर्ड लेख्नुहोस्।",
     deleteFailed:"खाता हटाउन सकिएन: ",
-    deleteSuccess:"खाता हटाइयो।",
     confirmDeleteText:"के तपाईं Firebase खाता स्थायी रूपमा हटाउन चाहनुहुन्छ? यो कार्य फिर्ता गर्न सकिँदैन।",
     accountUnavailable:"अफलाइन हुँदा खाता हटाउन मिल्दैन।",
     emailMissing:"Feedback सेवा कन्फिगर गरिएको छैन।",
-    languageButton:"English"
+    storageFailed:"यस उपकरणमा सुरक्षित गर्न सकिएन। उपलब्ध स्टोरेज जाँच्नुहोस्।",
+    back:"पछाडि"
   }
 };
 
-function loadSettings() {
-  try {
-    const raw = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
-    const merged = { ...DEFAULTS, ...(raw && typeof raw === "object" ? raw : {}) };
-
-    if (!raw || !raw.theme) {
-      merged.theme = localStorage.getItem("theme") || merged.theme;
-    }
-
-    return merged;
-  } catch (_) {
-    return { ...DEFAULTS };
-  }
+function t(key) {
+  return (translations[settings.lang] || translations.en)[key] ||
+    translations.en[key] || key;
 }
 
-function saveSettings() {
+function setStatus(id, message, type = "") {
+  const element = $(id);
+  if (!element) return;
+  element.textContent = message || "";
+  element.className = "status" + (type ? " " + type : "");
+}
+
+function saveSettingsToDevice() {
   try {
+    settings = normalizeSettings(settings);
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-    /* Keep compatibility with older pages that read this key. */
+    /* Compatibility for older pages which still read the legacy theme key. */
     localStorage.setItem("theme", settings.theme);
     return true;
   } catch (error) {
-    console.error("Unable to save preferences", error);
-    toast("Could not save settings. Device storage may be full.", true);
+    console.error("Settings storage error:", error);
+    setStatus("pageStatus", t("storageFailed"), "error");
     return false;
   }
 }
 
 function applySettings() {
-  const html = document.documentElement;
-  html.lang = settings.lang === "ne" ? "ne" : "en";
-  html.classList.toggle("dark", settings.theme !== "light");
-  html.style.setProperty("--accent", settings.accentColor);
-  html.style.setProperty("--app-font-size", (Number(settings.font_size) || 16) + "px");
-  html.style.setProperty("--app-font-family",
-    JSON.stringify(settings.font_family || "Poppins") + ", Arial, sans-serif");
-  html.dataset.layout = settings.layout || "comfortable";
-  document.body.dataset.layout = settings.layout || "comfortable";
+  const root = document.documentElement;
+  root.lang = settings.lang === "ne" ? "ne" : "en";
+  root.classList.toggle("dark", settings.theme === "dark");
+  root.style.setProperty("--accent", settings.accentColor);
+  root.style.setProperty("--app-font-size", settings.font_size + "px");
+  root.style.setProperty(
+    "--app-font-family",
+    '"' + settings.font_family + '", Arial, sans-serif'
+  );
+  root.dataset.layout = settings.layout;
+  document.body.dataset.layout = settings.layout;
 
   $("languageSelect").value = settings.lang;
   $("fontSizeSelect").value = settings.font_size;
@@ -606,55 +605,57 @@ function applySettings() {
   $("accentColor").value = settings.accentColor;
   $("layoutSelect").value = settings.layout;
   $("themeToggle").setAttribute("aria-checked", String(settings.theme === "dark"));
-  $("headerLang").textContent = t("languageButton");
+  $("themeToggle").setAttribute("aria-label", t("theme"));
 
   translatePage();
 }
 
-function t(key) {
-  return (translations[settings.lang] || translations.en)[key] ||
-         translations.en[key] || key;
-}
-
 function translatePage() {
-  document.querySelectorAll("[data-i18n]").forEach(el => {
-    const key = el.getAttribute("data-i18n");
+  document.querySelectorAll("[data-i18n]").forEach(element => {
+    const key = element.getAttribute("data-i18n");
     const value = t(key);
-    if (value) el.textContent = value;
+    if (value) element.textContent = value;
   });
 
-  document.querySelectorAll("[data-i18n-aria]").forEach(el => {
-    el.setAttribute("aria-label", t(el.getAttribute("data-i18n-aria")));
-  });
-
+  $("backButton").setAttribute("aria-label", t("back"));
+  $("backButton").setAttribute("title", t("back"));
   document.title = "Digital NoteBook - " + t("pageTitle");
-  $("saveStatus").textContent = t("saved");
-}
-
-function $(id) {
-  return document.getElementById(id);
-}
-
-function toast(message, error = false) {
-  const item = document.createElement("div");
-  item.className = "toast" + (error ? " error" : "");
-  item.textContent = message;
-  $("toastArea").appendChild(item);
-  setTimeout(() => item.remove(), 3000);
 }
 
 function changeSetting(key, value) {
+  const previous = { ...settings };
   settings[key] = value;
-  saveSettings();
+  settings = normalizeSettings(settings);
+
+  if (!saveSettingsToDevice()) {
+    settings = previous;
+    applySettings();
+    return;
+  }
+
   applySettings();
+  setStatus("pageStatus", "");
 }
+
+/* Back goes to the previous page; it never signs out or requests a password. */
+$("backButton").addEventListener("click", event => {
+  event.preventDefault();
+
+  if (window.history.length > 1 && document.referrer) {
+    try {
+      const previous = new URL(document.referrer);
+      if (previous.origin === window.location.origin) {
+        window.history.back();
+        return;
+      }
+    } catch (_) {}
+  }
+
+  window.location.href = "index.html";
+});
 
 $("languageSelect").addEventListener("change", event => {
   changeSetting("lang", event.target.value);
-});
-
-$("headerLang").addEventListener("click", () => {
-  changeSetting("lang", settings.lang === "en" ? "ne" : "en");
 });
 
 $("themeToggle").addEventListener("click", () => {
@@ -678,24 +679,35 @@ $("layoutSelect").addEventListener("change", event => {
 });
 
 $("saveSettings").addEventListener("click", () => {
-  if (saveSettings()) toast(t("savedOk"));
+  if (saveSettingsToDevice()) {
+    setStatus("pageStatus", t("savedOk"), "success");
+  }
 });
 
 $("resetSettings").addEventListener("click", () => {
+  const old = { ...settings };
   settings = { ...DEFAULTS };
-  saveSettings();
+
+  if (!saveSettingsToDevice()) {
+    settings = old;
+    applySettings();
+    return;
+  }
+
   applySettings();
-  toast(t("resetOk"));
+  setStatus("pageStatus", t("resetOk"), "success");
 });
 
-/* Keep settings in sync between tabs on this same device. */
+/* If another tab changes the shared preferences, reflect them here. */
 window.addEventListener("storage", event => {
   if (event.key !== SETTINGS_KEY || !event.newValue) return;
+
   try {
-    const next = JSON.parse(event.newValue);
-    settings = { ...DEFAULTS, ...next };
+    settings = normalizeSettings(JSON.parse(event.newValue));
     applySettings();
-  } catch (_) {}
+  } catch (error) {
+    console.error("Could not read updated preferences:", error);
+  }
 });
 
 function loadProfile() {
@@ -711,34 +723,39 @@ $("saveProfile").addEventListener("click", () => {
     localStorage.setItem("profile_name", $("profileName").value.trim());
     localStorage.setItem("profile_address", $("profileAddress").value.trim());
     localStorage.setItem("profile_mobile", $("profileMobile").value.trim());
-    toast(t("profileSaved"));
-  } catch (_) {
-    toast("Could not save profile information.", true);
+    setStatus("pageStatus", t("profileSaved"), "success");
+  } catch (error) {
+    console.error(error);
+    setStatus("pageStatus", t("storageFailed"), "error");
   }
 });
 
-$("checkVersion").addEventListener("click", () => toast(t("latest")));
+$("checkVersion").addEventListener("click", () => {
+  setStatus("pageStatus", t("latest"), "success");
+});
 
 $("showDelete").addEventListener("click", () => {
   $("deleteForm").classList.toggle("hidden");
+  setStatus("deleteStatus", "");
 });
 
 $("cancelDelete").addEventListener("click", () => {
   $("deleteForm").reset();
   $("deleteForm").classList.add("hidden");
+  setStatus("deleteStatus", "");
 });
 
-/* Feedback is optional; do not break the Settings page if EmailJS is offline. */
 $("feedbackForm").addEventListener("submit", async event => {
   event.preventDefault();
+  setStatus("feedbackStatus", "");
 
   if (!navigator.onLine) {
-    toast(t("offline"), true);
+    setStatus("feedbackStatus", t("offline"), "error");
     return;
   }
 
   if (!window.emailjs) {
-    toast(t("emailMissing"), true);
+    setStatus("feedbackStatus", t("emailMissing"), "error");
     return;
   }
 
@@ -759,26 +776,27 @@ $("feedbackForm").addEventListener("submit", async event => {
 
     $("feedbackForm").reset();
     loadProfile();
-    toast(t("feedbackSent"));
+    setStatus("feedbackStatus", t("feedbackSent"), "success");
   } catch (error) {
-    console.error(error);
-    toast(t("feedbackFailed"), true);
+    console.error("Feedback send error:", error);
+    setStatus("feedbackStatus", t("feedbackFailed"), "error");
   } finally {
     button.disabled = false;
-    button.textContent = t("submit");
     translatePage();
   }
 });
 
 $("deleteForm").addEventListener("submit", async event => {
   event.preventDefault();
+  setStatus("deleteStatus", "");
 
   if (!currentUser) {
-    toast(t("loginRequired"), true);
+    setStatus("deleteStatus", t("loginRequired"), "error");
     return;
   }
+
   if (!navigator.onLine) {
-    toast(t("accountUnavailable"), true);
+    setStatus("deleteStatus", t("accountUnavailable"), "error");
     return;
   }
 
@@ -786,14 +804,18 @@ $("deleteForm").addEventListener("submit", async event => {
   const password = $("deletePassword").value;
 
   if (!reason) {
-    toast(t("deleteNeedReason"), true);
+    setStatus("deleteStatus", t("deleteNeedReason"), "error");
     return;
   }
   if (!password) {
-    toast(t("deleteNeedPassword"), true);
+    setStatus("deleteStatus", t("deleteNeedPassword"), "error");
     return;
   }
-  if (!confirm(t("confirmDeleteText"))) return;
+
+  if (!window.confirm(t("confirmDeleteText"))) return;
+
+  const submitButton = $("deleteForm").querySelector('[type="submit"]');
+  submitButton.disabled = true;
 
   try {
     const credential = firebase.auth.EmailAuthProvider.credential(
@@ -804,19 +826,23 @@ $("deleteForm").addEventListener("submit", async event => {
     await currentUser.reauthenticateWithCredential(credential);
 
     /*
-     * Account deletion is destructive. This action is deliberately explicit.
-     * It does not pretend that removing the Auth account automatically
-     * removes the user's Realtime Database records.
+     * Do not pretend Auth deletion also deletes Realtime Database data.
+     * This control deletes the Firebase Authentication account only.
      */
     await currentUser.delete();
     window.location.replace("index.html");
   } catch (error) {
-    console.error(error);
-    toast(t("deleteFailed") + (error.message || "Unknown error"), true);
+    console.error("Account deletion error:", error);
+    setStatus(
+      "deleteStatus",
+      t("deleteFailed") + (error.message || "Unknown error"),
+      "error"
+    );
+    submitButton.disabled = false;
   }
 });
 
-/* Authentication gate: unauthenticated users cannot use Settings. */
+/* Authentication gate: Settings requires a signed-in Firebase user. */
 auth.onAuthStateChanged(user => {
   if (!user) {
     currentUser = null;
@@ -825,8 +851,8 @@ auth.onAuthStateChanged(user => {
   }
 
   currentUser = user;
-  document.body.classList.remove("auth-pending");
   loadProfile();
+  document.body.classList.remove("auth-pending");
 });
 
 applySettings();
