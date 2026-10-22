@@ -1,298 +1,576 @@
+
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Digital NoteBook - Digital Card QR</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-    tailwind.config = {
-        darkMode: 'class',
-        theme: {
-            extend: {
-                fontFamily: {
-                    sans: ['Poppins', 'sans-serif'],
-                }
-            }
-        }
-    }
-    </script>
-    <script>
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        if (savedTheme === 'light') {
-            document.documentElement.classList.remove('dark');
-        } else {
-            document.documentElement.classList.add('dark');
-        }
-    </script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101827">
+<title>Digital NoteBook - QR Card</title>
+
+<script>
+(function () {
+  const KEY = "digital_notebook_settings";
+  const DEFAULTS = {
+    lang: "en",
+    theme: "dark",
+    font_size: "16",
+    font_family: "Poppins",
+    accentColor: "#10b981",
+    layout: "comfortable"
+  };
+
+  let settings = {};
+  try {
+    settings = JSON.parse(localStorage.getItem(KEY) || "{}");
+  } catch (_) {}
+
+  if (!settings || typeof settings !== "object" || Array.isArray(settings)) {
+    settings = {};
+  }
+
+  settings = { ...DEFAULTS, ...settings };
+
+  document.documentElement.lang = settings.lang === "ne" ? "ne" : "en";
+  document.documentElement.classList.toggle("dark", settings.theme !== "light");
+  document.documentElement.style.setProperty("--accent", settings.accentColor);
+  document.documentElement.style.setProperty(
+    "--app-font-size",
+    (Number(settings.font_size) || 16) + "px"
+  );
+  document.documentElement.style.setProperty(
+    "--app-font-family",
+    JSON.stringify(settings.font_family || "Poppins") + ", Arial, sans-serif"
+  );
+  document.documentElement.dataset.layout = settings.layout || "comfortable";
+})();
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+:root {
+  --bg: #f1f5f9;
+  --panel: #ffffff;
+  --text: #1e293b;
+  --muted: #64748b;
+  --line: #e2e8f0;
+  --accent: #10b981;
+  --app-font-size: 16px;
+  --app-font-family: Poppins, Arial, sans-serif;
+}
+
+html.dark {
+  --bg: #020617;
+  --panel: #0f172a;
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+  --line: #1e293b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--app-font-family);
+  font-size: var(--app-font-size);
+}
+
+button, a {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 13px 16px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+}
+
+.back {
+  color: var(--text);
+  text-decoration: none;
+  font-size: 27px;
+  line-height: 1;
+  padding: 2px 5px;
+}
+
+.brand {
+  font-size: 1em;
+  font-weight: 700;
+  letter-spacing: .2px;
+}
+
+main {
+  width: min(700px, 100%);
+  margin: 0 auto;
+  padding: 16px;
+  display: grid;
+  gap: 14px;
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 18px;
+}
+
+.card-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+h1, h2, p {
+  margin-top: 0;
+}
+
+h1 {
+  font-size: 1.2em;
+  margin-bottom: 6px;
+}
+
+h2 {
+  font-size: 1em;
+  margin-bottom: 8px;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: .88em;
+  line-height: 1.6;
+}
+
+.accent {
+  color: var(--accent);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.share-button {
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 13px;
+  color: #052e25;
+  background: var(--accent);
+  font-weight: 700;
+  font-size: .85em;
+}
+
+.qr-area {
+  display: flex;
+  justify-content: center;
+  padding: 10px 0;
+}
+
+.qr-frame {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  padding: 12px;
+  border-radius: 12px;
+  min-width: 184px;
+  min-height: 184px;
+}
+
+#qrcode {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 160px;
+  min-height: 160px;
+}
+
+#qrcode img, #qrcode canvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.qr-logo {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 38px;
+  height: 38px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #fff;
+  pointer-events: none;
+}
+
+.status {
+  display: none;
+  padding: 11px 13px;
+  border-radius: 10px;
+  font-size: .88em;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.status.show {
+  display: block;
+}
+
+.status.error {
+  color: #be123c;
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+}
+
+.status.info {
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--line);
+}
+
+body[data-layout="compact"] main {
+  padding: 8px;
+  gap: 8px;
+}
+
+body[data-layout="compact"] .card {
+  padding: 12px;
+  border-radius: 12px;
+}
+
+body[data-layout="comfortable"] main {
+  gap: 14px;
+}
+
+body[data-layout="comfortable"] .card {
+  padding: 18px;
+}
+
+@media (max-width: 480px) {
+  header {
+    padding: 12px;
+  }
+
+  main {
+    padding: 10px;
+  }
+
+  .card {
+    padding: 14px;
+  }
+
+  .card-heading {
+    align-items: flex-start;
+  }
+
+  .share-button {
+    padding: 9px;
+  }
+}
+</style>
 </head>
-<body class="bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 text-xs flex flex-col h-screen overflow-hidden select-none">
 
-    <div id="feedbackMsg" class="hidden fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-4 py-2 rounded-xl text-xs font-bold shadow-lg transition-all"></div>
+<body>
+<header>
+  <a class="back" href="#" id="backButton" aria-label="Back" title="Back">←</a>
+  <div class="brand">📘 Digital NoteBook</div>
+</header>
 
-    <div class="flex min-h-screen w-full">
-        
-        <div id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 bg-slate-900 border-r border-slate-800 transform -translate-x-full transition-transform duration-300 flex flex-col text-white">
-            <div class="flex items-center justify-between px-4 py-3 border-b border-slate-800">
-                <div class="flex items-center space-x-2.5">
-                    <div class="w-8 h-8 rounded-lg bg-emerald-600 border border-emerald-500 flex items-center justify-center overflow-hidden shadow-md">
-                        <img src="N1024.png" alt="Logo" class="w-full h-full object-cover">
-                    </div>
-                    <div>
-                        <h1 class="text-sm font-extrabold tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">
-                            Digital NoteBook
-                        </h1>
-                    </div>
-                </div>
-                <button onclick="toggleSidebar()" class="text-slate-400 hover:text-white text-lg focus:outline-none">✕</button>
-            </div>
+<main>
+  <div id="pageError" class="status error" role="alert" aria-live="polite"></div>
 
-            <div class="p-3 space-y-3 overflow-y-auto flex-1 text-xs">
-                <div class="bg-slate-800/50 border border-slate-700/60 rounded-xl p-3 flex items-center space-x-3">
-                    <div class="relative cursor-pointer group" onclick="document.getElementById('avatar-upload-input').click()">
-                        <div class="w-11 h-11 rounded-full bg-emerald-600 border border-emerald-500 flex items-center justify-center overflow-hidden shadow-sm">
-                            <img id="sidebar-avatar-img" src="N1024.png" alt="Profile" class="w-full h-full object-cover">
-                        </div>
-                    </div>
-                    <input type="file" id="avatar-upload-input" accept="image/*" class="hidden" onchange="handleAvatarUpload(event)">
-                    <div>
-                        <h3 id="sidebar-profile-name" class="text-white font-bold text-sm"></h3>
-                        <p class="text-[10px] text-slate-400"><span class="lang-text" data-en="Click icon to set photo" data-np="फोटो राख्न क्लिक गर्नुहोस्">Click icon to set photo</span></p>
-                    </div>
-                </div>
+  <section class="card">
+    <div class="card-heading">
+      <div>
+        <h1 id="profileName">Digital NoteBook</h1>
+        <p class="muted" id="cardSubtitle">Digital Card</p>
+      </div>
+      <button type="button" class="share-button" id="shareButton">
+        ↗ <span data-i18n="share">Share Card</span>
+      </button>
+    </div>
+  </section>
 
-                <nav class="space-y-1 font-medium">
-                    <a href="index.html" class="flex items-center gap-2.5 py-2.5 px-3 rounded-xl hover:bg-slate-800 text-slate-300 transition"><span>📊</span> <span class="lang-text" data-en="Overview" data-np="अवलोकन">Overview</span></a>
-                </nav>
+  <section class="card">
+    <h2 data-i18n="qrTitle">Digital Card QR</h2>
+    <p class="muted" data-i18n="scanHint">
+      Scan this QR code to visit the digital card website.
+    </p>
 
-                <div class="space-y-2.5 bg-slate-800/50 p-3 rounded-xl border border-slate-700/60">
-                    <h3 class="text-[11px] font-bold text-white flex items-center gap-1.5 mb-1">
-                        <i class="fa-solid fa-address-card text-emerald-400"></i> <span class="lang-text" data-en="Personal Details" data-np="व्यक्तिगत विवरण">Personal Details</span>
-                    </h3>
-                    <div>
-                        <label class="block text-[10px] font-semibold text-slate-400 mb-0.5">Full Name</label>
-                        <input type="text" id="input-full-name" placeholder="Enter Full Name" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-white text-xs focus:outline-none focus:border-emerald-500">
-                    </div>
-                    <button onclick="saveProfileDetails()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition shadow-md">Save Info</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="flex-1 flex flex-col w-full h-full overflow-hidden">
-            <header class="sticky top-0 z-40 flex items-center justify-between px-3 md:px-5 py-3.5 bg-slate-900/95 backdrop-blur border-b border-emerald-500/20 shadow-md">
-                <div class="flex items-center space-x-2.5">
-                    <button onclick="toggleSidebar()" class="text-white text-xl focus:outline-none hover:text-emerald-400 transition">☰</button>
-                    <div class="flex items-center space-x-2 cursor-pointer" onclick="toggleSidebar()">
-                        <div class="w-7 h-7 rounded-lg bg-emerald-600 border border-emerald-500/50 flex items-center justify-center overflow-hidden shadow-sm">
-                            <img src="N1024.png" alt="Logo" class="w-full h-full object-cover">
-                        </div>
-                        <span class="text-xs md:text-sm font-extrabold tracking-wider bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">Digital NoteBook</span>
-                    </div>
-                </div>
-
-                <div class="flex items-center space-x-2">
-                    <span id="timerBadge" class="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800/50 px-2 py-0.5 rounded-full font-mono">Card QR</span>
-                    <button onclick="toggleLanguage()" id="lang-toggle-btn" class="px-2 py-1 rounded-md bg-slate-800 border border-slate-700 text-[10px] font-bold text-slate-200">ENG</button>
-                    <button onclick="toggleTheme()" id="theme-toggle-btn" class="w-7 h-7 rounded-md bg-slate-800 border border-slate-700 flex items-center justify-center text-sm">🌛</button>
-                    <div class="relative cursor-pointer" onclick="toggleSidebar()">
-                        <div class="w-8 h-8 rounded-full bg-emerald-600 border border-emerald-500 flex items-center justify-center overflow-hidden shadow-sm">
-                            <img id="header-avatar-img" src="N1024.png" alt="Profile" class="w-full h-full object-cover">
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            <main class="p-3 md:p-6 space-y-3 flex-1 w-full overflow-y-auto bg-slate-100 dark:bg-slate-950">
-                <div class="flex justify-between items-center px-1 text-slate-700 dark:text-white">
-                    <div>
-                        <p id="dynamic-date" class="text-[11px] font-semibold tracking-wider text-slate-400 uppercase mb-1"></p>
-                    </div>
-                </div>
-
-                <!-- QR Share View Only -->
-                <div id="shareView" class="space-y-3">
-                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl p-4 shadow-sm flex justify-between items-center">
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <h3 id="profileName" class="text-sm font-bold tracking-tight">KAMAL G.C.</h3>
-                                <span class="bg-emerald-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">VIP Card</span>
-                            </div>
-                            <p class="text-[11px] text-slate-400 mt-0.5">info.kamalgc.com.np</p>
-                        </div>
-                        <button onclick="openNativeShareSheet()" class="p-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition text-slate-700 dark:text-slate-200 flex items-center gap-1.5 font-bold">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
-                            Share Card
-                        </button>
-                    </div>
-
-                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex flex-col items-center text-center space-y-3">
-                        <div id="qrcodeWrapper" class="relative inline-block p-3 bg-white rounded-xl shadow-inner">
-                            <div id="qrcode"></div>
-                            <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                <div class="w-9 h-9 rounded-full bg-white border-2 border-emerald-600 p-0.5 shadow-md overflow-hidden flex items-center justify-center">
-                                    <img src="N1024.png" alt="Logo" class="w-full h-full object-cover rounded-full">
-                                </div>
-                            </div>
-                        </div>
-                        <p class="text-[11px] text-slate-400">Scan this QR code to visit <span class="text-emerald-500 font-bold">info.kamalgc.com.np</span></p>
-                    </div>
-                </div>
-            </main>
-        </div>
+    <div class="qr-area">
+      <div id="qrCapture" class="qr-frame">
+        <div id="qrcode" aria-label="Digital Card QR Code"></div>
+        <img class="qr-logo" src="N1024.png" alt="Digital NoteBook">
+      </div>
     </div>
 
-    <script>
-        let currentLang = localStorage.getItem('lang') || 'EN';
-        const cardUrl = "https://info.kamalgc.com.np";
+    <p class="muted" style="text-align:center;margin-bottom:0">
+      <span data-i18n="visit">Visit</span>
+      <span id="cardUrlText" class="accent">https://info.kamalgc.com.np</span>
+    </p>
+  </section>
+</main>
 
-        window.onload = function() {
-            updateLanguageUI();
-            updateThemeUI();
-            updateDynamicHeader();
-            loadUserData();
-            loadAvatar();
-            generateCardQR();
-        };
+<script>
+"use strict";
 
-        window.toggleSidebar = function() {
-            const sidebar = document.getElementById('sidebar');
-            if (sidebar) sidebar.classList.toggle('-translate-x-full');
-        };
+const SETTINGS_KEY = "digital_notebook_settings";
+const CARD_URL = "https://info.kamalgc.com.np";
 
-        window.updateLanguageUI = function() {
-            const btn = document.getElementById('lang-toggle-btn');
-            if(btn) btn.innerText = currentLang;
-            document.querySelectorAll('.lang-text').forEach(el => {
-                const text = currentLang === 'NEP' ? el.getAttribute('data-np') : el.getAttribute('data-en');
-                if(text) el.innerText = text;
-            });
-        };
+const TEXT = {
+  en: {
+    share: "Share Card",
+    qrTitle: "Digital Card QR",
+    scanHint: "Scan this QR code to visit the digital card website.",
+    visit: "Visit",
+    shareTitle: "Digital NoteBook Card",
+    shareText: "Visit my digital card:",
+    qrUnavailable: "QR Code could not be generated. Check your internet connection and reload this page.",
+    shareUnavailable: "Sharing is not supported by this browser. You can copy the website address shown below.",
+    shareFailed: "The card could not be shared. Please try again.",
+    canvasFailed: "The QR image could not be prepared. You can still share the website address.",
+    back: "Back",
+    unnamed: "Digital NoteBook"
+  },
+  ne: {
+    share: "कार्ड सेयर",
+    qrTitle: "डिजिटल कार्ड QR",
+    scanHint: "डिजिटल कार्डको वेबसाइट खोल्न यो QR कोड स्क्यान गर्नुहोस्।",
+    visit: "वेबसाइट",
+    shareTitle: "Digital NoteBook कार्ड",
+    shareText: "मेरो डिजिटल कार्ड हेर्नुहोस्:",
+    qrUnavailable: "QR Code बनाउन सकिएन। इन्टरनेट जाँचेर पेज फेरि खोल्नुहोस्।",
+    shareUnavailable: "यो ब्राउजरमा Share सुविधा उपलब्ध छैन। तलको वेबसाइट ठेगाना प्रयोग गर्नुहोस्।",
+    shareFailed: "कार्ड सेयर गर्न सकिएन। फेरि प्रयास गर्नुहोस्।",
+    canvasFailed: "QR को तस्वीर बनाउन सकिएन। वेबसाइट ठेगाना भने सेयर गर्न सक्नुहुन्छ।",
+    back: "पछाडि",
+    unnamed: "Digital NoteBook"
+  }
+};
 
-        window.toggleLanguage = function() {
-            currentLang = currentLang === 'EN' ? 'NEP' : 'EN';
-            localStorage.setItem('lang', currentLang);
-            updateLanguageUI();
-            updateDynamicHeader();
-        };
+let preferences = readPreferences();
+let qrInstance = null;
 
-        window.updateThemeUI = function() {
-            const isDark = document.documentElement.classList.contains('dark');
-            const themeBtn = document.getElementById('theme-toggle-btn');
-            if(themeBtn) themeBtn.innerText = isDark ? '🌛' : '🌞';
-        };
+function readPreferences() {
+  const defaults = {
+    lang: "en",
+    theme: "dark",
+    font_size: "16",
+    font_family: "Poppins",
+    accentColor: "#10b981",
+    layout: "comfortable"
+  };
 
-        window.toggleTheme = function() {
-            const htmlEl = document.documentElement;
-            if (htmlEl.classList.contains('dark')) {
-                htmlEl.classList.remove('dark');
-                localStorage.setItem('theme', 'light');
-            } else {
-                htmlEl.classList.add('dark');
-                localStorage.setItem('theme', 'dark');
-            }
-            updateThemeUI();
-        };
+  try {
+    const stored = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
+    if (!stored || typeof stored !== "object" || Array.isArray(stored)) {
+      return { ...defaults };
+    }
+    return { ...defaults, ...stored };
+  } catch (_) {
+    return { ...defaults };
+  }
+}
 
-        window.updateDynamicHeader = function() {
-            const now = new Date();
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            const dateString = now.toLocaleDateString(currentLang === 'NEP' ? 'ne-NP' : 'en-US', options).toUpperCase();
-            const dateEl = document.getElementById('dynamic-date');
-            if (dateEl) dateEl.innerText = dateString;
-        };
+function tr(key) {
+  const language = preferences.lang === "ne" ? "ne" : "en";
+  return (TEXT[language] && TEXT[language][key]) || TEXT.en[key] || key;
+}
 
-        window.saveProfileDetails = function() {
-            const name = document.getElementById('input-full-name').value;
-            if(name) localStorage.setItem('profile_name', name);
-            loadUserData();
-            showFeedback('Profile saved successfully!', 'success');
-        };
+function applyPreferences() {
+  const html = document.documentElement;
 
-        window.loadUserData = function() {
-            const savedName = localStorage.getItem('profile_name') || 'KAMAL G.C.';
-            if(document.getElementById('input-full-name')) document.getElementById('input-full-name').value = savedName;
-            const nameEl = document.getElementById('sidebar-profile-name');
-            if(nameEl) nameEl.innerText = savedName;
-            const profileNameEl = document.getElementById('profileName');
-            if(profileNameEl) profileNameEl.innerText = savedName;
-        };
+  html.lang = preferences.lang === "ne" ? "ne" : "en";
+  html.classList.toggle("dark", preferences.theme !== "light");
 
-        window.handleAvatarUpload = function(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    localStorage.setItem('profile_avatar', e.target.result);
-                    loadAvatar();
-                };
-                reader.readAsDataURL(file);
-            }
-        };
+  html.style.setProperty(
+    "--accent",
+    /^#[0-9a-f]{6}$/i.test(preferences.accentColor || "")
+      ? preferences.accentColor
+      : "#10b981"
+  );
 
-        window.loadAvatar = function() {
-            const savedImage = localStorage.getItem('profile_avatar') || 'N1024.png';
-            ['sidebar-avatar-img', 'header-avatar-img'].forEach(id => {
-                const img = document.getElementById(id);
-                if(img) img.src = savedImage;
-            });
-        };
+  const fontSize = Number(preferences.font_size);
+  html.style.setProperty(
+    "--app-font-size",
+    (fontSize >= 10 && fontSize <= 30 ? fontSize : 16) + "px"
+  );
 
-        window.generateCardQR = function() {
-            const qrcodeContainer = document.getElementById('qrcode');
-            if (!qrcodeContainer) return;
-            qrcodeContainer.innerHTML = ""; 
+  const allowedFonts = ["Poppins", "Arial", "Roboto", "Georgia", "system-ui"];
+  const font = allowedFonts.includes(preferences.font_family)
+    ? preferences.font_family
+    : "Poppins";
 
-            if (typeof QRCode !== 'undefined') {
-                new QRCode(qrcodeContainer, {
-                    text: cardUrl,
-                    width: 160,
-                    height: 160,
-                    correctLevel: QRCode.CorrectLevel.H
-                });
-            }
-        };
+  html.style.setProperty(
+    "--app-font-family",
+    JSON.stringify(font) + ", Arial, sans-serif"
+  );
 
-        window.openNativeShareSheet = async function() {
-            try {
-                const wrapper = document.getElementById('qrcodeWrapper');
-                if (window.html2canvas) {
-                    html2canvas(wrapper, { backgroundColor: '#ffffff', scale: 2 }).then(async (canvas) => {
-                        canvas.toBlob(async (blob) => {
-                            const file = new File([blob], "digital-card-qr.png", { type: "image/png" });
-                            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                                await navigator.share({
-                                    title: 'KAMAL G.C. - Digital Card',
-                                    text: 'Check out my Digital Business Card:',
-                                    url: cardUrl,
-                                    files: [file]
-                                });
-                            } else if (navigator.share) {
-                                await navigator.share({
-                                    title: 'KAMAL G.C. - Digital Card',
-                                    text: 'Check out my Digital Business Card:',
-                                    url: cardUrl
-                                });
-                            }
-                        }, 'image/png');
-                    });
-                }
-            } catch (err) {
-                showFeedback("Sharing cancelled!", "error");
-            }
-        };
+  document.body.dataset.layout =
+    preferences.layout === "compact" ? "compact" : "comfortable";
 
-        function showFeedback(message, type) {
-            const fb = document.getElementById('feedbackMsg');
-            if (!fb) return;
-            fb.className = `fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-4 py-2 rounded-xl text-xs font-bold shadow-lg transition-all ${type === 'success' ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'}`;
-            fb.textContent = message;
-            fb.classList.remove('hidden');
-            setTimeout(() => { fb.classList.add('hidden'); }, 3000);
+  document.querySelectorAll("[data-i18n]").forEach(element => {
+    const key = element.getAttribute("data-i18n");
+    element.textContent = tr(key);
+  });
+
+  document.getElementById("backButton").title = tr("back");
+  document.getElementById("backButton").setAttribute("aria-label", tr("back"));
+  document.title = "Digital NoteBook - " + tr("qrTitle");
+}
+
+function showError(message) {
+  const errorBox = document.getElementById("pageError");
+  errorBox.textContent = message;
+  errorBox.className = "status error show";
+}
+
+function clearError() {
+  const errorBox = document.getElementById("pageError");
+  errorBox.textContent = "";
+  errorBox.className = "status error";
+}
+
+function loadProfile() {
+  let name = "KAMAL G.C.";
+
+  try {
+    name = (localStorage.getItem("profile_name") || "").trim() || name;
+  } catch (_) {}
+
+  document.getElementById("profileName").textContent = name;
+}
+
+function generateQR() {
+  const container = document.getElementById("qrcode");
+  container.replaceChildren();
+
+  if (typeof QRCode === "undefined") {
+    showError(tr("qrUnavailable"));
+    return;
+  }
+
+  try {
+    qrInstance = new QRCode(container, {
+      text: CARD_URL,
+      width: 160,
+      height: 160,
+      colorDark: "#111827",
+      colorLight: "#ffffff",
+      correctLevel: QRCode.CorrectLevel.H
+    });
+
+    window.setTimeout(() => {
+      if (!container.querySelector("canvas, img")) {
+        showError(tr("qrUnavailable"));
+      } else {
+        clearError();
+      }
+    }, 500);
+  } catch (error) {
+    console.error("QR generation failed:", error);
+    showError(tr("qrUnavailable"));
+  }
+}
+
+async function shareCard() {
+  clearError();
+
+  if (!navigator.share) {
+    showError(tr("shareUnavailable"));
+    return;
+  }
+
+  const shareData = {
+    title: tr("shareTitle"),
+    text: tr("shareText"),
+    url: CARD_URL
+  };
+
+  try {
+    const capture = document.getElementById("qrCapture");
+
+    if (window.html2canvas && navigator.canShare && typeof File !== "undefined") {
+      try {
+        const canvas = await html2canvas(capture, {
+          backgroundColor: "#ffffff",
+          scale: 2,
+          useCORS: true
+        });
+
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
+
+        if (blob) {
+          const file = new File([blob], "digital-card-qr.png", {
+            type: "image/png"
+          });
+
+          if (navigator.canShare({ files: [file] })) {
+            shareData.files = [file];
+          }
         }
-    </script>
+      } catch (imageError) {
+        console.warn("QR image export unavailable:", imageError);
+      }
+    }
+
+    await navigator.share(shareData);
+  } catch (error) {
+    if (error && error.name === "AbortError") {
+      return;
+    }
+
+    console.error("Sharing failed:", error);
+    showError(tr("shareFailed"));
+  }
+}
+
+/* Back navigation only; no lock, password, logout or authentication code. */
+document.getElementById("backButton").addEventListener("click", event => {
+  event.preventDefault();
+
+  if (window.history.length > 1) {
+    window.history.back();
+  } else {
+    window.location.href = "index.html";
+  }
+});
+
+document.getElementById("shareButton").addEventListener("click", shareCard);
+
+window.addEventListener("storage", event => {
+  if (event.key !== SETTINGS_KEY) return;
+
+  preferences = readPreferences();
+  applyPreferences();
+});
+
+window.addEventListener("pageshow", () => {
+  preferences = readPreferences();
+  applyPreferences();
+});
+
+applyPreferences();
+loadProfile();
+document.getElementById("cardUrlText").textContent = CARD_URL;
+generateQR();
+</script>
 </body>
 </html>
