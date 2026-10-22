@@ -1,6 +1,6 @@
 
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="ne">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -9,15 +9,19 @@
 
 <script>
 (function(){
+  const KEY="digital_notebook_settings";
+  const defaults={theme:"dark",accentColor:"#10b981",font_size:"16",font_family:"Poppins",layout:"comfortable",lang:"ne"};
   let s={};
-  try{s=JSON.parse(localStorage.getItem("digital_notebook_settings")||"{}")||{};}catch(e){}
+  try{s=JSON.parse(localStorage.getItem(KEY)||"{}")||{};}catch(_){}
+  s={...defaults,...s};
   const root=document.documentElement;
-  root.lang=s.lang==="ne"?"ne":"en";
+  root.lang=s.lang==="en"?"en":"ne";
   root.classList.toggle("light",s.theme==="light");
-  root.style.setProperty("--accent",/^#[0-9a-f]{6}$/i.test(s.accentColor||"")?s.accentColor:"#10b981");
-  root.style.setProperty("--font-size",(Number(s.font_size)||16)+"px");
-  root.style.setProperty("--font-family",'"'+String(s.font_family||"Poppins").replace(/["\\]/g,"")+'",Arial,sans-serif');
-  root.dataset.layout=s.layout||"comfortable";
+  root.style.setProperty("--accent",/^#[0-9a-f]{6}$/i.test(s.accentColor)?s.accentColor:defaults.accentColor);
+  root.style.setProperty("--app-font-size",Math.max(12,Math.min(24,Number(s.font_size)||16))+"px");
+  const allowed=["Poppins","Arial","Roboto","Georgia","system-ui"];
+  root.style.setProperty("--app-font-family",(allowed.includes(s.font_family)?s.font_family:"Poppins")+",Arial,sans-serif");
+  root.dataset.layout=["compact","comfortable","wide"].includes(s.layout)?s.layout:"comfortable";
 })();
 </script>
 
@@ -28,23 +32,42 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
-:root{--bg:#0b1220;--panel:#151f31;--field:#1c2940;--text:#edf3ff;--muted:#9cacc5;--line:#2b3a54;--accent:#10b981;--danger:#fb7185;--font-size:16px;--font-family:Poppins,Arial,sans-serif}
-html.light{--bg:#f3f6fb;--panel:#fff;--field:#edf2f9;--text:#152033;--muted:#586780;--line:#d7e0ed;--danger:#be123c}
+:root{
+  --bg:#0b1220;--panel:#151f31;--field:#1c2940;
+  --text:#edf3ff;--muted:#9cacc5;--line:#2b3a54;
+  --accent:#10b981;--danger:#fb7185;
+  --app-font-size:16px;--app-font-family:Poppins,Arial,sans-serif
+}
+html.light{
+  --bg:#f3f6fb;--panel:#fff;--field:#edf2f9;
+  --text:#152033;--muted:#586780;--line:#d7e0ed;--danger:#be123c
+}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font:var(--font-size)/1.55 var(--font-family)}
+body{margin:0;background:var(--bg);color:var(--text);font:var(--app-font-size)/1.55 var(--app-font-family)}
 button,input,select,textarea{font:inherit}
-header{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;padding:12px 15px;background:var(--panel);border-bottom:1px solid var(--line)}
-header a{color:var(--text);text-decoration:none;font-size:25px}
+header{
+  position:sticky;top:0;z-index:10;display:flex;align-items:center;
+  gap:13px;padding:12px 15px;background:var(--panel);
+  border-bottom:1px solid var(--line)
+}
+header a{color:var(--text);text-decoration:none;font-size:27px;line-height:1}
 header strong{font-size:1rem}
 main{width:min(1050px,100%);margin:auto;padding:14px;display:grid;gap:14px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:16px}
-h1{font-size:1.4rem;margin:0 0 8px}h2{font-size:1.15rem;margin:0 0 12px}
-p{margin:8px 0}.muted,.status{color:var(--muted)}
-.status{margin-left:auto;font-size:.75rem}
+h1{font-size:1.4rem;margin:0 0 8px}
+h2{font-size:1.15rem;margin:0 0 12px}
+p{margin:8px 0}
+.muted{color:var(--muted)}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:10px}
 label{display:block;color:var(--muted);font-size:.88rem}
-input,select,textarea{width:100%;margin-top:4px;padding:10px;color:var(--text);background:var(--field);border:1px solid var(--line);border-radius:9px}
-button{padding:9px 12px;border:1px solid var(--line);border-radius:9px;color:var(--text);background:var(--field);cursor:pointer;font-weight:600}
+input,select,textarea{
+  width:100%;margin-top:4px;padding:10px;color:var(--text);
+  background:var(--field);border:1px solid var(--line);border-radius:9px
+}
+button{
+  padding:9px 12px;border:1px solid var(--line);border-radius:9px;
+  color:var(--text);background:var(--field);cursor:pointer;font-weight:600
+}
 button:disabled{opacity:.5;cursor:not-allowed}
 .primary{background:var(--accent);color:#05291e;border-color:var(--accent)}
 .danger{color:var(--danger)}
@@ -56,33 +79,46 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .group-total{color:var(--accent)}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:9px;margin-top:12px}
 .stat{padding:11px;border-radius:10px;background:var(--field)}
-.stat small{display:block;color:var(--muted)}.stat strong{overflow-wrap:anywhere}
+.stat small{display:block;color:var(--muted)}
+.stat strong{overflow-wrap:anywhere}
 .progress{height:8px;background:var(--line);border-radius:20px;overflow:hidden;margin-top:6px}
 .progress span{display:block;height:100%;background:var(--accent);width:0}
 #pageStatus{padding:9px 11px;border-radius:8px;background:var(--field);white-space:pre-wrap;overflow-wrap:anywhere}
 #pageStatus:empty{display:none}
+#syncStatus{font-size:.85rem}
 body.auth-pending main{visibility:hidden}
 body[data-layout="compact"] main{padding:8px;gap:8px}
 body[data-layout="compact"] .card{padding:10px}
-#pdfStage{position:fixed;left:-20000px;top:0;width:1000px;background:white;color:#111;padding:22px;font:12px Arial,sans-serif}
-#pdfStage h1,#pdfStage h2,#pdfStage p{color:#111}
-#pdfStage table{border-collapse:collapse;width:100%;margin-top:10px}
-#pdfStage th,#pdfStage td{border:1px solid #777;padding:6px;text-align:left;overflow-wrap:anywhere}
-#pdfStage th{background:#e9eef5}
-#pdfStage .banner{border:2px solid #333;padding:12px;margin-bottom:14px}
-@media(max-width:560px){main{padding:8px}.card{padding:11px}.status{max-width:100px}.row button,.actions button{flex:1 1 auto}}
+body[data-layout="wide"] main{width:min(1400px,100%)}
+#pdfStage{
+  position:fixed;left:-20000px;top:0;width:1100px;
+  background:#fff;color:#172033;padding:22px;
+  font:11px Arial,"Noto Sans Devanagari",sans-serif
+}
+#pdfStage h1,#pdfStage h2,#pdfStage p{color:inherit}
+#pdfStage table{border-collapse:collapse;width:100%;margin-bottom:16px}
+#pdfStage th,#pdfStage td{border:1px solid #9aada6;padding:6px;vertical-align:top;overflow-wrap:anywhere}
+#pdfStage th{background:#dcebe5;text-align:left}
+#pdfStage .right{text-align:right}
+#pdfStage tr{page-break-inside:avoid}
+@media(max-width:560px){
+  main{padding:8px}.card{padding:11px}
+  .row button,.actions button{flex:1 1 auto}
+}
 </style>
 </head>
 
 <body class="auth-pending">
 <header>
-  <a href="index.html" id="backButton" aria-label="Back">←</a>
-  <strong>📘 Digital NoteBook · Savings</strong>
-  <span class="status" id="syncStatus">Checking sign-in…</span>
+  <a href="./index.html" id="backButton" aria-label="Back" title="Back">←</a>
+  <strong>📘 Digital NoteBook</strong>
 </header>
 
 <main>
-  <div id="pageStatus" role="status" aria-live="polite"></div>
+  <section class="card">
+    <div id="syncStatus" class="muted">Cloud Sync जाँच हुँदैछ…</div>
+    <div id="pageStatus" role="status" aria-live="polite"></div>
+  </section>
 
   <section class="card">
     <h1>बचत / Savings</h1>
@@ -150,14 +186,17 @@ body[data-layout="compact"] .card{padding:10px}
       <div class="stat"><small>कुल बचत</small><strong id="totalSaved">NPR 0.00</strong></div>
       <div class="stat"><small>नामका समूह</small><strong id="groupCount">0</strong></div>
       <div class="stat"><small>रेकर्ड संख्या</small><strong id="recordCount">0</strong></div>
-      <div class="stat"><small>लक्ष्य प्रगति</small><strong id="goalProgress">—</strong><div class="progress"><span id="goalBar"></span></div></div>
+      <div class="stat">
+        <small>लक्ष्य प्रगति</small><strong id="goalProgress">—</strong>
+        <div class="progress"><span id="goalBar"></span></div>
+      </div>
     </div>
     <div id="groupList"></div>
   </section>
 
   <section class="card">
     <h2>यस पेजमा हालै हटाइएका बचत</h2>
-    <p class="muted">यहाँबाट Restore गर्न सकिन्छ। सबै पेजको साझा Trash हेर्न Account खोल्नुहोस्।</p>
+    <p class="muted">Restore गर्न सकिन्छ। सबै पेजको साझा Trash Account मा पनि उपलब्ध हुन्छ।</p>
     <div id="trashList"></div>
     <div class="row"><button type="button" id="accountButton">Account · Central Trash</button></div>
   </section>
@@ -179,54 +218,102 @@ const FIREBASE_CONFIG={
 };
 
 const PATH="savings";
-const DAY=86400000;
+const DAY_MS=86400000;
 const SETTINGS_KEY="digital_notebook_settings";
 const $=id=>document.getElementById(id);
+
 const state={
-  uid:null,user:null,records:{},trash:{},expanded:{},
-  settings:readSettings(),dataRef:null,trashRef:null,
-  dataCallback:null,trashCallback:null
+  uid:null,user:null,records:{},trash:{},expanded:{},settings:readSettings(),
+  dataRef:null,trashRef:null,dataCallback:null,trashCallback:null
 };
 
 function readSettings(){
   let s={};
-  try{s=JSON.parse(localStorage.getItem(SETTINGS_KEY)||"{}")||{};}catch(e){}
-  return {lang:"en",theme:localStorage.getItem("theme")||"dark",font_size:"16",font_family:"Poppins",accentColor:"#10b981",layout:"comfortable",...s};
+  try{s=JSON.parse(localStorage.getItem(SETTINGS_KEY)||"{}")||{};}catch(_){}
+  const defaults={
+    lang:"ne",theme:"dark",font_size:"16",font_family:"Poppins",
+    accentColor:"#10b981",layout:"comfortable"
+  };
+  return {...defaults,...s};
 }
+
 function esc(v){
-  return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  return String(v??"").replace(/[&<>"']/g,c=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[c]));
 }
-function num(v){const n=Number(v);return Number.isFinite(n)?n:0;}
-function money(v){return "NPR "+num(v).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2});}
+function num(v){
+  const n=Number(v);
+  return Number.isFinite(n)?n:0;
+}
+function money(v){
+  return "NPR "+num(v).toLocaleString("en-IN",{
+    minimumFractionDigits:2,maximumFractionDigits:2
+  });
+}
+function validKey(id){
+  return typeof id==="string"&&id.length>0&&!/[.#$\[\]\/]/.test(id);
+}
 function showStatus(message,error=false){
   const el=$("pageStatus");
   el.textContent=message||"";
-  el.style.borderLeft=message?(error?"4px solid #fb7185":"4px solid var(--accent)"):"";
+  el.style.borderLeft=message?(error?"4px solid var(--danger)":"4px solid var(--accent)"):"";
 }
 function userRef(path=""){
   if(!state.uid)throw new Error("पहिले index.html बाट लगइन गर्नुहोस्।");
   return firebase.database().ref("users/"+state.uid+(path?"/"+path:""));
 }
+
 function applySettings(){
   const s=state.settings,root=document.documentElement;
-  root.lang=s.lang==="ne"?"ne":"en";
+  const allowedFonts=["Poppins","Arial","Roboto","Georgia","system-ui"];
+  root.lang=s.lang==="en"?"en":"ne";
   root.classList.toggle("light",s.theme==="light");
   root.classList.toggle("dark",s.theme!=="light");
   root.style.setProperty("--accent",/^#[0-9a-f]{6}$/i.test(s.accentColor||"")?s.accentColor:"#10b981");
-  root.style.setProperty("--font-size",(Number(s.font_size)||16)+"px");
-  root.style.setProperty("--font-family",'"'+String(s.font_family||"Poppins").replace(/["\\]/g,"")+'",Arial,sans-serif');
-  root.dataset.layout=s.layout||"comfortable";
-  document.body.dataset.layout=s.layout||"comfortable";
+  root.style.setProperty("--app-font-size",Math.max(12,Math.min(24,Number(s.font_size)||16))+"px");
+  root.style.setProperty("--app-font-family",(allowedFonts.includes(s.font_family)?s.font_family:"Poppins")+",Arial,sans-serif");
+  const layout=["compact","comfortable","wide"].includes(s.layout)?s.layout:"comfortable";
+  root.dataset.layout=layout;
+  document.body.dataset.layout=layout;
+}
+
+function refreshSettings(){
+  state.settings=readSettings();
+  applySettings();
 }
 window.addEventListener("storage",e=>{
-  if(e.key!==SETTINGS_KEY||!e.newValue)return;
-  try{state.settings={...state.settings,...JSON.parse(e.newValue)};applySettings();}catch(_){}
+  if(e.key===SETTINGS_KEY)refreshSettings();
 });
-function entries(){
-  return Object.entries(state.records||{}).filter(([,r])=>r&&typeof r==="object"&&!Array.isArray(r))
-    .map(([id,r])=>({...r,id:validKey(r.id)?r.id:id}));
+window.addEventListener("focus",refreshSettings);
+window.addEventListener("pageshow",refreshSettings);
+
+function mapRecords(value){
+  const mapped={};
+  if(!value||typeof value!=="object")return mapped;
+
+  if(Array.isArray(value)){
+    value.forEach((record,index)=>{
+      if(record&&typeof record==="object"&&!Array.isArray(record)){
+        const id=String(index);
+        mapped[id]={...record,id};
+      }
+    });
+    return mapped;
+  }
+
+  Object.entries(value).forEach(([key,record])=>{
+    if(record&&typeof record==="object"&&!Array.isArray(record)){
+      mapped[key]={...record,id:key};
+    }
+  });
+  return mapped;
 }
-function validKey(id){return typeof id==="string"&&!!id&&!/[.#$\[\]\/]/.test(id);}
+function entries(){
+  return Object.entries(state.records||{})
+    .filter(([,r])=>r&&typeof r==="object"&&!Array.isArray(r))
+    .map(([id,r])=>({...r,id}));
+}
 function totalOf(r){
   if(r.total!==undefined&&Number.isFinite(Number(r.total)))return num(r.total);
   return num(r.npr)+num(r.inr)*(num(r.rate)||1.6);
@@ -242,7 +329,9 @@ function resetForm(){
   $("savingForm").reset();
   $("recordId").value="";
   $("date").value=new Date().toISOString().slice(0,10);
-  $("npr").value="0";$("inr").value="0";$("rate").value="1.6";
+  $("npr").value="0";
+  $("inr").value="0";
+  $("rate").value="1.6";
   $("formHeading").textContent="बचत रेकर्ड थप्नुहोस्";
   $("saveButton").textContent="बचत सेभ";
   calc();
@@ -253,62 +342,92 @@ async function saveRecord(id,data,editing){
   const result=await ref.transaction(old=>{
     if(editing&&old===null)return;
     if(!editing&&old!==null)return;
-    return {...(old||{}),...data,id,
+    return {
+      ...(old||{}),...data,id,
       createdAt:old&&old.createdAt?old.createdAt:Date.now(),
-      updatedAt:Date.now()};
+      updatedAt:Date.now()
+    };
   },undefined,false);
-  if(!result.committed)throw new Error("रेकर्ड परिवर्तन भएको वा हटाइएको हुन सक्छ। फेरि लोड गरेर प्रयास गर्नुहोस्।");
+
+  if(!result.committed){
+    throw new Error("रेकर्ड परिवर्तन भएको वा हटाइएको हुन सक्छ। डाटा Refresh गरेर पुनः प्रयास गर्नुहोस्।");
+  }
 }
 
 async function moveToTrash(id){
-  /* केवल छनोट गरिएको एउटै record लाई मात्र सारिन्छ। */
   const record=state.records[id];
   if(!record||typeof record!=="object"){
-    showStatus("यो रेकर्ड भेटिएन। पेज Refresh गरेर प्रयास गर्नुहोस्।",true);return;
+    showStatus("यो रेकर्ड भेटिएन। Refresh गरेर प्रयास गर्नुहोस्।",true);
+    return;
   }
-  if(!confirm("‘"+String(record.title||"बचत रेकर्ड")+"’ लाई साझा Account Trash मा सार्ने? अन्य रेकर्ड मेटिँदैनन्।"))return;
+  if(!confirm("यो बचत रेकर्ड साझा Account Trash मा सार्ने? अन्य रेकर्ड मेटिँदैनन्।"))return;
 
   const now=Date.now();
   const entry={
     id,category:PATH,recordType:PATH,
     originalPath:"users/"+state.uid+"/"+PATH+"/"+id,
     data:{...record,id},
-    deletedAt:now,expiresAt:now+30*DAY,schemaVersion:1
+    deletedAt:now,expiresAt:now+30*DAY_MS,schemaVersion:1
   };
 
   try{
-    /* एउटै atomic update: यही record हटाउने र यही record को Trash entry बनाउने। */
     const updates={};
     updates[PATH+"/"+id]=null;
     updates["trash/"+PATH+"/"+id]=entry;
     await userRef("").update(updates);
-    showStatus("यो बचत रेकर्ड साझा Account Trash मा सारियो।");
+    showStatus("बचत रेकर्ड साझा Account Trash मा सारियो।");
   }catch(e){
     showStatus("Trash मा सार्न सकिएन: "+(e.message||e),true);
   }
 }
 
 async function restoreRecord(id){
-  const entry=(state.trash||{})[id];
-  if(!entry||!entry.data){showStatus("Trash रेकर्ड वा विवरण भेटिएन।",true);return;}
-  if(num(entry.expiresAt)<=Date.now()){showStatus("यस रेकर्डको ३० दिनको Restore म्याद सकिएको छ।",true);return;}
+  const entry=state.trash[id];
+  if(!entry||!entry.data){
+    showStatus("Trash रेकर्ड वा विवरण भेटिएन।",true);
+    return;
+  }
+  const expiry=num(entry.expiresAt)||(num(entry.deletedAt)+30*DAY_MS);
+  if(expiry<=Date.now()){
+    showStatus("यस रेकर्डको ३० दिनको Restore म्याद सकिएको छ।",true);
+    return;
+  }
+
   try{
-    const result=await userRef(PATH+"/"+id).transaction(old=>old===null?{...entry.data,id}:undefined,undefined,false);
-    if(!result.committed){showStatus("मूल स्थानमा यही ID को रेकर्ड पहिल्यै छ। कुनै रेकर्ड overwrite गरिएको छैन।",true);return;}
+    const result=await userRef(PATH+"/"+id).transaction(old=>{
+      if(old!==null)return;
+      return {...entry.data,id,restoredAt:Date.now()};
+    },undefined,false);
+
+    if(!result.committed){
+      showStatus("मूल स्थानमा यही ID को रेकर्ड पहिल्यै छ। कुनै रेकर्ड overwrite गरिएको छैन।",true);
+      return;
+    }
+
     await userRef("trash/"+PATH+"/"+id).remove();
     showStatus("बचत रेकर्ड Restore भयो।");
-  }catch(e){showStatus("Restore असफल: "+(e.message||e),true);}
+  }catch(e){
+    showStatus("Restore असफल: "+(e.message||e),true);
+  }
 }
 
 function renderTrash(){
   const list=$("trashList");
   const rows=Object.entries(state.trash||{}).filter(([,x])=>x&&x.data);
-  if(!rows.length){list.innerHTML='<p class="muted">यस पेजका Trash रेकर्ड छैनन्। सबै पेजको साझा Trash Account मा हेर्नुहोस्।</p>';return;}
+  if(!rows.length){
+    list.innerHTML='<p class="muted">यस पेजका Trash रेकर्ड छैनन्।</p>';
+    return;
+  }
+
   list.innerHTML=rows.sort((a,b)=>num(b[1].deletedAt)-num(a[1].deletedAt)).map(([id,x])=>{
-    const expired=num(x.expiresAt)<=Date.now();
+    const expiry=num(x.expiresAt)||(num(x.deletedAt)+30*DAY_MS);
+    const expired=expiry<=Date.now();
     return `<article class="record">
       <div class="record-title">${esc(x.data.title||"बचत रेकर्ड")}</div>
-      <div class="record-detail">हटाइएको: ${esc(x.deletedAt?new Date(x.deletedAt).toLocaleString():"—")}<br>म्याद: ${esc(x.expiresAt?new Date(x.expiresAt).toLocaleDateString():"—")}</div>
+      <div class="record-detail">
+        हटाइएको: ${esc(x.deletedAt?new Date(x.deletedAt).toLocaleString():"—")}<br>
+        म्याद: ${esc(expiry?new Date(expiry).toLocaleDateString():"—")}
+      </div>
       <button type="button" data-restore="${esc(id)}" ${expired?"disabled":""}>${expired?"म्याद सकियो":"Restore"}</button>
     </article>`;
   }).join("");
@@ -317,8 +436,10 @@ function renderTrash(){
 function render(){
   const all=entries();
   const q=$("search").value.trim().toLocaleLowerCase();
-  const visible=all.filter(r=>[r.title,r.category,r.note,r.date].some(v=>String(v??"").toLocaleLowerCase().includes(q)));
-  const total=all.reduce((s,r)=>s+totalOf(r),0);
+  const visible=all.filter(r=>
+    [r.title,r.category,r.note,r.date].some(v=>String(v??"").toLocaleLowerCase().includes(q))
+  );
+  const total=all.reduce((sum,r)=>sum+totalOf(r),0);
   const goal=Math.max(0,num($("goal").value));
   const groups=new Map();
 
@@ -331,24 +452,33 @@ function render(){
   });
 
   $("totalSaved").textContent=money(total);
-  $("groupCount").textContent=String(new Set(all.map(r=>String(r.title||"").trim().toLocaleLowerCase()||"__unnamed__")).size);
+  $("groupCount").textContent=String(
+    new Set(all.map(r=>String(r.title||"").trim().toLocaleLowerCase()||"__unnamed__")).size
+  );
   $("recordCount").textContent=String(all.length);
+
   const pct=goal>0?Math.min(100,total/goal*100):0;
   $("goalProgress").textContent=goal>0?pct.toFixed(1)+"%":"—";
   $("goalBar").style.width=pct+"%";
 
   $("groupList").innerHTML=[...groups.values()].sort((a,b)=>a.name.localeCompare(b.name)).map(g=>{
-    const key=g.name.toLocaleLowerCase(),open=!!state.expanded[key];
+    const key=g.name.toLocaleLowerCase();
+    const open=!!state.expanded[key];
     g.records.sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
+
     const details=open?g.records.map(r=>`<div class="record">
       <div class="record-title">${esc(r.date||"—")} · ${esc(r.category||"")}</div>
       <div><strong>${esc(money(totalOf(r)))}</strong></div>
-      <div class="record-detail">NPR: ${esc(num(r.npr).toFixed(2))} · INR: ${esc(num(r.inr).toFixed(2))} · दर: ${esc(num(r.rate||1.6).toFixed(2))}<br>${esc(r.note||"")}</div>
+      <div class="record-detail">
+        NPR: ${esc(num(r.npr).toFixed(2))} · INR: ${esc(num(r.inr).toFixed(2))} · दर: ${esc(num(r.rate||1.6).toFixed(2))}<br>
+        ${esc(r.note||"")}
+      </div>
       <div class="actions">
         <button type="button" data-edit="${esc(r.id)}">सम्पादन</button>
         <button type="button" class="danger" data-trash="${esc(r.id)}">यो रेकर्ड Trash मा सार्नुहोस्</button>
       </div>
     </div>`).join(""):"";
+
     return `<section class="record">
       <button type="button" class="group-head" data-group="${esc(key)}" aria-expanded="${open}">
         <span><strong>${esc(g.name)}</strong> (${g.records.length} रेकर्ड)</span>
@@ -356,74 +486,132 @@ function render(){
       </button>${details}
     </section>`;
   }).join("")||'<p class="muted">बचत रेकर्ड भेटिएन।</p>';
+
   renderTrash();
 }
 
 $("savingForm").addEventListener("submit",async e=>{
   e.preventDefault();
-  if(!state.uid){showStatus("पहिले index.html बाट लगइन गर्नुहोस्।",true);return;}
-  const npr=num($("npr").value),inr=num($("inr").value),rate=num($("rate").value);
-  if(npr<0||inr<0||rate<=0||![npr,inr,rate].every(Number.isFinite)){
-    showStatus("NPR/INR रकम शून्य वा बढी र INR दर शून्यभन्दा बढी राख्नुहोस्।",true);return;
+  if(!state.uid){
+    showStatus("पहिले index.html बाट लगइन गर्नुहोस्।",true);
+    return;
   }
+
+  const npr=num($("npr").value);
+  const inr=num($("inr").value);
+  const rate=num($("rate").value);
+  if(npr<0||inr<0||rate<=0||![npr,inr,rate].every(Number.isFinite)){
+    showStatus("NPR/INR रकम शून्य वा बढी र INR दर शून्यभन्दा बढी राख्नुहोस्।",true);
+    return;
+  }
+
   const editing=!!$("recordId").value;
   const id=$("recordId").value||userRef(PATH).push().key;
-  if(!validKey(id)){showStatus("रेकर्ड ID मान्य छैन।",true);return;}
+  if(!validKey(id)){
+    showStatus("रेकर्ड ID मान्य छैन।",true);
+    return;
+  }
+
   const data={
-    title:$("title").value.trim(),category:$("category").value,
-    date:$("date").value,npr,inr,rate,
-    total:Number((npr+inr*rate).toFixed(2)),note:$("note").value.trim()
+    title:$("title").value.trim(),
+    category:$("category").value,
+    date:$("date").value,
+    npr,inr,rate,
+    total:Number((npr+inr*rate).toFixed(2)),
+    note:$("note").value.trim()
   };
-  if(!data.title||!data.date){showStatus("नाम र मिति अनिवार्य छन्।",true);return;}
+  if(!data.title||!data.date){
+    showStatus("नाम र मिति अनिवार्य छन्।",true);
+    return;
+  }
 
   $("saveButton").disabled=true;
   try{
     await saveRecord(id,data,editing);
     resetForm();
     showStatus(editing?"बचत रेकर्ड अपडेट भयो।":"बचत रेकर्ड सेभ भयो।");
-  }catch(err){showStatus("सेभ गर्न सकिएन: "+(err.message||err),true);}
-  finally{$("saveButton").disabled=false;}
+  }catch(err){
+    showStatus("सेभ गर्न सकिएन: "+(err.message||err),true);
+  }finally{
+    $("saveButton").disabled=false;
+  }
 });
 
 $("groupList").addEventListener("click",async e=>{
   const group=e.target.closest("[data-group]");
-  if(group){state.expanded[group.dataset.group]=!state.expanded[group.dataset.group];render();return;}
+  if(group){
+    state.expanded[group.dataset.group]=!state.expanded[group.dataset.group];
+    render();
+    return;
+  }
+
   const edit=e.target.closest("[data-edit]");
   if(edit){
-    const id=edit.dataset.edit,r=state.records[id];
-    if(!r){showStatus("रेकर्ड भेटिएन। Refresh गरेर प्रयास गर्नुहोस्।",true);return;}
+    const id=edit.dataset.edit;
+    const r=state.records[id];
+    if(!r){
+      showStatus("रेकर्ड भेटिएन। Refresh गरेर प्रयास गर्नुहोस्।",true);
+      return;
+    }
+
     $("recordId").value=id;
-    ["title","category","date","npr","inr","rate","note"].forEach(k=>$(k).value=r[k]??(k==="rate"?"1.6":""));
+    ["title","category","date","npr","inr","rate","note"].forEach(k=>{
+      $(k).value=r[k]??(k==="rate"?"1.6":"");
+    });
     $("formHeading").textContent="बचत रेकर्ड सम्पादन";
     $("saveButton").textContent="अपडेट गर्नुहोस्";
-    calc();window.scrollTo({top:0,behavior:"smooth"});return;
+    calc();
+    window.scrollTo({top:0,behavior:"smooth"});
+    return;
   }
+
   const del=e.target.closest("[data-trash]");
   if(del)await moveToTrash(del.dataset.trash);
 });
+
 $("trashList").addEventListener("click",e=>{
   const b=e.target.closest("[data-restore]");
   if(b)restoreRecord(b.dataset.restore);
 });
 $("search").addEventListener("input",render);
 $("cancelButton").addEventListener("click",resetForm);
-$("accountButton").addEventListener("click",()=>location.href="account.html");
+$("accountButton").addEventListener("click",()=>location.href="./account.html");
+
 $("goal").value=localStorage.getItem("savings_target_amount")||"";
 $("goal").addEventListener("change",()=>{
-  try{localStorage.setItem("savings_target_amount",$("goal").value);showStatus("बचत लक्ष्य यस उपकरणमा सेभ भयो।");}
-  catch(e){showStatus("बचत लक्ष्य स्थानीय रूपमा सेभ गर्न सकिएन।",true);}
+  try{
+    localStorage.setItem("savings_target_amount",$("goal").value);
+    showStatus("बचत लक्ष्य यस उपकरणमा सेभ भयो।");
+  }catch(_){
+    showStatus("बचत लक्ष्य स्थानीय रूपमा सेभ गर्न सकिएन।",true);
+  }
   render();
 });
 
 async function importLegacyData(){
-  if(!state.uid){showStatus("पहिले लगइन गर्नुहोस्।",true);return;}
-  if(!navigator.onLine){showStatus("पुरानो डाटा Import गर्न इन्टरनेट चाहिन्छ।",true);return;}
+  if(!state.uid){
+    showStatus("पहिले लगइन गर्नुहोस्।",true);
+    return;
+  }
+  if(!navigator.onLine){
+    showStatus("पुरानो डाटा Import गर्न इन्टरनेट चाहिन्छ।",true);
+    return;
+  }
   if(!confirm("स्थानीय पुरानो बचत Cloud मा Import गर्ने? Cloud मा भएका रेकर्ड overwrite गरिने छैनन्।"))return;
+
   try{
     const marker=userRef("migration/local-savings-v2");
-    if((await marker.once("value")).exists()){showStatus("स्थानीय बचत Import पहिले नै गरिएको छ।",true);return;}
+    if((await marker.once("value")).exists()){
+      showStatus("स्थानीय बचत Import पहिले नै गरिएको छ।",true);
+      return;
+    }
+
     const cloud=await userRef(PATH).once("value");
-    if(cloud.exists()&&Object.keys(cloud.val()||{}).length){showStatus("Cloud मा बचत रेकर्ड छन्। डाटा सुरक्षित राख्न Import रोकियो।",true);return;}
+    if(cloud.exists()&&Object.keys(cloud.val()||{}).length){
+      showStatus("Cloud मा बचत रेकर्ड छन्। डाटा सुरक्षित राख्न Import रोकियो।",true);
+      return;
+    }
+
     let old=[];
     ["digital_notebook_savings","savings","saving_data","add_saving_list"].forEach(k=>{
       try{
@@ -433,63 +621,152 @@ async function importLegacyData(){
       }catch(_){}
     });
     old=old.filter(x=>x&&typeof x==="object"&&!Array.isArray(x));
-    if(!old.length){showStatus("स्थानीय पुरानो बचत डाटा भेटिएन।",true);return;}
+    if(!old.length){
+      showStatus("स्थानीय पुरानो बचत डाटा भेटिएन।",true);
+      return;
+    }
+
     let count=0;
     for(const r of old){
       const id=validKey(r.id)?r.id:userRef(PATH).push().key;
-      const result=await userRef(PATH+"/"+id).transaction(current=>current===null?{...r,id,createdAt:r.createdAt||Date.now(),updatedAt:Date.now(),migratedFromLocal:true}:undefined,undefined,false);
+      const result=await userRef(PATH+"/"+id).transaction(current=>{
+        if(current!==null)return;
+        return {...r,id,createdAt:r.createdAt||Date.now(),updatedAt:Date.now(),migratedFromLocal:true};
+      },undefined,false);
       if(result.committed)count++;
     }
+
     await marker.set({completedAt:Date.now(),imported:count,source:"localStorage"});
     showStatus("Import पूरा भयो। आयात गरिएका रेकर्ड: "+count);
-  }catch(err){showStatus("Import असफल: "+(err.message||err),true);}
+  }catch(err){
+    showStatus("Import असफल: "+(err.message||err),true);
+  }
 }
 $("importButton").addEventListener("click",importLegacyData);
 
-function profileValue(keys){
-  for(const k of keys){const v=localStorage.getItem(k);if(v&&v.trim())return v.trim();}
-  return "";
+function profileForPdf(){
+  const user=state.user;
+  return {
+    name:localStorage.getItem("profile_name")||
+      localStorage.getItem("user_profile_name")||
+      localStorage.getItem("fullName")||"",
+    email:localStorage.getItem("profile_email")||
+      localStorage.getItem("user_email")||user?.email||"",
+    address:localStorage.getItem("profile_address")||
+      localStorage.getItem("user_address")||"",
+    mobile:localStorage.getItem("profile_mobile")||
+      localStorage.getItem("user_mobile")||""
+  };
 }
-function pdfHtml(){
-  const all=entries().sort((a,b)=>String(a.title||"").localeCompare(String(b.title||""))||String(a.date||"").localeCompare(String(b.date||"")));
-  const name=profileValue(["profile_name","user_full_name","fullName"]);
-  const address=profileValue(["profile_address","user_address","address"]);
-  const mobile=profileValue(["profile_mobile","user_mobile","mobile"]);
-  const email=state.user?.email||profileValue(["profile_email","user_email"]);
-  const total=all.reduce((s,r)=>s+totalOf(r),0),goal=num($("goal").value);
-  let html=`<div class="banner">
-    <h1>📘 Digital NoteBook</h1><h2>बचतको हिसाब</h2>
-    <h3>प्रयोगकर्ताको विवरण</h3>
-    <p><b>नाम:</b> ${esc(name||"—")}</p>
-    <p><b>ठेगाना:</b> ${esc(address||"—")}</p>
-    <p><b>मोबाइल:</b> ${esc(mobile||"—")}</p>
-    <p><b>इमेल:</b> ${esc(email||"—")}</p>
-    <p><b>बनाइएको मिति:</b> ${esc(new Date().toLocaleString())}</p>
-  </div><h2>सारांश</h2>
-  <p><b>कुल बचत:</b> ${esc(money(total))}</p>
-  <p><b>बचत लक्ष्य:</b> ${esc(goal?money(goal):"—")}</p>
-  <p><b>लक्ष्य प्रगति:</b> ${esc(goal?Math.min(100,total/goal*100).toFixed(1)+"%":"—")}</p>
-  <table><thead><tr><th>मिति</th><th>बचतको नाम</th><th>श्रेणी</th><th>NPR</th><th>INR</th><th>दर</th><th>कुल NPR</th><th>कैफियत</th></tr></thead><tbody>`;
-  all.forEach(r=>{
-    html+=`<tr><td>${esc(r.date||"—")}</td><td>${esc(r.title||"—")}</td><td>${esc(r.category||"—")}</td><td>${esc(num(r.npr).toFixed(2))}</td><td>${esc(num(r.inr).toFixed(2))}</td><td>${esc(num(r.rate||1.6).toFixed(2))}</td><td>${esc(totalOf(r).toFixed(2))}</td><td>${esc(r.note||"")}</td></tr>`;
-  });
-  return html+"</tbody></table>";
+
+/* Income PDF सँग मिल्दोजुल्दो banner, user details र table format. */
+function buildPdfHtml(){
+  const records=entries().sort((a,b)=>
+    String(a.date||"").localeCompare(String(b.date||""))||
+    String(a.title||"").localeCompare(String(b.title||""))
+  );
+  const profile=profileForPdf();
+  const total=records.reduce((sum,r)=>sum+totalOf(r),0);
+  const goal=Math.max(0,num($("goal").value));
+  const reportDate=new Date().toLocaleString();
+  const missing="उल्लेख गरिएको छैन";
+
+  const rows=records.map((r,index)=>`
+    <tr>
+      <td>${index+1}</td>
+      <td>${esc(r.date||"")}</td>
+      <td>${esc(r.title||"")}</td>
+      <td>${esc(r.category||"")}</td>
+      <td class="right">${num(r.npr).toFixed(2)}</td>
+      <td class="right">${num(r.inr).toFixed(2)}</td>
+      <td class="right">${num(r.rate||1.6).toFixed(2)}</td>
+      <td class="right">${totalOf(r).toFixed(2)}</td>
+      <td>${esc(r.note||"")}</td>
+    </tr>
+  `).join("");
+
+  return `
+    <div style="background:#fff;color:#172033;padding:22px;font-family:Arial,'Noto Sans Devanagari',sans-serif;font-size:11px;width:100%">
+      <div style="background:#102b3f;color:#fff;padding:18px;border-radius:8px;border-bottom:5px solid #10b981;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <img src="N1024.png" alt="Digital NoteBook" style="width:55px;height:55px;object-fit:contain" onerror="this.style.display='none'">
+          <div>
+            <h1 style="font-size:23px;margin:0 0 5px;color:#fff">Digital NoteBook</h1>
+            <div style="font-size:13px;color:#fff">बचत विवरण रिपोर्ट</div>
+          </div>
+        </div>
+        <hr style="border:0;border-top:1px solid #547080;margin:13px 0">
+        <div style="line-height:1.9;color:#fff">
+          <b>प्रयोगकर्ताको विवरण</b><br>
+          <b>नाम:</b> ${esc(profile.name||missing)}<br>
+          <b>इमेल:</b> ${esc(profile.email||missing)}<br>
+          <b>ठेगाना:</b> ${esc(profile.address||missing)}<br>
+          <b>मोबाइल:</b> ${esc(profile.mobile||missing)}<br>
+          <b>रिपोर्ट मिति:</b> ${esc(reportDate)}
+        </div>
+      </div>
+
+      <div style="background:#eaf7f0;border:1px solid #b8e2cc;border-radius:6px;padding:12px;margin-bottom:16px">
+        <b>कुल बचत:</b> NPR ${total.toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}
+        &nbsp; | &nbsp; <b>रेकर्ड संख्या:</b> ${records.length}
+        &nbsp; | &nbsp; <b>बचत लक्ष्य:</b> ${goal?money(goal):"—"}
+        &nbsp; | &nbsp; <b>लक्ष्य प्रगति:</b> ${goal?Math.min(100,total/goal*100).toFixed(1)+"%":"—"}
+      </div>
+
+      <h2 style="font-size:16px;margin:12px 0 7px">बचतको विस्तृत विवरण</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>क्र.सं.</th><th>मिति</th><th>बचतको नाम</th><th>श्रेणी</th>
+            <th>NPR</th><th>INR</th><th>दर</th><th>कुल NPR</th><th>कैफियत</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows||'<tr><td colspan="9">रेकर्ड छैन।</td></tr>'}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="7" class="right"><b>जम्मा</b></td>
+            <td class="right"><b>${total.toFixed(2)}</b></td><td></td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <div style="margin-top:18px;border-top:1px solid #ccd5d1;padding-top:8px;color:#52635d">
+        यो रिपोर्ट उपलब्ध Cloud Savings रेकर्डका आधारमा तयार गरिएको हो।
+      </div>
+      <style>
+        table{border-collapse:collapse;width:100%;margin-bottom:16px}
+        th,td{border:1px solid #9aada6;padding:6px;vertical-align:top}
+        th{background:#dcebe5;text-align:left}
+        .right{text-align:right}
+        tr{page-break-inside:avoid}
+      </style>
+    </div>`;
 }
+
 $("pdfButton").addEventListener("click",async()=>{
-  if(!window.html2pdf){showStatus("PDF library लोड भएन। इन्टरनेट जाँच्नुहोस्।",true);return;}
+  if(!window.html2pdf){
+    showStatus("PDF सुविधा लोड भएन। इन्टरनेट जडान जाँच्नुहोस्।",true);
+    return;
+  }
   $("pdfButton").disabled=true;
   try{
-    $("pdfStage").innerHTML=pdfHtml();
+    $("pdfStage").innerHTML=buildPdfHtml();
     await html2pdf().set({
-      margin:8,filename:"Digital-Notebook-Savings-"+new Date().toISOString().slice(0,10)+".pdf",
-      image:{type:"jpeg",quality:.98},
+      margin:8,
+      filename:"Digital-Notebook-Savings-"+new Date().toISOString().slice(0,10)+".pdf",
+      image:{type:"jpeg",quality:0.98},
       html2canvas:{scale:2,useCORS:true,backgroundColor:"#fff"},
-      jsPDF:{unit:"mm",format:"a4",orientation:"landscape"},
-      pagebreak:{mode:["css","legacy"]}
+      pagebreak:{mode:["css","legacy"]},
+      jsPDF:{unit:"mm",format:"a4",orientation:"landscape"}
     }).from($("pdfStage")).save();
-    showStatus("PDF तयार भयो।");
-  }catch(e){showStatus("PDF बनाउन सकिएन: "+(e.message||e),true);}
-  finally{$("pdfButton").disabled=false;}
+    showStatus("बचत PDF तयार भयो।");
+  }catch(e){
+    showStatus("PDF बनाउन सकिएन: "+(e.message||e),true);
+  }finally{
+    $("pdfButton").disabled=false;
+  }
 });
 
 function detach(){
@@ -497,47 +774,74 @@ function detach(){
   if(state.trashRef&&state.trashCallback)state.trashRef.off("value",state.trashCallback);
   state.dataRef=state.trashRef=state.dataCallback=state.trashCallback=null;
 }
+
 function attach(){
   detach();
+
   state.dataRef=userRef(PATH);
   state.dataCallback=snap=>{
-    const value=snap.val()||{};
-    if(Array.isArray(value)){
-      /* Legacy array लाई स्वतः rewrite नगरी सुरक्षित रूपमा देखाउने। */
-      const mapped={};
-      value.forEach((r,i)=>{if(r&&typeof r==="object"){const id=validKey(r.id)?r.id:"legacy-"+i;mapped[id]={...r,id};}});
-      state.records=mapped;
-    }else state.records=value&&typeof value==="object"?value:{};
+    state.records=mapRecords(snap.val()||{});
     $("syncStatus").textContent=navigator.onLine?"Cloud Sync · Connected":"Cloud Sync · Offline";
     render();
   };
-  state.dataRef.on("value",state.dataCallback,e=>{
+  state.dataRef.on("value",state.dataCallback,error=>{
     $("syncStatus").textContent="Cloud Sync · Error";
-    showStatus("Cloud डाटा पढ्न सकिएन। Firebase Rules र इन्टरनेट जाँच्नुहोस्: "+(e.message||e),true);
+    showStatus("Cloud डाटा पढ्न सकिएन। Firebase Rules र इन्टरनेट जाँच्नुहोस्: "+(error.message||error),true);
   });
 
   state.trashRef=userRef("trash/"+PATH);
-  state.trashCallback=snap=>{state.trash=snap.val()||{};renderTrash();};
-  state.trashRef.on("value",state.trashCallback,e=>{
-    showStatus("Trash पढ्न सकिएन। Firebase Rules जाँच्नुहोस्: "+(e.message||e),true);
+  state.trashCallback=snap=>{
+    state.trash=snap.val()||{};
+    renderTrash();
+  };
+  state.trashRef.on("value",state.trashCallback,error=>{
+    showStatus("Trash पढ्न सकिएन। Firebase Rules जाँच्नुहोस्: "+(error.message||error),true);
   });
 }
 
+/* Back Arrow ले अघिल्लो पेजमा फर्काउँछ; logout गर्दैन। */
+$("backButton").addEventListener("click",event=>{
+  event.preventDefault();
+  if(document.referrer){
+    try{
+      if(new URL(document.referrer).origin===location.origin&&history.length>1){
+        history.back();
+        return;
+      }
+    }catch(_){}
+  }
+  location.href="./index.html";
+});
+
 if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);
+
 firebase.auth().onAuthStateChanged(user=>{
   if(!user){
-    state.uid=null;state.user=null;detach();
-    location.replace("./index.html");return;
+    state.uid=null;
+    state.user=null;
+    detach();
+    location.replace("./index.html");
+    return;
   }
-  state.uid=user.uid;state.user=user;
+
+  state.uid=user.uid;
+  state.user=user;
   document.body.classList.remove("auth-pending");
+  refreshSettings();
   attach();
 });
-window.addEventListener("online",()=>{if(state.uid)$("syncStatus").textContent="Cloud Sync · Connected";});
-window.addEventListener("offline",()=>{$("syncStatus").textContent="Cloud Sync · Offline";});
+
+window.addEventListener("online",()=>{
+  if(state.uid)$("syncStatus").textContent="Cloud Sync · Connected";
+});
+window.addEventListener("offline",()=>{
+  $("syncStatus").textContent="Cloud Sync · Offline";
+});
+
 $("date").value=new Date().toISOString().slice(0,10);
 $("rate").value="1.6";
-calc();applySettings();
+calc();
+applySettings();
 </script>
 </body>
 </html>
