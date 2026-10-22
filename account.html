@@ -9,14 +9,11 @@
 
 <script>
 (function () {
-  let s = {};
   try {
-    s = JSON.parse(localStorage.getItem("digital_notebook_settings") || "{}") || {};
+    const s = JSON.parse(localStorage.getItem("digital_notebook_settings") || "{}");
+    document.documentElement.classList.toggle("dark", s.theme !== "light");
+    document.documentElement.lang = s.lang === "ne" ? "ne" : "en";
   } catch (_) {}
-  const theme = s.theme || localStorage.getItem("theme") || "dark";
-  const lang = s.lang || "en";
-  document.documentElement.lang = lang === "ne" ? "ne" : "en";
-  document.documentElement.classList.toggle("dark", theme !== "light");
 })();
 </script>
 
@@ -24,80 +21,45 @@
 
 <style>
 :root {
-  --bg:#101521; --surface:#1b2336; --surface2:#171e2e;
-  --field:#202c43; --text:#eef2ff; --muted:#a5afc3;
-  --border:#303a50; --accent:#10b981; --danger:#d83c46;
-  --font-size:16px; --font-family:Poppins,Arial,sans-serif;
+  --bg:#101521;--surface:#1b2336;--surface2:#171e2e;
+  --field:#202c43;--text:#eef2ff;--muted:#a5afc3;
+  --border:#303a50;--accent:#10b981;--danger:#d83c46;
+  --app-font-size:16px;--app-font-family:Poppins,Arial,sans-serif;
 }
 html:not(.dark) {
-  --bg:#f3f6fb; --surface:#fff; --surface2:#f7f9fc;
-  --field:#edf2f9; --text:#172033; --muted:#5d687d;
-  --border:#d7deea;
+  --bg:#f3f6fb;--surface:#fff;--surface2:#f7f9fc;
+  --field:#edf2f9;--text:#172033;--muted:#5d687d;--border:#d7deea;
 }
-* { box-sizing:border-box; }
-body {
-  margin:0; background:var(--bg); color:var(--text);
-  font:var(--font-size)/1.55 var(--font-family);
-}
-button,input,select,textarea { font:inherit; }
-button {
-  border:1px solid var(--border); border-radius:10px;
-  padding:10px 14px; background:var(--surface2);
-  color:var(--text); font-weight:600; cursor:pointer;
-}
-button:disabled { opacity:.5; cursor:not-allowed; }
-.primary { background:var(--accent); border-color:var(--accent); color:#05251a; }
-.danger { background:var(--danger); border-color:var(--danger); color:white; }
-input,select,textarea {
-  width:100%; margin-top:6px; padding:11px 12px;
-  color:var(--text); background:var(--field);
-  border:1px solid var(--border); border-radius:10px;
-}
-label { display:block; margin:12px 0; font-weight:600; }
-h1 { font-size:1.5rem; margin:0 0 6px; }
-h2 { font-size:1.12rem; margin:0 0 12px; }
-p { line-height:1.6; }
-small,.muted { color:var(--muted); }
-.hidden { display:none!important; }
-header {
-  position:sticky; top:0; z-index:10; min-height:62px;
-  display:flex; align-items:center; gap:12px; padding:9px 14px;
-  background:var(--surface); border-bottom:1px solid var(--border);
-}
-.back {
-  width:38px; height:42px; padding:0; border:0;
-  background:transparent; font-size:28px;
-}
-.appname { font-size:18px; font-weight:700; }
-main { max-width:900px; padding:16px 13px 36px; margin:auto; }
-.panel {
-  margin:14px 0; padding:16px; border:1px solid var(--border);
-  border-radius:15px; background:var(--surface);
-}
-.card,.record {
-  margin:9px 0; padding:12px; border:1px solid var(--border);
-  border-radius:11px; background:var(--surface2); overflow-wrap:anywhere;
-}
-.caption { margin:24px 4px 8px; color:var(--muted); font-size:12px; font-weight:700; letter-spacing:.5px; }
-.row,.actions,.between { display:flex; flex-wrap:wrap; gap:9px; align-items:center; }
-.between { justify-content:space-between; }
-.status {
-  padding:10px 12px; margin:10px 0; border-radius:10px;
-  border:1px solid var(--border); background:var(--surface2);
-  overflow-wrap:anywhere; white-space:pre-wrap;
-}
-.status.good { border-color:#168858; }
-.status.error { border-color:var(--danger); }
-.meta { color:var(--muted); font-size:12px; white-space:pre-wrap; overflow-wrap:anywhere; }
-.badge { display:inline-block; padding:3px 8px; border:1px solid var(--border); border-radius:20px; font-size:11px; }
-.footer { padding:20px; text-align:center; color:var(--muted); font-size:12px; }
-body[data-layout="compact"] main { padding:9px 8px 25px; }
-body[data-layout="compact"] .panel { padding:11px; margin:8px 0; }
-@media(max-width:480px) {
-  .appname { font-size:16px; }
-  main { padding:12px 9px 28px; }
-  .panel { padding:12px; }
-}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:var(--app-font-size)/1.55 var(--app-font-family)}
+button,input,select{font:inherit}
+button{border:1px solid var(--border);border-radius:10px;padding:10px 14px;background:var(--surface2);color:var(--text);font-weight:600;cursor:pointer}
+button:disabled{opacity:.5;cursor:not-allowed}
+.primary{background:var(--accent);border-color:var(--accent);color:#05251a}
+.danger{background:var(--danger);border-color:var(--danger);color:#fff}
+input,select{width:100%;margin-top:6px;padding:11px 12px;color:var(--text);background:var(--field);border:1px solid var(--border);border-radius:10px}
+header{position:sticky;top:0;z-index:10;min-height:62px;display:flex;align-items:center;gap:12px;padding:9px 14px;background:var(--surface);border-bottom:1px solid var(--border)}
+.back{width:38px;height:42px;padding:0;border:0;background:transparent;font-size:28px}
+.appname{font-size:18px;font-weight:700}
+main{max-width:900px;padding:16px 13px 36px;margin:auto}
+.panel{margin:14px 0;padding:16px;border:1px solid var(--border);border-radius:15px;background:var(--surface)}
+.card,.record{margin:9px 0;padding:12px;border:1px solid var(--border);border-radius:11px;background:var(--surface2);overflow-wrap:anywhere}
+h1{font-size:1.5rem;margin:0 0 6px}
+h2{font-size:1.12rem;margin:0 0 12px}
+p{line-height:1.6}
+small,.muted{color:var(--muted)}
+.caption{margin:24px 4px 8px;color:var(--muted);font-size:12px;font-weight:700;letter-spacing:.5px}
+.row,.actions,.between{display:flex;flex-wrap:wrap;gap:9px;align-items:center}
+.between{justify-content:space-between}
+.status{padding:10px 12px;margin:10px 0;border-radius:10px;border:1px solid var(--border);background:var(--surface2);overflow-wrap:anywhere;white-space:pre-wrap}
+.status.good{border-color:#168858}
+.status.error{border-color:var(--danger);color:var(--danger)}
+.meta{color:var(--muted);font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere}
+.badge{display:inline-block;padding:3px 8px;border:1px solid var(--border);border-radius:20px;font-size:11px}
+.hidden{display:none!important}
+body[data-layout="compact"] main{padding:9px 8px 25px}
+body[data-layout="compact"] .panel{padding:11px;margin:8px 0}
+@media(max-width:480px){.appname{font-size:16px}main{padding:12px 9px 28px}.panel{padding:12px}}
 </style>
 </head>
 
@@ -109,16 +71,16 @@ body[data-layout="compact"] .panel { padding:11px; margin:8px 0; }
 
 <main>
   <h1 data-i18n="title">Account & Recovery</h1>
-  <p class="muted" data-i18n="intro">Manage Trash, backups and account security.</p>
-  <div id="pageStatus" class="status" role="status" aria-live="polite">Checking sign-in…</div>
+  <p class="muted" data-i18n="intro">Manage Trash and account recovery.</p>
+  <div id="pageStatus" class="status" role="status" aria-live="polite">Connecting…</div>
 
   <div class="caption" data-i18n="trashCaption">TRASH & RECOVERY</div>
   <section class="panel">
     <div class="between">
-      <h2>🗑️ <span data-i18n="trashTitle">Central Trash & Recovery</span></h2>
+      <h2 data-i18n="trashTitle">Central Trash & Recovery</h2>
       <button id="refreshTrash" type="button" data-i18n="refresh">Refresh</button>
     </div>
-    <p class="muted" data-i18n="trashInfo">Restore records within 30 days. Existing records will never be overwritten.</p>
+    <p class="muted" data-i18n="trashInfo">Restore records within 30 days.</p>
     <div class="row">
       <div class="card" style="flex:1;min-width:120px">
         <div class="muted" data-i18n="total">Total records</div>
@@ -131,52 +93,47 @@ body[data-layout="compact"] .panel { padding:11px; margin:8px 0; }
     </div>
     <label>
       <span data-i18n="search">Search Trash</span>
-      <input id="trashSearch" type="search" placeholder="Search name or details" data-i18n-placeholder="searchPlaceholder">
+      <input id="trashSearch" type="search" data-i18n-placeholder="searchPlaceholder" placeholder="Search name or details">
     </label>
     <div id="trashList"></div>
-    <p class="muted" data-i18n="cleanupInfo">Automatic deletion after 30 days requires a deployed server-side Cloud Function.</p>
   </section>
 
   <div class="caption" data-i18n="backupCaption">BACKUP & RESTORE</div>
   <section class="panel">
-    <h2>📦 <span data-i18n="backupTitle">Backup & Restore</span></h2>
-    <p class="muted" data-i18n="backupInfo">Export cloud data. Restore adds missing sections only and never overwrites existing sections.</p>
+    <h2 data-i18n="backupTitle">Backup & Restore</h2>
+    <p class="muted" data-i18n="backupInfo">Export a backup or restore missing sections from a backup.</p>
     <div class="actions">
       <button class="primary" id="exportBackup" type="button" data-i18n="export">Export backup JSON</button>
       <button id="chooseBackup" type="button" data-i18n="restoreBackup">Restore from JSON</button>
       <input id="backupFile" class="hidden" type="file" accept=".json,application/json">
     </div>
-    <div id="backupStatus" class="status" role="status" aria-live="polite" data-i18n="backupReady">Ready to create a backup.</div>
+    <div id="backupStatus" class="status" role="status" aria-live="polite"></div>
   </section>
 
-  <div class="caption" data-i18n="securityCaption">SECURITY SETTINGS</div>
+  <div class="caption" data-i18n="securityCaption">SECURITY</div>
   <section class="panel">
-    <h2>🛡️ <span data-i18n="securityTitle">Security Settings</span></h2>
+    <h2 data-i18n="securityTitle">Account information</h2>
     <div class="card">
       <div class="muted" data-i18n="email">Signed-in email</div>
       <strong id="accountEmail">—</strong>
       <div class="muted" style="margin-top:8px">Firebase UID</div>
       <div id="accountUid" class="meta">—</div>
     </div>
-    <p class="muted" data-i18n="securityInfo">Your Firebase database rules must restrict access to the signed-in user's UID.</p>
 
-    <h2 style="margin-top:20px">🔐 <span data-i18n="mpinTitle">Device MPIN</span></h2>
-    <p class="muted" data-i18n="mpinInfo">MPIN is stored on this device. No default PIN is used.</p>
-    <label><span data-i18n="currentMpin">Current MPIN (if set)</span><input id="currentMpin" type="password" inputmode="numeric" maxlength="4" autocomplete="off"></label>
-    <label><span data-i18n="newMpin">New 4-digit MPIN</span><input id="newMpin" type="password" inputmode="numeric" maxlength="4" autocomplete="new-password"></label>
-    <label><span data-i18n="confirmMpin">Confirm MPIN</span><input id="confirmMpin" type="password" inputmode="numeric" maxlength="4" autocomplete="new-password"></label>
+    <h2 style="margin-top:20px" data-i18n="mpinTitle">Device MPIN</h2>
+    <p class="muted" data-i18n="mpinInfo">MPIN is stored locally on this device.</p>
+    <label><span data-i18n="currentMpin">Current MPIN (if set)</span><input id="currentMpin" type="password" inputmode="numeric" maxlength="4"></label>
+    <label><span data-i18n="newMpin">New 4-digit MPIN</span><input id="newMpin" type="password" inputmode="numeric" maxlength="4"></label>
+    <label><span data-i18n="confirmMpin">Confirm MPIN</span><input id="confirmMpin" type="password" inputmode="numeric" maxlength="4"></label>
     <div class="actions">
       <button class="primary" id="saveMpin" type="button" data-i18n="saveMpin">Save MPIN</button>
       <button id="toggleMpin" type="button" data-i18n="showHide">Show / hide</button>
     </div>
     <div id="mpinStatus" class="status" role="status" aria-live="polite"></div>
-  </section>
 
-  <div class="caption" data-i18n="passwordCaption">PASSWORD</div>
-  <section class="panel">
-    <h2>🔑 <span data-i18n="passwordTitle">Password</span></h2>
+    <h2 style="margin-top:20px" data-i18n="passwordTitle">Change password</h2>
     <label><span data-i18n="currentPassword">Current password</span><input id="currentPassword" type="password" autocomplete="current-password"></label>
-    <label><span data-i18n="newPassword">New password (at least 6 characters)</span><input id="newPassword" type="password" minlength="6" autocomplete="new-password"></label>
+    <label><span data-i18n="newPassword">New password (at least 6 characters)</span><input id="newPassword" type="password" autocomplete="new-password"></label>
     <div class="actions">
       <button class="primary" id="changePassword" type="button" data-i18n="changePassword">Change password</button>
       <button id="resetPassword" type="button" data-i18n="resetPassword">Send reset email</button>
@@ -186,25 +143,17 @@ body[data-layout="compact"] .panel { padding:11px; margin:8px 0; }
 
   <div class="caption" data-i18n="deviceCaption">DEVICE</div>
   <section class="panel">
-    <h2>📱 <span data-i18n="deviceTitle">Device information</span></h2>
+    <h2 data-i18n="deviceTitle">Device information</h2>
     <div class="card">
       <div class="muted" data-i18n="browser">Browser / device</div>
       <div id="deviceInfo" class="meta"></div>
       <div class="muted" style="margin-top:8px" data-i18n="preferences">Local display preferences</div>
       <div id="prefsInfo" class="meta"></div>
     </div>
-    <p class="muted" data-i18n="offlineInfo">Display preferences are stored locally and work offline on this device.</p>
-    <button class="primary" id="logout" type="button" data-i18n="logout">Log out</button>
-  </section>
-
-  <div class="caption" data-i18n="dangerCaption">DANGER ZONE</div>
-  <section class="panel">
-    <h2>⚠️ <span data-i18n="dangerTitle">Danger Zone</span></h2>
-    <p class="muted" data-i18n="dangerInfo">Export a backup before making account changes. Logging out does not delete cloud data.</p>
-    <button class="danger" id="dangerLogout" type="button" data-i18n="logout">Log out</button>
+    <p class="muted" data-i18n="offlineInfo">Display preferences are local to this device.</p>
+    <button class="danger" id="logout" type="button" data-i18n="logout">Log out</button>
   </section>
 </main>
-<footer class="footer">Digital NoteBook</footer>
 
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
@@ -226,374 +175,445 @@ const firebaseConfig = {
 
 const SETTINGS_KEY = "digital_notebook_settings";
 const RETENTION = 30 * 24 * 60 * 60 * 1000;
-const ALLOWED_KEYS = new Set([
-  "transactions","incomes","savings","house_expenses","house_budget",
-  "notes","secureNotes","secureDocs","calendarEvents","settings","profile",
-  "trash","parties","partyLedger","party_ledger","accounting","budgets"
-]);
-
 const $ = id => document.getElementById(id);
-let auth = null, db = null, user = null, userRef = null;
-let trashRef = null, trashCallback = null, trashData = {};
 
-const I18N = {
-en: {
-title:"Account & Recovery",intro:"Manage Trash, backups and account security.",
-trashCaption:"TRASH & RECOVERY",trashTitle:"Central Trash & Recovery",
-refresh:"Refresh",trashInfo:"Restore records within 30 days. Existing records will never be overwritten.",
-total:"Total records",expired:"Expired records",search:"Search Trash",searchPlaceholder:"Search name or details",
-cleanupInfo:"Automatic deletion after 30 days requires a deployed server-side Cloud Function.",
-backupCaption:"BACKUP & RESTORE",backupTitle:"Backup & Restore",
-backupInfo:"Export cloud data. Restore adds missing sections only and never overwrites existing sections.",
-export:"Export backup JSON",restoreBackup:"Restore from JSON",backupReady:"Ready to create a backup.",
-securityCaption:"SECURITY SETTINGS",securityTitle:"Security Settings",email:"Signed-in email",
-securityInfo:"Your Firebase database rules must restrict access to the signed-in user's UID.",
-mpinTitle:"Device MPIN",mpinInfo:"MPIN is stored on this device. No default PIN is used.",
-currentMpin:"Current MPIN (if set)",newMpin:"New 4-digit MPIN",confirmMpin:"Confirm MPIN",
-saveMpin:"Save MPIN",showHide:"Show / hide",passwordCaption:"PASSWORD",passwordTitle:"Password",
-currentPassword:"Current password",newPassword:"New password (at least 6 characters)",
-changePassword:"Change password",resetPassword:"Send reset email",deviceCaption:"DEVICE",
-deviceTitle:"Device information",browser:"Browser / device",preferences:"Local display preferences",
-offlineInfo:"Display preferences are stored locally and work offline on this device.",
-logout:"Log out",dangerCaption:"DANGER ZONE",dangerTitle:"Danger Zone",
-dangerInfo:"Export a backup before making account changes. Logging out does not delete cloud data.",
-ready:"Account ready.",offline:"Offline. Cloud operations need an internet connection.",
-signedOut:"Signed out. Redirecting to sign-in…",emptyTrash:"Trash is empty.",noMatches:"No matching records.",
-restore:"Restore",delete:"Delete permanently",recoverable:"Recoverable",expiredLabel:"Expired",
-type:"Type",deleted:"Deleted",expires:"Expires",path:"Original path",
-invalidRestore:"This entry has no valid restore path or record data.",
-expiredRestore:"This record is past its 30-day recovery period.",
-restoreQuestion:"Restore this record? Existing data will not be overwritten.",
-restored:"Record restored.",occupied:"The original path already contains data; the Trash entry was kept.",
-restoreError:"Restore failed: ",deleteQuestion:"Permanently delete this Trash entry? This cannot be undone.",
-deletedForever:"Trash entry deleted permanently.",deleteError:"Delete failed: ",
-refreshError:"Could not refresh Trash: ",backupExported:"Backup exported.",
-backupError:"Backup failed: ",backupTooLarge:"Backup file must be 25 MB or smaller.",
-invalidBackup:"Invalid backup JSON or unsupported backup format.",
-importQuestion:"Import missing top-level sections only? Existing sections will not be overwritten.",
-importDone:"Import complete. Added: ",skipped:"; skipped: ",importError:"Import failed: ",
-mpinInvalid:"Enter exactly four digits for the new MPIN and confirmation.",
-mpinWrong:"Current MPIN is incorrect.",mpinMismatch:"The new MPIN entries do not match.",
-mpinSaved:"MPIN saved on this device.",mpinError:"Could not save MPIN: ",
-passwordInvalid:"Enter your current password and a new password of at least 6 characters.",
-passwordChanged:"Password changed.",passwordError:"Password change failed: ",
-resetSent:"Password reset email sent. Check your inbox.",resetError:"Could not send reset email: ",
-logoutQuestion:"Log out of this account?",logoutError:"Logout failed: ",
-language:"Language",theme:"Theme",size:"Text size",font:"Font",layout:"Layout",
-english:"English",nepali:"Nepali",dark:"Dark",light:"Light"
-},
-ne: {
-title:"खाता र पुनःप्राप्ति",intro:"ट्र्यास, ब्याकअप र खाता सुरक्षा व्यवस्थापन गर्नुहोस्।",
-trashCaption:"ट्र्यास र पुनःप्राप्ति",trashTitle:"केन्द्रीय ट्र्यास र पुनःप्राप्ति",
-refresh:"फेरि लोड",trashInfo:"३० दिनभित्र रेकर्ड पुनःप्राप्त गर्नुहोस्। पुरानो रेकर्डमाथि लेखिँदैन।",
-total:"जम्मा रेकर्ड",expired:"म्याद सकिएका",search:"ट्र्यास खोज्नुहोस्",searchPlaceholder:"नाम वा विवरण खोज्नुहोस्",
-cleanupInfo:"३० दिनपछि स्वचालित मेटाउने काम तैनाथ गरिएको server-side Cloud Function ले गर्नुपर्छ।",
-backupCaption:"ब्याकअप र पुनःस्थापना",backupTitle:"ब्याकअप र पुनःस्थापना",
-backupInfo:"क्लाउड डेटा निर्यात गर्नुहोस्। पुनःस्थापना गर्दा खाली खण्ड मात्र थपिन्छन्।",
-export:"ब्याकअप JSON निर्यात",restoreBackup:"JSON बाट पुनःस्थापना",backupReady:"ब्याकअपका लागि तयार।",
-securityCaption:"सुरक्षा सेटिङ",securityTitle:"सुरक्षा सेटिङ",email:"लगइन भएको इमेल",
-securityInfo:"Firebase Rules ले लगइन भएको प्रयोगकर्ताको UID डेटा मात्र पहुँच गर्न दिनुपर्छ।",
-mpinTitle:"यस उपकरणको MPIN",mpinInfo:"MPIN यस उपकरणमा सुरक्षित हुन्छ। पूर्वनिर्धारित PIN छैन।",
-currentMpin:"हालको MPIN (सेट भएमा)",newMpin:"नयाँ ४ अङ्कको MPIN",confirmMpin:"MPIN पुष्टि गर्नुहोस्",
-saveMpin:"MPIN सुरक्षित गर्नुहोस्",showHide:"देखाउनुहोस् / लुकाउनुहोस्",passwordCaption:"पासवर्ड",passwordTitle:"पासवर्ड",
-currentPassword:"हालको पासवर्ड",newPassword:"नयाँ पासवर्ड (कम्तीमा ६ अक्षर)",
-changePassword:"पासवर्ड परिवर्तन",resetPassword:"रिसेट इमेल पठाउनुहोस्",deviceCaption:"उपकरण",
-deviceTitle:"उपकरण विवरण",browser:"ब्राउजर / उपकरण",preferences:"स्थानीय Display Preferences",
-offlineInfo:"Display Preferences स्थानीय रूपमा सुरक्षित हुन्छ र यस उपकरणमा अफलाइन पनि चल्छ।",
-logout:"लगआउट",dangerCaption:"सावधानी क्षेत्र",dangerTitle:"सावधानी क्षेत्र",
-dangerInfo:"खाता परिवर्तन गर्नुअघि ब्याकअप निकाल्नुहोस्। लगआउट गर्दा क्लाउड डेटा मेटिँदैन।",
-ready:"खाता तयार भयो।",offline:"अफलाइन हुनुहुन्छ। क्लाउड कामका लागि इन्टरनेट चाहिन्छ।",
-signedOut:"लगआउट भयो। लगइन पेजमा जाँदैछ…",emptyTrash:"ट्र्यास खाली छ।",noMatches:"मिल्ने रेकर्ड भेटिएन।",
-restore:"पुनःप्राप्त गर्नुहोस्",delete:"स्थायी रूपमा हटाउनुहोस्",recoverable:"पुनःप्राप्त गर्न मिल्ने",expiredLabel:"म्याद सकियो",
-type:"प्रकार",deleted:"हटाइएको",expires:"म्याद",path:"मूल पथ",
-invalidRestore:"यो प्रविष्टिमा पुनःप्राप्तिका लागि सही पथ वा डेटा छैन।",
-expiredRestore:"यस रेकर्डको ३० दिनको अवधि सकिएको छ।",
-restoreQuestion:"यो रेकर्ड पुनःप्राप्त गर्ने? पहिल्यै भएको डेटा प्रतिस्थापन हुँदैन।",
-restored:"रेकर्ड पुनःप्राप्त भयो।",occupied:"मूल पथमा डेटा छ, त्यसैले ट्र्यास प्रविष्टि राखियो।",
-restoreError:"पुनःप्राप्ति असफल: ",deleteQuestion:"यो प्रविष्टि स्थायी रूपमा हटाउने? यो उल्टाउन सकिँदैन।",
-deletedForever:"ट्र्यास प्रविष्टि स्थायी रूपमा हटाइयो।",deleteError:"मेटाउन असफल: ",
-refreshError:"ट्र्यास लोड गर्न सकिएन: ",backupExported:"ब्याकअप निर्यात भयो।",
-backupError:"ब्याकअप असफल: ",backupTooLarge:"ब्याकअप फाइल २५ MB वा सानो हुनुपर्छ।",
-invalidBackup:"ब्याकअप JSON अमान्य छ वा समर्थित ढाँचामा छैन।",
-importQuestion:"खाली शीर्ष-स्तरका खण्ड मात्र आयात गर्ने? भएका खण्ड प्रतिस्थापन हुँदैनन्।",
-importDone:"आयात पूरा भयो। थपिएका: ",skipped:"; छोडिएका: ",importError:"आयात असफल: ",
-mpinInvalid:"नयाँ MPIN र पुष्टि दुवैमा ठ्याक्कै ४ अङ्क लेख्नुहोस्।",
-mpinWrong:"हालको MPIN मिलेन।",mpinMismatch:"नयाँ MPIN र पुष्टि मिलेन।",
-mpinSaved:"MPIN यस उपकरणमा सुरक्षित भयो।",mpinError:"MPIN सुरक्षित गर्न सकिएन: ",
-passwordInvalid:"हालको पासवर्ड र कम्तीमा ६ अक्षरको नयाँ पासवर्ड लेख्नुहोस्।",
-passwordChanged:"पासवर्ड परिवर्तन भयो।",passwordError:"पासवर्ड परिवर्तन असफल: ",
-resetSent:"रिसेट इमेल पठाइयो। इमेल जाँच्नुहोस्।",resetError:"रिसेट इमेल पठाउन सकिएन: ",
-logoutQuestion:"यो खाताबाट लगआउट गर्ने?",logoutError:"लगआउट असफल: ",
-language:"भाषा",theme:"थिम",size:"अक्षरको आकार",font:"फन्ट",layout:"लेआउट",
-english:"अंग्रेजी",nepali:"नेपाली",dark:"डार्क",light:"लाइट"
-}
+let auth = null;
+let db = null;
+let user = null;
+let userRef = null;
+let trashRef = null;
+let trashCallback = null;
+let trashData = {};
+let prefs = readSettings();
+
+const words = {
+  en: {
+    title:"Account & Recovery",intro:"Manage Trash and account recovery.",
+    trashCaption:"TRASH & RECOVERY",trashTitle:"Central Trash & Recovery",
+    refresh:"Refresh",trashInfo:"Restore records within 30 days. Existing records are never overwritten.",
+    total:"Total records",expired:"Expired records",search:"Search Trash",
+    searchPlaceholder:"Search name or details",backupCaption:"BACKUP & RESTORE",
+    backupTitle:"Backup & Restore",backupInfo:"Export a backup or restore missing sections from a backup.",
+    export:"Export backup JSON",restoreBackup:"Restore from JSON",
+    securityCaption:"SECURITY",securityTitle:"Account information",email:"Signed-in email",
+    mpinTitle:"Device MPIN",mpinInfo:"MPIN is stored locally on this device.",
+    currentMpin:"Current MPIN (if set)",newMpin:"New 4-digit MPIN",confirmMpin:"Confirm MPIN",
+    saveMpin:"Save MPIN",showHide:"Show / hide",passwordTitle:"Change password",
+    currentPassword:"Current password",newPassword:"New password (at least 6 characters)",
+    changePassword:"Change password",resetPassword:"Send reset email",deviceCaption:"DEVICE",
+    deviceTitle:"Device information",browser:"Browser / device",preferences:"Local display preferences",
+    offlineInfo:"Display preferences are local to this device.",logout:"Log out",
+    empty:"Trash is empty.",noMatches:"No matching records.",restore:"Restore",
+    delete:"Delete permanently",recoverable:"Recoverable",expiredLabel:"Expired",
+    type:"Type",deleted:"Deleted",expires:"Expires",path:"Original path",
+    invalid:"This entry has no valid restore path or record data.",
+    restoreConfirm:"Restore this record? Existing data will not be overwritten.",
+    deleteConfirm:"Permanently delete this Trash entry? This cannot be undone.",
+    yes:"Confirm",cancel:"Cancel",typeYes:"Type YES to confirm",
+    restored:"Record restored.",occupied:"The original path already contains data. Trash entry was kept.",
+    restoreError:"Restore failed: ",deletedForever:"Trash entry permanently deleted.",
+    deleteError:"Delete failed: ",expiredError:"The 30-day recovery period has expired.",
+    ready:"Account ready.",signedOut:"Sign-in required. Redirecting…",
+    refreshError:"Could not refresh Trash: ",backupReady:"Ready.",
+    backupExported:"Backup exported.",backupError:"Backup failed: ",
+    backupTooLarge:"Backup file must be 25 MB or smaller.",
+    invalidBackup:"Invalid backup JSON or unsupported format.",
+    importConfirm:"Import missing sections only? Existing sections will not be overwritten.",
+    importDone:"Import complete. Added: ",skipped:"; skipped: ",importError:"Import failed: ",
+    mpinInvalid:"Enter a four-digit MPIN and matching confirmation.",
+    mpinWrong:"Current MPIN is incorrect.",mpinMismatch:"New MPIN entries do not match.",
+    mpinSaved:"MPIN saved on this device.",mpinError:"Could not save MPIN: ",
+    passwordInvalid:"Enter your current password and a new password of at least 6 characters.",
+    passwordChanged:"Password changed.",passwordError:"Password change failed: ",
+    resetSent:"Password reset email sent.",resetError:"Could not send reset email: ",
+    logoutConfirm:"Log out of this account?",logoutError:"Logout failed: ",
+    language:"Language",theme:"Theme",size:"Text size",font:"Font",layout:"Layout",
+    english:"English",nepali:"Nepali",dark:"Dark",light:"Light"
+  },
+  ne: {
+    title:"खाता र पुनःप्राप्ति",intro:"ट्र्यास र खाता पुनःप्राप्ति व्यवस्थापन गर्नुहोस्।",
+    trashCaption:"ट्र्यास र पुनःप्राप्ति",trashTitle:"केन्द्रीय ट्र्यास र पुनःप्राप्ति",
+    refresh:"फेरि लोड",trashInfo:"३० दिनभित्र रेकर्ड पुनःप्राप्त गर्नुहोस्। पहिल्यै भएको डेटा overwrite हुँदैन।",
+    total:"जम्मा रेकर्ड",expired:"म्याद सकिएका",search:"ट्र्यास खोज्नुहोस्",
+    searchPlaceholder:"नाम वा विवरण खोज्नुहोस्",backupCaption:"ब्याकअप र पुनःस्थापना",
+    backupTitle:"ब्याकअप र पुनःस्थापना",backupInfo:"ब्याकअप निर्यात वा खाली खण्ड पुनःस्थापना गर्नुहोस्।",
+    export:"ब्याकअप JSON निर्यात",restoreBackup:"JSON बाट पुनःस्थापना",
+    securityCaption:"सुरक्षा",securityTitle:"खाता विवरण",email:"लगइन भएको इमेल",
+    mpinTitle:"यस उपकरणको MPIN",mpinInfo:"MPIN यस उपकरणमा सुरक्षित हुन्छ।",
+    currentMpin:"हालको MPIN (सेट भएमा)",newMpin:"नयाँ ४ अङ्कको MPIN",confirmMpin:"MPIN पुष्टि गर्नुहोस्",
+    saveMpin:"MPIN सुरक्षित",showHide:"देखाउनुहोस् / लुकाउनुहोस्",passwordTitle:"पासवर्ड परिवर्तन",
+    currentPassword:"हालको पासवर्ड",newPassword:"नयाँ पासवर्ड (कम्तीमा ६ अक्षर)",
+    changePassword:"पासवर्ड परिवर्तन",resetPassword:"रिसेट इमेल पठाउनुहोस्",deviceCaption:"उपकरण",
+    deviceTitle:"उपकरण विवरण",browser:"ब्राउजर / उपकरण",preferences:"स्थानीय डिस्प्ले सेटिङ",
+    offlineInfo:"डिस्प्ले सेटिङ यस उपकरणमा स्थानीय रूपमा सुरक्षित हुन्छ।",logout:"लगआउट",
+    empty:"ट्र्यास खाली छ।",noMatches:"मिल्ने रेकर्ड भेटिएन।",restore:"पुनःप्राप्त",
+    delete:"स्थायी रूपमा मेटाउनुहोस्",recoverable:"पुनःप्राप्त गर्न मिल्ने",expiredLabel:"म्याद सकियो",
+    type:"प्रकार",deleted:"मेटाइएको",expires:"म्याद",path:"मूल पथ",
+    invalid:"यो प्रविष्टिमा सही पथ वा रेकर्ड डेटा छैन।",
+    restoreConfirm:"यो रेकर्ड पुनःप्राप्त गर्ने? पहिल्यै भएको डेटा overwrite हुँदैन।",
+    deleteConfirm:"यो ट्र्यास प्रविष्टि स्थायी रूपमा मेटाउने?",
+    yes:"पुष्टि",cancel:"रद्द",typeYes:"पुष्टि गर्न YES लेख्नुहोस्",
+    restored:"रेकर्ड पुनःप्राप्त भयो।",occupied:"मूल पथमा डेटा छ। ट्र्यास प्रविष्टि राखियो।",
+    restoreError:"पुनःप्राप्ति असफल: ",deletedForever:"ट्र्यास प्रविष्टि स्थायी रूपमा मेटाइयो।",
+    deleteError:"मेटाउन असफल: ",expiredError:"३० दिनको पुनःप्राप्ति अवधि सकियो।",
+    ready:"खाता तयार भयो।",signedOut:"पहिले लगइन गर्नुहोस्। लगइन पेजमा जाँदैछ…",
+    refreshError:"ट्र्यास लोड गर्न सकिएन: ",backupReady:"तयार।",
+    backupExported:"ब्याकअप निर्यात भयो।",backupError:"ब्याकअप असफल: ",
+    backupTooLarge:"ब्याकअप फाइल २५ MB वा सानो हुनुपर्छ।",
+    invalidBackup:"ब्याकअप JSON अमान्य छ।",
+    importConfirm:"खाली खण्ड मात्र आयात गर्ने? भएका खण्ड overwrite हुँदैनन्।",
+    importDone:"आयात पूरा भयो। थपिएका: ",skipped:"; छोडिएका: ",importError:"आयात असफल: ",
+    mpinInvalid:"चार अङ्कको MPIN र मिल्ने पुष्टि लेख्नुहोस्।",
+    mpinWrong:"हालको MPIN मिलेन।",mpinMismatch:"नयाँ MPIN र पुष्टि मिलेन।",
+    mpinSaved:"MPIN यस उपकरणमा सुरक्षित भयो।",mpinError:"MPIN सुरक्षित गर्न सकिएन: ",
+    passwordInvalid:"हालको पासवर्ड र कम्तीमा ६ अक्षरको नयाँ पासवर्ड लेख्नुहोस्।",
+    passwordChanged:"पासवर्ड परिवर्तन भयो।",passwordError:"पासवर्ड परिवर्तन असफल: ",
+    resetSent:"रिसेट इमेल पठाइयो।",resetError:"रिसेट इमेल पठाउन सकिएन: ",
+    logoutConfirm:"यो खाताबाट लगआउट गर्ने?",logoutError:"लगआउट असफल: ",
+    language:"भाषा",theme:"थिम",size:"अक्षरको आकार",font:"फन्ट",layout:"लेआउट",
+    english:"अंग्रेजी",nepali:"नेपाली",dark:"डार्क",light:"लाइट"
+  }
 };
 
-function $(id) { return document.getElementById(id); }
-function settingsRead() {
+function readSettings() {
   try {
     const value = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
     return value && typeof value === "object" && !Array.isArray(value) ? value : {};
   } catch (_) { return {}; }
 }
-let prefs = settingsRead();
-function tr(key) {
-  const language = prefs.lang === "ne" ? "ne" : "en";
-  return I18N[language][key] || I18N.en[key] || key;
+function t(key) {
+  return (words[prefs.lang === "ne" ? "ne" : "en"][key] ||
+          words.en[key] || key);
 }
 function applyPreferences() {
-  prefs = settingsRead();
+  prefs = readSettings();
   const root = document.documentElement;
-  const light = prefs.theme === "light";
   root.lang = prefs.lang === "ne" ? "ne" : "en";
-  root.classList.toggle("dark", !light);
-  document.body.dataset.layout = prefs.layout === "compact" ? "compact" : "comfortable";
+  root.classList.toggle("dark", prefs.theme !== "light");
 
   const size = Number(prefs.font_size);
-  root.style.setProperty("--font-size", (size >= 12 && size <= 24 ? size : 16) + "px");
+  root.style.setProperty("--app-font-size",
+    (size >= 12 && size <= 24 ? size : 16) + "px");
 
   const font = String(prefs.font_family || "Poppins").replace(/[";]/g, "");
-  root.style.setProperty("--font-family", '"' + font + '",Arial,sans-serif');
+  root.style.setProperty("--app-font-family", '"' + font + '",Arial,sans-serif');
 
-  const accent = /^#[0-9a-f]{3,8}$/i.test(String(prefs.accentColor || "")) ? prefs.accentColor : "#10b981";
-  root.style.setProperty("--accent", accent);
+  const accent = String(prefs.accentColor || "#10b981");
+  root.style.setProperty("--accent", /^#[0-9a-f]{6}$/i.test(accent) ? accent : "#10b981");
+  document.body.dataset.layout = prefs.layout === "compact" ? "compact" : "comfortable";
 
   document.querySelectorAll("[data-i18n]").forEach(el => {
-    el.textContent = tr(el.dataset.i18n);
+    el.textContent = t(el.dataset.i18n);
   });
   document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
-    el.placeholder = tr(el.dataset.i18nPlaceholder);
+    el.placeholder = t(el.dataset.i18nPlaceholder);
   });
-  document.title = "Digital NoteBook — " + tr("title");
+
+  document.title = "Digital NoteBook — " + t("title");
   $("deviceInfo").textContent = navigator.userAgent || "—";
   $("prefsInfo").textContent =
-    tr("language") + ": " + (prefs.lang === "ne" ? tr("nepali") : tr("english")) + "\n" +
-    tr("theme") + ": " + (light ? tr("light") : tr("dark")) + "\n" +
-    tr("size") + ": " + (size || 16) + "px\n" +
-    tr("font") + ": " + (prefs.font_family || "Poppins") + "\n" +
-    tr("layout") + ": " + (prefs.layout || "comfortable");
+    t("language") + ": " + (prefs.lang === "ne" ? t("nepali") : t("english")) + "\n" +
+    t("theme") + ": " + (prefs.theme === "light" ? t("light") : t("dark")) + "\n" +
+    t("size") + ": " + (size || 16) + "px\n" +
+    t("font") + ": " + (prefs.font_family || "Poppins") + "\n" +
+    t("layout") + ": " + (prefs.layout || "comfortable");
 }
-window.addEventListener("storage", event => {
-  if (event.key === SETTINGS_KEY) {
+window.addEventListener("storage", e => {
+  if (e.key === SETTINGS_KEY) {
     applyPreferences();
     renderTrash();
   }
 });
+window.addEventListener("focus", () => {
+  applyPreferences();
+  renderTrash();
+});
+window.addEventListener("pageshow", () => {
+  applyPreferences();
+  renderTrash();
+});
 
-/* All notifications stay inside page; no toast(), alert(), or confirm() popups. */
-function showStatus(id, message, kind) {
+function status(id, message, kind) {
   const el = $(id);
   if (!el) return;
-  el.textContent = message;
+  el.textContent = message || "";
   el.className = "status" + (kind ? " " + kind : "");
 }
-function showPageStatus(message, kind) {
-  showStatus("pageStatus", message, kind);
+function pageStatus(message, kind) { status("pageStatus", message, kind); }
+function friendlyError(error) {
+  const code = String(error && error.code || "");
+  const message = String(error && error.message || "");
+  if (/permission_denied|PERMISSION_DENIED/i.test(message + " " + code))
+    return "Firebase Rules denied access. Check rules for this user's UID.";
+  if (/network|offline/i.test(message + " " + code))
+    return "Network error. Check the internet connection.";
+  return message || code || "Unknown error";
 }
-function safeString(value) {
+function safeJSON(value) {
   try { return JSON.stringify(value); } catch (_) { return String(value); }
 }
-function formatDate(value) {
+function dateText(value) {
   const n = Number(value || 0);
   return n > 0 && Number.isFinite(n) ? new Date(n).toLocaleString() : "—";
 }
-function askInline(message) {
-  return window.prompt(message + "\n\nType YES to continue:") === "YES";
-}
-/* Avoid browser prompts too: destructive operations require a typed confirmation in-page. */
-function requestConfirmation(message, callback) {
-  const box = document.createElement("div");
-  box.className = "record";
-  const text = document.createElement("p");
-  text.textContent = message;
-  const input = document.createElement("input");
-  input.placeholder = "Type YES";
-  input.setAttribute("aria-label", "Type YES to confirm");
-  const actions = document.createElement("div");
-  actions.className = "actions";
-  const yes = document.createElement("button");
-  yes.className = "danger";
-  yes.type = "button";
-  yes.textContent = tr("continue") || "Continue";
-  const no = document.createElement("button");
-  no.type = "button";
-  no.textContent = tr("cancel") || "Cancel";
-  no.addEventListener("click", () => box.remove());
-  yes.addEventListener("click", () => {
-    if (input.value.trim() !== "YES") {
-      input.setCustomValidity("Type YES to confirm.");
-      input.reportValidity();
-      return;
-    }
-    box.remove();
-    callback();
-  });
-  actions.append(yes, no);
-  box.append(text, input, actions);
-  $("pageStatus").after(box);
-  input.focus();
-}
-function validOriginalPath(path) {
+function validPath(path) {
   if (!user || typeof path !== "string") return false;
-  const p = path.split("/");
-  return p.length >= 3 && p[0] === "users" && p[1] === user.uid &&
-    p.every(part => part && part !== "." && part !== ".." && !/[.#$\[\]]/.test(part));
+  const parts = path.split("/");
+  return parts.length >= 3 && parts[0] === "users" && parts[1] === user.uid &&
+    parts.every(p => p && p !== "." && p !== ".." && !/[.#$\[\]]/.test(p));
 }
-function collectTrash(raw) {
-  const result = [];
-  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return result;
-  for (const category of Object.keys(raw)) {
-    const group = raw[category];
-    if (!group || typeof group !== "object" || Array.isArray(group)) continue;
 
-    /* Old flat Trash record layout */
-    if (["originalPath","data","originalData","deletedAt","deleted_at","trashType","recordType"].some(k => k in group)) {
-      const item = normalizeTrash("__root__", category, group);
-      if (item) result.push(item);
+/*
+ * Supports both:
+ * users/UID/trash/category/recordID
+ * users/UID/trash/recordID
+ */
+function collectTrash(raw) {
+  const out = [];
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return out;
+
+  for (const [key, value] of Object.entries(raw)) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) continue;
+
+    if (isTrashEntry(value)) {
+      const item = normalizeEntry(key, value, "__root__");
+      if (item) out.push(item);
       continue;
     }
-    for (const id of Object.keys(group)) {
-      const item = normalizeTrash(category, id, group[id]);
-      if (item) result.push(item);
+
+    for (const [id, entry] of Object.entries(value)) {
+      if (!entry || typeof entry !== "object" || Array.isArray(entry)) continue;
+      if (isTrashEntry(entry)) {
+        const item = normalizeEntry(id, entry, key);
+        if (item) out.push(item);
+      }
     }
   }
+
   const unique = new Map();
-  result.forEach(item => unique.set(item.category + "/" + item.id, item));
+  for (const item of out) unique.set(item.location, item);
   return [...unique.values()];
 }
-function normalizeTrash(category, id, raw) {
-  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+function isTrashEntry(v) {
+  return ["originalPath","data","originalData","deletedAt","deleted_at","deleted_at_ms","trashType","recordType"]
+    .some(k => Object.prototype.hasOwnProperty.call(v, k));
+}
+function normalizeEntry(id, raw, category) {
   const deletedAt = Number(raw.deletedAt || raw.deleted_at || raw.deleted_at_ms || 0);
   const expiresAt = Number(raw.expiresAt || (deletedAt ? deletedAt + RETENTION : 0));
-  let data = raw.data !== undefined ? raw.data : (raw.originalData !== undefined ? raw.originalData : null);
-  let path = typeof raw.originalPath === "string" ? raw.originalPath : "";
-  const recordType = String(raw.recordType || raw.trashType || category || "record");
+  const data = raw.data !== undefined ? raw.data :
+    (raw.originalData !== undefined ? raw.originalData : null);
 
-  if (data === null && (category === "house_expenses" || recordType === "house_expense")) {
-    data = { ...raw };
-    ["deletedAt","deleted_at","deleted_at_ms","expiresAt","trashType","recordType","originalPath"].forEach(k => delete data[k]);
-    if (!path && data.id) path = "users/" + user.uid + "/house_expenses/" + data.id;
+  let path = typeof raw.originalPath === "string" ? raw.originalPath : "";
+  let recordType = String(raw.recordType || raw.trashType ||
+    (category === "__root__" ? "record" : category));
+
+  // Compatibility for older flat house-expense entries.
+  let recoveredData = data;
+  if (recoveredData === null &&
+      (recordType === "house_expense" || category === "house_expenses")) {
+    recoveredData = { ...raw };
+    ["deletedAt","deleted_at","deleted_at_ms","expiresAt","trashType","recordType","originalPath"]
+      .forEach(k => delete recoveredData[k]);
   }
-  return { category, id, data, path, deletedAt, expiresAt, recordType };
+
+  if (!path && recoveredData && recoveredData.id && user) {
+    const guessedCategory = category === "__root__" ? recordType : category;
+    const allowed = new Set(["transactions","incomes","savings","house_expenses","notes"]);
+    if (allowed.has(guessedCategory))
+      path = "users/" + user.uid + "/" + guessedCategory + "/" + recoveredData.id;
+  }
+
+  const location = category === "__root__"
+    ? "trash/" + id
+    : "trash/" + category + "/" + id;
+
+  return {
+    id, category, location, path, data: recoveredData,
+    deletedAt, expiresAt, recordType
+  };
 }
-function entryRef(item) {
-  return item.category === "__root__"
-    ? userRef.child("trash").child(item.id)
-    : userRef.child("trash").child(item.category).child(item.id);
+function trashEntryRef(item) {
+  return userRef.child(item.location);
 }
 function renderTrash() {
   const list = $("trashList");
   if (!list) return;
+
   list.replaceChildren();
   const items = collectTrash(trashData);
   const now = Date.now();
   $("trashCount").textContent = String(items.length);
   $("expiredCount").textContent = String(items.filter(x => x.expiresAt && x.expiresAt <= now).length);
-  const query = $("trashSearch").value.trim().toLowerCase();
-  const filtered = items.filter(x => [x.recordType,x.id,x.path,safeString(x.data)].join(" ").toLowerCase().includes(query))
-    .sort((a,b) => b.deletedAt - a.deletedAt);
+
+  const query = $("trashSearch").value.trim().toLocaleLowerCase();
+  const filtered = items.filter(item => [
+    item.recordType, item.id, item.path, safeJSON(item.data)
+  ].join(" ").toLocaleLowerCase().includes(query))
+   .sort((a,b) => b.deletedAt - a.deletedAt);
 
   if (!filtered.length) {
     const p = document.createElement("p");
     p.className = "muted";
-    p.textContent = items.length ? tr("noMatches") : tr("emptyTrash");
+    p.textContent = items.length ? t("noMatches") : t("empty");
     list.append(p);
     return;
   }
-  filtered.forEach(item => {
+
+  for (const item of filtered) {
     const data = item.data && typeof item.data === "object" ? item.data : {};
+    const expired = item.expiresAt > 0 && item.expiresAt <= now;
     const article = document.createElement("article");
     article.className = "record";
+
     const head = document.createElement("div");
     head.className = "between";
     const title = document.createElement("strong");
-    title.textContent = String(data.name || data.title || data.source || data.description || item.recordType || item.id);
+    title.textContent = String(data.name || data.party || data.title ||
+      data.description || data.itemName || item.recordType || item.id);
     const badge = document.createElement("span");
     badge.className = "badge";
-    const expired = item.expiresAt > 0 && item.expiresAt <= now;
-    badge.textContent = expired ? tr("expiredLabel") : tr("recoverable");
-    head.append(title,badge);
+    badge.textContent = expired ? t("expiredLabel") : t("recoverable");
+    head.append(title, badge);
+
     const meta = document.createElement("div");
     meta.className = "meta";
-    meta.textContent = tr("type") + ": " + item.recordType + "\n" +
-      tr("deleted") + ": " + formatDate(item.deletedAt) + "\n" +
-      tr("expires") + ": " + formatDate(item.expiresAt) + "\n" +
-      tr("path") + ": " + (item.path || "—");
-    const actions = document.createElement("div");
-    actions.className = "actions";
+    meta.textContent = t("type") + ": " + item.recordType + "\n" +
+      t("deleted") + ": " + dateText(item.deletedAt) + "\n" +
+      t("expires") + ": " + dateText(item.expiresAt) + "\n" +
+      t("path") + ": " + (item.path || "—");
+
+    const buttons = document.createElement("div");
+    buttons.className = "actions";
+
     const restore = document.createElement("button");
     restore.type = "button";
     restore.className = "primary";
-    restore.textContent = tr("restore");
-    restore.disabled = expired || !validOriginalPath(item.path) || item.data === null;
-    restore.addEventListener("click", () => requestConfirmation(tr("restoreQuestion"), () => restoreItem(item)));
+    restore.textContent = t("restore");
+    restore.disabled = expired || !validPath(item.path) || item.data === null;
+    restore.addEventListener("click", () =>
+      confirmInline(t("restoreConfirm"), () => restoreItem(item)));
+
     const remove = document.createElement("button");
     remove.type = "button";
     remove.className = "danger";
-    remove.textContent = tr("delete");
-    remove.addEventListener("click", () => requestConfirmation(tr("deleteQuestion"), () => deleteTrashItem(item)));
-    actions.append(restore,remove);
-    article.append(head,meta,actions);
-    if (!item.path || item.data === null) {
+    remove.textContent = t("delete");
+    remove.addEventListener("click", () =>
+      confirmInline(t("deleteConfirm"), () => deleteTrashItem(item)));
+
+    buttons.append(restore, remove);
+    article.append(head, meta, buttons);
+
+    if (!validPath(item.path) || item.data === null) {
       const note = document.createElement("p");
       note.className = "muted";
-      note.textContent = tr("invalidRestore");
+      note.textContent = t("invalid");
       article.append(note);
     }
     list.append(article);
+  }
+}
+function confirmInline(message, callback) {
+  const box = document.createElement("div");
+  box.className = "record";
+
+  const text = document.createElement("p");
+  text.textContent = message;
+
+  const input = document.createElement("input");
+  input.placeholder = t("typeYes");
+  input.setAttribute("aria-label", t("typeYes"));
+
+  const actions = document.createElement("div");
+  actions.className = "actions";
+
+  const yes = document.createElement("button");
+  yes.type = "button";
+  yes.className = "danger";
+  yes.textContent = t("yes");
+
+  const no = document.createElement("button");
+  no.type = "button";
+  no.textContent = t("cancel");
+  no.addEventListener("click", () => box.remove());
+
+  yes.addEventListener("click", async () => {
+    if (input.value.trim() !== "YES") {
+      input.setCustomValidity(t("typeYes"));
+      input.reportValidity();
+      return;
+    }
+    box.remove();
+    await callback();
   });
+
+  actions.append(yes, no);
+  box.append(text, input, actions);
+  $("pageStatus").after(box);
+  input.focus();
 }
 function attachTrash() {
+  if (trashRef && trashCallback) trashRef.off("value", trashCallback);
   trashRef = userRef.child("trash");
+
   trashCallback = snap => {
     trashData = snap.val() || {};
     renderTrash();
   };
   trashRef.on("value", trashCallback, error => {
-    showPageStatus(friendlyError(error), "error");
+    pageStatus(friendlyError(error), "error");
   });
 }
-function friendlyError(error) {
-  const code = error && error.code ? String(error.code) : "";
-  if (/unauthorized-domain|auth/iu.test(code)) {
-    return "Authentication/domain configuration needs checking in Firebase Console. No popup was opened.";
-  }
-  if (/permission_denied|PERMISSION_DENIED/iu.test(String(error && error.message))) {
-    return "Firebase Rules denied this operation. Check that the signed-in user has access only to their own UID.";
-  }
-  return (error && error.message) ? error.message : "An operation failed.";
-}
 async function restoreItem(item) {
+  if (!validPath(item.path) || item.data === null) {
+    pageStatus(t("invalid"), "error");
+    return;
+  }
   if (item.expiresAt > 0 && item.expiresAt <= Date.now()) {
-    showPageStatus(tr("expiredRestore"), "error");
+    pageStatus(t("expiredError"), "error");
     return;
   }
-  if (!validOriginalPath(item.path) || item.data === null) {
-    showPageStatus(tr("invalidRestore"), "error");
-    return;
-  }
+
   try {
-    const result = await db.ref(item.path).transaction(current => current === null ? item.data : undefined);
+    const target = db.ref(item.path);
+    const result = await target.transaction(current => {
+      if (current !== null) return;
+      return item.data;
+    });
+
     if (!result.committed) {
-      showPageStatus(tr("occupied"), "error");
+      pageStatus(t("occupied"), "error");
       return;
     }
-    await entryRef(item).remove();
-    showPageStatus(tr("restored"), "good");
+    await trashEntryRef(item).remove();
+    pageStatus(t("restored"), "good");
   } catch (error) {
-    showPageStatus(tr("restoreError") + friendlyError(error), "error");
+    pageStatus(t("restoreError") + friendlyError(error), "error");
   }
 }
 async function deleteTrashItem(item) {
   try {
-    await entryRef(item).remove();
-    showPageStatus(tr("deletedForever"), "good");
+    await trashEntryRef(item).remove();
+    pageStatus(t("deletedForever"), "good");
   } catch (error) {
-    showPageStatus(tr("deleteError") + friendlyError(error), "error");
+    pageStatus(t("deleteError") + friendlyError(error), "error");
+  }
+}
+async function refreshTrash() {
+  if (!trashRef) {
+    pageStatus("Firebase is not ready yet.", "error");
+    return;
+  }
+  try {
+    const snap = await trashRef.once("value");
+    trashData = snap.val() || {};
+    renderTrash();
+  } catch (error) {
+    pageStatus(t("refreshError") + friendlyError(error), "error");
   }
 }
 async function exportBackup() {
-  if (!userRef) return;
+  if (!userRef) return pageStatus("Firebase is not ready yet.", "error");
   try {
     const snap = await userRef.once("value");
     const payload = {
@@ -602,7 +622,9 @@ async function exportBackup() {
       uid:user.uid,
       data:snap.val() || {}
     };
-    const blob = new Blob([JSON.stringify(payload,null,2)], {type:"application/json;charset=utf-8"});
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {
+      type:"application/json;charset=utf-8"
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -610,44 +632,46 @@ async function exportBackup() {
     document.body.append(a);
     a.click();
     a.remove();
-    setTimeout(() => URL.revokeObjectURL(url),1000);
-    showStatus("backupStatus",tr("backupExported"),"good");
+    URL.revokeObjectURL(url);
+    status("backupStatus", t("backupExported"), "good");
   } catch (error) {
-    showStatus("backupStatus",tr("backupError") + friendlyError(error),"error");
+    status("backupStatus", t("backupError") + friendlyError(error), "error");
   }
 }
 async function importBackup(file) {
   if (!file || !userRef) return;
   if (file.size > 25 * 1024 * 1024) {
-    showStatus("backupStatus",tr("backupTooLarge"),"error");
+    status("backupStatus", t("backupTooLarge"), "error");
     return;
   }
   try {
     const payload = JSON.parse(await file.text());
     if (!payload || payload.format !== "digital-notebook-backup-v1" ||
         !payload.data || typeof payload.data !== "object" || Array.isArray(payload.data)) {
-      throw new Error(tr("invalidBackup"));
+      throw new Error(t("invalidBackup"));
     }
-    requestConfirmation(tr("importQuestion"), async () => {
+
+    confirmInline(t("importConfirm"), async () => {
       const added = [], skipped = [];
       try {
-        for (const key of Object.keys(payload.data)) {
-          if (!ALLOWED_KEYS.has(key) || /[.#$\[\]\/]/.test(key)) {
+        for (const [key, value] of Object.entries(payload.data)) {
+          if (!/^[A-Za-z0-9_-]+$/.test(key) || key === "uid") {
             skipped.push(key);
             continue;
           }
           const result = await userRef.child(key).transaction(current =>
-            current === null ? payload.data[key] : undefined
+            current === null ? value : undefined
           );
           (result.committed ? added : skipped).push(key);
         }
-        showStatus("backupStatus",tr("importDone") + (added.join(", ") || "—") + tr("skipped") + (skipped.join(", ") || "—"),"good");
+        status("backupStatus", t("importDone") + (added.join(", ") || "—") +
+          t("skipped") + (skipped.join(", ") || "—"), "good");
       } catch (error) {
-        showStatus("backupStatus",tr("importError") + friendlyError(error),"error");
+        status("backupStatus", t("importError") + friendlyError(error), "error");
       }
     });
   } catch (error) {
-    showStatus("backupStatus",tr("invalidBackup"),"error");
+    status("backupStatus", t("invalidBackup"), "error");
   } finally {
     $("backupFile").value = "";
   }
@@ -658,70 +682,61 @@ function saveMpin() {
   const confirmPin = $("confirmMpin").value.trim();
   const stored = localStorage.getItem("app_mpin");
 
-  if (!/^\d{4}$/.test(next) || !/^\d{4}$/.test(confirmPin)) {
-    showStatus("mpinStatus",tr("mpinInvalid"),"error"); return;
-  }
-  if (stored && oldPin !== stored) {
-    showStatus("mpinStatus",tr("mpinWrong"),"error"); return;
-  }
-  if (!stored && oldPin) {
-    showStatus("mpinStatus",tr("mpinWrong"),"error"); return;
-  }
-  if (next !== confirmPin) {
-    showStatus("mpinStatus",tr("mpinMismatch"),"error"); return;
-  }
+  if (!/^\d{4}$/.test(next) || !/^\d{4}$/.test(confirmPin))
+    return status("mpinStatus", t("mpinInvalid"), "error");
+  if (stored && oldPin !== stored)
+    return status("mpinStatus", t("mpinWrong"), "error");
+  if (!stored && oldPin)
+    return status("mpinStatus", t("mpinWrong"), "error");
+  if (next !== confirmPin)
+    return status("mpinStatus", t("mpinMismatch"), "error");
+
   try {
-    localStorage.setItem("app_mpin",next);
+    localStorage.setItem("app_mpin", next);
     ["currentMpin","newMpin","confirmMpin"].forEach(id => $(id).value = "");
-    showStatus("mpinStatus",tr("mpinSaved"),"good");
+    status("mpinStatus", t("mpinSaved"), "good");
   } catch (error) {
-    showStatus("mpinStatus",tr("mpinError") + friendlyError(error),"error");
+    status("mpinStatus", t("mpinError") + friendlyError(error), "error");
   }
 }
 async function changePassword() {
   if (!user || !user.email) return;
   const current = $("currentPassword").value;
   const next = $("newPassword").value;
-  if (!current || next.length < 6) {
-    showStatus("passwordStatus",tr("passwordInvalid"),"error");
-    $("passwordStatus").classList.remove("hidden");
-    return;
-  }
+  $("passwordStatus").classList.remove("hidden");
+
+  if (!current || next.length < 6)
+    return status("passwordStatus", t("passwordInvalid"), "error");
+
   try {
-    const credential = firebase.auth.EmailAuthProvider.credential(user.email,current);
+    const credential = firebase.auth.EmailAuthProvider.credential(user.email, current);
     await user.reauthenticateWithCredential(credential);
     await user.updatePassword(next);
     $("currentPassword").value = "";
     $("newPassword").value = "";
-    showStatus("passwordStatus",tr("passwordChanged"),"good");
+    status("passwordStatus", t("passwordChanged"), "good");
   } catch (error) {
-    showStatus("passwordStatus",tr("passwordError") + friendlyError(error),"error");
+    status("passwordStatus", t("passwordError") + friendlyError(error), "error");
   }
-  $("passwordStatus").classList.remove("hidden");
 }
 async function resetPassword() {
   if (!user || !user.email) return;
   try {
     await auth.sendPasswordResetEmail(user.email);
-    showPageStatus(tr("resetSent"),"good");
+    pageStatus(t("resetSent"), "good");
   } catch (error) {
-    showPageStatus(tr("resetError") + friendlyError(error),"error");
+    pageStatus(t("resetError") + friendlyError(error), "error");
   }
 }
-function logout() {
-  requestConfirmation(tr("logoutQuestion"), async () => {
+function doLogout() {
+  confirmInline(t("logoutConfirm"), async () => {
     try {
       await auth.signOut();
       location.replace("index.html");
     } catch (error) {
-      showPageStatus(tr("logoutError") + friendlyError(error),"error");
+      pageStatus(t("logoutError") + friendlyError(error), "error");
     }
   });
-}
-function detach() {
-  if (trashRef && trashCallback) trashRef.off("value",trashCallback);
-  trashRef = null;
-  trashCallback = null;
 }
 function initFirebase() {
   try {
@@ -731,8 +746,8 @@ function initFirebase() {
 
     auth.onAuthStateChanged(current => {
       if (!current) {
-        detach();
-        showPageStatus(tr("signedOut"));
+        if (trashRef && trashCallback) trashRef.off("value", trashCallback);
+        pageStatus(t("signedOut"), "error");
         location.replace("index.html");
         return;
       }
@@ -740,52 +755,38 @@ function initFirebase() {
       userRef = db.ref("users/" + user.uid);
       $("accountEmail").textContent = user.email || "—";
       $("accountUid").textContent = user.uid;
-      showPageStatus(tr("ready"),"good");
+      pageStatus(t("ready"), "good");
       attachTrash();
-    }, error => showPageStatus(friendlyError(error),"error"));
+    }, error => pageStatus(friendlyError(error), "error"));
   } catch (error) {
-    showPageStatus(friendlyError(error),"error");
+    pageStatus(friendlyError(error), "error");
   }
 }
 
+/* Back never logs out and never requests a password. */
 $("backButton").addEventListener("click", () => {
   if (history.length > 1) history.back();
   else location.href = "index.html";
 });
-$("refreshTrash").addEventListener("click", async () => {
-  if (!trashRef) return;
-  try {
-    const snap = await trashRef.once("value");
-    trashData = snap.val() || {};
-    renderTrash();
-    showPageStatus(tr("ready"),"good");
-  } catch (error) {
-    showPageStatus(tr("refreshError") + friendlyError(error),"error");
-  }
-});
-$("trashSearch").addEventListener("input",renderTrash);
-$("exportBackup").addEventListener("click",exportBackup);
-$("chooseBackup").addEventListener("click",() => $("backupFile").click());
-$("backupFile").addEventListener("change",event => {
-  const file = event.target.files && event.target.files[0];
+$("refreshTrash").addEventListener("click", refreshTrash);
+$("trashSearch").addEventListener("input", renderTrash);
+$("exportBackup").addEventListener("click", exportBackup);
+$("chooseBackup").addEventListener("click", () => $("backupFile").click());
+$("backupFile").addEventListener("change", e => {
+  const file = e.target.files && e.target.files[0];
   if (file) importBackup(file);
 });
-$("saveMpin").addEventListener("click",saveMpin);
-$("toggleMpin").addEventListener("click",() => {
+$("saveMpin").addEventListener("click", saveMpin);
+$("toggleMpin").addEventListener("click", () => {
   const fields = ["currentMpin","newMpin","confirmMpin"].map(id => $(id));
   const show = fields.some(el => el.type === "password");
   fields.forEach(el => el.type = show ? "text" : "password");
 });
-$("changePassword").addEventListener("click",changePassword);
-$("resetPassword").addEventListener("click",resetPassword);
-$("logout").addEventListener("click",logout);
-$("dangerLogout").addEventListener("click",logout);
-
-window.addEventListener("offline",() => showPageStatus(tr("offline"),"error"));
-window.addEventListener("online",() => { if (user) showPageStatus(tr("ready"),"good"); });
+$("changePassword").addEventListener("click", changePassword);
+$("resetPassword").addEventListener("click", resetPassword);
+$("logout").addEventListener("click", doLogout);
 
 applyPreferences();
-if (!localStorage.getItem("app_mpin")) showStatus("mpinStatus",tr("mpinInfo"));
 initFirebase();
 })();
 </script>
