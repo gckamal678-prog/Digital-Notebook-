@@ -12,10 +12,12 @@
   const defaults={theme:"dark",lang:"ne",font_size:"16",font_family:"Poppins",accentColor:"#10b981",layout:"comfortable"};
   let s={};
   try{s=JSON.parse(localStorage.getItem(KEY)||"{}")||{}}catch(e){}
+  if(!s.theme&&localStorage.getItem("theme"))s.theme=localStorage.getItem("theme");
   s={...defaults,...s};
   const r=document.documentElement;
   r.lang=s.lang==="en"?"en":"ne";
   r.classList.toggle("light",s.theme==="light");
+  r.classList.toggle("dark",s.theme!=="light");
   r.style.setProperty("--accent",/^#[0-9a-f]{6}$/i.test(s.accentColor||"")?s.accentColor:defaults.accentColor);
   r.style.setProperty("--app-font-size",Math.max(12,Math.min(24,Number(s.font_size)||16))+"px");
   const fonts=["Poppins","Arial","Roboto","Georgia","system-ui"];
@@ -78,12 +80,6 @@ body.auth-pending main,body.auth-pending header{visibility:hidden}
 body[data-layout="compact"] main{padding:8px;gap:8px}
 body[data-layout="compact"] .card{padding:10px}
 body[data-layout="wide"] main{width:min(1400px,100%)}
-#pdfStage{position:fixed;left:-20000px;top:0;width:1100px;background:#fff;color:#172033;padding:22px;font:11px Arial,"Noto Sans Devanagari",sans-serif}
-#pdfStage table{border-collapse:collapse;width:100%;margin-bottom:16px}
-#pdfStage th,#pdfStage td{border:1px solid #9aada6;padding:6px;vertical-align:top;overflow-wrap:anywhere}
-#pdfStage th{background:#dcebe5;text-align:left}
-#pdfStage .right{text-align:right}
-#pdfStage tr{page-break-inside:avoid}
 .modal-backdrop{position:fixed;inset:0;background:#000a;z-index:1000;display:flex;align-items:center;justify-content:center;padding:18px}
 .modal-backdrop[hidden]{display:none!important}
 .modal{width:min(100%,440px);background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:0 20px 70px #0008}
@@ -137,7 +133,7 @@ body[data-layout="wide"] main{width:min(1400px,100%)}
     <button class="primary" id="saveButton" type="submit" data-i18n="save">बचत सेभ</button>
     <button id="cancelButton" type="button" data-i18n="cancel">रद्द</button>
     <button id="importButton" type="button" data-i18n="import">पुरानो डाटा Import</button>
-    <button id="pdfButton" type="button" data-i18n="pdf">PDF बनाउनुहोस्</button>
+    <button id="pdfButton" type="button" data-i18n="pdf">PDF निकाल्नुहोस्</button>
    </div>
   </form>
  </section>
@@ -163,8 +159,6 @@ body[data-layout="wide"] main{width:min(1400px,100%)}
   <div id="trashList"></div>
  </section>
 </main>
-
-<div id="pdfStage" aria-hidden="true"></div>
 
 <div id="confirmModal" class="modal-backdrop" hidden>
  <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalMessage">
@@ -202,7 +196,7 @@ const TEXT={
  addHeading:"बचत रेकर्ड थप्नुहोस्",editHeading:"बचत रेकर्ड सम्पादन",savingName:"बचतको नाम",category:"श्रेणी",
  general:"सामान्य",bank:"बैंक",cash:"नगद",education:"शिक्षा",home:"घर",other:"अन्य",date:"मिति",
  npr:"रकम NPR",inr:"रकम INR",exchangeRate:"INR दर (१ INR बराबर NPR)",totalNpr:"कुल NPR",note:"कैफियत / विवरण",
- save:"बचत सेभ",update:"अपडेट गर्नुहोस्",cancel:"रद्द",import:"पुरानो डाटा Import",pdf:"PDF बनाउनुहोस्",
+ save:"बचत सेभ",update:"अपडेट गर्नुहोस्",cancel:"रद्द",import:"पुरानो डाटा Import",pdf:"PDF निकाल्नुहोस्",
  summary:"बचतको सारांश",goal:"बचत लक्ष्य NPR",searchLabel:"खोज्नुहोस्",searchPlaceholder:"नाम, श्रेणी वा विवरण",
  totalSaved:"कुल बचत",groups:"नामका समूह",records:"रेकर्ड संख्या",progress:"लक्ष्य प्रगति",
  deletedSavings:"हटाइएका बचत",trashHelp:"हटाइएको बचत साझा Account Trash मा देखिन्छ र म्यादभित्र Restore गर्न सकिन्छ।",
@@ -221,12 +215,12 @@ const TEXT={
  cloudFail:"Cloud बचत पढ्न सकिएन। Firebase Rules र इन्टरनेट जाँच्नुहोस्: ",
  trashFail:"Trash पढ्न सकिएन। Firebase Rules जाँच्नुहोस्: ",
  needName:"बचतको नाम र मिति भर्नुहोस्।",badAmount:"रकम शून्य वा बढी र INR दर शून्यभन्दा बढी हुनुपर्छ।",
- alreadyImported:"स्थानीय बचत पहिले नै Import गरिएको байна।",cloudNotEmpty:"Cloud मा बचत रेकर्ड छन्। डाटा सुरक्षित राख्न Import रोकियो।",
+ alreadyImported:"स्थानीय बचत पहिले नै Import गरिएको छ।",cloudNotEmpty:"Cloud मा बचत रेकर्ड छन्। डाटा सुरक्षित राख्न Import रोकियो।",
  noLegacy:"Import गर्न लकल पुरानो बचत डाटा भेटिएन।",importOk:"Import पूरा भयो। आयात गरिएका रेकर्ड: ",importFail:"Import असफल भयो: ",
  pdfFail:"PDF सुविधा लोड भएन। इन्टरनेट जडान जाँच्नुहोस्।",pdfError:"PDF बनाउन सकिएन: ",
  missing:"उल्लेख गरिएको छैन",report:"बचत विवरण रिपोर्ट",profile:"प्रयोगकर्ताको विवरण",name:"नाम",email:"इमेल",address:"ठेगाना",mobile:"मोबाइल",
  reportDate:"रिपोर्ट मिति",detailsTitle:"बचतको विस्तृत विवरण",serial:"क्र.सं.",savingNamePdf:"बचतको नाम",remark:"कैफियत",grandTotal:"जम्मा",
- foot:"यो रिपोर्ट उपलब्ध Cloud Savings रेकर्डका आधारमा तयार गरिएको हो。",goalFail:"बचत लक्ष्य स्थानीय रूपमा सेभ गर्न सकिएन。",
+ reportFoot:"यो रिपोर्ट उपलब्ध Cloud Savings रेकर्डका आधारमा तयार गरिएको हो。",goalFail:"बचत लक्ष्य स्थानीय रूपमा सेभ गर्न सकिएन。",
  },
  en:{
  title:"Savings",intro:"Keep your savings records. Tap a name to expand records with the same name.",rateLabel:"Exchange rate",
@@ -257,7 +251,7 @@ const TEXT={
  pdfFail:"PDF support did not load. Check your internet connection.",pdfError:"Could not create PDF: ",
  missing:"Not provided",report:"Savings Report",profile:"User details",name:"Name",email:"Email",address:"Address",mobile:"Mobile",
  reportDate:"Report date",detailsTitle:"Detailed savings records",serial:"No.",savingNamePdf:"Savings name",remark:"Note",grandTotal:"Total",
- foot:"This report was created from the available Cloud Savings records.",goalFail:"Could not save the goal locally."
+ reportFoot:"This report was created from the available Cloud Savings records.",goalFail:"Could not save the goal locally."
  }
 };
 
@@ -290,7 +284,6 @@ function userRef(path=""){
  return firebase.database().ref("users/"+state.uid+(path?"/"+path:""));
 }
 
-/* In-app confirmation replaces browser window.confirm/domain says. */
 let modalResolve=null,modalFocus=null;
 function confirmApp(message,{title=null,ok=null,cancel=null,danger=false}={}){
  if(modalResolve)return Promise.resolve(false);
@@ -382,7 +375,6 @@ async function saveRecord(id,data,editing){
  if(!result.committed)throw new Error(t("recordMissing"));
 }
 
-/* A single record is moved to shared Trash without overwriting other sections. */
 async function moveToTrash(id){
  const record=state.records[id];
  if(!record){showStatus(t("recordMissing"),true);return;}
@@ -557,15 +549,11 @@ async function importLegacyData(){
 }
 $("importButton").addEventListener("click",importLegacyData);
 
-/* PDF ONLY: use the same profile keys and banner style as add-income.html */
+/* -------------------------------------------------------------
+   Income फाइलकै जस्तो आकर्षक ल्यान्डस्केप (Landscape) PDF जेनेरेटर
+------------------------------------------------------------- */
 function profileObject(){
-  for(const key of [
-    "digital_notebook_profile",
-    "user_profile",
-    "userProfile",
-    "profile",
-    "digital_notebook_user"
-  ]){
+  for(const key of ["digital_notebook_profile","user_profile","userProfile","profile","digital_notebook_user"]){
     try{
       const value=JSON.parse(localStorage.getItem(key)||"null");
       if(value&&typeof value==="object"&&!Array.isArray(value))return value;
@@ -574,7 +562,7 @@ function profileObject(){
   return {};
 }
 
-function localValue(keys){
+function firstLocalValue(keys){
   for(const key of keys){
     try{
       const value=localStorage.getItem(key);
@@ -585,147 +573,61 @@ function localValue(keys){
 }
 
 function profileForPdf(){
-  const p=profileObject();
-  const u=state.user||firebase.auth().currentUser;
+  const u=firebase.auth().currentUser,p=profileObject();
   return {
-    name:localValue(["profile_name","user_profile_name","fullName","userName"])
-      ||p.name||p.fullName||p.full_name||p.username||"",
-    email:localValue(["profile_email","user_profile_email"])
-      ||p.email||u?.email||"",
-    address:localValue(["profile_address","user_profile_address"])
-      ||p.address||p.location||"",
-    mobile:localValue(["profile_mobile","user_profile_mobile","user_mobile"])
-      ||p.mobile||p.phone||p.phoneNumber||""
+    name:firstLocalValue(["profile_name","user_profile_name","fullName","userName"])||p.name||p.fullName||p.full_name||p.username||"",
+    email:firstLocalValue(["profile_email","user_profile_email"])||p.email||u?.email||"",
+    address:firstLocalValue(["profile_address","user_profile_address"])||p.address||p.location||"",
+    mobile:firstLocalValue(["profile_mobile","user_profile_mobile","user_mobile"])||p.mobile||p.phone||p.phoneNumber||""
   };
 }
 
-function buildPdfHtml(){
-  const records=entries().sort((a,b)=>
-    String(a.date||"").localeCompare(String(b.date||""))||
-    String(a.title||"").localeCompare(String(b.title||""))
-  );
-  const profile=profileForPdf();
-  const total=records.reduce((sum,r)=>sum+totalOf(r),0);
-  const goal=Math.max(0,num($("goal").value));
-  const reportDate=new Date().toLocaleString();
-  const missing=t("missing");
+async function exportPdf(){
+  if(!window.html2pdf){showStatus(t("pdfFail"),true);return;}
+  const records=entries().sort((a,b)=>String(a.date||"").localeCompare(String(b.date||"")));
+  const profile=profileForPdf(),total=records.reduce((s,r)=>s+totalOf(r),0),reportDate=new Date().toLocaleString(),missing=t("missing");
+  
+  const rows=records.map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r.date||"")}</td><td>${esc(r.title||r.name||r.savingName||"")}</td><td>${esc(r.category||"")}</td><td class="right">${num(r.npr).toFixed(2)}</td><td class="right">${num(r.inr).toFixed(2)}</td><td class="right">${num(r.rate||1.6).toFixed(2)}</td><td class="right">${totalOf(r).toFixed(2)}</td><td>${esc(r.note||r.description||"")}</td></tr>`).join("");
 
-  const rows=records.map((r,i)=>`
-    <tr>
-      <td>${i+1}</td>
-      <td>${esc(r.date||"")}</td>
-      <td>${esc(r.title||r.name||r.savingName||"")}</td>
-      <td>${esc(r.category||"")}</td>
-      <td class="right">${num(r.npr).toFixed(2)}</td>
-      <td class="right">${num(r.inr).toFixed(2)}</td>
-      <td class="right">${num(r.rate||1.6).toFixed(2)}</td>
-      <td class="right">${totalOf(r).toFixed(2)}</td>
-      <td>${esc(r.note||r.description||"")}</td>
-    </tr>
-  `).join("");
+  const report=document.createElement("div");
+  report.style.cssText="background:#fff;color:#172033;padding:22px;font-family:Arial,'Noto Sans Devanagari',sans-serif;font-size:11px;width:100%";
+  report.innerHTML=`
+  <div style="background:#102b3f;color:#fff;padding:18px;border-radius:8px;border-bottom:5px solid #10b981;margin-bottom:14px">
+   <div style="display:flex;align-items:center;gap:12px">
+    <img src="N1024.png" alt="Digital NoteBook" style="width:55px;height:55px;object-fit:contain" onerror="this.style.display='none'">
+    <div><h1 style="font-size:23px;margin:0 0 5px;color:#fff">Digital NoteBook</h1><div style="font-size:13px">${esc(t("report"))}</div></div>
+   </div>
+   <hr style="border:0;border-top:1px solid #547080;margin:13px 0">
+   <div style="line-height:1.9"><b>${esc(t("profile"))}</b><br>
+    <b>${esc(t("name"))}:</b> ${esc(profile.name||missing)}<br>
+    <b>${esc(t("email"))}:</b> ${esc(profile.email||missing)}<br>
+    <b>${esc(t("address"))}:</b> ${esc(profile.address||missing)}<br>
+    <b>${esc(t("mobile"))}:</b> ${esc(profile.mobile||missing)}<br>
+    <b>${esc(t("reportDate"))}:</b> ${esc(reportDate)}
+   </div>
+  </div>
+  <div style="background:#eaf7f0;border:1px solid #b8e2cc;border-radius:6px;padding:12px;margin-bottom:16px">
+   <b>${esc(t("grandTotal"))}:</b> ${money(total)} &nbsp; | &nbsp; <b>${esc(t("recordCount"))}:</b> ${records.length}
+  </div>
+  <h2 style="font-size:16px;margin:12px 0 7px">${esc(t("detailsTitle"))}</h2>
+  <table><thead><tr><th>${esc(t("serial"))}</th><th>${esc(t("date"))}</th><th>${esc(t("savingNamePdf"))}</th><th>${esc(t("category"))}</th><th>NPR</th><th>INR</th><th>Rate</th><th>${esc(t("total"))} NPR</th><th>${esc(t("remark"))}</th></tr></thead>
+  <tbody>${rows||`<tr><td colspan="9">${esc(t("noRecords"))}</td></tr>`}</tbody>
+  <tfoot><tr><td colspan="7" class="right"><b>${esc(t("grandTotal"))}</b></td><td class="right"><b>${total.toFixed(2)}</b></td><td></td></tr></tfoot></table>
+  <div style="margin-top:18px;border-top:1px solid #ccd5d1;padding-top:8px;color:#52635d">${esc(t("reportFoot"))}</div>
+  <style>table{border-collapse:collapse;width:100%;margin-bottom:16px}th,td{border:1px solid #9aada6;padding:6px;vertical-align:top}th{background:#dcebe5;text-align:left}.right{text-align:right}tr{page-break-inside:avoid}</style>`;
 
-  return `
-  <div style="background:#fff;color:#172033;padding:22px;
-    font-family:Arial,'Noto Sans Devanagari',sans-serif;font-size:11px;width:100%">
-
-    <!-- Same banner design as Income PDF -->
-    <div style="background:#102b3f;color:#fff;padding:18px;
-      border-radius:8px;border-bottom:5px solid #10b981;margin-bottom:14px">
-      <div style="display:flex;align-items:center;gap:12px">
-        <img src="${esc(new URL("N1024.png",location.href).href)}"
-          alt="Digital NoteBook"
-          style="width:55px;height:55px;object-fit:contain"
-          onerror="this.style.display='none'">
-        <div>
-          <h1 style="font-size:23px;margin:0 0 5px;color:#fff">Digital NoteBook</h1>
-          <div style="font-size:13px">${esc(t("report"))}</div>
-        </div>
-      </div>
-
-      <hr style="border:0;border-top:1px solid #547080;margin:13px 0">
-
-      <div style="line-height:1.9">
-        <b>${esc(t("profile"))}</b><br>
-        <b>${esc(t("name"))}:</b> ${esc(profile.name||missing)}<br>
-        <b>${esc(t("email"))}:</b> ${esc(profile.email||missing)}<br>
-        <b>${esc(t("address"))}:</b> ${esc(profile.address||missing)}<br>
-        <b>${esc(t("mobile"))}:</b> ${esc(profile.mobile||missing)}<br>
-        <b>${esc(t("reportDate"))}:</b> ${esc(reportDate)}
-      </div>
-    </div>
-
-    <div style="background:#eaf7f0;border:1px solid #b8e2cc;
-      border-radius:6px;padding:12px;margin-bottom:16px">
-      <b>${esc(t("totalSaved"))}:</b> ${esc(money(total))}
-      &nbsp; | &nbsp; <b>${esc(t("records"))}:</b> ${records.length}
-      &nbsp; | &nbsp; <b>${esc(t("goal"))}:</b> ${goal?esc(money(goal)):"—"}
-      &nbsp; | &nbsp; <b>${esc(t("progress"))}:</b>
-      ${goal?Math.min(100,total/goal*100).toFixed(1)+"%":"—"}
-    </div>
-
-    <h2 style="font-size:16px;margin:12px 0 7px">${esc(t("detailsTitle"))}</h2>
-
-    <table style="border-collapse:collapse;width:100%;margin-bottom:16px">
-      <thead><tr>
-        <th>${esc(t("serial"))}</th>
-        <th>${esc(t("date"))}</th>
-        <th>${esc(t("savingNamePdf"))}</th>
-        <th>${esc(t("category"))}</th>
-        <th>NPR</th><th>INR</th>
-        <th>${esc(t("exchangeRate"))}</th>
-        <th>Total NPR</th>
-        <th>${esc(t("remark"))}</th>
-      </tr></thead>
-
-      <tbody>
-        ${rows||`<tr><td colspan="9">${esc(t("noRecords"))}</td></tr>`}
-      </tbody>
-
-      <tfoot><tr>
-        <td colspan="7" class="right"><b>${esc(t("grandTotal"))}</b></td>
-        <td class="right"><b>${total.toFixed(2)}</b></td>
-        <td></td>
-      </tr></tfoot>
-    </table>
-
-    <div style="margin-top:18px;border-top:1px solid #ccd5d1;
-      padding-top:8px;color:#52635d">${esc(t("foot"))}</div>
-
-    <style>
-      table{border-collapse:collapse;width:100%;margin-bottom:16px}
-      th,td{border:1px solid #9aada6;padding:6px;vertical-align:top;overflow-wrap:anywhere}
-      th{background:#dcebe5;text-align:left}
-      .right{text-align:right}
-      tr{page-break-inside:avoid}
-    </style>
-  </div>`;
-}
-
-$("pdfButton").addEventListener("click",async()=>{
-  if(!window.html2pdf){
-    showStatus(t("pdfFail"),true);
-    return;
-  }
-
-  $("pdfButton").disabled=true;
   try{
-    $("pdfStage").innerHTML=buildPdfHtml();
-
-    await html2pdf().set({
-      margin:8,
-      filename:"Digital-Notebook-Savings-"+new Date().toISOString().slice(0,10)+".pdf",
-      image:{type:"jpeg",quality:.98},
-      html2canvas:{scale:2,useCORS:true,backgroundColor:"#ffffff"},
-      pagebreak:{mode:["css","legacy"]},
-      jsPDF:{unit:"mm",format:"a4",orientation:"landscape"}
-    }).from($("pdfStage")).save();
-
-  }catch(e){
-    showStatus(t("pdfError")+(e.message||e),true);
-  }finally{
-    $("pdfButton").disabled=false;
-  }
-});
+   await html2pdf().set({
+    margin:8,
+    filename:"Digital-Notebook-Savings-"+new Date().toISOString().slice(0,10)+".pdf",
+    image:{type:"jpeg",quality:.98},
+    html2canvas:{scale:2,useCORS:true},
+    pagebreak:{mode:["css","legacy"]},
+    jsPDF:{unit:"mm",format:"a4",orientation:"landscape"}
+   }).from(report).save();
+  }catch(e){showStatus(t("pdfError")+(e.message||e),true);}
+}
+$("pdfButton").addEventListener("click",exportPdf);
 
 function detach(){
  if(state.dataRef&&state.dataCallback)state.dataRef.off("value",state.dataCallback);
@@ -742,7 +644,6 @@ function attach(){
  };
  state.dataRef.on("value",state.dataCallback,error=>showStatus(t("cloudFail")+(error.message||error),true));
 
- /* Sync listener runs without displaying a Cloud Sync banner. */
  state.trashRef=userRef("trash");
  state.trashCallback=snap=>{
   const all=snap.val()||{};
