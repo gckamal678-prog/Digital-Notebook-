@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="ne">
 <head>
@@ -8,21 +9,21 @@
 
 <script>
 (function(){
-  const KEY="digital_notebook_settings";
-  const defaults={theme:"dark",lang:"ne",font_size:"16",font_family:"Poppins",accentColor:"#10b981",layout:"comfortable"};
-  let s={};
-  try{s=JSON.parse(localStorage.getItem(KEY)||"{}")||{}}catch(e){}
-  if(!s.theme&&localStorage.getItem("theme"))s.theme=localStorage.getItem("theme");
-  s={...defaults,...s};
-  const r=document.documentElement;
-  r.lang=s.lang==="en"?"en":"ne";
-  r.classList.toggle("light",s.theme==="light");
-  r.classList.toggle("dark",s.theme!=="light");
-  r.style.setProperty("--accent",/^#[0-9a-f]{6}$/i.test(s.accentColor||"")?s.accentColor:defaults.accentColor);
-  r.style.setProperty("--app-font-size",Math.max(12,Math.min(24,Number(s.font_size)||16))+"px");
-  const fonts=["Poppins","Arial","Roboto","Georgia","system-ui"];
-  r.style.setProperty("--app-font-family",(fonts.includes(s.font_family)?s.font_family:"Poppins")+",Arial,sans-serif");
-  r.dataset.layout=["compact","comfortable","wide"].includes(s.layout)?s.layout:"comfortable";
+ const KEY="digital_notebook_settings";
+ const defaults={theme:"dark",lang:"ne",font_size:"16",font_family:"Poppins",accentColor:"#10b981",layout:"comfortable"};
+ let s={};
+ try{s=JSON.parse(localStorage.getItem(KEY)||"{}")||{}}catch(e){}
+ if(!s.theme&&localStorage.getItem("theme"))s.theme=localStorage.getItem("theme");
+ s={...defaults,...s};
+ const r=document.documentElement;
+ r.lang=s.lang==="en"?"en":"ne";
+ r.classList.toggle("light",s.theme==="light");
+ r.classList.toggle("dark",s.theme!=="light");
+ r.style.setProperty("--accent",/^#[0-9a-f]{6}$/i.test(s.accentColor||"")?s.accentColor:defaults.accentColor);
+ r.style.setProperty("--app-font-size",Math.max(12,Math.min(24,Number(s.font_size)||16))+"px");
+ const fonts=["Poppins","Arial","Roboto","Georgia","system-ui"];
+ r.style.setProperty("--app-font-family",(fonts.includes(s.font_family)?s.font_family:"Poppins")+",Arial,sans-serif");
+ r.dataset.layout=["compact","comfortable","wide"].includes(s.layout)?s.layout:"comfortable";
 })();
 </script>
 
@@ -52,8 +53,7 @@ main{width:min(1050px,100%);margin:auto;padding:14px;display:grid;gap:14px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:16px}
 h1{font-size:1.4rem;margin:0 0 8px}
 h2{font-size:1.15rem;margin:0 0 12px}
-p{margin:8px 0}
-.muted{color:var(--muted)}
+p{margin:8px 0}.muted{color:var(--muted)}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:10px}
 label{display:block;color:var(--muted);font-size:.88rem}
 input,select{width:100%;margin-top:4px;padding:10px;color:var(--text);background:var(--field);border:1px solid var(--line);border-radius:9px}
@@ -74,8 +74,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .progress{height:8px;background:var(--line);border-radius:20px;overflow:hidden;margin-top:6px}
 .progress span{display:block;height:100%;background:var(--accent);width:0}
 .status{padding:9px 11px;border-radius:8px;background:var(--field);white-space:pre-wrap;overflow-wrap:anywhere;border:1px solid var(--line)}
-.status:empty{display:none}
-.status.error{border-color:var(--danger);color:var(--danger)}
+.status:empty{display:none}.status.error{border-color:var(--danger);color:var(--danger)}
 body.auth-pending main,body.auth-pending header{visibility:hidden}
 body[data-layout="compact"] main{padding:8px;gap:8px}
 body[data-layout="compact"] .card{padding:10px}
@@ -83,8 +82,7 @@ body[data-layout="wide"] main{width:min(1400px,100%)}
 .modal-backdrop{position:fixed;inset:0;background:#000a;z-index:1000;display:flex;align-items:center;justify-content:center;padding:18px}
 .modal-backdrop[hidden]{display:none!important}
 .modal{width:min(100%,440px);background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:0 20px 70px #0008}
-.modal h2{margin:0 0 12px}
-.modal p{white-space:pre-line;overflow-wrap:anywhere}
+.modal h2{margin:0 0 12px}.modal p{white-space:pre-line;overflow-wrap:anywhere}
 .modal-actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:22px}
 .modal-actions button{width:auto;min-width:95px}
 @media(max-width:560px){main{padding:8px}.card{padding:11px}.row button,.actions button{flex:1 1 auto}.modal{padding:18px}}
@@ -183,7 +181,6 @@ const FIREBASE_CONFIG={
  messagingSenderId:"218135618179",
  appId:"1:218135618179:web:821b76920d3e5669ac31b6"
 };
-
 if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);
 
 const PATH="savings",DAY_MS=86400000,SETTINGS_KEY="digital_notebook_settings";
@@ -191,72 +188,66 @@ const $=id=>document.getElementById(id);
 const DEFAULTS={theme:"dark",lang:"ne",font_size:"16",font_family:"Poppins",accentColor:"#10b981",layout:"comfortable"};
 
 const TEXT={
- ne:{
- title:"बचत / Savings",intro:"बचतको रेकर्ड राख्नुहोस्। एउटै नामका रेकर्ड खोल्न नाममा थिच्नुहोस्।",rateLabel:"INR दर",
- addHeading:"बचत रेकर्ड थप्नुहोस्",editHeading:"बचत रेकर्ड सम्पादन",savingName:"बचतको नाम",category:"श्रेणी",
- general:"सामान्य",bank:"बैंक",cash:"नगद",education:"शिक्षा",home:"घर",other:"अन्य",date:"मिति",
- npr:"रकम NPR",inr:"Inr",exchangeRate:"INR दर (१ INR बराबर NPR)",totalNpr:"कुल NPR",note:"कैफियत / विवरण",
- save:"बचत सेभ",update:"अपडेट गर्नुहोस्",cancel:"रद्द",import:"पुरानो डाटा Import",pdf:"PDF निकाल्नुहोस्",
- summary:"बचतको सारांश",goal:"बचत लक्ष्य NPR",searchLabel:"खोज्नुहोस्",searchPlaceholder:"नाम, श्रेणी वा विवरण",
- totalSaved:"कुल बचत",groups:"नामका समूह",records:"रेकर्ड संख्या",progress:"लक्ष्य प्रगति",
- deletedSavings:"हटाइएका बचत",trashHelp:"हटाइएको बचत साझा Account Trash मा देखिन्छ र म्यादभित्र Restore गर्न सकिन्छ।",
- noRecords:"बचत रेकर्ड भेटिएन।",noTrash:"हटाइएका बचत रेकर्ड छैनन्।",edit:"सम्पादन",delete:"Trash मा सार्नुहोस्",
- restore:"Restore",deleted:"हटाइएको",expires:"म्याद",confirmTitle:"पुष्टि गर्नुहोस्",yes:"पुष्टि गर्नुहोस्",
- confirmSave:"यो बचत रेकर्ड सेभ गर्ने हो?",confirmUpdate:"यो बचत रेकर्डका परिवर्तन सेभ गर्ने हो?",
- confirmDelete:"यो बचत रेकर्ड साझा Account Trash मा सार्ने हो? म्यादभित्र Restore गर्न सकिन्छ।",
- confirmRestore:"यो बचत रेकर्ड Restore गर्ने हो?",
- importConfirm:"स्थानीय पुरानो बचत Cloud मा Import गर्ने? Cloud मा भएका रेकर्ड overwrite गरिने छैनन्।",
- login:"लगइन पुष्टि भएन। index.html बाट लगइन गर्नुहोस्।",
- recordMissing:"रेकर्ड भेटिएन। Refresh गरेर प्रयास गर्नुहोस्।",
- restoreExpired:"Restore गर्ने म्याद सकिएको छ वा Trash डाटा अपूर्ण छ।",
- restoreConflict:"त्यही ID को बचत पहिल्यै छ। पुरानो रेकर्ड overwrite गरिएको छैन।",
- restorePath:"रेकर्डको मूल स्थान पुष्टि गर्न सकिएन। Restore रोकियो।",
- saveFail:"बचत सेभ गर्न सकिएन: ",deleteFail:"Trash मा सार्न सकिएन: ",restoreFail:"Restore असफल भयो: ",
- cloudFail:"Cloud बचत पढ्न सकिएन। Firebase Rules र इन्टरनेट जाँच्नुहोस्: ",
- trashFail:"Trash पढ्न सकिएन। Firebase Rules जाँच्नुहोस्: ",
- needName:"बचतको नाम र मिति भर्नुहोस्।",badAmount:"रकम शून्य वा बढी र INR दर शून्यभन्दा बढी हुनुपर्छ।",
- alreadyImported:"स्थानीय बचत पहिले नै Import गरिएको छ।",cloudNotEmpty:"Cloud मा बचत रेकर्ड छन्। डाटा सुरक्षित राख्न Import रोकियो।",
- noLegacy:"Import गर्न लकल पुरानो बचत डाटा भेटिएन।",importOk:"Import पूरा भयो। आयात गरिएका रेकर्ड: ",importFail:"Import असफल भयो: ",
- pdfFail:"PDF सुविधा लोड भएन। इन्टरनेट जडान जाँच्नुहोस्।",pdfError:"PDF बनाउन सकिएन: ",
- missing:"उल्लेख गरिएको छैन",report:"बचत विवरण रिपोर्ट",profile:"प्रयोगकर्ताको विवरण",name:"नाम",email:"इमेल",address:"ठेगाना",mobile:"मोबाइल",
- reportDate:"रिपोर्ट मिति",detailsTitle:"बचतको विस्तृत विवरण",serial:"क्र.सं.",savingNamePdf:"बचतको नाम",remark:"कैफियत",grandTotal:"जम्मा",
- reportFoot:"यो रिपोर्ट उपलब्ध Cloud Savings रेकर्डका आधारमा तयार गरिएको हो।",goalFail:"बचत लक्ष्य स्थानीय रूपमा सेभ गर्न सकिएन。",
- },
- en:{
- title:"Savings",intro:"Keep your savings records. Tap a name to expand records with the same name.",rateLabel:"Exchange rate",
- addHeading:"Add savings record",editHeading:"Edit savings record",savingName:"Savings name",category:"Category",
- general:"General",bank:"Bank",cash:"Cash",education:"Education",home:"Home",other:"Other",date:"Date",
- npr:"Amount NPR",inr:"Amount INR",exchangeRate:"Exchange rate (NPR per INR)",totalNpr:"Total NPR",note:"Note / details",
- save:"Save savings",update:"Update record",cancel:"Cancel",import:"Import old data",pdf:"Export PDF",
- summary:"Savings summary",goal:"Savings goal NPR",searchLabel:"Search",searchPlaceholder:"Name, category or details",
- totalSaved:"Total savings",groups:"Name groups",records:"Records",progress:"Goal progress",
- deletedSavings:"Deleted savings",trashHelp:"Deleted savings appear in the shared Account Trash and can be restored before expiry.",
- noRecords:"No savings records found.",noTrash:"No deleted savings records.",edit:"Edit",delete:"Move to Trash",
- restore:"Restore",deleted:"Deleted",expires:"Expires",confirmTitle:"Please confirm",yes:"Confirm",
- confirmSave:"Save this savings record?",confirmUpdate:"Save changes to this savings record?",
- confirmDelete:"Move this savings record to the shared Account Trash? It can be restored before expiry.",
- confirmRestore:"Restore this savings record?",
- importConfirm:"Import old local savings to Cloud? Existing Cloud records will not be overwritten.",
- login:"Sign-in not verified. Sign in through index.html.",
- recordMissing:"Record not found. Refresh and try again.",
- restoreExpired:"The restore period has expired or Trash data is incomplete.",
- restoreConflict:"A record with this ID already exists. Nothing was overwritten.",
- restorePath:"The original record location could not be verified. Restore stopped.",
- saveFail:"Could not save savings: ",deleteFail:"Could not move to Trash: ",restoreFail:"Restore failed: ",
- cloudFail:"Could not read Cloud savings. Check Firebase Rules and connection: ",
- trashFail:"Could not read Trash. Check Firebase Rules: ",
- needName:"Enter the savings name and date.",badAmount:"Amounts must be zero or greater, and the exchange rate must be above zero.",
- alreadyImported:"Local savings have already been imported.",cloudNotEmpty:"Cloud savings already exist. Import stopped to protect your data.",
- noLegacy:"No old local savings data was found.",importOk:"Import complete. Records imported: ",importFail:"Import failed: ",
- pdfFail:"PDF support did not load. Check your internet connection.",pdfError:"Could not create PDF: ",
- missing:"Not provided",report:"Savings Report",profile:"User details",name:"Name",email:"Email",address:"Address",mobile:"Mobile",
- reportDate:"Report date",detailsTitle:"Detailed savings records",serial:"No.",savingNamePdf:"Savings name",remark:"Note",grandTotal:"Total",
- reportFoot:"This report was created from the available Cloud Savings records.",goalFail:"Could not save the goal locally."
- }
+ne:{
+title:"बचत / Savings",intro:"बचतको रेकर्ड राख्नुहोस्। एउटै नामका रेकर्ड खोल्न नाममा थिच्नुहोस्।",rateLabel:"INR दर",
+addHeading:"बचत रेकर्ड थप्नुहोस्",editHeading:"बचत रेकर्ड सम्पादन",savingName:"बचतको नाम",category:"श्रेणी",
+general:"सामान्य",bank:"बैंक",cash:"नगद",education:"शिक्षा",home:"घर",other:"अन्य",date:"मिति",
+npr:"रकम NPR",inr:"रकम INR",exchangeRate:"INR दर (१ INR बराबर NPR)",totalNpr:"कुल NPR",note:"कैफियत / विवरण",
+save:"बचत सेभ",update:"अपडेट गर्नुहोस्",cancel:"रद्द",import:"पुरानो डाटा Import",pdf:"PDF निकाल्नुहोस्",
+summary:"बचतको सारांश",goal:"बचत लक्ष्य NPR",searchLabel:"खोज्नुहोस्",searchPlaceholder:"नाम, श्रेणी वा विवरण",
+totalSaved:"कुल बचत",groups:"नामका समूह",records:"रेकर्ड संख्या",progress:"लक्ष्य प्रगति",
+deletedSavings:"हटाइएका बचत",trashHelp:"हटाइएको बचत साझा Account Trash मा देखिन्छ र म्यादभित्र Restore गर्न सकिन्छ।",
+noRecords:"बचत रेकर्ड भेटिएन।",noTrash:"हटाइएका बचत रेकर्ड छैनन्।",edit:"सम्पादन",delete:"Trash मा सार्नुहोस्",
+restore:"Restore",deleted:"हटाइएको",expires:"म्याद",confirmTitle:"पुष्टि गर्नुहोस्",yes:"पुष्टि गर्नुहोस्",
+confirmSave:"यो बचत रेकर्ड सेभ गर्ने हो?",confirmUpdate:"यो बचत रेकर्डका परिवर्तन सेभ गर्ने हो?",
+confirmDelete:"यो बचत रेकर्ड साझा Account Trash मा सार्ने हो? ३० दिनभित्र Restore गर्न सकिन्छ।",
+confirmRestore:"यो बचत रेकर्ड Restore गर्ने हो?",
+importConfirm:"स्थानीय पुरानो बचत Cloud मा Import गर्ने? Cloud मा भएका रेकर्ड overwrite गरिने छैनन्।",
+login:"लगइन पुष्टि भएन। index.html बाट लगइन गर्नुहोस्।",
+recordMissing:"रेकर्ड भेटिएन। Refresh गरेर प्रयास गर्नुहोस्।",
+restoreExpired:"Restore गर्ने म्याद सकिएको छ वा Trash डाटा अपूर्ण छ।",
+restoreConflict:"त्यही ID को बचत पहिल्यै छ। पुरानो रेकर्ड overwrite गरिएको छैन।",
+restorePath:"रेकर्डको मूल स्थान पुष्टि गर्न सकिएन। Restore रोकियो।",
+saveFail:"बचत सेभ गर्न सकिएन: ",deleteFail:"Trash मा सार्न सकिएन: ",restoreFail:"Restore असफल भयो: ",
+cloudFail:"Cloud बचत पढ्न सकिएन। Firebase Rules र इन्टरनेट जाँच्नुहोस्: ",
+trashFail:"Trash पढ्न सकिएन। Firebase Rules जाँच्नुहोस्: ",
+needName:"बचतको नाम र मिति भर्नुहोस्।",badAmount:"रकम शून्य वा बढी र INR दर शून्यभन्दा बढी हुनुपर्छ।",
+alreadyImported:"स्थानीय बचत पहिले नै Import गरिएको छ।",cloudNotEmpty:"Cloud मा बचत रेकर्ड छन्। डाटा सुरक्षित राख्न Import रोकियो।",
+noLegacy:"Import गर्न पुरानो स्थानीय बचत डाटा भेटिएन।",importOk:"Import पूरा भयो। आयात गरिएका रेकर्ड: ",importFail:"Import असफल भयो: ",
+pdfFail:"PDF सुविधा लोड भएन। इन्टरनेट जडान जाँच्नुहोस्।",pdfError:"PDF बनाउन सकिएन: ",goalFail:"बचत लक्ष्य स्थानीय रूपमा सेभ गर्न सकिएन।"
+},
+en:{
+title:"Savings",intro:"Keep your savings records. Tap a name to expand records with the same name.",rateLabel:"Exchange rate",
+addHeading:"Add savings record",editHeading:"Edit savings record",savingName:"Savings name",category:"Category",
+general:"General",bank:"Bank",cash:"Cash",education:"Education",home:"Home",other:"Other",date:"Date",
+npr:"Amount NPR",inr:"Amount INR",exchangeRate:"Exchange rate (NPR per INR)",totalNpr:"Total NPR",note:"Note / details",
+save:"Save savings",update:"Update record",cancel:"Cancel",import:"Import old data",pdf:"Export PDF",
+summary:"Savings summary",goal:"Savings goal NPR",searchLabel:"Search",searchPlaceholder:"Name, category or details",
+totalSaved:"Total savings",groups:"Name groups",records:"Records",progress:"Goal progress",
+deletedSavings:"Deleted savings",trashHelp:"Deleted savings appear in the shared Account Trash and can be restored within 30 days.",
+noRecords:"No savings records found.",noTrash:"No deleted savings records.",edit:"Edit",delete:"Move to Trash",
+restore:"Restore",deleted:"Deleted",expires:"Expires",confirmTitle:"Please confirm",yes:"Confirm",
+confirmSave:"Save this savings record?",confirmUpdate:"Save changes to this savings record?",
+confirmDelete:"Move this savings record to the shared Account Trash? It can be restored within 30 days.",
+confirmRestore:"Restore this savings record?",
+importConfirm:"Import old local savings to Cloud? Existing Cloud records will not be overwritten.",
+login:"Sign-in not verified. Sign in through index.html.",
+recordMissing:"Record not found. Refresh and try again.",
+restoreExpired:"The restore period has expired or Trash data is incomplete.",
+restoreConflict:"A record with this ID already exists. Nothing was overwritten.",
+restorePath:"The original record location could not be verified. Restore stopped.",
+saveFail:"Could not save savings: ",deleteFail:"Could not move to Trash: ",restoreFail:"Restore failed: ",
+cloudFail:"Could not read Cloud savings. Check Firebase Rules and connection: ",
+trashFail:"Could not read Trash. Check Firebase Rules: ",
+needName:"Enter the savings name and date.",badAmount:"Amounts must be zero or greater, and the exchange rate must be above zero.",
+alreadyImported:"Local savings have already been imported.",cloudNotEmpty:"Cloud savings already exist. Import stopped to protect your data.",
+noLegacy:"No old local savings data was found.",importOk:"Import complete. Records imported: ",importFail:"Import failed: ",
+pdfFail:"PDF support did not load. Check your internet connection.",pdfError:"Could not create PDF: ",goalFail:"Could not save the goal locally."
+}
 };
 
 const state={
- uid:null,user:null,records:{},trash:{},expanded:{},settings:readSettings(),
+ uid:null,user:null,records:{},trash:{},expanded:{},settings:{...DEFAULTS},
  dataRef:null,trashRef:null,dataCallback:null,trashCallback:null,importing:false
 };
 
@@ -266,19 +257,12 @@ function readSettings(){
  if(!s.theme&&localStorage.getItem("theme"))s.theme=localStorage.getItem("theme");
  return {...DEFAULTS,...s};
 }
-function t(k){
- const lang=state.settings.lang==="en"?"en":"ne";
- return TEXT[lang][k]??TEXT.ne[k]??k;
-}
-function esc(v){
- return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-}
-function num(v){const n=Number(v);return Number.isFinite(n)?n:0;}
-function money(v){return "NPR "+num(v).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2});}
-function validKey(id){return typeof id==="string"&&id.length>0&&!/[.#$[\]\/]/.test(id);}
-function showStatus(message,error=false){
- const el=$("pageStatus");el.textContent=message||"";el.classList.toggle("error",!!error);
-}
+function t(k){return TEXT[state.settings.lang==="en"?"en":"ne"][k]??TEXT.ne[k]??k}
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function num(v){const n=Number(v);return Number.isFinite(n)?n:0}
+function money(v){return "NPR "+num(v).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}
+function validKey(id){return typeof id==="string"&&id.length>0&&!/[.#$[\]\/]/.test(id)}
+function showStatus(message,error=false){const el=$("pageStatus");el.textContent=message||"";el.classList.toggle("error",!!error)}
 function userRef(path=""){
  if(!state.uid)throw new Error(t("login"));
  return firebase.database().ref("users/"+state.uid+(path?"/"+path:""));
@@ -295,7 +279,7 @@ function confirmApp(message,{title=null,ok=null,cancel=null,danger=false}={}){
  $("modalOK").classList.toggle("danger",danger);
  $("confirmModal").hidden=false;
  $("modalOK").focus();
- return new Promise(resolve=>{modalResolve=resolve;});
+ return new Promise(resolve=>{modalResolve=resolve});
 }
 function closeModal(answer){
  if($("confirmModal").hidden)return;
@@ -306,10 +290,10 @@ function closeModal(answer){
 }
 $("modalCancel").addEventListener("click",()=>closeModal(false));
 $("modalOK").addEventListener("click",()=>closeModal(true));
-$("confirmModal").addEventListener("click",e=>{if(e.target===$("confirmModal"))closeModal(false);});
+$("confirmModal").addEventListener("click",e=>{if(e.target===$("confirmModal"))closeModal(false)});
 document.addEventListener("keydown",e=>{
- if(!$("confirmModal").hidden&&e.key==="Escape"){e.preventDefault();closeModal(false);}
- if(!$("confirmModal").hidden&&e.key==="Enter"){e.preventDefault();closeModal(true);}
+ if(!$("confirmModal").hidden&&e.key==="Escape"){e.preventDefault();closeModal(false)}
+ if(!$("confirmModal").hidden&&e.key==="Enter"){e.preventDefault();closeModal(true)}
 });
 
 function applySettings(){
@@ -324,7 +308,6 @@ function applySettings(){
  root.style.setProperty("--app-font-family",(fonts.includes(s.font_family)?s.font_family:"Poppins")+",Arial,sans-serif");
  const layout=["compact","comfortable","wide"].includes(s.layout)?s.layout:"comfortable";
  root.dataset.layout=layout;document.body.dataset.layout=layout;
-
  document.querySelectorAll("[data-i18n]").forEach(el=>{
   const key=el.dataset.i18n;
   if(el.matches("option"))el.textContent=t(key);
@@ -335,14 +318,14 @@ function applySettings(){
  $("saveButton").textContent=$("recordId").value?t("update"):t("save");
  render();renderTrash();
 }
-window.addEventListener("storage",e=>{if(e.key===SETTINGS_KEY)applySettings();});
+window.addEventListener("storage",e=>{if(e.key===SETTINGS_KEY)applySettings()});
 window.addEventListener("focus",applySettings);
 window.addEventListener("pageshow",applySettings);
 
 function mapRecords(value){
  if(!value||typeof value!=="object"||Array.isArray(value))return {};
  const out={};
- Object.entries(value).forEach(([id,r])=>{if(r&&typeof r==="object"&&!Array.isArray(r))out[id]={...r,id};});
+ Object.entries(value).forEach(([id,r])=>{if(r&&typeof r==="object"&&!Array.isArray(r))out[id]={...r,id}});
  return out;
 }
 function entries(){
@@ -377,8 +360,8 @@ async function saveRecord(id,data,editing){
 
 async function moveToTrash(id){
  const record=state.records[id];
- if(!record){showStatus(t("recordMissing"),true);return;}
- const approved=await confirmApp(t("confirmDelete"),{danger:true});
+ if(!record){showStatus(t("recordMissing"),true);return}
+ const approved=await confirmApp(t("confirmDelete"),{danger:true,ok:t("delete")});
  if(!approved)return;
  const now=Date.now();
  const entry={
@@ -389,11 +372,11 @@ async function moveToTrash(id){
  try{
   const updates={};updates[PATH+"/"+id]=null;updates["trash/"+PATH+"/"+id]=entry;
   await userRef("").update(updates);
- }catch(e){showStatus(t("deleteFail")+(e.message||e),true);}
+ }catch(e){showStatus(t("deleteFail")+(e.message||e),true)}
 }
 function trashRows(){
  return Object.entries(state.trash||{})
-  .filter(([id,e])=>e&&typeof e==="object"&&!Array.isArray(e)&&e.data)
+  .filter(([,e])=>e&&typeof e==="object"&&!Array.isArray(e)&&e.data)
   .map(([id,e])=>({...e,id:e.id||id}))
   .sort((a,b)=>num(b.deletedAt)-num(a.deletedAt));
 }
@@ -411,10 +394,10 @@ function renderTrash(){
 }
 async function restoreRecord(id){
  const entry=state.trash[id];
- if(!entry||!entry.data){showStatus(t("restoreExpired"),true);return;}
+ if(!entry||!entry.data){showStatus(t("restoreExpired"),true);return}
  const expiry=num(entry.expiresAt)||(num(entry.deletedAt)+30*DAY_MS);
- if(expiry<=Date.now()){showStatus(t("restoreExpired"),true);return;}
- if(entry.originalPath!=="users/"+state.uid+"/"+PATH+"/"+id){showStatus(t("restorePath"),true);return;}
+ if(expiry<=Date.now()){showStatus(t("restoreExpired"),true);return}
+ if(entry.originalPath!=="users/"+state.uid+"/"+PATH+"/"+id){showStatus(t("restorePath"),true);return}
  const approved=await confirmApp(t("confirmRestore"));
  if(!approved)return;
  try{
@@ -422,9 +405,9 @@ async function restoreRecord(id){
    if(old!==null)return;
    return {...entry.data,id,restoredAt:Date.now()};
   },undefined,false);
-  if(!result.committed){showStatus(t("restoreConflict"),true);return;}
+  if(!result.committed){showStatus(t("restoreConflict"),true);return}
   await userRef("trash/"+PATH+"/"+id).remove();
- }catch(e){showStatus(t("restoreFail")+(e.message||e),true);}
+ }catch(e){showStatus(t("restoreFail")+(e.message||e),true)}
 }
 
 function render(){
@@ -442,7 +425,6 @@ function render(){
  $("recordCount").textContent=String(all.length);
  const pct=goal>0?Math.min(100,total/goal*100):0;
  $("goalProgress").textContent=goal>0?pct.toFixed(1)+"%":"—";$("goalBar").style.width=pct+"%";
-
  $("groupList").innerHTML=[...groups.values()].sort((a,b)=>a.name.localeCompare(b.name)).map(g=>{
   const key=g.name.toLocaleLowerCase(),open=!!state.expanded[key];
   g.records.sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
@@ -462,32 +444,30 @@ function render(){
 
 $("savingForm").addEventListener("submit",async e=>{
  e.preventDefault();showStatus("");
- if(!state.uid){showStatus(t("login"),true);return;}
+ if(!state.uid){showStatus(t("login"),true);return}
  const npr=num($("npr").value),inr=num($("inr").value),rate=num($("rate").value);
- if(npr<0||inr<0||rate<=0||![npr,inr,rate].every(Number.isFinite)){showStatus(t("badAmount"),true);return;}
+ if(npr<0||inr<0||rate<=0||![npr,inr,rate].every(Number.isFinite)){showStatus(t("badAmount"),true);return}
  const editing=!!$("recordId").value,id=$("recordId").value||userRef(PATH).push().key;
- if(!validKey(id)){showStatus(t("recordMissing"),true);return;}
- const data={title:$("title").value.trim(),category:$("category").value,date:$("date").value,
-  npr,inr,rate,total:Number((npr+inr*rate).toFixed(2)),note:$("note").value.trim()};
- if(!data.title||!data.date){showStatus(t("needName"),true);return;}
+ if(!validKey(id)){showStatus(t("recordMissing"),true);return}
+ const data={title:$("title").value.trim(),category:$("category").value,date:$("date").value,npr,inr,rate,total:Number((npr+inr*rate).toFixed(2)),note:$("note").value.trim()};
+ if(!data.title||!data.date){showStatus(t("needName"),true);return}
  const approved=await confirmApp(editing?t("confirmUpdate"):t("confirmSave"));
  if(!approved)return;
  $("saveButton").disabled=true;
- try{
-  await saveRecord(id,data,editing);resetForm();
- }catch(err){showStatus(t("saveFail")+(err.message||err),true);}
- finally{$("saveButton").disabled=false;}
+ try{await saveRecord(id,data,editing);resetForm()}
+ catch(err){showStatus(t("saveFail")+(err.message||err),true)}
+ finally{$("saveButton").disabled=false}
 });
 
 $("groupList").addEventListener("click",async e=>{
  const group=e.target.closest("[data-group]");
- if(group){state.expanded[group.dataset.group]=!state.expanded[group.dataset.group];render();return;}
+ if(group){state.expanded[group.dataset.group]=!state.expanded[group.dataset.group];render();return}
  const edit=e.target.closest("[data-edit]");
  if(edit){
   const id=edit.dataset.edit,r=state.records[id];
-  if(!r){showStatus(t("recordMissing"),true);return;}
+  if(!r){showStatus(t("recordMissing"),true);return}
   $("recordId").value=id;
-  ["title","category","date","npr","inr","rate","note"].forEach(k=>{$(k).value=r[k]??(k==="rate"?"1.6":"");});
+  ["title","category","date","npr","inr","rate","note"].forEach(k=>{$(k).value=r[k]??(k==="rate"?"1.6":"")});
   $("formHeading").textContent=t("editHeading");$("saveButton").textContent=t("update");
   calc();window.scrollTo({top:0,behavior:"smooth"});return;
  }
@@ -498,182 +478,131 @@ $("trashList").addEventListener("click",e=>{
  const b=e.target.closest("[data-restore]");if(b)restoreRecord(b.dataset.restore);
 });
 $("search").addEventListener("input",render);
-$("cancelButton").addEventListener("click",()=>{resetForm();showStatus("");});
+$("cancelButton").addEventListener("click",()=>{resetForm();showStatus("")});
 
 $("goal").value=localStorage.getItem("savings_target_amount")||"";
 $("goal").addEventListener("change",()=>{
- try{localStorage.setItem("savings_target_amount",$("goal").value);}
- catch(e){showStatus(t("goalFail"),true);}
+ try{localStorage.setItem("savings_target_amount",$("goal").value)}
+ catch(e){showStatus(t("goalFail"),true)}
  render();
 });
 
 async function importLegacyData(){
- if(!state.uid){showStatus(t("login"),true);return;}
- if(!navigator.onLine){showStatus(t("importFail")+"Internet connection required.",true);return;}
+ if(!state.uid){showStatus(t("login"),true);return}
+ if(!navigator.onLine){showStatus(t("importFail")+"Internet connection required.",true);return}
  if(state.importing)return;
  const approved=await confirmApp(t("importConfirm"));
  if(!approved)return;
  state.importing=true;$("importButton").disabled=true;
  try{
   const marker=userRef("migration/local-savings-v2");
-  if((await marker.once("value")).exists()){showStatus(t("alreadyImported"),true);return;}
+  if((await marker.once("value")).exists()){showStatus(t("alreadyImported"),true);return}
   const cloud=await userRef(PATH).once("value"),cv=cloud.val();
-  if(cloud.exists()&&cv&&(Array.isArray(cv)||Object.keys(cv).length)){showStatus(t("cloudNotEmpty"),true);return;}
+  if(cloud.exists()&&cv&&(Array.isArray(cv)||Object.keys(cv).length)){showStatus(t("cloudNotEmpty"),true);return}
   let old=[],source="";
   ["digital_notebook_savings","savings","saving_data","add_saving_list"].forEach(k=>{
    try{
     const x=JSON.parse(localStorage.getItem(k)||"null");
     const rows=Array.isArray(x)?x:(x&&typeof x==="object"?Object.values(x):[]);
-    if(rows.length&&!old.length){old=rows;source=k;}
+    if(rows.length&&!old.length){old=rows;source=k}
    }catch(e){}
   });
   old=old.filter(x=>x&&typeof x==="object"&&!Array.isArray(x));
-  if(!old.length){showStatus(t("noLegacy"),true);return;}
+  if(!old.length){showStatus(t("noLegacy"),true);return}
   const latest=await userRef(PATH).once("value"),lv=latest.val();
-  if(latest.exists()&&lv&&(Array.isArray(lv)||Object.keys(lv).length)){showStatus(t("cloudNotEmpty"),true);return;}
+  if(latest.exists()&&lv&&(Array.isArray(lv)||Object.keys(lv).length)){showStatus(t("cloudNotEmpty"),true);return}
   let count=0;
   for(const r of old){
    const id=validKey(r.id)?r.id:userRef(PATH).push().key,ref=userRef(PATH+"/"+id);
    const result=await ref.transaction(current=>{
     if(current!==null)return;
     const n=num(r.npr),i=num(r.inr),rate=num(r.rate)||1.6;
-    return {...r,id,title:r.title||r.name||r.savingName||"Unnamed",category:r.category||"General",
-     npr:n,inr:i,rate,total:r.total!==undefined?num(r.total):n+i*rate,
-     createdAt:r.createdAt||Date.now(),updatedAt:Date.now(),migratedFromLocal:true};
+    return {...r,id,title:r.title||r.name||r.savingName||"Unnamed",category:r.category||"General",npr:n,inr:i,rate,total:r.total!==undefined?num(r.total):n+i*rate,createdAt:r.createdAt||Date.now(),updatedAt:Date.now(),migratedFromLocal:true};
    },undefined,false);
    if(result.committed)count++;
   }
   await marker.set({completedAt:Date.now(),imported:count,source});
- }catch(err){showStatus(t("importFail")+(err.message||err),true);}
- finally{state.importing=false;$("importButton").disabled=false;}
+  showStatus(t("importOk")+count);
+ }catch(err){showStatus(t("importFail")+(err.message||err),true)}
+ finally{state.importing=false;$("importButton").disabled=false}
 }
 $("importButton").addEventListener("click",importLegacyData);
 
-/* -------------------------------------------------------------
-   Transactions (कारोबार) फाइलकै जस्तो आकर्षक, ठाडो (Portrait A4) र 
-   माथि खाली ठाउँ नआउने (`scrollY: 0`) PDF जेनेरेटर
-------------------------------------------------------------- */
 function profileObject(){
-  for(const key of ["digital_notebook_profile","user_profile","userProfile","profile","digital_notebook_user"]){
-    try{
-      const value=JSON.parse(localStorage.getItem(key)||"null");
-      if(value&&typeof value==="object"&&!Array.isArray(value))return value;
-    }catch(e){}
-  }
-  return {};
+ for(const key of ["digital_notebook_profile","user_profile","userProfile","profile","digital_notebook_user"]){
+  try{const value=JSON.parse(localStorage.getItem(key)||"null");if(value&&typeof value==="object"&&!Array.isArray(value))return value}catch(e){}
+ }
+ return {};
 }
-
 function firstLocalValue(keys){
-  for(const key of keys){
-    try{
-      const value=localStorage.getItem(key);
-      if(value&&value.trim())return value.trim();
-    }catch(e){}
-  }
-  return "";
+ for(const key of keys){try{const value=localStorage.getItem(key);if(value&&value.trim())return value.trim()}catch(e){}}
+ return "";
 }
-
 function profileForPdf(){
-  const u=firebase.auth().currentUser,p=profileObject();
-  return {
-    name:firstLocalValue(["profile_name","user_profile_name","fullName","userName"])||p.name||p.fullName||p.full_name||p.username||"",
-    email:firstLocalValue(["profile_email","user_profile_email"])||p.email||u?.email||"",
-    address:firstLocalValue(["profile_address","user_profile_address"])||p.address||p.location||"",
-    mobile:firstLocalValue(["profile_mobile","user_profile_mobile","user_mobile"])||p.mobile||p.phone||p.phoneNumber||""
-  };
+ const u=firebase.auth().currentUser,p=profileObject();
+ return {
+  name:firstLocalValue(["profile_name","user_profile_name","fullName","userName"])||p.name||p.fullName||p.full_name||p.username||"",
+  email:firstLocalValue(["profile_email","user_profile_email"])||p.email||u?.email||"",
+  address:firstLocalValue(["profile_address","user_profile_address"])||p.address||p.location||"",
+  mobile:firstLocalValue(["profile_mobile","user_profile_mobile","user_mobile"])||p.mobile||p.phone||p.phoneNumber||""
+ };
 }
 
+/* PDF language is fixed to English; it does not depend on the app language. */
 async function exportPdf(){
-  if(!window.html2pdf){showStatus(t("pdfFail"),true);return;}
-  const records=entries().sort((a,b)=>String(a.date||"").localeCompare(String(b.date||"")));
-  const profile=profileForPdf(),total=records.reduce((s,r)=>s+totalOf(r),0),reportDate=new Date().toLocaleString(),missing=t("missing");
-  
-  const rows=records.map((r,i)=>`<tr>
-    <td style="text-align:center">${i+1}</td>
-    <td>${esc(r.date||"")}</td>
-    <td><b>${esc(r.title||r.name||r.savingName||"")}</b></td>
-    <td>${esc(r.category||"")}</td>
-    <td class="right">${num(r.npr).toFixed(2)}</td>
-    <td class="right">${num(r.inr).toFixed(2)}</td>
-    <td class="right">${num(r.rate||1.6).toFixed(2)}</td>
-    <td class="right">${totalOf(r).toFixed(2)}</td>
-    <td>${esc(r.note||r.description||"")}</td>
-  </tr>`).join("");
+ if(!window.html2pdf){showStatus(t("pdfFail"),true);return}
+ const records=entries().sort((a,b)=>String(a.date||"").localeCompare(String(b.date||"")));
+ const p=profileForPdf(),total=records.reduce((s,r)=>s+totalOf(r),0);
+ const reportDate=new Date().toLocaleDateString("en-GB");
+ const rows=records.map((r,i)=>`<tr>
+ <td class="center">${i+1}</td><td>${esc(r.date||"")}</td>
+ <td><b>${esc(r.title||r.name||r.savingName||"")}</b></td><td>${esc(r.category||"")}</td>
+ <td class="right">${num(r.npr).toFixed(2)}</td><td class="right">${num(r.inr).toFixed(2)}</td>
+ <td class="right">${num(r.rate||1.6).toFixed(2)}</td><td class="right">${totalOf(r).toFixed(2)}</td>
+ <td>${esc(r.note||r.description||"")}</td></tr>`).join("");
 
-  const report=document.createElement("div");
-  report.style.cssText="background:#fff;color:#172033;padding:10px;font-family:Arial,'Noto Sans Devanagari',sans-serif;font-size:10px;width:100%;box-sizing:border-box;";
-  report.innerHTML=`
-  <div style="background:#102b3f;color:#fff;padding:10px;border-radius:6px;border-bottom:4px solid #10b981;margin-bottom:8px">
-   <div style="display:flex;justify-content:space-between;align-items:center">
-    <div>
-     <h1 style="font-size:15px;margin:0 0 2px;color:#fff">Digital NoteBook</h1>
-     <div style="font-size:10px;color:#34d399;font-weight:bold">${esc(t("report"))}</div>
-    </div>
-    <div style="text-align:right;font-size:8px">
-     <b>${esc(t("reportDate"))}:</b> ${esc(reportDate)}
-    </div>
-   </div>
-   <hr style="border:0;border-top:1px solid #334e68;margin:5px 0">
-   <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:3px;font-size:8.5px">
-    <div><b>${esc(t("name"))}:</b> ${esc(profile.name||missing)}</div>
-    <div><b>${esc(t("email"))}:</b> ${esc(profile.email||missing)}</div>
-    <div><b>${esc(t("address"))}:</b> ${esc(profile.address||missing)}</div>
-    <div><b>${esc(t("mobile"))}:</b> ${esc(profile.mobile||missing)}</div>
-   </div>
+ const report=document.createElement("div");
+ report.style.cssText="background:#fff;color:#172033;padding:10px;font-family:Arial,sans-serif;font-size:10px;width:100%;box-sizing:border-box";
+ report.innerHTML=`
+ <div style="background:#102b3f;color:#fff;padding:10px;border-radius:6px;border-bottom:4px solid #10b981;margin-bottom:8px">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+   <div><h1 style="font-size:15px;margin:0 0 2px;color:#fff">Digital NoteBook</h1>
+   <div style="font-size:10px;color:#34d399;font-weight:bold">SAVINGS REPORT</div></div>
+   <div style="text-align:right;font-size:8px"><b>Report Date:</b> ${reportDate}</div>
   </div>
-
-  <div style="background:#eaf7f0;border:1px solid #b8e2cc;border-radius:4px;padding:5px 8px;margin-bottom:8px;font-size:9.5px;display:flex;justify-content:space-between">
-   <div><b>${esc(t("grandTotal"))}:</b> <span style="color:#059669;font-weight:bold">${money(total)}</span></div>
-   <div><b>${esc(t("recordCount"))}:</b> ${records.length}</div>
+  <hr style="border:0;border-top:1px solid #334e68;margin:5px 0">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:8.5px">
+   <div><b>Name:</b> ${esc(p.name||"Not provided")}</div>
+   <div style="text-align:right"><b>Email:</b> ${esc(p.email||"Not provided")}</div>
+   <div><b>Address:</b> ${esc(p.address||"Not provided")}</div>
+   <div style="text-align:right"><b>Mobile:</b> ${esc(p.mobile||"Not provided")}</div>
   </div>
+ </div>
+ <div style="background:#eaf7f0;border:1px solid #b8e2cc;border-radius:4px;padding:5px 8px;margin-bottom:8px;font-size:9.5px;display:flex;justify-content:space-between;gap:10px">
+  <div><b>Total Savings:</b> <span style="color:#059669;font-weight:bold">${total.toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})} NPR</span></div>
+  <div><b>Records:</b> ${records.length}</div>
+ </div>
+ <h2 style="font-size:11px;margin:5px 0 3px;color:#102b3f">Detailed Savings Records</h2>
+ <table>
+ <thead><tr><th style="width:22px;text-align:center">No.</th><th style="width:55px">Date</th><th>Savings Name</th><th style="width:50px">Category</th><th style="width:45px" class="right">NPR</th><th style="width:40px" class="right">INR</th><th style="width:40px" class="right">Rate</th><th style="width:55px" class="right">Total NPR</th><th>Note</th></tr></thead>
+ <tbody>${rows||'<tr><td colspan="9" class="center">No records.</td></tr>'}</tbody>
+ <tfoot><tr><td colspan="7" class="right"><b>Grand Total</b></td><td class="right"><b>${total.toFixed(2)}</b></td><td></td></tr></tfoot>
+ </table>
+ <div style="margin-top:8px;border-top:1px solid #ccd5d1;padding-top:3px;font-size:7.5px;color:#64748b;text-align:center">This report was created from the available Cloud Savings records.</div>
+ <style>
+ table{border-collapse:collapse;width:100%;margin-bottom:6px;table-layout:fixed}
+ th,td{border:1px solid #94a3b8;padding:3px 4px;vertical-align:middle;overflow-wrap:anywhere}
+ th{background:#f1f5f9;color:#0f172a;font-weight:bold;text-align:left}
+ .right{text-align:right}.center{text-align:center}tr{page-break-inside:avoid}
+ </style>`;
 
-  <h2 style="font-size:11px;margin:5px 0 3px;color:#102b3f">${esc(t("detailsTitle"))}</h2>
-  
-  <table>
-   <thead>
-    <tr>
-     <th style="width:22px;text-align:center">${esc(t("serial"))}</th>
-     <th style="width:55px">${esc(t("date"))}</th>
-     <th>${esc(t("savingNamePdf"))}</th>
-     <th style="width:50px">${esc(t("category"))}</th>
-     <th style="width:45px" class="right">NPR</th>
-     <th style="width:40px" class="right">INR</th>
-     <th style="width:40px" class="right">Rate</th>
-     <th style="width:55px" class="right">${esc(t("total"))}</th>
-     <th>${esc(t("remark"))}</th>
-    </tr>
-   </thead>
-   <tbody>
-    ${rows||`<tr><td colspan="9" style="text-align:center">${esc(t("noRecords"))}</td></tr>`}
-   </tbody>
-   <tfoot>
-    <tr>
-     <td colspan="7" class="right"><b>${esc(t("grandTotal"))}</b></td>
-     <td class="right" style="color:#059669"><b>${total.toFixed(2)}</b></td>
-     <td></td>
-    </tr>
-   </tfoot>
-  </table>
-
-  <div style="margin-top:8px;border-top:1px solid #ccd5d1;padding-top:3px;font-size:7.5px;color:#64748b;text-align:center">${esc(t("reportFoot"))}</div>
-  
-  <style>
-   table{border-collapse:collapse;width:100%;margin-bottom:6px;table-layout:fixed;}
-   th,td{border:1px solid #94a3b8;padding:3px 4px;vertical-align:middle;word-wrap:break-word;}
-   th{background:#f1f5f9;color:#0f172a;font-weight:bold;text-align:left}
-   .right{text-align:right}
-   tr{page-break-inside:avoid}
-  </style>`;
-
-  try{
-   await html2pdf().set({
-    margin:5,
-    filename:"Digital-Notebook-Savings-"+new Date().toISOString().slice(0,10)+".pdf",
-    image:{type:"jpeg",quality:0.98},
-    html2canvas:{scale:2,useCORS:true,scrollY:0},
-    jsPDF:{unit:"mm",format:"a4",orientation:"portrait"}
-   }).from(report).save();
-  }catch(e){showStatus(t("pdfError")+(e.message||e),true);}
+ try{
+  await html2pdf().set({
+   margin:5,filename:"Digital-Notebook-Savings-"+new Date().toISOString().slice(0,10)+".pdf",
+   image:{type:"jpeg",quality:.98},html2canvas:{scale:2,useCORS:true,scrollY:0},
+   jsPDF:{unit:"mm",format:"a4",orientation:"portrait"}
+  }).from(report).save();
+ }catch(e){showStatus(t("pdfError")+(e.message||e),true)}
 }
 $("pdfButton").addEventListener("click",exportPdf);
 
@@ -687,11 +616,10 @@ function attach(){
  state.dataRef=userRef(PATH);
  state.dataCallback=snap=>{
   const val=snap.val();
-  if(Array.isArray(val)){void convertLegacyCloudArray(val);return;}
+  if(Array.isArray(val)){void convertLegacyCloudArray(val);return}
   state.records=mapRecords(val||{});render();
  };
  state.dataRef.on("value",state.dataCallback,error=>showStatus(t("cloudFail")+(error.message||error),true));
-
  state.trashRef=userRef("trash");
  state.trashCallback=snap=>{
   const all=snap.val()||{};
@@ -713,20 +641,18 @@ async function convertLegacyCloudArray(arr){
    converted[id]={...r,id};
   });
   await userRef(PATH).transaction(current=>Array.isArray(current)?converted:undefined,undefined,false);
- }catch(e){showStatus(t("cloudFail")+(e.message||e),true);}
- finally{convertingLegacy=false;}
+ }catch(e){showStatus(t("cloudFail")+(e.message||e),true)}
+ finally{convertingLegacy=false}
 }
 
 $("backButton").addEventListener("click",e=>{
  e.preventDefault();
- try{
-  if(document.referrer&&new URL(document.referrer).origin===location.origin&&history.length>1){history.back();return;}
- }catch(err){}
+ try{if(document.referrer&&new URL(document.referrer).origin===location.origin&&history.length>1){history.back();return}}catch(err){}
  location.href="./index.html";
 });
 
 firebase.auth().onAuthStateChanged(user=>{
- if(!user){state.uid=null;state.user=null;detach();location.replace("./index.html");return;}
+ if(!user){state.uid=null;state.user=null;detach();location.replace("./index.html");return}
  state.uid=user.uid;state.user=user;
  document.body.classList.remove("auth-pending");
  applySettings();
@@ -735,6 +661,7 @@ firebase.auth().onAuthStateChanged(user=>{
 
 $("date").value=new Date().toISOString().slice(0,10);
 $("rate").value="1.6";
+$("goal").value=localStorage.getItem("savings_target_amount")||"";
 calc();
 applySettings();
 </script>
