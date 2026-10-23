@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="ne">
 <head>
@@ -223,7 +222,7 @@ const TEXT={
  trashFail:"Trash पढ्न सकिएन। Firebase Rules जाँच्नुहोस्: ",
  needName:"बचतको नाम र मिति भर्नुहोस्।",badAmount:"रकम शून्य वा बढी र INR दर शून्यभन्दा बढी हुनुपर्छ।",
  alreadyImported:"स्थानीय बचत पहिले नै Import गरिएको байна।",cloudNotEmpty:"Cloud मा बचत रेकर्ड छन्। डाटा सुरक्षित राख्न Import रोकियो।",
- noLegacy:"Import गर्न локल पुरानो बचत डाटा भेटिएन।",importOk:"Import पूरा भयो। आयात गरिएका रेकर्ड: ",importFail:"Import असफल भयो: ",
+ noLegacy:"Import गर्न लकल पुरानो बचत डाटा भेटिएन।",importOk:"Import पूरा भयो। आयात गरिएका रेकर्ड: ",importFail:"Import असफल भयो: ",
  pdfFail:"PDF सुविधा लोड भएन। इन्टरनेट जडान जाँच्नुहोस्।",pdfError:"PDF बनाउन सकिएन: ",
  missing:"उल्लेख गरिएको छैन",report:"बचत विवरण रिपोर्ट",profile:"प्रयोगकर्ताको विवरण",name:"नाम",email:"इमेल",address:"ठेगाना",mobile:"मोबाइल",
  reportDate:"रिपोर्ट मिति",detailsTitle:"बचतको विस्तृत विवरण",serial:"क्र.सं.",savingNamePdf:"बचतको नाम",remark:"कैफियत",grandTotal:"जम्मा",
@@ -398,7 +397,6 @@ async function moveToTrash(id){
  try{
   const updates={};updates[PATH+"/"+id]=null;updates["trash/"+PATH+"/"+id]=entry;
   await userRef("").update(updates);
-  /* अनावश्यक सफलताको Toast हटाइएको छ। */
  }catch(e){showStatus(t("deleteFail")+(e.message||e),true);}
 }
 function trashRows(){
@@ -485,7 +483,6 @@ $("savingForm").addEventListener("submit",async e=>{
  $("saveButton").disabled=true;
  try{
   await saveRecord(id,data,editing);resetForm();
-  /* सामान्य सफल Save सूचना हटाइएको छ। */
  }catch(err){showStatus(t("saveFail")+(err.message||err),true);}
  finally{$("saveButton").disabled=false;}
 });
@@ -560,73 +557,174 @@ async function importLegacyData(){
 }
 $("importButton").addEventListener("click",importLegacyData);
 
-/* Income PDF कै profile-banner ढाँचा र profile जानकारी */
+/* PDF ONLY: use the same profile keys and banner style as add-income.html */
 function profileObject(){
- for(const key of ["digital_notebook_profile","user_profile","userProfile","profile","digital_notebook_user"]){
-  try{const v=JSON.parse(localStorage.getItem(key)||"null");if(v&&typeof v==="object"&&!Array.isArray(v))return v;}catch(e){}
- }
- return {};
+  for(const key of [
+    "digital_notebook_profile",
+    "user_profile",
+    "userProfile",
+    "profile",
+    "digital_notebook_user"
+  ]){
+    try{
+      const value=JSON.parse(localStorage.getItem(key)||"null");
+      if(value&&typeof value==="object"&&!Array.isArray(value))return value;
+    }catch(e){}
+  }
+  return {};
 }
+
 function localValue(keys){
- for(const k of keys){const v=localStorage.getItem(k);if(v&&v.trim())return v.trim();}
- return "";
+  for(const key of keys){
+    try{
+      const value=localStorage.getItem(key);
+      if(value&&value.trim())return value.trim();
+    }catch(e){}
+  }
+  return "";
 }
+
 function profileForPdf(){
- const p=profileObject(),u=state.user;
- return {
-  name:localValue(["profile_name","user_profile_name","fullName","userName"])||p.name||p.fullName||p.full_name||p.username||"",
-  email:localValue(["profile_email","user_profile_email"])||p.email||u?.email||"",
-  address:localValue(["profile_address","user_profile_address"])||p.address||p.location||"",
-  mobile:localValue(["profile_mobile","user_profile_mobile","user_mobile"])||p.mobile||p.phone||p.phoneNumber||""
- };
+  const p=profileObject();
+  const u=state.user||firebase.auth().currentUser;
+  return {
+    name:localValue(["profile_name","user_profile_name","fullName","userName"])
+      ||p.name||p.fullName||p.full_name||p.username||"",
+    email:localValue(["profile_email","user_profile_email"])
+      ||p.email||u?.email||"",
+    address:localValue(["profile_address","user_profile_address"])
+      ||p.address||p.location||"",
+    mobile:localValue(["profile_mobile","user_profile_mobile","user_mobile"])
+      ||p.mobile||p.phone||p.phoneNumber||""
+  };
 }
+
 function buildPdfHtml(){
- const records=entries().sort((a,b)=>String(a.date||"").localeCompare(String(b.date||""))||String(a.title||"").localeCompare(String(b.title||"")));
- const profile=profileForPdf(),total=records.reduce((sum,r)=>sum+totalOf(r),0);
- const goal=Math.max(0,num($("goal").value)),reportDate=new Date().toLocaleString(),missing=t("missing");
- const rows=records.map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r.date||"")}</td><td>${esc(r.title||"")}</td>
-  <td>${esc(r.category||"")}</td><td class="right">${num(r.npr).toFixed(2)}</td><td class="right">${num(r.inr).toFixed(2)}</td>
-  <td class="right">${num(r.rate||1.6).toFixed(2)}</td><td class="right">${totalOf(r).toFixed(2)}</td><td>${esc(r.note||"")}</td></tr>`).join("");
- return `<div style="background:#fff;color:#172033;padding:22px;font-family:Arial,'Noto Sans Devanagari',sans-serif;font-size:11px;width:100%">
-  <div style="background:#102b3f;color:#fff;padding:18px;border-radius:8px;border-bottom:5px solid #10b981;margin-bottom:14px">
-   <div style="display:flex;align-items:center;gap:12px">
-    <img src="N1024.png" alt="Digital NoteBook" style="width:55px;height:55px;object-fit:contain" onerror="this.style.display='none'">
-    <div><h1 style="font-size:23px;margin:0 0 5px;color:#fff">Digital NoteBook</h1><div style="font-size:13px">${esc(t("report"))}</div></div>
-   </div>
-   <hr style="border:0;border-top:1px solid #547080;margin:13px 0">
-   <div style="line-height:1.9"><b>${esc(t("profile"))}</b><br>
-    <b>${esc(t("name"))}:</b> ${esc(profile.name||missing)}<br>
-    <b>${esc(t("email"))}:</b> ${esc(profile.email||missing)}<br>
-    <b>${esc(t("address"))}:</b> ${esc(profile.address||missing)}<br>
-    <b>${esc(t("mobile"))}:</b> ${esc(profile.mobile||missing)}<br>
-    <b>${esc(t("reportDate"))}:</b> ${esc(reportDate)}
-   </div>
-  </div>
-  <div style="background:#eaf7f0;border:1px solid #b8e2cc;border-radius:6px;padding:12px;margin-bottom:16px">
-   <b>${esc(t("totalSaved"))}:</b> ${esc(money(total))} | <b>${esc(t("records"))}:</b> ${records.length}
-   | <b>${esc(t("goal"))}:</b> ${goal?esc(money(goal)):"—"}
-   | <b>${esc(t("progress"))}:</b> ${goal?Math.min(100,total/goal*100).toFixed(1)+"%":"—"}
-  </div>
-  <h2 style="font-size:16px;margin:12px 0 7px">${esc(t("detailsTitle"))}</h2>
-  <table><thead><tr><th>${esc(t("serial"))}</th><th>${esc(t("date"))}</th><th>${esc(t("savingNamePdf"))}</th>
-   <th>${esc(t("category"))}</th><th>NPR</th><th>INR</th><th>${esc(t("exchangeRate"))}</th><th>Total NPR</th><th>${esc(t("remark"))}</th>
-  </tr></thead><tbody>${rows||`<tr><td colspan="9">${esc(t("noRecords"))}</td></tr>`}</tbody>
-  <tfoot><tr><td colspan="7" class="right"><b>${esc(t("grandTotal"))}</b></td><td class="right"><b>${total.toFixed(2)}</b></td><td></td></tr></tfoot></table>
-  <div style="margin-top:18px;border-top:1px solid #ccd5d1;padding-top:8px;color:#52635d">${esc(t("foot"))}</div>
- </div>`;
+  const records=entries().sort((a,b)=>
+    String(a.date||"").localeCompare(String(b.date||""))||
+    String(a.title||"").localeCompare(String(b.title||""))
+  );
+  const profile=profileForPdf();
+  const total=records.reduce((sum,r)=>sum+totalOf(r),0);
+  const goal=Math.max(0,num($("goal").value));
+  const reportDate=new Date().toLocaleString();
+  const missing=t("missing");
+
+  const rows=records.map((r,i)=>`
+    <tr>
+      <td>${i+1}</td>
+      <td>${esc(r.date||"")}</td>
+      <td>${esc(r.title||r.name||r.savingName||"")}</td>
+      <td>${esc(r.category||"")}</td>
+      <td class="right">${num(r.npr).toFixed(2)}</td>
+      <td class="right">${num(r.inr).toFixed(2)}</td>
+      <td class="right">${num(r.rate||1.6).toFixed(2)}</td>
+      <td class="right">${totalOf(r).toFixed(2)}</td>
+      <td>${esc(r.note||r.description||"")}</td>
+    </tr>
+  `).join("");
+
+  return `
+  <div style="background:#fff;color:#172033;padding:22px;
+    font-family:Arial,'Noto Sans Devanagari',sans-serif;font-size:11px;width:100%">
+
+    <!-- Same banner design as Income PDF -->
+    <div style="background:#102b3f;color:#fff;padding:18px;
+      border-radius:8px;border-bottom:5px solid #10b981;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <img src="${esc(new URL("N1024.png",location.href).href)}"
+          alt="Digital NoteBook"
+          style="width:55px;height:55px;object-fit:contain"
+          onerror="this.style.display='none'">
+        <div>
+          <h1 style="font-size:23px;margin:0 0 5px;color:#fff">Digital NoteBook</h1>
+          <div style="font-size:13px">${esc(t("report"))}</div>
+        </div>
+      </div>
+
+      <hr style="border:0;border-top:1px solid #547080;margin:13px 0">
+
+      <div style="line-height:1.9">
+        <b>${esc(t("profile"))}</b><br>
+        <b>${esc(t("name"))}:</b> ${esc(profile.name||missing)}<br>
+        <b>${esc(t("email"))}:</b> ${esc(profile.email||missing)}<br>
+        <b>${esc(t("address"))}:</b> ${esc(profile.address||missing)}<br>
+        <b>${esc(t("mobile"))}:</b> ${esc(profile.mobile||missing)}<br>
+        <b>${esc(t("reportDate"))}:</b> ${esc(reportDate)}
+      </div>
+    </div>
+
+    <div style="background:#eaf7f0;border:1px solid #b8e2cc;
+      border-radius:6px;padding:12px;margin-bottom:16px">
+      <b>${esc(t("totalSaved"))}:</b> ${esc(money(total))}
+      &nbsp; | &nbsp; <b>${esc(t("records"))}:</b> ${records.length}
+      &nbsp; | &nbsp; <b>${esc(t("goal"))}:</b> ${goal?esc(money(goal)):"—"}
+      &nbsp; | &nbsp; <b>${esc(t("progress"))}:</b>
+      ${goal?Math.min(100,total/goal*100).toFixed(1)+"%":"—"}
+    </div>
+
+    <h2 style="font-size:16px;margin:12px 0 7px">${esc(t("detailsTitle"))}</h2>
+
+    <table style="border-collapse:collapse;width:100%;margin-bottom:16px">
+      <thead><tr>
+        <th>${esc(t("serial"))}</th>
+        <th>${esc(t("date"))}</th>
+        <th>${esc(t("savingNamePdf"))}</th>
+        <th>${esc(t("category"))}</th>
+        <th>NPR</th><th>INR</th>
+        <th>${esc(t("exchangeRate"))}</th>
+        <th>Total NPR</th>
+        <th>${esc(t("remark"))}</th>
+      </tr></thead>
+
+      <tbody>
+        ${rows||`<tr><td colspan="9">${esc(t("noRecords"))}</td></tr>`}
+      </tbody>
+
+      <tfoot><tr>
+        <td colspan="7" class="right"><b>${esc(t("grandTotal"))}</b></td>
+        <td class="right"><b>${total.toFixed(2)}</b></td>
+        <td></td>
+      </tr></tfoot>
+    </table>
+
+    <div style="margin-top:18px;border-top:1px solid #ccd5d1;
+      padding-top:8px;color:#52635d">${esc(t("foot"))}</div>
+
+    <style>
+      table{border-collapse:collapse;width:100%;margin-bottom:16px}
+      th,td{border:1px solid #9aada6;padding:6px;vertical-align:top;overflow-wrap:anywhere}
+      th{background:#dcebe5;text-align:left}
+      .right{text-align:right}
+      tr{page-break-inside:avoid}
+    </style>
+  </div>`;
 }
+
 $("pdfButton").addEventListener("click",async()=>{
- if(!window.html2pdf){showStatus(t("pdfFail"),true);return;}
- $("pdfButton").disabled=true;
- try{
-  $("pdfStage").innerHTML=buildPdfHtml();
-  await html2pdf().set({
-   margin:8,filename:"Digital-Notebook-Savings-"+new Date().toISOString().slice(0,10)+".pdf",
-   image:{type:"jpeg",quality:.98},html2canvas:{scale:2,useCORS:true,backgroundColor:"#fff"},
-   pagebreak:{mode:["css","legacy"]},jsPDF:{unit:"mm",format:"a4",orientation:"landscape"}
-  }).from($("pdfStage")).save();
- }catch(e){showStatus(t("pdfError")+(e.message||e),true);}
- finally{$("pdfButton").disabled=false;}
+  if(!window.html2pdf){
+    showStatus(t("pdfFail"),true);
+    return;
+  }
+
+  $("pdfButton").disabled=true;
+  try{
+    $("pdfStage").innerHTML=buildPdfHtml();
+
+    await html2pdf().set({
+      margin:8,
+      filename:"Digital-Notebook-Savings-"+new Date().toISOString().slice(0,10)+".pdf",
+      image:{type:"jpeg",quality:.98},
+      html2canvas:{scale:2,useCORS:true,backgroundColor:"#ffffff"},
+      pagebreak:{mode:["css","legacy"]},
+      jsPDF:{unit:"mm",format:"a4",orientation:"landscape"}
+    }).from($("pdfStage")).save();
+
+  }catch(e){
+    showStatus(t("pdfError")+(e.message||e),true);
+  }finally{
+    $("pdfButton").disabled=false;
+  }
 });
 
 function detach(){
