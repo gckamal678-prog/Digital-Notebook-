@@ -195,7 +195,7 @@ const TEXT={
  title:"बचत / Savings",intro:"बचतको रेकर्ड राख्नुहोस्। एउटै नामका रेकर्ड खोल्न नाममा थिच्नुहोस्।",rateLabel:"INR दर",
  addHeading:"बचत रेकर्ड थप्नुहोस्",editHeading:"बचत रेकर्ड सम्पादन",savingName:"बचतको नाम",category:"श्रेणी",
  general:"सामान्य",bank:"बैंक",cash:"नगद",education:"शिक्षा",home:"घर",other:"अन्य",date:"मिति",
- npr:"रकम NPR",inr:"रकम INR",exchangeRate:"INR दर (१ INR बराबर NPR)",totalNpr:"कुल NPR",note:"कैफियत / विवरण",
+ npr:"रकम NPR",inr:"Inr",exchangeRate:"INR दर (१ INR बराबर NPR)",totalNpr:"कुल NPR",note:"कैफियत / विवरण",
  save:"बचत सेभ",update:"अपडेट गर्नुहोस्",cancel:"रद्द",import:"पुरानो डाटा Import",pdf:"PDF निकाल्नुहोस्",
  summary:"बचतको सारांश",goal:"बचत लक्ष्य NPR",searchLabel:"खोज्नुहोस्",searchPlaceholder:"नाम, श्रेणी वा विवरण",
  totalSaved:"कुल बचत",groups:"नामका समूह",records:"रेकर्ड संख्या",progress:"लक्ष्य प्रगति",
@@ -220,7 +220,7 @@ const TEXT={
  pdfFail:"PDF सुविधा लोड भएन। इन्टरनेट जडान जाँच्नुहोस्।",pdfError:"PDF बनाउन सकिएन: ",
  missing:"उल्लेख गरिएको छैन",report:"बचत विवरण रिपोर्ट",profile:"प्रयोगकर्ताको विवरण",name:"नाम",email:"इमेल",address:"ठेगाना",mobile:"मोबाइल",
  reportDate:"रिपोर्ट मिति",detailsTitle:"बचतको विस्तृत विवरण",serial:"क्र.सं.",savingNamePdf:"बचतको नाम",remark:"कैफियत",grandTotal:"जम्मा",
- reportFoot:"यो रिपोर्ट उपलब्ध Cloud Savings रेकर्डका आधारमा तयार गरिएको हो。",goalFail:"बचत लक्ष्य स्थानीय रूपमा सेभ गर्न सकिएन。",
+ reportFoot:"यो रिपोर्ट उपलब्ध Cloud Savings रेकर्डका आधारमा तयार गरिएको हो।",goalFail:"बचत लक्ष्य स्थानीय रूपमा सेभ गर्न सकिएन。",
  },
  en:{
  title:"Savings",intro:"Keep your savings records. Tap a name to expand records with the same name.",rateLabel:"Exchange rate",
@@ -550,7 +550,8 @@ async function importLegacyData(){
 $("importButton").addEventListener("click",importLegacyData);
 
 /* -------------------------------------------------------------
-   Income फाइलकै जस्तो आकर्षक ल्यान्डस्केप (Landscape) PDF जेनेरेटर
+   Transactions (कारोबार) फाइलकै जस्तो आकर्षक, ठाडो (Portrait A4) र 
+   माथि खाली ठाउँ नआउने (`scrollY: 0`) PDF जेनेरेटर
 ------------------------------------------------------------- */
 function profileObject(){
   for(const key of ["digital_notebook_profile","user_profile","userProfile","profile","digital_notebook_user"]){
@@ -587,43 +588,90 @@ async function exportPdf(){
   const records=entries().sort((a,b)=>String(a.date||"").localeCompare(String(b.date||"")));
   const profile=profileForPdf(),total=records.reduce((s,r)=>s+totalOf(r),0),reportDate=new Date().toLocaleString(),missing=t("missing");
   
-  const rows=records.map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r.date||"")}</td><td>${esc(r.title||r.name||r.savingName||"")}</td><td>${esc(r.category||"")}</td><td class="right">${num(r.npr).toFixed(2)}</td><td class="right">${num(r.inr).toFixed(2)}</td><td class="right">${num(r.rate||1.6).toFixed(2)}</td><td class="right">${totalOf(r).toFixed(2)}</td><td>${esc(r.note||r.description||"")}</td></tr>`).join("");
+  const rows=records.map((r,i)=>`<tr>
+    <td style="text-align:center">${i+1}</td>
+    <td>${esc(r.date||"")}</td>
+    <td><b>${esc(r.title||r.name||r.savingName||"")}</b></td>
+    <td>${esc(r.category||"")}</td>
+    <td class="right">${num(r.npr).toFixed(2)}</td>
+    <td class="right">${num(r.inr).toFixed(2)}</td>
+    <td class="right">${num(r.rate||1.6).toFixed(2)}</td>
+    <td class="right">${totalOf(r).toFixed(2)}</td>
+    <td>${esc(r.note||r.description||"")}</td>
+  </tr>`).join("");
 
   const report=document.createElement("div");
-  report.style.cssText="background:#fff;color:#172033;padding:22px;font-family:Arial,'Noto Sans Devanagari',sans-serif;font-size:11px;width:100%";
+  report.style.cssText="background:#fff;color:#172033;padding:10px;font-family:Arial,'Noto Sans Devanagari',sans-serif;font-size:10px;width:100%;box-sizing:border-box;";
   report.innerHTML=`
-  <div style="background:#102b3f;color:#fff;padding:18px;border-radius:8px;border-bottom:5px solid #10b981;margin-bottom:14px">
-   <div style="display:flex;align-items:center;gap:12px">
-    <img src="N1024.png" alt="Digital NoteBook" style="width:55px;height:55px;object-fit:contain" onerror="this.style.display='none'">
-    <div><h1 style="font-size:23px;margin:0 0 5px;color:#fff">Digital NoteBook</h1><div style="font-size:13px">${esc(t("report"))}</div></div>
+  <div style="background:#102b3f;color:#fff;padding:10px;border-radius:6px;border-bottom:4px solid #10b981;margin-bottom:8px">
+   <div style="display:flex;justify-content:space-between;align-items:center">
+    <div>
+     <h1 style="font-size:15px;margin:0 0 2px;color:#fff">Digital NoteBook</h1>
+     <div style="font-size:10px;color:#34d399;font-weight:bold">${esc(t("report"))}</div>
+    </div>
+    <div style="text-align:right;font-size:8px">
+     <b>${esc(t("reportDate"))}:</b> ${esc(reportDate)}
+    </div>
    </div>
-   <hr style="border:0;border-top:1px solid #547080;margin:13px 0">
-   <div style="line-height:1.9"><b>${esc(t("profile"))}</b><br>
-    <b>${esc(t("name"))}:</b> ${esc(profile.name||missing)}<br>
-    <b>${esc(t("email"))}:</b> ${esc(profile.email||missing)}<br>
-    <b>${esc(t("address"))}:</b> ${esc(profile.address||missing)}<br>
-    <b>${esc(t("mobile"))}:</b> ${esc(profile.mobile||missing)}<br>
-    <b>${esc(t("reportDate"))}:</b> ${esc(reportDate)}
+   <hr style="border:0;border-top:1px solid #334e68;margin:5px 0">
+   <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:3px;font-size:8.5px">
+    <div><b>${esc(t("name"))}:</b> ${esc(profile.name||missing)}</div>
+    <div><b>${esc(t("email"))}:</b> ${esc(profile.email||missing)}</div>
+    <div><b>${esc(t("address"))}:</b> ${esc(profile.address||missing)}</div>
+    <div><b>${esc(t("mobile"))}:</b> ${esc(profile.mobile||missing)}</div>
    </div>
   </div>
-  <div style="background:#eaf7f0;border:1px solid #b8e2cc;border-radius:6px;padding:12px;margin-bottom:16px">
-   <b>${esc(t("grandTotal"))}:</b> ${money(total)} &nbsp; | &nbsp; <b>${esc(t("recordCount"))}:</b> ${records.length}
+
+  <div style="background:#eaf7f0;border:1px solid #b8e2cc;border-radius:4px;padding:5px 8px;margin-bottom:8px;font-size:9.5px;display:flex;justify-content:space-between">
+   <div><b>${esc(t("grandTotal"))}:</b> <span style="color:#059669;font-weight:bold">${money(total)}</span></div>
+   <div><b>${esc(t("recordCount"))}:</b> ${records.length}</div>
   </div>
-  <h2 style="font-size:16px;margin:12px 0 7px">${esc(t("detailsTitle"))}</h2>
-  <table><thead><tr><th>${esc(t("serial"))}</th><th>${esc(t("date"))}</th><th>${esc(t("savingNamePdf"))}</th><th>${esc(t("category"))}</th><th>NPR</th><th>INR</th><th>Rate</th><th>${esc(t("total"))} NPR</th><th>${esc(t("remark"))}</th></tr></thead>
-  <tbody>${rows||`<tr><td colspan="9">${esc(t("noRecords"))}</td></tr>`}</tbody>
-  <tfoot><tr><td colspan="7" class="right"><b>${esc(t("grandTotal"))}</b></td><td class="right"><b>${total.toFixed(2)}</b></td><td></td></tr></tfoot></table>
-  <div style="margin-top:18px;border-top:1px solid #ccd5d1;padding-top:8px;color:#52635d">${esc(t("reportFoot"))}</div>
-  <style>table{border-collapse:collapse;width:100%;margin-bottom:16px}th,td{border:1px solid #9aada6;padding:6px;vertical-align:top}th{background:#dcebe5;text-align:left}.right{text-align:right}tr{page-break-inside:avoid}</style>`;
+
+  <h2 style="font-size:11px;margin:5px 0 3px;color:#102b3f">${esc(t("detailsTitle"))}</h2>
+  
+  <table>
+   <thead>
+    <tr>
+     <th style="width:22px;text-align:center">${esc(t("serial"))}</th>
+     <th style="width:55px">${esc(t("date"))}</th>
+     <th>${esc(t("savingNamePdf"))}</th>
+     <th style="width:50px">${esc(t("category"))}</th>
+     <th style="width:45px" class="right">NPR</th>
+     <th style="width:40px" class="right">INR</th>
+     <th style="width:40px" class="right">Rate</th>
+     <th style="width:55px" class="right">${esc(t("total"))}</th>
+     <th>${esc(t("remark"))}</th>
+    </tr>
+   </thead>
+   <tbody>
+    ${rows||`<tr><td colspan="9" style="text-align:center">${esc(t("noRecords"))}</td></tr>`}
+   </tbody>
+   <tfoot>
+    <tr>
+     <td colspan="7" class="right"><b>${esc(t("grandTotal"))}</b></td>
+     <td class="right" style="color:#059669"><b>${total.toFixed(2)}</b></td>
+     <td></td>
+    </tr>
+   </tfoot>
+  </table>
+
+  <div style="margin-top:8px;border-top:1px solid #ccd5d1;padding-top:3px;font-size:7.5px;color:#64748b;text-align:center">${esc(t("reportFoot"))}</div>
+  
+  <style>
+   table{border-collapse:collapse;width:100%;margin-bottom:6px;table-layout:fixed;}
+   th,td{border:1px solid #94a3b8;padding:3px 4px;vertical-align:middle;word-wrap:break-word;}
+   th{background:#f1f5f9;color:#0f172a;font-weight:bold;text-align:left}
+   .right{text-align:right}
+   tr{page-break-inside:avoid}
+  </style>`;
 
   try{
    await html2pdf().set({
-    margin:8,
+    margin:5,
     filename:"Digital-Notebook-Savings-"+new Date().toISOString().slice(0,10)+".pdf",
-    image:{type:"jpeg",quality:.98},
-    html2canvas:{scale:2,useCORS:true},
-    pagebreak:{mode:["css","legacy"]},
-    jsPDF:{unit:"mm",format:"a4",orientation:"landscape"}
+    image:{type:"jpeg",quality:0.98},
+    html2canvas:{scale:2,useCORS:true,scrollY:0},
+    jsPDF:{unit:"mm",format:"a4",orientation:"portrait"}
    }).from(report).save();
   }catch(e){showStatus(t("pdfError")+(e.message||e),true);}
 }
