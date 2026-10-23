@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="ne">
 <head>
@@ -127,22 +126,19 @@ body[data-layout="compact"] .record{padding:8px}
       <button class="primary" id="saveButton" type="submit" data-i18n="save">कारोबार सेभ</button>
       <button type="button" id="cancelButton" data-i18n="cancel">रद्द</button>
       <button type="button" id="importButton" data-i18n="import">पुरानो डाटा Import</button>
-      <button type="button" id="pdfAllButton" data-i18n="pdfAll">पूरा कारोबार PDF</button>
+      <button type="button" id="pdfAllButton" data-i18n="pdfAll">PDF निकाल्नुहोस्</button>
     </div>
   </form>
 </section>
 
 <section class="card">
   <h2 data-i18n="groupTitle">Group Ledger / समूहगत हिसाब</h2>
-  <p class="muted" data-i18n="groupHelp">एउटै पार्टी नामका कारोबार एउटै समूहमा देखिन्छन्। नाम थिचेर सबै विवरण खोल्नुहोस्। प्रत्येक समूहको छुट्टै PDF पनि निकाल्न सकिन्छ।</p>
+  <p class="muted" data-i18n="groupHelp">एउटै पार्टी नामका कारोबार एउटै समूहमा देखिन्छन्। नाम थिचेर सबै विवरण खोल्नुहोस्।</p>
   <input id="groupSearch" type="search" data-i18n-placeholder="searchGroup" placeholder="पार्टी वा कैफियत खोज्नुहोस्">
   <div class="stats">
     <div class="stat"><small data-i18n="grandTotal">कुल रकम NPR</small><b id="grandTotal">NPR 0.00</b></div>
     <div class="stat"><small data-i18n="groupCount">समूह संख्या</small><b id="groupCount">0</b></div>
     <div class="stat"><small data-i18n="recordCount">रेकर्ड संख्या</small><b id="recordCount">0</b></div>
-  </div>
-  <div class="row">
-    <button class="primary" id="pdfGroupsButton" type="button" data-i18n="pdfGroups">सबै Group Ledger PDF</button>
   </div>
   <div id="groups"></div>
 </section>
@@ -155,7 +151,7 @@ body[data-layout="compact"] .record{padding:8px}
 
 <section class="card">
   <h2 data-i18n="trashTitle">हालै हटाइएका कारोबार</h2>
-  <p class="muted" data-i18n="trashHelp">३० दिनभित्र Restore गर्न सकिन्छ। स्थायी सफाइ server-side scheduled function बाट हुनुपर्छ।</p>
+  <p class="muted" data-i18n="trashHelp">३० दिनभित्र Restore गर्न सकिन्छ।</p>
   <div id="trashList"></div>
 </section>
 </main>
@@ -194,18 +190,18 @@ const words={
  appTitle:"Transactions",pageTitle:"Transaction / Party Ledger",intro:"Receivable, Payable and Expense",simpleInterest:"Simple interest",
  date:"Date",party:"Party / Group name",type:"Transaction type",receivable:"Receivable",payable:"Payable",expense:"Expense",
  rate:"Interest rate (% per month)",period:"Months",npr:"Amount NPR",inr:"Amount INR",total:"Total NPR",note:"Notes / Details",
- save:"Save transaction",update:"Update transaction",cancel:"Cancel",import:"Import old local data",pdfAll:"Full Transaction PDF",
- groupTitle:"Group Ledger / Party Summary",groupHelp:"Transactions with the same party name are grouped together. Tap a name to see all records. Each group has its own PDF.",
- searchGroup:"Search party or notes",grandTotal:"Total NPR",groupCount:"Groups",recordCount:"Records",pdfGroups:"All Group Ledger PDF",
+ save:"Save transaction",update:"Update transaction",cancel:"Cancel",import:"Import old local data",pdfAll:"Export PDF",
+ groupTitle:"Group Ledger / Party Summary",groupHelp:"Transactions with the same party name are grouped together. Tap a name to see all records.",
+ searchGroup:"Search party or notes",grandTotal:"Total NPR",groupCount:"Groups",recordCount:"Records",
  pdfOne:"Group PDF",recordsTitle:"All transaction records",searchRecords:"Search party, notes or type",
- trashTitle:"Recently deleted transactions",trashHelp:"Restore within 30 days. Permanent cleanup must run on the server.",
+ trashTitle:"Recently deleted transactions",trashHelp:"Restore within 30 days.",
  checking:"Checking sign-in…",connecting:"Connecting cloud…",synced:"Cloud synced",offline:"Offline",
  noGroups:"No matching groups found.",noRecords:"No records found.",noTrash:"Trash is empty.",
  edit:"Edit",delete:"Move to Trash",restore:"Restore",expired:"Expired",dateLabel:"Date",partyLabel:"Party",
  typeLabel:"Type",amountLabel:"Total NPR",monthsLabel:"Months",noteLabel:"Notes",
- profileFallback:"User details not added",pdfTitle:"TRANSACTION GROUP LEDGER",pdfAllTitle:"FULL TRANSACTION LEDGER",
- prepared:"Prepared for",address:"Address",mobile:"Mobile",email:"Email",printedAt:"Printed on",
- totalRecords:"Total records",totalGroups:"Total groups",totalAmount:"Grand total",
+ profile:"User details",name:"Name",email:"Email",address:"Address",mobile:"Mobile",reportDate:"Report date",
+ detailsTitle:"Detailed transaction records",serial:"No.",partyName:"Party name",remark:"Note",total:"Total",
+ reportFoot:"This report was created from the available Cloud Transaction records.",
  saveOk:"Transaction saved.",saveError:"Could not save: ",deletedOk:"Record moved to shared Account Trash.",
  deleteConfirm:"Move this transaction to the shared Account Trash? It can be restored within 30 days.",
  restored:"Record restored.",restoreError:"Could not restore: ",restoreConflict:"A record with this ID already exists. Nothing was overwritten.",
@@ -213,29 +209,29 @@ const words={
  importDone:"Import finished. Imported records: ",importNone:"No old local records found.",
  importCloud:"Cloud records already exist. Import stopped to prevent overwriting data.",
  importOnce:"Old-data import was already run on this account.",importError:"Import failed: ",
- pdfError:"PDF could not be created: ",pdfUnavailable:"PDF library is unavailable. Check your internet connection.",
+ pdfError:"PDF could not be created: ",pdfFail:"PDF support did not load. Check your internet connection.",
  authError:"Please sign in through index.html first.",loadError:"Cloud data could not be loaded: ",
- badInput:"Enter a party name and valid non-negative amounts.",emptyPdf:"There are no records to export.",
+ badInput:"Enter a party name and valid non-negative amounts.",pdfEmpty:"No records.",
  confirmImport:"Import old local transaction data? Existing cloud records will not be overwritten.",
  confirmRestore:"Restore this transaction from Trash?",restoreOk:"Transaction restored.",
- confirmYes:"Confirm",confirmNo:"Cancel",noInternet:"Internet is unavailable; cloud changes may not save."
+ confirmYes:"Confirm",confirmNo:"Cancel",missing:"Not provided",report:"Transaction Report"
  },
  ne:{
  appTitle:"कारोबार",pageTitle:"कारोबार / पार्टी लेजर",intro:"लिनुपर्ने, दिनुपर्ने र खर्च",simpleInterest:"साधारण ब्याज",
  date:"मिति",party:"पार्टी / समूहको नाम",type:"कारोबारको प्रकार",receivable:"लिनुपर्ने",payable:"दिनुपर्ने",expense:"खर्च",
  rate:"ब्याज दर (% प्रति महिना)",period:"महिना",npr:"रकम NPR",inr:"रकम INR",total:"कुल NPR",note:"कैफियत / विवरण",
- save:"कारोबार सेभ",update:"कारोबार अपडेट",cancel:"रद्द",import:"पुरानो स्थानीय डाटा Import",pdfAll:"पूरा कारोबार PDF",
- groupTitle:"Group Ledger / समूहगत हिसाब",groupHelp:"एउटै पार्टी नामका कारोबार एउटै समूहमा देखिन्छन्। नाम थिचेर सबै विवरण खोल्नुहोस्। प्रत्येक समूहको छुट्टै PDF पनि निकाल्न सकिन्छ।",
- searchGroup:"पार्टीको नाम वा कैफियत खोज्नुहोस्",grandTotal:"कुल रकम NPR",groupCount:"समूह संख्या",recordCount:"रेकर्ड संख्या",pdfGroups:"सबै Group Ledger PDF",
+ save:"कारोबार सेभ",update:"कारोबार अपडेट",cancel:"रद्द",import:"पुरानो स्थानीय डाटा Import",pdfAll:"PDF निकाल्नुहोस्",
+ groupTitle:"Group Ledger / समूहगत हिसाब",groupHelp:"एउटै पार्टी नामका कारोबार एउटै समूहमा देखिन्छन्। नाम थिचेर सबै विवरण खोल्नुहोस्।",
+ searchGroup:"पार्टीको नाम वा कैफियत खोज्नुहोस्",grandTotal:"कुल रकम NPR",groupCount:"समूह संख्या",recordCount:"रेकर्ड संख्या",
  pdfOne:"समूह PDF",recordsTitle:"सबै कारोबार रेकर्ड",searchRecords:"नाम, कैफियत वा प्रकार खोज्नुहोस्",
- trashTitle:"हालै हटाइएका कारोबार",trashHelp:"३० दिनभित्र Restore गर्न सकिन्छ। स्थायी सफाइ server-side scheduled function बाट हुनुपर्छ।",
+ trashTitle:"हालै हटाइएका कारोबार",trashHelp:"३० दिनभित्र Restore गर्न सकिन्छ।",
  checking:"लगइन जाँच हुँदैछ…",connecting:"क्लाउड जोडिँदैछ…",synced:"Cloud Sync भयो",offline:"अफलाइन",
  noGroups:"मिल्ने समूह भेटिएन।",noRecords:"रेकर्ड भेटिएन।",noTrash:"Trash खाली छ।",
  edit:"सम्पादन",delete:"Trash मा सार्नुहोस्",restore:"Restore",expired:"म्याद सकियो",dateLabel:"मिति",partyLabel:"पार्टी",
  typeLabel:"प्रकार",amountLabel:"कुल NPR",monthsLabel:"महिना",noteLabel:"कैफियत",
- profileFallback:"प्रयोगकर्ताको विवरण राखिएको छैन",pdfTitle:"कारोबार समूहगत लेजर",pdfAllTitle:"सबै कारोबारको पूरा लेजर",
- prepared:"प्रयोगकर्ता",address:"ठेगाना",mobile:"मोबाइल",email:"इमेल",printedAt:"PDF बनाइएको",
- totalRecords:"कुल रेकर्ड",totalGroups:"कुल समूह",totalAmount:"कुल रकम",
+ profile:"प्रयोगकर्ताको विवरण",name:"नाम",email:"इमेल",address:"ठेगाना",mobile:"मोबाइल",reportDate:"रिपोर्ट मिति",
+ detailsTitle:"कारोबारको विस्तृत विवरण",serial:"क्र.सं.",partyName:"पार्टीको नाम",remark:"कैफियत",total:"जम्मा",
+ reportFoot:"यो रिपोर्ट उपलब्ध Cloud Transaction रेकर्डका आधारमा तयार गरिएको हो。",
  saveOk:"कारोबार सेभ भयो।",saveError:"सेभ हुन सकेन: ",deletedOk:"रेकर्ड साझा Account Trash मा सारियो।",
  deleteConfirm:"यो कारोबार साझा Account Trash मा सार्ने? ३० दिनभित्र Restore गर्न सकिन्छ।",
  restored:"रेकर्ड Restore भयो।",restoreError:"Restore हुन सकेन: ",restoreConflict:"यही ID को रेकर्ड पहिल्यै छ। कुनै डाटा overwrite गरिएको छैन।",
@@ -243,12 +239,12 @@ const words={
  importDone:"Import पूरा भयो। आयात गरिएका रेकर्ड: ",importNone:"पुरानो स्थानीय रेकर्ड भेटिएन।",
  importCloud:"Cloud मा रेकर्ड छन्। डाटा नबिग्रियोस् भनेर Import रोकियो।",
  importOnce:"पुरानो डाटा Import पहिले नै गरिएको छ।",importError:"Import असफल: ",
- pdfError:"PDF बनाउन सकिएन: ",pdfUnavailable:"PDF library उपलब्ध छैन। इन्टरनेट जाँच्नुहोस्।",
+ pdfError:"PDF तयार भएन: ",pdfFail:"PDF सुविधा लोड भएन। इन्टरनेट जडान जाँच्नुहोस्।",
  authError:"पहिले index.html बाट लगइन गर्नुहोस्।",loadError:"Cloud डाटा लोड हुन सकेन: ",
- badInput:"पार्टीको नाम र वैध शून्य वा सोभन्दा बढी रकम राख्नुहोस्।",emptyPdf:"PDF बनाउन कारोबार रेकर्ड छैन।",
+ badInput:"पार्टीको नाम र वैध शून्य वा सोभन्दा बढी रकम राख्नुहोस्।",pdfEmpty:"रेकर्ड छैन।",
  confirmImport:"पुरानो स्थानीय कारोबार Import गर्ने? Cloud का पुराना रेकर्ड overwrite गरिने छैनन्।",
  confirmRestore:"Trash बाट यो कारोबार Restore गर्ने?",restoreOk:"कारोबार Restore भयो।",
- confirmYes:"पुष्टि गर्नुहोस्",confirmNo:"रद्द",noInternet:"इन्टरनेट छैन; क्लाउडमा परिवर्तन सेभ नहुन सक्छ।"
+ confirmYes:"पुष्टि गर्नुहोस्",confirmNo:"रद्द",missing:"उल्लेख गरिएको छैन",report:"कारोबार विवरण रिपोर्ट"
  }
 };
 
@@ -376,7 +372,7 @@ function renderTrash(){
   return `<div class="record">
    <b>${esc(v.data?.party||v.data?.title||t("recordsTitle"))}</b>
    <p>${esc(v.data?.date||"—")} · ${esc(typeText(v.data?.type))} · ${money(v.data?.total)}</p>
-   <p class="muted">${esc(t("printedAt"))}: ${v.deletedAt?esc(new Date(v.deletedAt).toLocaleString()):"—"}</p>
+   <p class="muted">${esc(t("reportDate"))}: ${v.deletedAt?esc(new Date(v.deletedAt).toLocaleString()):"—"}</p>
    <button type="button" data-restore="${esc(v.category+"/"+v.id)}" ${expired?"disabled":""}>${esc(expired?t("expired"):t("restore"))}</button>
   </div>`;
  }).join("")||`<p class="muted">${esc(t("noTrash"))}</p>`;
@@ -483,90 +479,91 @@ $("trashList").addEventListener("click",async e=>{
  }catch(err){console.error(err);toast(t("restoreError")+err.message,true)}
 });
 
-function profile(){
- const read=(...keys)=>{
-  for(const k of keys){try{const v=localStorage.getItem(k);if(v&&v.trim())return v.trim()}catch(e){}}
-  return "";
- };
+/* प्रोफाइल फंक्सनहरू (Income ढाँचाअनुसार) */
+function firstLocalValue(keys){
+ for(const key of keys){
+  const value=localStorage.getItem(key);
+  if(value&&value.trim())return value.trim();
+ }
+ return "";
+}
+function profileObject(){
+ const keys=["digital_notebook_profile","user_profile","userProfile","profile","digital_notebook_user"];
+ for(const key of keys){
+  try{
+   const v=JSON.parse(localStorage.getItem(key)||"null");
+   if(v&&typeof v==="object"&&!Array.isArray(v))return v;
+  }catch(e){}
+ }
+ return {};
+}
+function profileForPdf(){
+ const u=auth.currentUser,p=profileObject();
  return {
-  name:read("profile_name","fullName","userName","profileName","profile_full_name"),
-  address:read("profile_address","address","userAddress"),
-  mobile:read("profile_mobile","mobile","phone","userMobile"),
-  email:currentUser?.email||read("profile_email","email")
+  name:firstLocalValue(["profile_name","user_profile_name","fullName","userName"])||p.name||p.fullName||p.full_name||p.username||"",
+  email:firstLocalValue(["profile_email","user_profile_email"])||p.email||u?.email||"",
+  address:firstLocalValue(["profile_address","user_profile_address"])||p.address||p.location||"",
+  mobile:firstLocalValue(["profile_mobile","user_profile_mobile","user_mobile"])||p.mobile||p.phone||p.phoneNumber||""
  };
 }
-function pdfShell(title,body){
- const p=profile();
- return `<div style="font-family:Arial,sans-serif;color:#182235;background:#fff;padding:20px">
-  <div style="border-bottom:3px solid #176b55;padding-bottom:12px;margin-bottom:16px">
-   <h1 style="margin:0 0 8px;font-size:23px">Digital NoteBook</h1>
-   <h2 style="margin:0 0 8px;font-size:18px">${esc(title)}</h2>
-   <div style="font-size:12px;line-height:1.7">
-    <b>${esc(t("prepared"))}:</b> ${esc(p.name||t("profileFallback"))}<br>
-    ${p.address?`<b>${esc(t("address"))}:</b> ${esc(p.address)}<br>`:""}
-    ${p.mobile?`<b>${esc(t("mobile"))}:</b> ${esc(p.mobile)}<br>`:""}
-    ${p.email?`<b>${esc(t("email"))}:</b> ${esc(p.email)}<br>`:""}
-    <b>${esc(t("printedAt"))}:</b> ${esc(new Date().toLocaleString())}
-   </div>
-  </div>${body}</div>`;
-}
-function htmlTable(rows){
- return `<table style="border-collapse:collapse;width:100%;font-size:11px">
- <thead><tr>${rows[0].map(v=>`<th style="border:1px solid #aab4c0;padding:6px;background:#e7edf4;text-align:left">${esc(v)}</th>`).join("")}</tr></thead>
- <tbody>${rows.slice(1).map(row=>`<tr>${row.map(v=>`<td style="border:1px solid #aab4c0;padding:6px;vertical-align:top">${esc(v)}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
-}
-async function exportPdf(filename,title,body){
- if(!window.html2pdf)return toast(t("pdfUnavailable"),true);
- const element=document.createElement("div");
- element.innerHTML=pdfShell(title,body);
- const options={
-  margin:8,filename,
-  image:{type:"jpeg",quality:.98},
-  html2canvas:{scale:2,useCORS:true,backgroundColor:"#ffffff"},
-  jsPDF:{unit:"mm",format:"a4",orientation:"landscape"},
-  pagebreak:{mode:["css","legacy"]}
- };
+
+/* Income जस्तै सुन्दर र व्यवस्थित PDF जेनेरेट गर्ने फंक्सन */
+async function exportPdf(recordsList, subtitle=""){
+ if(!window.html2pdf){toast(t("pdfFail"),true);return;}
+ const profile=profileForPdf(),total=recordsList.reduce((s,r)=>s+num(r.total),0),reportDate=new Date().toLocaleString(),missing=t("missing");
+ 
+ const rows=recordsList.map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r.date||"")}</td><td>${esc(r.party||"")}</td><td>${esc(typeText(r.type))}</td><td class="right">${num(r.npr).toFixed(2)}</td><td class="right">${num(r.inr).toFixed(2)}</td><td class="right">${num(r.rate)}%</td><td class="right">${num(r.period)}</td><td class="right">${num(r.total).toFixed(2)}</td><td>${esc(r.note||"")}</td></tr>`).join("");
+
+ const report=document.createElement("div");
+ report.style.cssText="background:#fff;color:#172033;padding:22px;font-family:Arial,'Noto Sans Devanagari',sans-serif;font-size:11px;width:100%";
+ report.innerHTML=`
+ <div style="background:#102b3f;color:#fff;padding:18px;border-radius:8px;border-bottom:5px solid #10b981;margin-bottom:14px">
+  <div style="display:flex;align-items:center;gap:12px">
+   <img src="N1024.png" alt="Digital NoteBook" style="width:55px;height:55px;object-fit:contain" onerror="this.style.display='none'">
+   <div><h1 style="font-size:23px;margin:0 0 5px">Digital NoteBook</h1><div style="font-size:13px">${esc(t("report"))} ${subtitle?("— "+esc(subtitle)):""}</div></div>
+  </div>
+  <hr style="border:0;border-top:1px solid #547080;margin:13px 0">
+  <div style="line-height:1.9"><b>${esc(t("profile"))}</b><br>
+   <b>${esc(t("name"))}:</b> ${esc(profile.name||missing)}<br>
+   <b>${esc(t("email"))}:</b> ${esc(profile.email||missing)}<br>
+   <b>${esc(t("address"))}:</b> ${esc(profile.address||missing)}<br>
+   <b>${esc(t("mobile"))}:</b> ${esc(profile.mobile||missing)}<br>
+   <b>${esc(t("reportDate"))}:</b> ${esc(reportDate)}
+  </div>
+ </div>
+ <div style="background:#eaf7f0;border:1px solid #b8e2cc;border-radius:6px;padding:12px;margin-bottom:16px">
+  <b>${esc(t("grandTotal"))}:</b> ${money(total)} &nbsp; | &nbsp; <b>${esc(t("recordCount"))}:</b> ${recordsList.length}
+ </div>
+ <h2 style="font-size:16px;margin:12px 0 7px">${esc(t("detailsTitle"))}</h2>
+ <table><thead><tr><th>${esc(t("serial"))}</th><th>${esc(t("dateLabel"))}</th><th>${esc(t("partyName"))}</th><th>${esc(t("typeLabel"))}</th><th>NPR</th><th>INR</th><th>${esc(t("rate"))}</th><th>${esc(t("monthsLabel"))}</th><th>${esc(t("total"))} NPR</th><th>${esc(t("remark"))}</th></tr></thead>
+ <tbody>${rows||`<tr><td colspan="10">${esc(t("pdfEmpty"))}</td></tr>`}</tbody>
+ <tfoot><tr><td colspan="8" class="right"><b>${esc(t("total"))}</b></td><td class="right"><b>${total.toFixed(2)}</b></td><td></td></tr></tfoot></table>
+ <div style="margin-top:18px;border-top:1px solid #ccd5d1;padding-top:8px;color:#52635d">${esc(t("reportFoot"))}</div>
+ <style>table{border-collapse:collapse;width:100%;margin-bottom:16px}th,td{border:1px solid #9aada6;padding:6px;vertical-align:top}th{background:#dcebe5;text-align:left}.right{text-align:right}tr{page-break-inside:avoid}</style>`;
+
  try{
-  await html2pdf().set(options).from(element).save();
- }catch(err){console.error(err);toast(t("pdfError")+err.message,true)}
+  await html2pdf().set({
+   margin:8,
+   filename:"Digital-Notebook-Transactions-"+new Date().toISOString().slice(0,10)+".pdf",
+   image:{type:"jpeg",quality:.98},
+   html2canvas:{scale:2,useCORS:true},
+   pagebreak:{mode:["css","legacy"]},
+   jsPDF:{unit:"mm",format:"a4",orientation:"landscape"}
+  }).from(report).save();
+ }catch(e){toast(t("pdfError")+e.message,true);}
 }
-function transactionRows(list){
- return [
-  [t("dateLabel"),t("partyLabel"),t("typeLabel"),"NPR","INR",t("rate"),t("monthsLabel"),t("amountLabel"),t("noteLabel")],
-  ...list.map(r=>[
-   r.date||"",r.party||"",typeText(r.type),num(r.npr).toFixed(2),num(r.inr).toFixed(2),
-   num(r.rate)+"%",num(r.period),num(r.total).toFixed(2),r.note||""
-  ])
- ];
-}
+
 async function exportOneGroup(key){
  const g=grouped(values()).find(x=>x.key===key);
- if(!g||!g.items.length)return toast(t("emptyPdf"),true);
+ if(!g||!g.items.length)return toast(t("pdfEmpty"),true);
  const list=g.items.slice().sort((a,b)=>String(a.date||"").localeCompare(String(b.date||"")));
- const rows=transactionRows(list);
- rows.push([t("totalRecords")+": "+list.length,"","","","","","",g.total.toFixed(2),""]);
- const safe=g.name.replace(/[^\p{L}\p{N}-]+/gu,"-").replace(/^-|-$/g,"").slice(0,45)||"group";
- await exportPdf("group-ledger-"+safe+".pdf",t("pdfTitle")+" · "+g.name,htmlTable(rows));
+ await exportPdf(list, g.name);
 }
+
 $("pdfAllButton").addEventListener("click",async()=>{
  const all=values().sort((a,b)=>String(a.date||"").localeCompare(String(b.date||"")));
- if(!all.length)return toast(t("emptyPdf"),true);
- const rows=transactionRows(all);
- rows.push([t("totalRecords")+": "+all.length,"","","","","","",all.reduce((s,r)=>s+num(r.total),0).toFixed(2),""]);
- await exportPdf("full-transaction-ledger.pdf",t("pdfAllTitle"),htmlTable(rows));
-});
-$("pdfGroupsButton").addEventListener("click",async()=>{
- const groups=grouped(values());
- if(!groups.length)return toast(t("emptyPdf"),true);
- const rows=[[t("partyLabel"),t("recordCount"),t("amountLabel"),t("dateLabel"),t("typeLabel"),t("noteLabel")]];
- groups.forEach(g=>{
-  rows.push([g.name,g.items.length,g.total.toFixed(2),"","",""]);
-  g.items.slice().sort((a,b)=>String(a.date||"").localeCompare(String(b.date||""))).forEach(r=>{
-   rows.push(["↳ "+(r.party||""),"",num(r.total).toFixed(2),r.date||"",typeText(r.type),r.note||""]);
-  });
- });
- rows.push([t("totalGroups")+": "+groups.length,"",values().reduce((s,r)=>s+num(r.total),0).toFixed(2),"","",""]);
- await exportPdf("all-group-ledger.pdf",t("pdfTitle"),htmlTable(rows));
+ if(!all.length)return toast(t("pdfEmpty"),true);
+ await exportPdf(all);
 });
 
 /* Safe one-time import: never replace the existing cloud tree. */
