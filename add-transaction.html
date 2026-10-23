@@ -193,7 +193,7 @@ const words={
  save:"Save transaction",update:"Update transaction",cancel:"Cancel",import:"Import old local data",pdfAll:"Export PDF",
  groupTitle:"Group Ledger / Party Summary",groupHelp:"Transactions with the same party name are grouped together. Tap a name to see all records.",
  searchGroup:"Search party or notes",grandTotal:"Total NPR",groupCount:"Groups",recordCount:"Records",
- pdfOne:"समूह PDF",recordsTitle:"All transaction records",searchRecords:"Search party, notes or type",
+ pdfOne:"Group PDF",recordsTitle:"All transaction records",searchRecords:"Search party, notes or type",
  trashTitle:"Recently deleted transactions",trashHelp:"Restore within 30 days.",
  checking:"Checking sign-in…",connecting:"Connecting cloud…",synced:"Cloud synced",offline:"Offline",
  noGroups:"No matching groups found.",noRecords:"No records found.",noTrash:"Trash is empty.",
@@ -479,7 +479,7 @@ $("trashList").addEventListener("click",async e=>{
  }catch(err){console.error(err);toast(t("restoreError")+err.message,true)}
 });
 
-/* प्रोफाइल तान्ने फंक्सन */
+/* प्रोफाइल तान्ने सुधारेको फंक्सन */
 function firstLocalValue(keys){
  for(const key of keys){
   const value=localStorage.getItem(key);
@@ -507,60 +507,71 @@ function profileForPdf(){
  };
 }
 
-/* मिलाइएको र पूर्ण रूपमा मिलाइएको PDF Export फंक्सन */
-async function exportPdf(recordsList, subtitle=""){
+/* पूर्ण रूपमा मिलाइएको र आकर्षक PDF जेनेरेटर (दुवै All र Single Group को लागि) */
+async function exportPdf(recordsList, subtitle="", filenamePrefix="Digital-Notebook-Transactions"){
  if(!window.html2pdf){toast(t("pdfFail"),true);return;}
  const profile=profileForPdf(),total=recordsList.reduce((s,r)=>s+num(r.total),0),reportDate=new Date().toLocaleString(),missing=t("missing");
  
  const rows=recordsList.map((r,i)=>`<tr>
-  <td style="text-align:center">${i+1}</td>
-  <td>${esc(r.date||"")}</td>
-  <td><b>${esc(r.party||"")}</b></td>
-  <td>${esc(typeText(r.type))}</td>
-  <td class="right">${num(r.npr)>0?num(r.npr).toFixed(2):"-"}</td>
-  <td class="right">${num(r.inr)>0?num(r.inr).toFixed(2):"-"}</td>
-  <td class="right">${num(r.rate)>0?num(r.rate)+"%":"-"}</td>
-  <td class="right">${num(r.period)>0?num(r.period):"-"}</td>
-  <td class="right"><b>${num(r.total).toFixed(2)}</b></td>
-  <td>${esc(r.note||"")}</td>
+   <td style="text-align:center">${i+1}</td>
+   <td>${esc(r.date||"")}</td>
+   <td><b>${esc(r.party||"")}</b></td>
+   <td>${esc(typeText(r.type))}</td>
+   <td class="right">${num(r.npr).toFixed(2)}</td>
+   <td class="right">${num(r.inr).toFixed(2)}</td>
+   <td class="right">${num(r.rate)}%</td>
+   <td class="right">${num(r.period)}</td>
+   <td class="right"><b>${num(r.total).toFixed(2)}</b></td>
+   <td>${esc(r.note||"")}</td>
  </tr>`).join("");
 
  const report=document.createElement("div");
- report.style.cssText="background:#fff;color:#172033;padding:16px;font-family:Arial,'Noto Sans Devanagari',sans-serif;font-size:10px;width:100%;box-sizing:border-box";
+ report.style.cssText="background:#fff;color:#172033;padding:16px;font-family:Arial,'Noto Sans Devanagari',sans-serif;font-size:10px;width:100%";
  report.innerHTML=`
- <div style="background:#102b3f;color:#fff;padding:14px 18px;border-radius:8px;border-bottom:4px solid #10b981;margin-bottom:12px">
-  <div style="display:flex;align-items:center;justify-content:space-between">
+ <div style="background:#102b3f;color:#fff;padding:12px 16px;border-radius:6px;border-bottom:4px solid #10b981;margin-bottom:12px">
+  <div style="display:flex;justify-content:space-between;align-items:center">
    <div>
-    <h1 style="font-size:20px;margin:0 0 3px">Digital NoteBook</h1>
-    <div style="font-size:12px;color:#cbd5e1">${esc(t("report"))} ${subtitle?("— "+esc(subtitle)):""}</div>
+    <h1 style="font-size:18px;margin:0 0 3px">Digital NoteBook</h1>
+    <div style="font-size:12px;color:#34d399;font-weight:bold">${esc(t("report"))} ${subtitle?("— "+esc(subtitle)):""}</div>
    </div>
-   <div style="text-align:right;font-size:10px;line-height:1.5;color:#e2e8f0">
-    <b>${esc(t("name"))}:</b> ${esc(profile.name||missing)} | <b>${esc(t("mobile"))}:</b> ${esc(profile.mobile||missing)}<br>
-    <b>${esc(t("address"))}:</b> ${esc(profile.address||missing)} | <b>${esc(t("reportDate"))}:</b> ${esc(reportDate)}
+   <div style="text-align:right;font-size:10px;line-height:1.4">
+    <b>${esc(t("reportDate"))}:</b> ${esc(reportDate)}
    </div>
   </div>
+  <hr style="border:0;border-top:1px solid #334e68;margin:8px 0">
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;font-size:10px">
+   <div><b>${esc(t("name"))}:</b> ${esc(profile.name||missing)}</div>
+   <div><b>${esc(t("email"))}:</b> ${esc(profile.email||missing)}</div>
+   <div><b>${esc(t("address"))}:</b> ${esc(profile.address||missing)}</div>
+   <div><b>${esc(t("mobile"))}:</b> ${esc(profile.mobile||missing)}</div>
+  </div>
  </div>
- <div style="background:#eaf7f0;border:1px solid #b8e2cc;border-radius:6px;padding:8px 12px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
-  <span><b>${esc(t("grandTotal"))}:</b> <span style="color:#059669;font-size:12px;font-weight:bold">${money(total)}</span></span>
-  <span><b>${esc(t("recordCount"))}:</b> ${recordsList.length}</span>
+
+ <div style="background:#eaf7f0;border:1px solid #b8e2cc;border-radius:5px;padding:8px 12px;margin-bottom:12px;font-size:11px;display:flex;justify-content:space-between">
+  <div><b>${esc(t("grandTotal"))}:</b> <span style="color:#059669;font-weight:bold">${money(total)}</span></div>
+  <div><b>${esc(t("recordCount"))}:</b> ${recordsList.length}</div>
  </div>
- <h3 style="font-size:13px;margin:8px 0 6px;color:#1e293b">${esc(t("detailsTitle"))}</h3>
+
+ <h2 style="font-size:13px;margin:8px 0 6px;color:#102b3f">${esc(t("detailsTitle"))}</h2>
+ 
  <table>
   <thead>
    <tr>
-    <th style="width:30px">${esc(t("serial"))}</th>
-    <th style="width:75px">${esc(t("dateLabel"))}</th>
+    <th style="width:30px;text-align:center">${esc(t("serial"))}</th>
+    <th style="width:70px">${esc(t("dateLabel"))}</th>
     <th>${esc(t("partyName"))}</th>
     <th style="width:65px">${esc(t("typeLabel"))}</th>
-    <th style="width:60px">NPR</th>
-    <th style="width:60px">INR</th>
-    <th style="width:45px">${esc(t("rate"))}</th>
-    <th style="width:40px">${esc(t("monthsLabel"))}</th>
-    <th style="width:75px">${esc(t("total"))} NPR</th>
+    <th style="width:60px" class="right">NPR</th>
+    <th style="width:60px" class="right">INR</th>
+    <th style="width:45px" class="right">${esc(t("rate"))}</th>
+    <th style="width:45px" class="right">${esc(t("monthsLabel"))}</th>
+    <th style="width:75px" class="right">${esc(t("total"))} NPR</th>
     <th>${esc(t("remark"))}</th>
    </tr>
   </thead>
-  <tbody>${rows||`<tr><td colspan="10" style="text-align:center">${esc(t("pdfEmpty"))}</td></tr>`}</tbody>
+  <tbody>
+   ${rows||`<tr><td colspan="10" style="text-align:center">${esc(t("pdfEmpty"))}</td></tr>`}
+  </tbody>
   <tfoot>
    <tr>
     <td colspan="8" class="right"><b>${esc(t("total"))}</b></td>
@@ -569,19 +580,21 @@ async function exportPdf(recordsList, subtitle=""){
    </tr>
   </tfoot>
  </table>
- <div style="margin-top:12px;border-top:1px solid #cbd5e1;padding-top:6px;font-size:9px;color:#64748b;text-align:center">${esc(t("reportFoot"))}</div>
+
+ <div style="margin-top:12px;border-top:1px solid #ccd5d1;padding-top:6px;font-size:9px;color:#64748b;text-align:center">${esc(t("reportFoot"))}</div>
+ 
  <style>
-  table{border-collapse:collapse;width:100%;margin-bottom:10px;font-size:9.5px}
-  th,td{border:1px solid #cbd5e1;padding:5px 4px;vertical-align:middle;word-break:break-word}
-  th{background:#f1f5f9;color:#334155;text-align:left;font-weight:bold}
+  table{border-collapse:collapse;width:100%;margin-bottom:10px}
+  th,td{border:1px solid #94a3b8;padding:5px;vertical-align:middle}
+  th{background:#f1f5f9;color:#0f172a;font-weight:bold;text-align:left}
   .right{text-align:right}
   tr{page-break-inside:avoid}
  </style>`;
 
  try{
   await html2pdf().set({
-   margin:[6, 6, 6, 6],
-   filename: (subtitle ? subtitle.replace(/[^a-zA-Z0-9]/g, "_") : "Digital-Notebook-Transactions") + "-" + new Date().toISOString().slice(0,10) + ".pdf",
+   margin:6,
+   filename:filenamePrefix+"-"+new Date().toISOString().slice(0,10)+".pdf",
    image:{type:"jpeg",quality:.98},
    html2canvas:{scale:2,useCORS:true},
    pagebreak:{mode:["css","legacy"]},
@@ -590,22 +603,23 @@ async function exportPdf(recordsList, subtitle=""){
  }catch(e){toast(t("pdfError")+e.message,true);}
 }
 
-/* व्यक्तिगत समूह PDF */
+/* समूहगत (व्यक्तिगत) PDF निर्यात */
 async function exportOneGroup(key){
  const g=grouped(values()).find(x=>x.key===key);
  if(!g||!g.items.length)return toast(t("pdfEmpty"),true);
- const list=g.items.slice().sort((a,b)=>String(a.date||"").localeCompare(String(b.date||"")));
- await exportPdf(list, g.name);
+ const list=g.items.slice().sort((a,b)=>String(a.date||"").localeCompare(String(a.date||"")));
+ const safeName=g.name.replace(/[^a-zA-Z0-9]/g,"_");
+ await exportPdf(list, g.name, "Group-Ledger-"+safeName);
 }
 
-/* पुरा कारोबार PDF */
+/* पूरा कारोबार PDF निर्यात */
 $("pdfAllButton").addEventListener("click",async()=>{
- const all=values().sort((a,b)=>String(a.date||"").localeCompare(String(b.date||"")));
+ const all=values().sort((a,b)=>String(a.date||"").localeCompare(String(a.date||"")));
  if(!all.length)return toast(t("pdfEmpty"),true);
- await exportPdf(all);
+ await exportPdf(all, "", "Full-Transaction-Ledger");
 });
 
-/* Safe one-time import */
+/* Safe one-time import: never replace the existing cloud tree. */
 async function importOldData(){
  if(!currentUser)return toast(t("authError"),true);
  if(!(await askConfirm(t("confirmImport"))))return;
