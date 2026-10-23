@@ -231,7 +231,7 @@ const words={
  typeLabel:"प्रकार",amountLabel:"कुल NPR",monthsLabel:"महिना",noteLabel:"कैफियत",
  profile:"प्रयोगकर्ताको विवरण",name:"नाम",email:"इमेल",address:"ठेगाना",mobile:"मोबाइल",reportDate:"रिपोर्ट मिति",
  detailsTitle:"कारोबारको विस्तृत विवरण",serial:"क्र.सं.",partyName:"पार्टीको नाम",remark:"कैफियत",total:"जम्मा",
- reportFoot:"यो रिपोर्ट उपलब्ध Cloud Transaction रेकर्डका आधारमा तयार गरिएको हो。",
+ reportFoot:"यो रिपोर्ट उपलब्ध Cloud Transaction रेकर्डका आधारमा तयार गरिएको हो।",
  saveOk:"कारोबार सेभ भयो।",saveError:"सेभ हुन सकेन: ",deletedOk:"रेकर्ड साझा Account Trash मा सारियो।",
  deleteConfirm:"यो कारोबार साझा Account Trash मा सार्ने? ३० दिनभित्र Restore गर्न सकिन्छ।",
  restored:"रेकर्ड Restore भयो।",restoreError:"Restore हुन सकेन: ",restoreConflict:"यही ID को रेकर्ड पहिल्यै छ। कुनै डाटा overwrite गरिएको छैन।",
@@ -507,7 +507,7 @@ function profileForPdf(){
  };
 }
 
-/* Portrait (ठाडो) A4 PDF जेनेरेटर */
+/* Portrait (ठाडो) A4 PDF जेनेरेटर - खाली ठाउँ नआउने गरी सुधारिएको */
 async function exportPdf(recordsList, subtitle="", filenamePrefix="Digital-Notebook-Transactions"){
  if(!window.html2pdf){toast(t("pdfFail"),true);return;}
  const profile=profileForPdf(),total=recordsList.reduce((s,r)=>s+num(r.total),0),reportDate=new Date().toLocaleString(),missing=t("missing");
@@ -524,20 +524,20 @@ async function exportPdf(recordsList, subtitle="", filenamePrefix="Digital-Noteb
  </tr>`).join("");
 
  const report=document.createElement("div");
- report.style.cssText="background:#fff;color:#172033;padding:12px;font-family:Arial,'Noto Sans Devanagari',sans-serif;font-size:10px;width:100%";
+ report.style.cssText="background:#fff;color:#172033;padding:10px;font-family:Arial,'Noto Sans Devanagari',sans-serif;font-size:10px;width:100%;box-sizing:border-box;";
  report.innerHTML=`
- <div style="background:#102b3f;color:#fff;padding:12px;border-radius:6px;border-bottom:4px solid #10b981;margin-bottom:10px">
+ <div style="background:#102b3f;color:#fff;padding:10px;border-radius:6px;border-bottom:4px solid #10b981;margin-bottom:8px">
   <div style="display:flex;justify-content:space-between;align-items:center">
    <div>
-    <h1 style="font-size:16px;margin:0 0 2px">Digital NoteBook</h1>
-    <div style="font-size:11px;color:#34d399;font-weight:bold">${esc(t("report"))} ${subtitle?("— "+esc(subtitle)):""}</div>
+    <h1 style="font-size:15px;margin:0 0 2px">Digital NoteBook</h1>
+    <div style="font-size:10px;color:#34d399;font-weight:bold">${esc(t("report"))} ${subtitle?("— "+esc(subtitle)):""}</div>
    </div>
-   <div style="text-align:right;font-size:9px">
+   <div style="text-align:right;font-size:8px">
     <b>${esc(t("reportDate"))}:</b> ${esc(reportDate)}
    </div>
   </div>
-  <hr style="border:0;border-top:1px solid #334e68;margin:6px 0">
-  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:4px;font-size:9px">
+  <hr style="border:0;border-top:1px solid #334e68;margin:5px 0">
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:3px;font-size:8.5px">
    <div><b>${esc(t("name"))}:</b> ${esc(profile.name||missing)}</div>
    <div><b>${esc(t("email"))}:</b> ${esc(profile.email||missing)}</div>
    <div><b>${esc(t("address"))}:</b> ${esc(profile.address||missing)}</div>
@@ -545,23 +545,23 @@ async function exportPdf(recordsList, subtitle="", filenamePrefix="Digital-Noteb
   </div>
  </div>
 
- <div style="background:#eaf7f0;border:1px solid #b8e2cc;border-radius:4px;padding:6px 10px;margin-bottom:10px;font-size:10px;display:flex;justify-content:space-between">
+ <div style="background:#eaf7f0;border:1px solid #b8e2cc;border-radius:4px;padding:5px 8px;margin-bottom:8px;font-size:9.5px;display:flex;justify-content:space-between">
   <div><b>${esc(t("grandTotal"))}:</b> <span style="color:#059669;font-weight:bold">${money(total)}</span></div>
   <div><b>${esc(t("recordCount"))}:</b> ${recordsList.length}</div>
  </div>
 
- <h2 style="font-size:12px;margin:6px 0 4px;color:#102b3f">${esc(t("detailsTitle"))}</h2>
+ <h2 style="font-size:11px;margin:5px 0 3px;color:#102b3f">${esc(t("detailsTitle"))}</h2>
  
  <table>
   <thead>
    <tr>
     <th style="width:25px;text-align:center">${esc(t("serial"))}</th>
-    <th style="width:65px">${esc(t("dateLabel"))}</th>
+    <th style="width:60px">${esc(t("dateLabel"))}</th>
     <th>${esc(t("partyName"))}</th>
-    <th style="width:55px">${esc(t("typeLabel"))}</th>
-    <th style="width:55px" class="right">NPR</th>
-    <th style="width:50px" class="right">INR</th>
-    <th style="width:65px" class="right">${esc(t("total"))}</th>
+    <th style="width:50px">${esc(t("typeLabel"))}</th>
+    <th style="width:50px" class="right">NPR</th>
+    <th style="width:45px" class="right">INR</th>
+    <th style="width:60px" class="right">${esc(t("total"))}</th>
     <th>${esc(t("remark"))}</th>
    </tr>
   </thead>
@@ -577,23 +577,22 @@ async function exportPdf(recordsList, subtitle="", filenamePrefix="Digital-Noteb
   </tfoot>
  </table>
 
- <div style="margin-top:10px;border-top:1px solid #ccd5d1;padding-top:4px;font-size:8px;color:#64748b;text-align:center">${esc(t("reportFoot"))}</div>
+ <div style="margin-top:8px;border-top:1px solid #ccd5d1;padding-top:3px;font-size:7.5px;color:#64748b;text-align:center">${esc(t("reportFoot"))}</div>
  
  <style>
-  table{border-collapse:collapse;width:100%;margin-bottom:8px}
-  th,td{border:1px solid #94a3b8;padding:4px;vertical-align:middle}
+  table{border-collapse:collapse;width:100%;margin-bottom:6px;table-layout:fixed;}
+  th,td{border:1px solid #94a3b8;padding:3px 4px;vertical-align:middle;word-wrap:break-word;}
   th{background:#f1f5f9;color:#0f172a;font-weight:bold;text-align:left}
   .right{text-align:right}
-  tr{page-break-inside:avoid;page-break-after:auto}
+  tr{page-break-inside:avoid}
  </style>`;
 
  try{
   await html2pdf().set({
-   margin:6,
+   margin:5,
    filename:filenamePrefix+"-"+new Date().toISOString().slice(0,10)+".pdf",
-   image:{type:"jpeg",quality:.98},
-   html2canvas:{scale:2,useCORS:true},
-   pagebreak:{mode:["css","legacy"]},
+   image:{type:"jpeg",quality:0.98},
+   html2canvas:{scale:2,useCORS:true,scrollY:0},
    jsPDF:{unit:"mm",format:"a4",orientation:"portrait"}
   }).from(report).save();
  }catch(e){toast(t("pdfError")+e.message,true);}
@@ -610,7 +609,7 @@ async function exportOneGroup(key){
 
 /* पूरा कारोबार PDF निर्यात */
 $("pdfAllButton").addEventListener("click",async()=>{
- const all=values().sort((a,b)=>String(a.date||"").localeCompare(String(a.date||"")));
+ const all=values().sort((a,b)=>String(a.date||"").localeCompare(String(b.date||"")));
  if(!all.length)return toast(t("pdfEmpty"),true);
  await exportPdf(all, "", "Full-Transaction-Ledger");
 });
