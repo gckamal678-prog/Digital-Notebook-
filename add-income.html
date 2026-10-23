@@ -9,16 +9,16 @@
 
 <script>
 (function(){
-  const KEY="digital_notebook_settings";
-  const DEFAULTS={theme:"dark",lang:"ne",font_size:"16",font_family:"Poppins",accentColor:"#10b981",layout:"comfortable"};
+  const K="digital_notebook_settings";
+  const D={theme:"dark",lang:"ne",font_size:"16",font_family:"Poppins",accentColor:"#10b981",layout:"comfortable"};
   let s={};
-  try{s=JSON.parse(localStorage.getItem(KEY)||"{}")||{};}catch(e){}
+  try{s=JSON.parse(localStorage.getItem(K)||"{}")||{}}catch(e){}
   if(!s.theme&&localStorage.getItem("theme"))s.theme=localStorage.getItem("theme");
-  s={...DEFAULTS,...s};
-  try{localStorage.setItem(KEY,JSON.stringify(s));}catch(e){}
+  s={...D,...s};
+  try{localStorage.setItem(K,JSON.stringify(s))}catch(e){}
   const r=document.documentElement;
   r.classList.toggle("light",s.theme==="light");
-  r.style.setProperty("--accent",s.accentColor||DEFAULTS.accentColor);
+  r.style.setProperty("--accent",s.accentColor||D.accentColor);
   r.style.setProperty("--app-font-size",(Number(s.font_size)||16)+"px");
   r.style.setProperty("--app-font-family",JSON.stringify(s.font_family||"Poppins")+",Arial,sans-serif");
   r.dataset.layout=s.layout==="compact"?"compact":"comfortable";
@@ -46,9 +46,12 @@ h1,h2,h3,p{margin-top:0}h2{font-size:1.3em}.muted{color:var(--muted)}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:10px}
 label{display:block;color:var(--muted);font-size:.88em}
 input,button{width:100%;min-width:0;font:inherit;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--field);margin-top:4px}
-button{cursor:pointer;font-weight:650}button:disabled{opacity:.55;cursor:not-allowed}
-.primary{background:var(--accent);color:#062319;border-color:var(--accent)}.danger{color:var(--danger)}
-.row,.actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.row button,.actions button{width:auto}
+button{cursor:pointer;font-weight:650}
+button:disabled{opacity:.55;cursor:not-allowed}
+.primary{background:var(--accent);color:#062319;border-color:var(--accent)}
+.danger{color:var(--danger)}
+.row,.actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row button,.actions button{width:auto}
 .summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin:12px 0}
 .summary>div{background:var(--field);padding:12px;border-radius:12px;overflow-wrap:anywhere}
 .summary strong{display:block;font-size:1.12em}
@@ -56,16 +59,35 @@ button{cursor:pointer;font-weight:650}button:disabled{opacity:.55;cursor:not-all
 .group-head{padding:12px;background:var(--field);display:flex;align-items:center;justify-content:space-between;gap:10px}
 .group-title{width:auto;margin:0;padding:4px 0;background:transparent;border:0;text-align:left;color:var(--text)}
 .group-total{font-weight:750;color:var(--accent);white-space:nowrap}
-.group-body{padding:10px}.record{border:1px solid var(--line);padding:12px;border-radius:12px;margin-top:8px;overflow-wrap:anywhere}
-.record p{margin:5px 0}.hidden{display:none!important}
+.group-body{padding:10px}
+.record{border:1px solid var(--line);padding:12px;border-radius:12px;margin-top:8px;overflow-wrap:anywhere}
+.record p{margin:5px 0}
+.hidden{display:none!important}
 .status{border:1px solid var(--line);background:var(--field);border-radius:10px;padding:10px 12px;margin:0 0 12px;overflow-wrap:anywhere}
-.status:empty{display:none}.status.error{border-color:var(--danger)}
+.status:empty{display:none}
+.status.error{border-color:var(--danger);color:var(--danger)}
 body.auth-pending main,body.auth-pending header{visibility:hidden}
 body[data-layout="compact"] main{gap:8px;padding:8px}
-body[data-layout="compact"] .card{padding:12px}body[data-layout="compact"] .record{padding:8px}
-@media(max-width:560px){main{padding:10px}.card{padding:12px}header{padding:10px}.group-head{align-items:flex-start}}
+body[data-layout="compact"] .card{padding:12px}
+body[data-layout="compact"] .record{padding:8px}
+
+/* एपभित्रकै पुष्टि संवाद: browser domain says प्रयोग हुँदैन */
+.modal-backdrop{position:fixed;inset:0;background:#000a;z-index:1000;display:flex;align-items:center;justify-content:center;padding:18px}
+.modal{width:min(100%,440px);background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:0 20px 70px #0008}
+.modal h2{margin:0 0 12px}
+.modal p{white-space:pre-line;overflow-wrap:anywhere}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:22px}
+.modal-actions button{width:auto;min-width:95px}
+.modal .primary{color:#062319}
+.modal-backdrop[hidden]{display:none!important}
+@media(max-width:560px){
+ main{padding:10px}.card{padding:12px}header{padding:10px}
+ .group-head{align-items:flex-start}
+ .modal{padding:18px}
+}
 </style>
 </head>
+
 <body class="auth-pending">
 <header>
 <a href="index.html" id="backButton" aria-label="Back" title="Back">←</a>
@@ -78,6 +100,7 @@ body[data-layout="compact"] .card{padding:12px}body[data-layout="compact"] .reco
 <section class="card">
 <h2 data-i18n="incomeTitle">आम्दानी</h2>
 <p class="muted" data-i18n="rate">१ INR = १.६ NPR</p>
+
 <form id="form">
 <input id="recordId" type="hidden">
 <div class="grid">
@@ -123,13 +146,25 @@ body[data-layout="compact"] .card{padding:12px}body[data-layout="compact"] .reco
 
 <section class="card">
 <h2 data-i18n="trashTitle">हटाइएका आम्दानी</h2>
-<p class="muted" data-i18n="trashHelp">म्यादभित्रका रेकर्ड Restore गर्न सकिन्छ।</p>
+<p class="muted" data-i18n="trashHelp">हटाइएको रेकर्ड ३० दिनभित्र Restore गर्न सकिन्छ।</p>
 <div id="trash"><p class="muted" data-i18n="loadingTrash">Trash लोड हुँदैछ…</p></div>
 </section>
 </main>
 
+<div id="confirmModal" class="modal-backdrop" hidden>
+  <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalMessage">
+    <h2 id="modalTitle">पुष्टि गर्नुहोस्</h2>
+    <p id="modalMessage"></p>
+    <div class="modal-actions">
+      <button type="button" id="modalCancel">रद्द</button>
+      <button type="button" id="modalOK" class="primary">पुष्टि गर्नुहोस्</button>
+    </div>
+  </section>
+</div>
+
 <script>
 "use strict";
+
 const FIREBASE_CONFIG={
 apiKey:"AIzaSyDDY_v7RHnkCTI6uyV4DNDjqoaIBGweg8c",
 authDomain:"digital-a2552.firebaseapp.com",
@@ -139,28 +174,116 @@ storageBucket:"digital-a2552.firebasestorage.app",
 messagingSenderId:"218135618179",
 appId:"1:218135618179:web:821b76920d3e5669ac31b6"
 };
+
 if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);
+
 const auth=firebase.auth(),db=firebase.database(),$=id=>document.getElementById(id);
 const PATH="incomes",RATE=1.6,DAY_MS=86400000,SETTINGS_KEY="digital_notebook_settings";
 const DEFAULT_SETTINGS={theme:"dark",lang:"ne",font_size:"16",font_family:"Poppins",accentColor:"#10b981",layout:"comfortable"};
 
 const TEXT={
 ne:{
-incomeTitle:"आम्दानी",rate:"१ INR = १.६ NPR",sourceLabel:"आम्दानीको स्रोत / नाम",dateLabel:"मिति",nprLabel:"रकम NPR",inrLabel:"रकम INR",totalLabel:"कुल रकम NPR",noteLabel:"कैफियत / विवरण",save:"आम्दानी सेभ",update:"आम्दानी अपडेट",cancel:"रद्द",import:"पुरानो डाटा Import",pdf:"PDF निकाल्नुहोस्",groupTitle:"समूहगत हिसाब",groupHelp:"एउटै नामका आम्दानी एउटै समूहमा देखिन्छन्। नाम थिचेर विवरण खोल्नुहोस्।",search:"आम्दानीको नाम वा विवरण खोज्नुहोस्",grandTotal:"कुल आम्दानी",groupCount:"समूह संख्या",recordCount:"रेकर्ड संख्या",loading:"Cloud डाटा लोड हुँदैछ…",trashTitle:"हटाइएका आम्दानी",trashHelp:"हटाइएको रेकर्ड ३० दिनभित्र Restore गर्न सकिन्छ। स्थायी सफाइ server-side scheduled function बाट हुनुपर्छ।",loadingTrash:"Trash लोड हुँदैछ…",noRecords:"आम्दानी रेकर्ड भेटिएन।",noTrash:"हटाइएका Income रेकर्ड छैनन्।",edit:"सम्पादन",delete:"Trash मा सार्नुहोस्",details:"विवरण",amount:"कुल रकम",npr:"NPR",inr:"INR",note:"कैफियत",noNote:"कैफियत छैन",noDate:"मिति छैन",deleted:"हटाइएको",expires:"म्याद",restore:"Restore",confirmDelete:"यो आम्दानी साझा Account Trash मा सार्ने हो? ३० दिनभित्र Restore गर्न सकिन्छ।",deleteOk:"आम्दानी साझा Account Trash मा सारियो।",deleteFail:"Trash मा सार्न सकिएन: ",restoreFail:"Restore असफल भयो: ",restored:"आम्दानी Restore भयो।",restoreExpired:"यो रेकर्डको Restore म्याद सकिएको छ वा डाटा अपूर्ण छ।",restorePath:"सुरक्षाका कारण रेकर्डको मूल स्थान पुष्टि गर्न सकिएन।",restoreConflict:"त्यही ID को रेकर्ड पहिल्यै छ। पुरानो रेकर्ड नछोई Restore रोकियो।",saveFail:"आम्दानी सेभ भएन: ",saveOk:"आम्दानी Cloud मा सेभ भयो।",updateOk:"आम्दानी अपडेट भयो।",needName:"आम्दानीको नाम लेख्नुहोस्।",badAmount:"रकम शून्य वा त्यसभन्दा बढी हुनुपर्छ।",login:"लगइन पुष्टि हुन सकेन। index.html बाट लगइन गर्नुहोस्।",cloudFail:"Income Cloud बाट पढ्न सकिएन: ",trashFail:"Trash पढ्न सकिएन: ",legacyFail:"पुरानो Cloud Income रूपान्तरण हुन सकेन। डाटा मेटाइएको छैन।",alreadyImported:"यस उपकरणको पुरानो Income पहिले नै Import गरिएको छ।",cloudNotEmpty:"Cloud मा Income डाटा छ। पुरानो डाटाले त्यसलाई नछोपोस् भनेर Import रोकियो।",noLegacy:"Import गर्न स्थानीय पुरानो Income भेटिएन।",importConflict:"Import अघि Cloud मा नयाँ डाटा भेटियो। केही नलेखी Import रोकियो।",importOk:"Import पूरा भयो। Import भएका रेकर्ड: ",importFail:"Import असफल भयो: ",pdfFail:"PDF सुविधा लोड भएन। इन्टरनेट जडान जाँच्नुहोस्।",pdfEmpty:"रेकर्ड छैन।",pdfOk:"Income PDF तयार भयो।",pdfError:"PDF तयार भएन: ",missing:"उल्लेख गरिएको छैन",report:"आम्दानी विवरण रिपोर्ट",profile:"प्रयोगकर्ताको विवरण",name:"नाम",email:"इमेल",address:"ठेगाना",mobile:"मोबाइल",reportDate:"रिपोर्ट मिति",detailsTitle:"आम्दानीको विस्तृत विवरण",serial:"क्र.सं.",incomeName:"आम्दानीको नाम",remark:"कैफियत",total:"जम्मा",reportFoot:"यो रिपोर्ट उपलब्ध Cloud Income रेकर्डका आधारमा तयार गरिएको हो。"
+incomeTitle:"आम्दानी",rate:"१ INR = १.६ NPR",sourceLabel:"आम्दानीको स्रोत / नाम",dateLabel:"मिति",nprLabel:"रकम NPR",inrLabel:"रकम INR",totalLabel:"कुल रकम NPR",noteLabel:"कैफियत / विवरण",
+save:"आम्दानी सेभ",update:"आम्दानी अपडेट",cancel:"रद्द",import:"पुरानो डाटा Import",pdf:"PDF निकाल्नुहोस्",
+groupTitle:"समूहगत हिसाब",groupHelp:"एउटै नामका आम्दानी एउटै समूहमा देखिन्छन्। नाम थिचेर विवरण खोल्नुहोस्।",search:"आम्दानीको नाम वा विवरण खोज्नुहोस्",
+grandTotal:"कुल आम्दानी",groupCount:"समूह संख्या",recordCount:"रेकर्ड संख्या",loading:"Cloud डाटा लोड हुँदैछ…",
+trashTitle:"हटाइएका आम्दानी",trashHelp:"हटाइएको रेकर्ड ३० दिनभित्र Restore गर्न सकिन्छ।",loadingTrash:"Trash लोड हुँदैछ…",
+noRecords:"आम्दानी रेकर्ड भेटिएन।",noTrash:"हटाइएका आम्दानी रेकर्ड छैनन्।",edit:"सम्पादन",delete:"Trash मा पठाउनुहोस्",
+details:"विवरण",amount:"कुल रकम",npr:"NPR",inr:"INR",note:"कैफियत",noNote:"कैफियत छैन",noDate:"मिति छैन",
+deleted:"हटाइएको",expires:"म्याद",restore:"Restore",
+confirmDelete:"यो आम्दानी साझा Account Trash मा सार्ने हो?\n३० दिनभित्र Restore गर्न सकिन्छ।",
+confirmSave:"यो आम्दानी सेभ गर्ने हो?",confirmUpdate:"यो आम्दानीको परिवर्तन सेभ गर्ने हो?",
+confirmRestore:"यो आम्दानी रेकर्ड Restore गर्ने हो?",confirmImport:"पुरानो स्थानीय Income डाटा Import गर्ने हो? Cloud का रेकर्ड प्रतिस्थापन गरिने छैन।",
+confirmTitle:"पुष्टि गर्नुहोस्",yes:"पुष्टि गर्नुहोस्",
+deleteFail:"Trash मा सार्न सकिएन: ",restoreFail:"Restore असफल भयो: ",restoreExpired:"यो रेकर्डको Restore म्याद सकिएको छ वा डाटा अपूर्ण छ।",
+restorePath:"सुरक्षाका कारण रेकर्डको मूल स्थान पुष्टि गर्न सकिएन।",restoreConflict:"त्यही ID को रेकर्ड पहिल्यै छ। पुरानो रेकर्ड नछोई Restore रोकियो।",
+saveFail:"आम्दानी सेभ भएन: ",needName:"आम्दानीको नाम लेख्नुहोस्।",badAmount:"रकम शून्य वा त्यसभन्दा बढी हुनुपर्छ।",
+login:"लगइन पुष्टि हुन सकेन। index.html बाट लगइन गर्नुहोस्।",cloudFail:"Income Cloud बाट पढ्न सकिएन: ",trashFail:"Trash पढ्न सकिएन: ",
+legacyFail:"पुरानो Cloud Income रूपान्तरण हुन सकेन। डाटा मेटाइएको छैन।",alreadyImported:"यस उपकरणको पुरानो Income पहिले नै Import गरिएको छ।",
+cloudNotEmpty:"Cloud मा Income डाटा छ। पुरानो डाटाले त्यसलाई नछोपोस् भनेर Import रोकियो।",noLegacy:"Import गर्न स्थानीय पुरानो Income भेटिएन।",
+importConflict:"Import अघि Cloud मा नयाँ डाटा भेटियो। केही नलेखी Import रोकियो।",importOk:"Import पूरा भयो। Import भएका रेकर्ड: ",
+importFail:"Import असफल भयो: ",pdfFail:"PDF सुविधा लोड भएन। इन्टरनेट जडान जाँच्नुहोस्।",pdfEmpty:"रेकर्ड छैन।",
+pdfError:"PDF तयार भएन: ",missing:"उल्लेख गरिएको छैन",report:"आम्दानी विवरण रिपोर्ट",profile:"प्रयोगकर्ताको विवरण",
+name:"नाम",email:"इमेल",address:"ठेगाना",mobile:"मोबाइल",reportDate:"रिपोर्ट मिति",detailsTitle:"आम्दानीको विस्तृत विवरण",
+serial:"क्र.सं.",incomeName:"आम्दानीको नाम",remark:"कैफियत",total:"जम्मा",
+reportFoot:"यो रिपोर्ट उपलब्ध Cloud Income रेकर्डका आधारमा तयार गरिएको हो।"
 },
 en:{
-incomeTitle:"Income",rate:"1 INR = 1.6 NPR",sourceLabel:"Income source / name",dateLabel:"Date",nprLabel:"Amount NPR",inrLabel:"Amount INR",totalLabel:"Total NPR",noteLabel:"Note / details",save:"Save income",update:"Update income",cancel:"Cancel",import:"Import old data",pdf:"Export PDF",groupTitle:"Grouped ledger",groupHelp:"Income with the same name is grouped together. Tap a name to view its details.",search:"Search income name or details",grandTotal:"Total income",groupCount:"Groups",recordCount:"Records",loading:"Loading Cloud data…",trashTitle:"Deleted income",trashHelp:"Records can be restored within 30 days. Permanent cleanup should be handled by a server-side scheduled function.",loadingTrash:"Loading Trash…",noRecords:"No income records found.",noTrash:"No deleted income records.",edit:"Edit",delete:"Move to Trash",details:"Details",amount:"Total amount",npr:"NPR",inr:"INR",note:"Note",noNote:"No note",noDate:"No date",deleted:"Deleted",expires:"Expires",restore:"Restore",confirmDelete:"Move this income record to the shared Account Trash? It can be restored within 30 days.",deleteOk:"Income moved to shared Account Trash.",deleteFail:"Could not move to Trash: ",restoreFail:"Restore failed: ",restored:"Income restored.",restoreExpired:"This record has expired or its data is incomplete.",restorePath:"The original record location could not be verified safely.",restoreConflict:"A record with this ID already exists. Nothing was overwritten.",saveFail:"Could not save income: ",saveOk:"Income saved to Cloud.",updateOk:"Income updated.",needName:"Enter an income name.",badAmount:"Amounts must be zero or greater.",login:"Sign-in could not be verified. Sign in through index.html.",cloudFail:"Could not read Income from Cloud: ",trashFail:"Could not read Trash: ",legacyFail:"Could not convert old Cloud Income. No data was deleted.",alreadyImported:"Old local Income has already been imported on this device.",cloudNotEmpty:"Cloud Income already contains records. Import was stopped to prevent overwriting them.",noLegacy:"No old local Income data was found.",importConflict:"Cloud data appeared during import. Import was stopped without writing.",importOk:"Import complete. Records imported: ",importFail:"Import failed: ",pdfFail:"PDF support did not load. Check your internet connection.",pdfEmpty:"No records.",pdfOk:"Income PDF created.",pdfError:"Could not create PDF: ",missing:"Not provided",report:"Income Report",profile:"User details",name:"Name",email:"Email",address:"Address",mobile:"Mobile",reportDate:"Report date",detailsTitle:"Detailed income records",serial:"No.",incomeName:"Income name",remark:"Note",total:"Total",reportFoot:"This report was created from the available Cloud Income records."
+incomeTitle:"Income",rate:"1 INR = 1.6 NPR",sourceLabel:"Income source / name",dateLabel:"Date",nprLabel:"Amount NPR",inrLabel:"Amount INR",totalLabel:"Total NPR",noteLabel:"Note / details",
+save:"Save income",update:"Update income",cancel:"Cancel",import:"Import old data",pdf:"Export PDF",
+groupTitle:"Grouped ledger",groupHelp:"Income with the same name is grouped together. Tap a name to view details.",search:"Search income name or details",
+grandTotal:"Total income",groupCount:"Groups",recordCount:"Records",loading:"Loading Cloud data…",
+trashTitle:"Deleted income",trashHelp:"Deleted records can be restored within 30 days.",loadingTrash:"Loading Trash…",
+noRecords:"No income records found.",noTrash:"No deleted income records.",edit:"Edit",delete:"Move to Trash",
+details:"Details",amount:"Total amount",npr:"NPR",inr:"INR",note:"Note",noNote:"No note",noDate:"No date",
+deleted:"Deleted",expires:"Expires",restore:"Restore",
+confirmDelete:"Move this income record to the shared Account Trash?\nIt can be restored within 30 days.",
+confirmSave:"Save this income record?",confirmUpdate:"Save changes to this income record?",
+confirmRestore:"Restore this income record?",confirmImport:"Import old local Income data? Existing Cloud records will not be replaced.",
+confirmTitle:"Please confirm",yes:"Confirm",
+deleteFail:"Could not move to Trash: ",restoreFail:"Restore failed: ",restoreExpired:"This record has expired or its data is incomplete.",
+restorePath:"The original record location could not be verified safely.",restoreConflict:"A record with this ID already exists. Nothing was overwritten.",
+saveFail:"Could not save income: ",needName:"Enter an income name.",badAmount:"Amounts must be zero or greater.",
+login:"Sign-in could not be verified. Sign in through index.html.",cloudFail:"Could not read Income from Cloud: ",trashFail:"Could not read Trash: ",
+legacyFail:"Could not convert old Cloud Income. No data was deleted.",alreadyImported:"Old local Income has already been imported on this device.",
+cloudNotEmpty:"Cloud Income already contains records. Import was stopped to prevent overwriting them.",noLegacy:"No old local Income data was found.",
+importConflict:"Cloud data appeared during import. Import was stopped without writing.",importOk:"Import complete. Records imported: ",
+importFail:"Import failed: ",pdfFail:"PDF support did not load. Check your internet connection.",pdfEmpty:"No records.",
+pdfError:"Could not create PDF: ",missing:"Not provided",report:"Income Report",profile:"User details",
+name:"Name",email:"Email",address:"Address",mobile:"Mobile",reportDate:"Report date",detailsTitle:"Detailed income records",
+serial:"No.",incomeName:"Income name",remark:"Note",total:"Total",
+reportFoot:"This report was created from the available Cloud Income records."
 }
 };
 
 let uid=null,items={},trashData={},settings=readSettings(),incomeListener=null,trashListener=null,importingLegacy=false;
+let modalResolve=null,modalPreviousFocus=null;
+
 function readSettings(){
  try{
- const v=JSON.parse(localStorage.getItem(SETTINGS_KEY)||"{}");
- return {...DEFAULT_SETTINGS,...(v&&typeof v==="object"&&!Array.isArray(v)?v:{})};
+  const v=JSON.parse(localStorage.getItem(SETTINGS_KEY)||"{}");
+  return {...DEFAULT_SETTINGS,...(v&&typeof v==="object"&&!Array.isArray(v)?v:{})};
  }catch(e){return {...DEFAULT_SETTINGS};}
 }
-function t(k){const lang=settings.lang==="en"?"en":"ne";return TEXT[lang][k]||TEXT.ne[k]||k;}
+function t(k){return TEXT[settings.lang==="en"?"en":"ne"][k]||TEXT.ne[k]||k;}
+
+function showStatus(message,isError=false){
+ const el=$("status");
+ el.textContent=message||"";
+ el.classList.toggle("error",!!isError);
+}
+function clearStatus(){showStatus("");}
+function errorStatus(message){showStatus(message,true);}
+
+function confirmApp(message,{title=null,ok=null,cancel=null,danger=false}={}){
+ if(modalResolve)return Promise.resolve(false);
+ modalPreviousFocus=document.activeElement;
+ $("modalTitle").textContent=title||t("confirmTitle");
+ $("modalMessage").textContent=message;
+ $("modalOK").textContent=ok||t("yes");
+ $("modalCancel").textContent=cancel||t("cancel");
+ $("modalOK").classList.toggle("danger",!!danger);
+ $("confirmModal").hidden=false;
+ $("modalOK").focus();
+ return new Promise(resolve=>{modalResolve=resolve;});
+}
+function closeModal(answer){
+ if($("confirmModal").hidden)return;
+ $("confirmModal").hidden=true;
+ const resolve=modalResolve;modalResolve=null;
+ if(modalPreviousFocus&&typeof modalPreviousFocus.focus==="function")modalPreviousFocus.focus();
+ if(resolve)resolve(!!answer);
+}
+$("modalCancel").addEventListener("click",()=>closeModal(false));
+$("modalOK").addEventListener("click",()=>closeModal(true));
+$("confirmModal").addEventListener("click",e=>{if(e.target===$("confirmModal"))closeModal(false);});
+document.addEventListener("keydown",e=>{
+ if(!$("confirmModal").hidden&&e.key==="Escape"){e.preventDefault();closeModal(false);}
+ if(!$("confirmModal").hidden&&e.key==="Enter"&&document.activeElement!==$("modalCancel")){
+  e.preventDefault();closeModal(true);
+ }
+});
+
 function applyPreferences(){
  settings=readSettings();
  const root=document.documentElement;
@@ -171,36 +294,50 @@ function applyPreferences(){
  const layout=settings.layout==="compact"?"compact":"comfortable";
  root.dataset.layout=layout;document.body.dataset.layout=layout;
  root.lang=settings.lang==="en"?"en":"ne";
+
  document.querySelectorAll("[data-i18n]").forEach(el=>{
-   const key=el.dataset.i18n,control=el.querySelector("input");
-   if(control){el.childNodes[0].textContent=t(key)+" ";return;}
+  const key=el.dataset.i18n;
+  if(el.matches("label")&&el.querySelector("input")){
+   const input=el.querySelector("input");
+   el.firstChild.textContent=t(key)+" ";
+  }else{
    el.textContent=t(key);
+  }
  });
  document.querySelectorAll("[data-i18n-placeholder]").forEach(el=>el.placeholder=t(el.dataset.i18nPlaceholder));
  $("saveButton").textContent=$("recordId").value?t("update"):t("save");
  render();renderTrash();
 }
-window.addEventListener("storage",e=>{if(e.key===SETTINGS_KEY){settings=readSettings();applyPreferences();}});
-window.addEventListener("focus",()=>applyPreferences());
-window.addEventListener("pageshow",()=>applyPreferences());
+window.addEventListener("storage",e=>{if(e.key===SETTINGS_KEY)applyPreferences();});
+window.addEventListener("focus",applyPreferences);
+window.addEventListener("pageshow",applyPreferences);
 
-function showStatus(message,isError=false){const el=$("status");el.textContent=message||"";el.classList.toggle("error",!!isError);}
-function clearStatus(){showStatus("");}
-function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function esc(v){
+ return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
 function num(v){const n=Number(v);return Number.isFinite(n)?n:0;}
 function money(v){return "NPR "+num(v).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2});}
 function validKey(k){return typeof k==="string"&&k.length>0&&!/[.#$[\]\/]/.test(k);}
-function userRef(path=""){if(!uid)throw new Error(t("login"));return db.ref("users/"+uid+(path?"/"+path:""));}
-function getRecords(){return Object.entries(items||{}).filter(([,v])=>v&&typeof v==="object"&&!Array.isArray(v)).map(([id,v])=>({...v,id}));}
-function recordAmount(r){if(r.total!==undefined&&r.total!==null)return num(r.total);if(r.npr!==undefined||r.inr!==undefined)return num(r.npr)+num(r.inr)*RATE;return num(r.amount??r.incomeAmount??r.val??r.price??0);}
+function userRef(path=""){
+ if(!uid)throw new Error(t("login"));
+ return db.ref("users/"+uid+(path?"/"+path:""));
+}
+function getRecords(){
+ return Object.entries(items||{}).filter(([,v])=>v&&typeof v==="object"&&!Array.isArray(v)).map(([id,v])=>({...v,id}));
+}
+function recordAmount(r){
+ if(r.total!==undefined&&r.total!==null)return num(r.total);
+ if(r.npr!==undefined||r.inr!==undefined)return num(r.npr)+num(r.inr)*RATE;
+ return num(r.amount??r.incomeAmount??r.val??r.price??0);
+}
 
 async function saveOne(id,data,editing){
  if(!validKey(id))throw new Error("Invalid record ID.");
  const result=await userRef(PATH+"/"+id).transaction(old=>{
-   if(editing&&old===null)return;
-   if(!editing&&old!==null)return;
-   const now=Date.now();
-   return {...(old||{}),...data,id,createdAt:old?.createdAt||now,updatedAt:now};
+  if(editing&&old===null)return;
+  if(!editing&&old!==null)return;
+  const now=Date.now();
+  return {...(old||{}),...data,id,createdAt:old?.createdAt||now,updatedAt:now};
  },undefined,false);
  if(!result.committed)throw new Error("Could not save this record. Refresh and try again.");
 }
@@ -222,23 +359,24 @@ async function convertLegacyCloudArray(){
   },undefined,false);
   if(!result.committed){
    const latest=await userRef(PATH).once("value");
-   if(Array.isArray(latest.val()))showStatus(t("legacyFail"),true);
+   if(Array.isArray(latest.val()))errorStatus(t("legacyFail"));
   }
- }catch(e){showStatus(t("legacyFail"),true);}
+ }catch(e){errorStatus(t("legacyFail"));}
  finally{importingLegacy=false;}
 }
+
 function attachListeners(){
  incomeListener=s=>{
   const v=s.val();
   if(Array.isArray(v)){void convertLegacyCloudArray();return;}
-  items=v&&typeof v==="object"?v:{};render();
+  items=v&&typeof v==="object"?v:{};
+  render();
  };
  trashListener=s=>{trashData=s.val()||{};renderTrash();};
- userRef(PATH).on("value",incomeListener,e=>showStatus(t("cloudFail")+e.message,true));
- userRef("trash").on("value",trashListener,e=>showStatus(t("trashFail")+e.message,true));
+ userRef(PATH).on("value",incomeListener,e=>errorStatus(t("cloudFail")+e.message));
+ userRef("trash").on("value",trashListener,e=>errorStatus(t("trashFail")+e.message));
 }
 
-/* The Account page reads users/{uid}/trash/{category}/{id}. Keep that shared shape. */
 function getTrashEntries(){
  const out=[];
  Object.entries(trashData||{}).forEach(([category,group])=>{
@@ -266,9 +404,10 @@ function renderTrash(){
 
 async function moveToTrash(id){
  const record=items[id];
- if(!record){showStatus("Record not found. Refresh and try again.",true);return;}
- /* Confirmation is required before any Cloud write. */
- if(!window.confirm(t("confirmDelete")))return;
+ if(!record){errorStatus("Record not found. Refresh and try again.");return;}
+ const approved=await confirmApp(t("confirmDelete"),{danger:true,ok:t("delete")});
+ if(!approved)return;
+
  const now=Date.now();
  const entry={
   id,category:PATH,recordType:PATH,
@@ -280,29 +419,36 @@ async function moveToTrash(id){
   updates[PATH+"/"+id]=null;
   updates["trash/"+PATH+"/"+id]=entry;
   await userRef("").update(updates);
-  showStatus(t("deleteOk"));
- }catch(e){showStatus(t("deleteFail")+e.message,true);}
+  /* Success toast intentionally omitted. */
+ }catch(e){errorStatus(t("deleteFail")+e.message);}
 }
 
 $("trash").addEventListener("click",async event=>{
  const b=event.target.closest("[data-restore]");if(!b)return;
  const id=b.dataset.restore,entry=trashData?.[PATH]?.[id];
- if(!entry||!entry.data||num(entry.expiresAt)<=Date.now()){showStatus(t("restoreExpired"),true);return;}
- if(entry.originalPath!=="users/"+uid+"/"+PATH+"/"+id){showStatus(t("restorePath"),true);return;}
- if(!window.confirm(settings.lang==="en"?"Restore this income record?":"यो आम्दानी रेकर्ड Restore गर्ने हो?"))return;
+ if(!entry||!entry.data||num(entry.expiresAt)<=Date.now()){errorStatus(t("restoreExpired"));return;}
+ if(entry.originalPath!=="users/"+uid+"/"+PATH+"/"+id){errorStatus(t("restorePath"));return;}
+ const approved=await confirmApp(t("confirmRestore"));
+ if(!approved)return;
+
  try{
   const result=await userRef(PATH+"/"+id).transaction(old=>old===null?{...entry.data,id}:undefined,undefined,false);
-  if(!result.committed){showStatus(t("restoreConflict"),true);return;}
+  if(!result.committed){errorStatus(t("restoreConflict"));return;}
   await userRef("trash/"+PATH+"/"+id).remove();
-  showStatus(t("restored"));
- }catch(e){showStatus(t("restoreFail")+e.message,true);}
+ }catch(e){errorStatus(t("restoreFail")+e.message);}
 });
 
-function calculateTotal(){const total=num($("npr").value)+num($("inr").value)*RATE;$("total").value=total.toFixed(2);return total;}
+function calculateTotal(){
+ const total=num($("npr").value)+num($("inr").value)*RATE;
+ $("total").value=total.toFixed(2);
+ return total;
+}
 ["npr","inr"].forEach(id=>$(id).addEventListener("input",calculateTotal));
 function resetForm(){
- $("form").reset();$("recordId").value="";$("date").value=new Date().toISOString().slice(0,10);
- $("npr").value="0";$("inr").value="0";calculateTotal();$("saveButton").textContent=t("save");
+ $("form").reset();$("recordId").value="";
+ $("date").value=new Date().toISOString().slice(0,10);
+ $("npr").value="0";$("inr").value="0";calculateTotal();
+ $("saveButton").textContent=t("save");
 }
 $("cancelButton").addEventListener("click",()=>{resetForm();clearStatus();});
 
@@ -329,8 +475,10 @@ function render(){
    <p>${esc(t("amount"))}: ${money(recordAmount(r))}</p>
    <p class="muted">${esc(t("npr"))}: ${money(r.npr)} · ${esc(t("inr"))}: ${num(r.inr).toFixed(2)}</p>
    <p>${esc(t("note"))}: ${esc(r.note||r.description||t("noNote"))}</p>
-   <div class="actions"><button type="button" data-edit="${esc(r.id)}">${esc(t("edit"))}</button>
-   <button type="button" class="danger" data-delete="${esc(r.id)}">${esc(t("delete"))}</button></div>
+   <div class="actions">
+    <button type="button" data-edit="${esc(r.id)}">${esc(t("edit"))}</button>
+    <button type="button" class="danger" data-delete="${esc(r.id)}">${esc(t("delete"))}</button>
+   </div>
   </div>`).join("");
   return `<section class="group-card"><div class="group-head">
    <button type="button" class="group-title" data-toggle="${i}" aria-expanded="false">▸ ${esc(g.name)} (${g.records.length})</button>
@@ -339,48 +487,68 @@ function render(){
  }).join("")||`<p class="muted">${esc(t("noRecords"))}</p>`;
 }
 $("search").addEventListener("input",render);
+
 $("list").addEventListener("click",async e=>{
  const toggle=e.target.closest("[data-toggle]"),edit=e.target.closest("[data-edit]"),del=e.target.closest("[data-delete]");
  if(toggle){
   const p=$("group-"+toggle.dataset.toggle);if(!p)return;
-  const opening=p.classList.contains("hidden");p.classList.toggle("hidden",!opening);
+  const opening=p.classList.contains("hidden");
+  p.classList.toggle("hidden",!opening);
   toggle.setAttribute("aria-expanded",String(opening));
-  toggle.textContent=(opening?"▾ ":"▸ ")+toggle.textContent.replace(/^[▸▾]\s*/,"");return;
+  toggle.textContent=(opening?"▾ ":"▸ ")+toggle.textContent.replace(/^[▸▾]\s*/,"");
+  return;
  }
  if(edit){
-  const id=edit.dataset.edit,r=items[id];if(!r){showStatus("Record not found.",true);return;}
+  const id=edit.dataset.edit,r=items[id];
+  if(!r){errorStatus("Record not found.");return;}
   $("recordId").value=id;$("sourceName").value=r.sourceName||r.name||r.title||"";
-  $("date").value=r.date||new Date().toISOString().slice(0,10);$("npr").value=num(r.npr);$("inr").value=num(r.inr);
-  $("note").value=r.note||r.description||"";calculateTotal();$("saveButton").textContent=t("update");
-  window.scrollTo({top:0,behavior:"smooth"});$("sourceName").focus();clearStatus();return;
+  $("date").value=r.date||new Date().toISOString().slice(0,10);
+  $("npr").value=num(r.npr);$("inr").value=num(r.inr);
+  $("note").value=r.note||r.description||"";
+  calculateTotal();$("saveButton").textContent=t("update");
+  window.scrollTo({top:0,behavior:"smooth"});$("sourceName").focus();clearStatus();
+  return;
  }
  if(del)await moveToTrash(del.dataset.delete);
 });
+
 $("form").addEventListener("submit",async e=>{
  e.preventDefault();clearStatus();
- if(!uid){showStatus(t("login"),true);return;}
+ if(!uid){errorStatus(t("login"));return;}
  const sourceName=$("sourceName").value.trim();
- if(!sourceName){showStatus(t("needName"),true);$("sourceName").focus();return;}
+ if(!sourceName){errorStatus(t("needName"));$("sourceName").focus();return;}
  const npr=num($("npr").value),inr=num($("inr").value);
- if(npr<0||inr<0){showStatus(t("badAmount"),true);return;}
- const editing=!!$("recordId").value,id=$("recordId").value||userRef(PATH).push().key;
+ if(npr<0||inr<0){errorStatus(t("badAmount"));return;}
+
+ const editing=!!$("recordId").value;
+ const id=$("recordId").value||userRef(PATH).push().key;
  const data={sourceName,date:$("date").value,npr,inr,total:calculateTotal(),note:$("note").value.trim()};
+
+ const approved=await confirmApp(editing?t("confirmUpdate"):t("confirmSave"));
+ if(!approved)return;
+
  $("saveButton").disabled=true;
- try{await saveOne(id,data,editing);resetForm();showStatus(editing?t("updateOk"):t("saveOk"));}
- catch(err){showStatus(t("saveFail")+err.message,true);}
+ try{
+  await saveOne(id,data,editing);
+  resetForm();
+  /* सामान्य सफल Save सूचना हटाइएको छ। */
+ }catch(err){errorStatus(t("saveFail")+err.message);}
  finally{$("saveButton").disabled=false;}
 });
 
 async function importLegacyIncome(){
- if(!uid){showStatus(t("login"),true);return;}
+ if(!uid){errorStatus(t("login"));return;}
  if(importingLegacy)return;
- if(!window.confirm(settings.lang==="en"?"Import old local Income data? Existing Cloud records will not be overwritten.":"पुरानो स्थानीय Income डाटा Import गर्ने? Cloud का रेकर्ड प्रतिस्थापन हुँदैनन्।"))return;
+ const approved=await confirmApp(t("confirmImport"));
+ if(!approved)return;
+
  importingLegacy=true;$("importButton").disabled=true;
  try{
   const marker=userRef("migration/local-incomes-v2");
-  if((await marker.once("value")).exists()){showStatus(t("alreadyImported"));return;}
+  if((await marker.once("value")).exists()){errorStatus(t("alreadyImported"));return;}
   const cloud=await userRef(PATH).once("value"),cv=cloud.val();
-  if(cloud.exists()&&cv&&(Array.isArray(cv)||Object.keys(cv).length)){showStatus(t("cloudNotEmpty"),true);return;}
+  if(cloud.exists()&&cv&&(Array.isArray(cv)||Object.keys(cv).length)){errorStatus(t("cloudNotEmpty"));return;}
+
   const keys=["digital_notebook_incomes","incomes","income_data","add_income_list"];
   let records=[],sourceKey="";
   for(const k of keys){
@@ -390,9 +558,11 @@ async function importLegacyIncome(){
     if(candidate.length){records=candidate;sourceKey=k;break;}
    }catch(e){}
   }
-  if(!records.length){showStatus(t("noLegacy"),true);return;}
+  if(!records.length){errorStatus(t("noLegacy"));return;}
+
   const latest=await userRef(PATH).once("value"),lv=latest.val();
-  if(latest.exists()&&lv&&(Array.isArray(lv)||Object.keys(lv).length)){showStatus(t("importConflict"),true);return;}
+  if(latest.exists()&&lv&&(Array.isArray(lv)||Object.keys(lv).length)){errorStatus(t("importConflict"));return;}
+
   let imported=0;
   for(const r of records){
    if(!r||typeof r!=="object"||Array.isArray(r))continue;
@@ -406,45 +576,82 @@ async function importLegacyIncome(){
    if(result.committed)imported++;
   }
   await marker.set({completedAt:Date.now(),imported,source:sourceKey});
-  showStatus(t("importOk")+imported);
- }catch(err){showStatus(t("importFail")+err.message,true);}
+  /* सफल Import सूचना पनि सामान्य toast का रूपमा देखाइँदैन। */
+ }catch(err){errorStatus(t("importFail")+err.message);}
  finally{importingLegacy=false;$("importButton").disabled=false;}
 }
 $("importButton").addEventListener("click",importLegacyIncome);
 
+/* पुरानो प्रोफाइल key र सम्भावित profile object दुवै पढ्ने */
+function firstLocalValue(keys){
+ for(const key of keys){
+  const value=localStorage.getItem(key);
+  if(value&&value.trim())return value.trim();
+ }
+ return "";
+}
+function profileObject(){
+ const keys=["digital_notebook_profile","user_profile","userProfile","profile","digital_notebook_user"];
+ for(const key of keys){
+  try{
+   const v=JSON.parse(localStorage.getItem(key)||"null");
+   if(v&&typeof v==="object"&&!Array.isArray(v))return v;
+  }catch(e){}
+ }
+ return {};
+}
 function profileForPdf(){
- const u=auth.currentUser;
- return {name:localStorage.getItem("profile_name")||localStorage.getItem("user_profile_name")||"",email:localStorage.getItem("profile_email")||u?.email||"",address:localStorage.getItem("profile_address")||"",mobile:localStorage.getItem("profile_mobile")||""};
+ const u=auth.currentUser,p=profileObject();
+ return {
+  name:firstLocalValue(["profile_name","user_profile_name","fullName","userName"])||p.name||p.fullName||p.full_name||p.username||"",
+  email:firstLocalValue(["profile_email","user_profile_email"])||p.email||u?.email||"",
+  address:firstLocalValue(["profile_address","user_profile_address"])||p.address||p.location||"",
+  mobile:firstLocalValue(["profile_mobile","user_profile_mobile","user_mobile"])||p.mobile||p.phone||p.phoneNumber||""
+ };
 }
 async function exportPdf(){
- if(!window.html2pdf){showStatus(t("pdfFail"),true);return;}
+ if(!window.html2pdf){errorStatus(t("pdfFail"));return;}
  const records=getRecords().sort((a,b)=>String(a.date||"").localeCompare(String(b.date||"")));
  const profile=profileForPdf(),total=records.reduce((s,r)=>s+recordAmount(r),0),reportDate=new Date().toLocaleString(),missing=t("missing");
  const rows=records.map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r.date||"")}</td><td>${esc(r.sourceName||r.name||r.title||"")}</td><td class="right">${num(r.npr).toFixed(2)}</td><td class="right">${num(r.inr).toFixed(2)}</td><td class="right">${recordAmount(r).toFixed(2)}</td><td>${esc(r.note||r.description||"")}</td></tr>`).join("");
+
  const report=document.createElement("div");
  report.style.cssText="background:#fff;color:#172033;padding:22px;font-family:Arial,'Noto Sans Devanagari',sans-serif;font-size:11px;width:100%";
  report.innerHTML=`
  <div style="background:#102b3f;color:#fff;padding:18px;border-radius:8px;border-bottom:5px solid #10b981;margin-bottom:14px">
- <div style="display:flex;align-items:center;gap:12px"><img src="N1024.png" alt="Digital NoteBook" style="width:55px;height:55px;object-fit:contain" onerror="this.style.display='none'">
- <div><h1 style="font-size:23px;margin:0 0 5px">Digital NoteBook</h1><div style="font-size:13px">${esc(t("report"))}</div></div></div>
- <hr style="border:0;border-top:1px solid #547080;margin:13px 0">
- <div style="line-height:1.9"><b>${esc(t("profile"))}</b><br>
- <b>${esc(t("name"))}:</b> ${esc(profile.name||missing)}<br>
- <b>${esc(t("email"))}:</b> ${esc(profile.email||missing)}<br>
- <b>${esc(t("address"))}:</b> ${esc(profile.address||missing)}<br>
- <b>${esc(t("mobile"))}:</b> ${esc(profile.mobile||missing)}<br>
- <b>${esc(t("reportDate"))}:</b> ${esc(reportDate)}</div></div>
- <div style="background:#eaf7f0;border:1px solid #b8e2cc;border-radius:6px;padding:12px;margin-bottom:16px"><b>${esc(t("grandTotal"))}:</b> ${money(total)} &nbsp; | &nbsp; <b>${esc(t("recordCount"))}:</b> ${records.length}</div>
+  <div style="display:flex;align-items:center;gap:12px">
+   <img src="N1024.png" alt="Digital NoteBook" style="width:55px;height:55px;object-fit:contain" onerror="this.style.display='none'">
+   <div><h1 style="font-size:23px;margin:0 0 5px">Digital NoteBook</h1><div style="font-size:13px">${esc(t("report"))}</div></div>
+  </div>
+  <hr style="border:0;border-top:1px solid #547080;margin:13px 0">
+  <div style="line-height:1.9"><b>${esc(t("profile"))}</b><br>
+   <b>${esc(t("name"))}:</b> ${esc(profile.name||missing)}<br>
+   <b>${esc(t("email"))}:</b> ${esc(profile.email||missing)}<br>
+   <b>${esc(t("address"))}:</b> ${esc(profile.address||missing)}<br>
+   <b>${esc(t("mobile"))}:</b> ${esc(profile.mobile||missing)}<br>
+   <b>${esc(t("reportDate"))}:</b> ${esc(reportDate)}
+  </div>
+ </div>
+ <div style="background:#eaf7f0;border:1px solid #b8e2cc;border-radius:6px;padding:12px;margin-bottom:16px">
+  <b>${esc(t("grandTotal"))}:</b> ${money(total)} &nbsp; | &nbsp; <b>${esc(t("recordCount"))}:</b> ${records.length}
+ </div>
  <h2 style="font-size:16px;margin:12px 0 7px">${esc(t("detailsTitle"))}</h2>
  <table><thead><tr><th>${esc(t("serial"))}</th><th>${esc(t("dateLabel"))}</th><th>${esc(t("incomeName"))}</th><th>NPR</th><th>INR</th><th>${esc(t("total"))} NPR</th><th>${esc(t("remark"))}</th></tr></thead>
  <tbody>${rows||`<tr><td colspan="7">${esc(t("pdfEmpty"))}</td></tr>`}</tbody>
  <tfoot><tr><td colspan="5" class="right"><b>${esc(t("total"))}</b></td><td class="right"><b>${total.toFixed(2)}</b></td><td></td></tr></tfoot></table>
  <div style="margin-top:18px;border-top:1px solid #ccd5d1;padding-top:8px;color:#52635d">${esc(t("reportFoot"))}</div>
  <style>table{border-collapse:collapse;width:100%;margin-bottom:16px}th,td{border:1px solid #9aada6;padding:6px;vertical-align:top}th{background:#dcebe5;text-align:left}.right{text-align:right}tr{page-break-inside:avoid}</style>`;
+
  try{
-  await html2pdf().set({margin:8,filename:"Digital-Notebook-Income-"+new Date().toISOString().slice(0,10)+".pdf",image:{type:"jpeg",quality:.98},html2canvas:{scale:2,useCORS:true},pagebreak:{mode:["css","legacy"]},jsPDF:{unit:"mm",format:"a4",orientation:"landscape"}}).from(report).save();
-  showStatus(t("pdfOk"));
- }catch(e){showStatus(t("pdfError")+e.message,true);}
+  await html2pdf().set({
+   margin:8,
+   filename:"Digital-Notebook-Income-"+new Date().toISOString().slice(0,10)+".pdf",
+   image:{type:"jpeg",quality:.98},
+   html2canvas:{scale:2,useCORS:true},
+   pagebreak:{mode:["css","legacy"]},
+   jsPDF:{unit:"mm",format:"a4",orientation:"landscape"}
+  }).from(report).save();
+ }catch(e){errorStatus(t("pdfError")+e.message);}
 }
 $("pdfButton").addEventListener("click",exportPdf);
 
@@ -458,9 +665,12 @@ $("backButton").addEventListener("click",e=>{
 
 auth.onAuthStateChanged(user=>{
  if(!user){uid=null;location.replace("./index.html");return;}
- uid=user.uid;document.body.classList.remove("auth-pending");applyPreferences();
+ uid=user.uid;
+ document.body.classList.remove("auth-pending");
+ applyPreferences();
  if(!incomeListener&&!trashListener)attachListeners();
 });
+
 $("date").value=new Date().toISOString().slice(0,10);
 calculateTotal();
 applyPreferences();
