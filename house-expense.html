@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="ne">
 <head>
@@ -237,7 +236,7 @@ ne:{
  month:"महिना अनुसार",day:"दिन अनुसार",year:"वर्ष अनुसार",allDates:"सबै मिति",loading:"डाटा लोड हुँदैछ…",
  pdf:"PDF रिपोर्ट",jsonExport:"JSON Export",trashTitle:"Trash / मेटाइएका खर्च",
  trashInfo:"मेटाइएका खर्च ३० दिनसम्म पुनःस्थापना गर्न सकिन्छ।",setMonthlyBudget:"मासिक बजेट सेट गर्नुहोस्",
- budgetAmount:"मासिक खर्च सीमा (रु.)",save:"सेभ गर्नुहोस्",signIn:"पहिले index.html बाट लगइन गर्नुहोस्।",
+ budgetAmount:"मासिक खर्च सीमा (रु.)",save:"सेभ गर्नुहोस्",signIn:"पहिले index.html बाट लगइन गर्नुहोस्。",
  onlineRequired:"यो कामका लागि इन्टरनेट आवश्यक छ।",cloudReady:"Cloud Sync जडान भयो।",
  cloudError:"Cloud जडान असफल भयो। इन्टरनेट र Firebase Rules जाँच्नुहोस्।",
  saved:"खर्च Cloud मा सेभ भयो।",updated:"खर्च अपडेट भयो।",saveFailed:"खर्च सेभ गर्न सकिएन: ",
@@ -254,7 +253,8 @@ ne:{
  records:"रेकर्ड",serial:"क्र.सं.",reportDateCol:"मिति",reportName:"खर्चको नाम",
  reportCategory:"प्रकार / भुक्तानी",reportAmount:"रकम (NPR)",remark:"कैफियत",
  reportFoot:"यो रिपोर्ट उपलब्ध Cloud House Expense रेकर्डका आधारमा तयार गरिएको हो।",
- edit:"सम्पादन",delete:"Trash मा पठाउनुहोस्",period:"अवधि",printError:"PDF सुविधा लोड भएन।"
+ edit:"सम्पादन",delete:"Trash मा पठाउनुहोस्",period:"अवधि",printError:"PDF सुविधा लोड भएन。",
+ detailsTitle:"खर्चको विस्तृत विवरण",typeLabel:"प्रकार",partyName:"खर्चको नाम"
 },
 en:{
  periodTotal:"Selected period expenses",allTotal:"All expenses",budgetProgress:"Monthly budget progress",
@@ -286,7 +286,8 @@ en:{
  reportDate:"Report date",total:"Total",records:"records",serial:"No.",reportDateCol:"Date",
  reportName:"Expense name",reportCategory:"Category / payment",reportAmount:"Amount (NPR)",
  remark:"Note",reportFoot:"This report was created from available Cloud House Expense records.",
- edit:"Edit",delete:"Move to Trash",period:"Period",printError:"PDF support did not load."
+ edit:"Edit",delete:"Move to Trash",period:"Period",printError:"PDF support did not load.",
+ detailsTitle:"Detailed expense records",typeLabel:"Type",partyName:"Expense name"
 }
 };
 
@@ -552,7 +553,7 @@ async function deleteExpense(id){
 }
 async function restoreExpense(id){
  const item=trashItems.find(x=>x.id===id);if(!item||!user)return;
- if(!item.data||item.originalPath!=="users/"+user.uid+"/"+PATH+"/"+id){
+ if(!item.data||item.originalPath!=="users/"+user.uid+"/"+PATH+"/"+item.id){
   showStatus(t("invalidTrash"),"error");return;
  }
  if(!Number(item.deletedAt)||!Number(item.expiresAt)||Number(item.expiresAt)<=Date.now()){
@@ -588,8 +589,6 @@ function renderTrash(){
   btn.onclick=()=>restoreExpense(item.id);
   top.append(info,btn);card.appendChild(top);list.appendChild(card);
  });
-
- // The labels above use the same translation keys as Income.
 }
 function profileForPdf(){
  return {
@@ -599,52 +598,99 @@ function profileForPdf(){
   mobile:localStorage.getItem("profile_mobile")||""
  };
 }
+
+/* Portrait (ठाडो) A4 PDF जेनेरेटर - Transactions फाइलको जस्तै ढाँचा */
 async function exportPdf(){
  if(!window.html2pdf){showStatus(t("printError"),"error");return;}
  const rows=filteredExpenses().slice().sort((a,b)=>String(a.date||"").localeCompare(String(b.date||"")));
  if(!rows.length){showStatus(t("noPdf"),"error");return;}
- const p=profileForPdf(),missing=t("missing"),total=rows.reduce((s,x)=>s+n(x.amount),0);
- const generated=new Date().toLocaleString();
- const body=rows.map((x,i)=>`<tr>
-  <td>${i+1}</td><td>${esc(x.date||"")}</td><td>${esc(x.title||"")}</td>
-  <td>${esc(categoryName(x.category))} / ${esc(paymentName(x.paymentMethod))}</td>
-  <td class="right">${n(x.amount).toFixed(2)}</td><td>${esc(x.note||"")}</td>
+ const profile=profileForPdf(),total=rows.reduce((s,x)=>s+n(x.amount),0),reportDate=new Date().toLocaleString(),missing=t("missing");
+ 
+ const tableRows=rows.map((x,i)=>`<tr>
+   <td style="text-align:center">${i+1}</td>
+   <td>${esc(x.date||"")}</td>
+   <td><b>${esc(x.title||"")}</b></td>
+   <td>${esc(categoryName(x.category))}</td>
+   <td>${esc(paymentName(x.paymentMethod))}</td>
+   <td class="right">${n(x.amount).toFixed(2)}</td>
+   <td>${esc(x.note||"")}</td>
  </tr>`).join("");
+
  const report=document.createElement("div");
- report.style.cssText="background:#fff;color:#172033;padding:22px;font-family:Arial,'Noto Sans Devanagari',sans-serif;font-size:11px;width:100%";
+ report.style.cssText="background:#fff;color:#172033;padding:10px;font-family:Arial,'Noto Sans Devanagari',sans-serif;font-size:10px;width:100%;box-sizing:border-box;";
  report.innerHTML=`
- <div style="background:#102b3f;color:#fff;padding:18px;border-radius:8px;border-bottom:5px solid #10b981;margin-bottom:14px">
-  <div style="display:flex;align-items:center;gap:12px">
-   <img src="N1024.png" alt="Digital NoteBook" style="width:55px;height:55px;object-fit:contain" onerror="this.style.display='none'">
-   <div><h1 style="font-size:23px;margin:0 0 5px">Digital NoteBook</h1><div>${esc(t("report"))}</div></div>
+ <div style="background:#102b3f;color:#fff;padding:10px;border-radius:6px;border-bottom:4px solid #10b981;margin-bottom:8px">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+   <div>
+    <h1 style="font-size:15px;margin:0 0 2px">Digital NoteBook</h1>
+    <div style="font-size:10px;color:#34d399;font-weight:bold">${esc(t("report"))}</div>
+   </div>
+   <div style="text-align:right;font-size:8px">
+    <b>${esc(t("reportDate"))}:</b> ${esc(reportDate)}
+   </div>
   </div>
-  <hr style="border:0;border-top:1px solid #547080;margin:13px 0">
-  <div style="line-height:1.9"><b>${esc(t("profile"))}</b><br>
-   <b>${esc(t("name"))}:</b> ${esc(p.name||missing)}<br>
-   <b>${esc(t("email"))}:</b> ${esc(p.email||missing)}<br>
-   <b>${esc(t("address"))}:</b> ${esc(p.address||missing)}<br>
-   <b>${esc(t("mobile"))}:</b> ${esc(p.mobile||missing)}<br>
-   <b>${esc(t("reportDate"))}:</b> ${esc(generated)}
+  <hr style="border:0;border-top:1px solid #334e68;margin:5px 0">
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:3px;font-size:8.5px">
+   <div><b>${esc(t("name"))}:</b> ${esc(profile.name||missing)}</div>
+   <div><b>${esc(t("email"))}:</b> ${esc(profile.email||missing)}</div>
+   <div><b>${esc(t("address"))}:</b> ${esc(profile.address||missing)}</div>
+   <div><b>${esc(t("mobile"))}:</b> ${esc(profile.mobile||missing)}</div>
   </div>
  </div>
- <div style="background:#eaf7f0;border:1px solid #b8e2cc;border-radius:6px;padding:12px;margin-bottom:16px">
-  <b>${esc(t("total"))}:</b> ${esc(money(total))} &nbsp; | &nbsp;
-  <b>${esc(t("records"))}:</b> ${rows.length}
+
+ <div style="background:#eaf7f0;border:1px solid #b8e2cc;border-radius:4px;padding:5px 8px;margin-bottom:8px;font-size:9.5px;display:flex;justify-content:space-between">
+  <div><b>${esc(t("allTotal"))}:</b> <span style="color:#059669;font-weight:bold">${money(total)}</span></div>
+  <div><b>${esc(t("records"))}:</b> ${rows.length}</div>
  </div>
- <table><thead><tr><th>${esc(t("serial"))}</th><th>${esc(t("reportDateCol"))}</th><th>${esc(t("reportName"))}</th><th>${esc(t("reportCategory"))}</th><th>${esc(t("reportAmount"))}</th><th>${esc(t("remark"))}</th></tr></thead>
- <tbody>${body}</tbody>
- <tfoot><tr><td colspan="4" class="right"><b>${esc(t("total"))}</b></td><td class="right"><b>${total.toFixed(2)}</b></td><td></td></tr></tfoot></table>
- <div style="margin-top:18px;border-top:1px solid #ccd5d1;padding-top:8px;color:#52635d">${esc(t("reportFoot"))}</div>
- <style>table{border-collapse:collapse;width:100%;margin-bottom:16px}th,td{border:1px solid #9aada6;padding:6px;vertical-align:top}th{background:#dcebe5;text-align:left}.right{text-align:right}tr{page-break-inside:avoid}</style>`;
+
+ <h2 style="font-size:11px;margin:5px 0 3px;color:#102b3f">${esc(t("detailsTitle"))}</h2>
+ 
+ <table>
+  <thead>
+   <tr>
+    <th style="width:25px;text-align:center">${esc(t("serial"))}</th>
+    <th style="width:60px">${esc(t("reportDateCol"))}</th>
+    <th>${esc(t("reportName"))}</th>
+    <th style="width:70px">${esc(t("category"))}</th>
+    <th style="width:65px">${esc(t("payment"))}</th>
+    <th style="width:65px" class="right">${esc(t("total"))}</th>
+    <th>${esc(t("remark"))}</th>
+   </tr>
+  </thead>
+  <tbody>
+   ${tableRows||`<tr><td colspan="7" style="text-align:center">${esc(t("noPdf"))}</td></tr>`}
+  </tbody>
+  <tfoot>
+   <tr>
+    <td colspan="5" class="right"><b>${esc(t("total"))}</b></td>
+    <td class="right" style="color:#059669"><b>${total.toFixed(2)}</b></td>
+    <td></td>
+   </tr>
+  </tfoot>
+ </table>
+
+ <div style="margin-top:8px;border-top:1px solid #ccd5d1;padding-top:3px;font-size:7.5px;color:#64748b;text-align:center">${esc(t("reportFoot"))}</div>
+ 
+ <style>
+  table{border-collapse:collapse;width:100%;margin-bottom:6px;table-layout:fixed;}
+  th,td{border:1px solid #94a3b8;padding:3px 4px;vertical-align:middle;word-wrap:break-word;}
+  th{background:#f1f5f9;color:#0f172a;font-weight:bold;text-align:left}
+  .right{text-align:right}
+  tr{page-break-inside:avoid}
+ </style>`;
+
  try{
   await html2pdf().set({
-   margin:8,filename:"Digital-Notebook-House-Expense-"+new Date().toISOString().slice(0,10)+".pdf",
-   image:{type:"jpeg",quality:.98},html2canvas:{scale:2,useCORS:true},
-   pagebreak:{mode:["css","legacy"]},jsPDF:{unit:"mm",format:"a4",orientation:"landscape"}
+   margin:5,
+   filename:"Digital-Notebook-House-Expense-"+new Date().toISOString().slice(0,10)+".pdf",
+   image:{type:"jpeg",quality:0.98},
+   html2canvas:{scale:2,useCORS:true,scrollY:0},
+   jsPDF:{unit:"mm",format:"a4",orientation:"portrait"}
   }).from(report).save();
   showStatus("PDF ✓","good");
  }catch(e){console.error(e);showStatus(t("pdfFailed")+(e.message||""),"error");}
 }
+
 function exportJSON(){
  const blob=new Blob([JSON.stringify({format:"digital-notebook-house-expense-v1",exportedAt:new Date().toISOString(),expenses},null,2)],{type:"application/json;charset=utf-8"});
  const url=URL.createObjectURL(blob),a=document.createElement("a");
@@ -672,7 +718,6 @@ $("saveBudget").addEventListener("click",async()=>{
  if(raw.trim()===""||!Number.isFinite(value)||value<0)return;
  $("saveBudget").disabled=true;
  try{
-  // Budget is updated at its own path; it never overwrites users/{uid}.
   await db.ref(userPath("house_budget")).set(value);
   budget=value;updateBudget();$("budgetModal").style.display="none";showStatus(t("budgetSaved"),"good");
  }catch(e){showStatus(t("budgetFailed")+(e.message||""),"error");}
