@@ -561,117 +561,149 @@ async function importLegacyData(){
 $("importButton").addEventListener("click",importLegacyData);
 
 /* Income PDF कै profile-banner ढाँचा र profile जानकारी */
-function profileObject(){
- for(const key of ["digital_notebook_profile","user_profile","userProfile","profile","digital_notebook_user"]){
-  try{const v=JSON.parse(localStorage.getItem(key)||"null");if(v&&typeof v==="object"&&!Array.isArray(v))return v;}catch(e){}
- }
- return {};
-}
-function localValue(keys){
- for(const k of keys){const v=localStorage.getItem(k);if(v&&v.trim())return v.trim();}
- return "";
-}
-function profileForPdf(){
- const p=profileObject(),u=state.user;
- return {
-  name:localValue(["profile_name","user_profile_name","fullName","userName"])||p.name||p.fullName||p.full_name||p.username||"",
-  email:localValue(["profile_email","user_profile_email"])||p.email||u?.email||"",
-  address:localValue(["profile_address","user_profile_address"])||p.address||p.location||"",
-  mobile:localValue(["profile_mobile","user_profile_mobile","user_mobile"])||p.mobile||p.phone||p.phoneNumber||""
- };
-}
-function buildPdfHtml(){
- const records=entries().sort((a,b)=>String(a.date||"").localeCompare(String(b.date||""))||String(a.title||"").localeCompare(String(b.title||"")));
- const profile=profileForPdf(),total=records.reduce((sum,r)=>sum+totalOf(r),0);
- const goal=Math.max(0,num($("goal").value)),reportDate=new Date().toLocaleString(),missing=t("missing");
- const rows=records.map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r.date||"")}</td><td>${esc(r.title||"")}</td>
-  <td>${esc(r.category||"")}</td><td class="right">${num(r.npr).toFixed(2)}</td><td class="right">${num(r.inr).toFixed(2)}</td>
-  <td class="right">${num(r.rate||1.6).toFixed(2)}</td><td class="right">${totalOf(r).toFixed(2)}</td><td>${esc(r.note||"")}</td></tr>`).join("");
- return `<div style="background:#fff;color:#172033;padding:22px;font-family:Arial,'Noto Sans Devanagari',sans-serif;font-size:11px;width:100%">
-  <div style="background:#102b3f;color:#fff;padding:18px;border-radius:8px;border-bottom:5px solid #10b981;margin-bottom:14px">
-   <div style="display:flex;align-items:center;gap:12px">
-    <img src="N1024.png" alt="Digital NoteBook" style="width:55px;height:55px;object-fit:contain" onerror="this.style.display='none'">
-    <div><h1 style="font-size:23px;margin:0 0 5px;color:#fff">Digital NoteBook</h1><div style="font-size:13px">${esc(t("report"))}</div></div>
-   </div>
-   <hr style="border:0;border-top:1px solid #547080;margin:13px 0">
-   <div style="line-height:1.9"><b>${esc(t("profile"))}</b><br>
-    <b>${esc(t("name"))}:</b> ${esc(profile.name||missing)}<br>
-    <b>${esc(t("email"))}:</b> ${esc(profile.email||missing)}<br>
-    <b>${esc(t("address"))}:</b> ${esc(profile.address||missing)}<br>
-    <b>${esc(t("mobile"))}:</b> ${esc(profile.mobile||missing)}<br>
-    <b>${esc(t("reportDate"))}:</b> ${esc(reportDate)}
-   </div>
-  </div>
-  <div style="background:#eaf7f0;border:1px solid #b8e2cc;border-radius:6px;padding:12px;margin-bottom:16px">
-   <b>${esc(t("totalSaved"))}:</b> ${esc(money(total))} | <b>${esc(t("records"))}:</b> ${records.length}
-   | <b>${esc(t("goal"))}:</b> ${goal?esc(money(goal)):"—"}
-   | <b>${esc(t("progress"))}:</b> ${goal?Math.min(100,total/goal*100).toFixed(1)+"%":"—"}
-  </div>
-  <h2 style="font-size:16px;margin:12px 0 7px">${esc(t("detailsTitle"))}</h2>
-  <table><thead><tr><th>${esc(t("serial"))}</th><th>${esc(t("date"))}</th><th>${esc(t("savingNamePdf"))}</th>
-   <th>${esc(t("category"))}</th><th>NPR</th><th>INR</th><th>${esc(t("exchangeRate"))}</th><th>Total NPR</th><th>${esc(t("remark"))}</th>
-  </tr></thead><tbody>${rows||`<tr><td colspan="9">${esc(t("noRecords"))}</td></tr>`}</tbody>
-  <tfoot><tr><td colspan="7" class="right"><b>${esc(t("grandTotal"))}</b></td><td class="right"><b>${total.toFixed(2)}</b></td><td></td></tr></tfoot></table>
-  <div style="margin-top:18px;border-top:1px solid #ccd5d1;padding-top:8px;color:#52635d">${esc(t("foot"))}</div>
- </div>`;
-}
-$("pdfButton").addEventListener("click",async()=>{
- if(!window.html2pdf){showStatus(t("pdfFail"),true);return;}
- $("pdfButton").disabled=true;
- try{
-  $("pdfStage").innerHTML=buildPdfHtml();
-  await html2pdf().set({
-   margin:8,filename:"Digital-Notebook-Savings-"+new Date().toISOString().slice(0,10)+".pdf",
-   image:{type:"jpeg",quality:.98},html2canvas:{scale:2,useCORS:true,backgroundColor:"#fff"},
-   pagebreak:{mode:["css","legacy"]},jsPDF:{unit:"mm",format:"a4",orientation:"landscape"}
-  }).from($("pdfStage")).save();
- }catch(e){showStatus(t("pdfError")+(e.message||e),true);}
- finally{$("pdfButton").disabled=false;}
-});
 
-function detach(){
- if(state.dataRef&&state.dataCallback)state.dataRef.off("value",state.dataCallback);
- if(state.trashRef&&state.trashCallback)state.trashRef.off("value",state.trashCallback);
- state.dataRef=state.trashRef=state.dataCallback=state.trashCallback=null;
-}
-function attach(){
- detach();
- state.dataRef=userRef(PATH);
- state.dataCallback=snap=>{
-  const val=snap.val();
-  if(Array.isArray(val)){void convertLegacyCloudArray(val);return;}
-  state.records=mapRecords(val||{});render();
- };
- state.dataRef.on("value",state.dataCallback,error=>showStatus(t("cloudFail")+(error.message||error),true));
+async function exportSavingsPdf(){
+  if(!window.html2pdf){
+    showStatus(t("pdfFail"),true);
+    return;
+  }
 
- /* Sync listener runs without displaying a Cloud Sync banner. */
- state.trashRef=userRef("trash");
- state.trashCallback=snap=>{
-  const all=snap.val()||{};
-  state.trash=all[PATH]&&typeof all[PATH]==="object"?all[PATH]:{};
-  renderTrash();
- };
- state.trashRef.on("value",state.trashCallback,error=>showStatus(t("trashFail")+(error.message||error),true));
-}
-let convertingLegacy=false;
-async function convertLegacyCloudArray(arr){
- if(convertingLegacy)return;
- convertingLegacy=true;
- try{
-  const converted={};
-  arr.forEach(r=>{
-   if(!r||typeof r!=="object"||Array.isArray(r))return;
-   let id=validKey(r.id)?r.id:userRef(PATH).push().key;
-   if(converted[id])id=userRef(PATH).push().key;
-   converted[id]={...r,id};
-  });
-  await userRef(PATH).transaction(current=>Array.isArray(current)?converted:undefined,undefined,false);
- }catch(e){showStatus(t("cloudFail")+(e.message||e),true);}
- finally{convertingLegacy=false;}
+  const records=entries().sort((a,b)=>
+    String(a.date||"").localeCompare(String(b.date||""))
+  );
+
+  const profile=profileForPdf();
+  const total=records.reduce((sum,r)=>sum+totalOf(r),0);
+  const goal=Math.max(0,num($("goal").value));
+  const reportDate=new Date().toLocaleString();
+  const missing=t("missing");
+
+  const rows=records.map((r,i)=>`
+    <tr>
+      <td>${i+1}</td>
+      <td>${esc(r.date||"")}</td>
+      <td>${esc(r.title||"")}</td>
+      <td>${esc(r.category||"")}</td>
+      <td class="right">${num(r.npr).toFixed(2)}</td>
+      <td class="right">${num(r.inr).toFixed(2)}</td>
+      <td class="right">${totalOf(r).toFixed(2)}</td>
+      <td>${esc(r.note||"")}</td>
+    </tr>
+  `).join("");
+
+  /* स्क्रिनभन्दा बाहिरको #pdfStage होइन, Income जस्तै
+     स्वतन्त्र report element बाट PDF बनाउने। */
+  const report=document.createElement("div");
+  report.style.cssText=
+    "background:#fff;color:#172033;padding:22px;" +
+    "font-family:Arial,'Noto Sans Devanagari',sans-serif;" +
+    "font-size:11px;width:100%;";
+
+  report.innerHTML=`
+    <div style="background:#102b3f;color:#fff;padding:18px;
+      border-radius:8px;border-bottom:5px solid #10b981;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <img src="N1024.png" alt="Digital NoteBook"
+          style="width:55px;height:55px;object-fit:contain"
+          onerror="this.style.display='none'">
+        <div>
+          <h1 style="font-size:23px;margin:0 0 5px;color:#fff">
+            Digital NoteBook
+          </h1>
+          <div style="font-size:13px">${esc(t("report"))}</div>
+        </div>
+      </div>
+      <hr style="border:0;border-top:1px solid #547080;margin:13px 0">
+      <div style="line-height:1.9">
+        <b>${esc(t("profile"))}</b><br>
+        <b>${esc(t("name"))}:</b> ${esc(profile.name||missing)}<br>
+        <b>${esc(t("email"))}:</b> ${esc(profile.email||missing)}<br>
+        <b>${esc(t("address"))}:</b> ${esc(profile.address||missing)}<br>
+        <b>${esc(t("mobile"))}:</b> ${esc(profile.mobile||missing)}<br>
+        <b>${esc(t("reportDate"))}:</b> ${esc(reportDate)}
+      </div>
+    </div>
+
+    <div style="background:#eaf7f0;border:1px solid #b8e2cc;
+      border-radius:6px;padding:12px;margin-bottom:16px">
+      <b>${esc(t("totalSaved"))}:</b> ${esc(money(total))}
+      &nbsp; | &nbsp; <b>${esc(t("records"))}:</b> ${records.length}
+      &nbsp; | &nbsp; <b>${esc(t("goal"))}:</b>
+      ${goal?esc(money(goal)):"—"}
+      &nbsp; | &nbsp; <b>${esc(t("progress"))}:</b>
+      ${goal?Math.min(100,total/goal*100).toFixed(1)+"%":"—"}
+    </div>
+
+    <h2 style="font-size:16px;margin:12px 0 7px">
+      ${esc(t("detailsTitle"))}
+    </h2>
+
+    <table style="border-collapse:collapse;width:100%;margin-bottom:16px">
+      <thead>
+        <tr>
+          <th>${esc(t("serial"))}</th>
+          <th>${esc(t("date"))}</th>
+          <th>${esc(t("savingNamePdf"))}</th>
+          <th>${esc(t("category"))}</th>
+          <th>NPR</th><th>INR</th><th>Total NPR</th>
+          <th>${esc(t("remark"))}</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows||`<tr><td colspan="8">${esc(t("noRecords"))}</td></tr>`}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="6" class="right"
+            style="text-align:right;font-weight:bold">
+            ${esc(t("grandTotal"))}
+          </td>
+          <td class="right" style="text-align:right;font-weight:bold">
+            ${total.toFixed(2)}
+          </td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <div style="margin-top:18px;border-top:1px solid #ccd5d1;
+      padding-top:8px;color:#52635d">
+      ${esc(t("foot"))}
+    </div>
+
+    <style>
+      th,td{border:1px solid #9aada6;padding:6px;vertical-align:top;
+      overflow-wrap:anywhere}
+      th{background:#dcebe5;text-align:left}
+      .right{text-align:right}
+      tr{page-break-inside:avoid}
+    </style>
+  `;
+
+  $("pdfButton").disabled=true;
+  try{
+    await html2pdf().set({
+      margin:8,
+      filename:"Digital-Notebook-Savings-"+
+        new Date().toISOString().slice(0,10)+".pdf",
+      image:{type:"jpeg",quality:.98},
+      html2canvas:{
+        scale:2,
+        useCORS:true,
+        backgroundColor:"#ffffff",
+        logging:false
+      },
+      pagebreak:{mode:["css","legacy"]},
+      jsPDF:{unit:"mm",format:"a4",orientation:"landscape"}
+    }).from(report).save();
+  }catch(e){
+    showStatus(t("pdfError")+(e.message||e),true);
+  }finally{
+    $("pdfButton").disabled=false;
+  }
 }
 
-$("backButton").addEventListener("click",e=>{
- e.preventDefault();
+$("pdfButton").addEventListener("click",exportSavingsPdf);
  try{
   if(document.referrer&&new URL(document.referrer).origin===location.origin&&history.length>1){history.back();return;}
  }catch(err){}
