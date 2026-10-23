@@ -193,7 +193,7 @@ const words={
  save:"Save transaction",update:"Update transaction",cancel:"Cancel",import:"Import old local data",pdfAll:"Export PDF",
  groupTitle:"Group Ledger / Party Summary",groupHelp:"Transactions with the same party name are grouped together. Tap a name to see all records.",
  searchGroup:"Search party or notes",grandTotal:"Total NPR",groupCount:"Groups",recordCount:"Records",
- pdfOne:"Group PDF",recordsTitle:"All transaction records",searchRecords:"Search party, notes or type",
+ pdfOne:"समूह PDF",recordsTitle:"All transaction records",searchRecords:"Search party, notes or type",
  trashTitle:"Recently deleted transactions",trashHelp:"Restore within 30 days.",
  checking:"Checking sign-in…",connecting:"Connecting cloud…",synced:"Cloud synced",offline:"Offline",
  noGroups:"No matching groups found.",noRecords:"No records found.",noTrash:"Trash is empty.",
@@ -231,7 +231,7 @@ const words={
  typeLabel:"प्रकार",amountLabel:"कुल NPR",monthsLabel:"महिना",noteLabel:"कैफियत",
  profile:"प्रयोगकर्ताको विवरण",name:"नाम",email:"इमेल",address:"ठेगाना",mobile:"मोबाइल",reportDate:"रिपोर्ट मिति",
  detailsTitle:"कारोबारको विस्तृत विवरण",serial:"क्र.सं.",partyName:"पार्टीको नाम",remark:"कैफियत",total:"जम्मा",
- reportFoot:"यो रिपोर्ट उपलब्ध Cloud Transaction रेकर्डका आधारमा तयार गरिएको हो。",
+ reportFoot:"यो रिपोर्ट उपलब्ध Cloud Transaction रेकर्डका आधारमा तयार गरिएको हो।",
  saveOk:"कारोबार सेभ भयो।",saveError:"सेभ हुन सकेन: ",deletedOk:"रेकर्ड साझा Account Trash मा सारियो।",
  deleteConfirm:"यो कारोबार साझा Account Trash मा सार्ने? ३० दिनभित्र Restore गर्न सकिन्छ।",
  restored:"रेकर्ड Restore भयो।",restoreError:"Restore हुन सकेन: ",restoreConflict:"यही ID को रेकर्ड पहिल्यै छ। कुनै डाटा overwrite गरिएको छैन।",
@@ -479,7 +479,7 @@ $("trashList").addEventListener("click",async e=>{
  }catch(err){console.error(err);toast(t("restoreError")+err.message,true)}
 });
 
-/* प्रोफाइल फंक्सनहरू (Income ढाँचाअनुसार) */
+/* प्रोफाइल तान्ने फंक्सन */
 function firstLocalValue(keys){
  for(const key of keys){
   const value=localStorage.getItem(key);
@@ -507,44 +507,81 @@ function profileForPdf(){
  };
 }
 
-/* Income जस्तै सुन्दर र व्यवस्थित PDF जेनेरेट गर्ने फंक्सन */
+/* मिलाइएको र पूर्ण रूपमा मिलाइएको PDF Export फंक्सन */
 async function exportPdf(recordsList, subtitle=""){
  if(!window.html2pdf){toast(t("pdfFail"),true);return;}
  const profile=profileForPdf(),total=recordsList.reduce((s,r)=>s+num(r.total),0),reportDate=new Date().toLocaleString(),missing=t("missing");
  
- const rows=recordsList.map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r.date||"")}</td><td>${esc(r.party||"")}</td><td>${esc(typeText(r.type))}</td><td class="right">${num(r.npr).toFixed(2)}</td><td class="right">${num(r.inr).toFixed(2)}</td><td class="right">${num(r.rate)}%</td><td class="right">${num(r.period)}</td><td class="right">${num(r.total).toFixed(2)}</td><td>${esc(r.note||"")}</td></tr>`).join("");
+ const rows=recordsList.map((r,i)=>`<tr>
+  <td style="text-align:center">${i+1}</td>
+  <td>${esc(r.date||"")}</td>
+  <td><b>${esc(r.party||"")}</b></td>
+  <td>${esc(typeText(r.type))}</td>
+  <td class="right">${num(r.npr)>0?num(r.npr).toFixed(2):"-"}</td>
+  <td class="right">${num(r.inr)>0?num(r.inr).toFixed(2):"-"}</td>
+  <td class="right">${num(r.rate)>0?num(r.rate)+"%":"-"}</td>
+  <td class="right">${num(r.period)>0?num(r.period):"-"}</td>
+  <td class="right"><b>${num(r.total).toFixed(2)}</b></td>
+  <td>${esc(r.note||"")}</td>
+ </tr>`).join("");
 
  const report=document.createElement("div");
- report.style.cssText="background:#fff;color:#172033;padding:22px;font-family:Arial,'Noto Sans Devanagari',sans-serif;font-size:11px;width:100%";
+ report.style.cssText="background:#fff;color:#172033;padding:16px;font-family:Arial,'Noto Sans Devanagari',sans-serif;font-size:10px;width:100%;box-sizing:border-box";
  report.innerHTML=`
- <div style="background:#102b3f;color:#fff;padding:18px;border-radius:8px;border-bottom:5px solid #10b981;margin-bottom:14px">
-  <div style="display:flex;align-items:center;gap:12px">
-   <img src="N1024.png" alt="Digital NoteBook" style="width:55px;height:55px;object-fit:contain" onerror="this.style.display='none'">
-   <div><h1 style="font-size:23px;margin:0 0 5px">Digital NoteBook</h1><div style="font-size:13px">${esc(t("report"))} ${subtitle?("— "+esc(subtitle)):""}</div></div>
-  </div>
-  <hr style="border:0;border-top:1px solid #547080;margin:13px 0">
-  <div style="line-height:1.9"><b>${esc(t("profile"))}</b><br>
-   <b>${esc(t("name"))}:</b> ${esc(profile.name||missing)}<br>
-   <b>${esc(t("email"))}:</b> ${esc(profile.email||missing)}<br>
-   <b>${esc(t("address"))}:</b> ${esc(profile.address||missing)}<br>
-   <b>${esc(t("mobile"))}:</b> ${esc(profile.mobile||missing)}<br>
-   <b>${esc(t("reportDate"))}:</b> ${esc(reportDate)}
+ <div style="background:#102b3f;color:#fff;padding:14px 18px;border-radius:8px;border-bottom:4px solid #10b981;margin-bottom:12px">
+  <div style="display:flex;align-items:center;justify-content:space-between">
+   <div>
+    <h1 style="font-size:20px;margin:0 0 3px">Digital NoteBook</h1>
+    <div style="font-size:12px;color:#cbd5e1">${esc(t("report"))} ${subtitle?("— "+esc(subtitle)):""}</div>
+   </div>
+   <div style="text-align:right;font-size:10px;line-height:1.5;color:#e2e8f0">
+    <b>${esc(t("name"))}:</b> ${esc(profile.name||missing)} | <b>${esc(t("mobile"))}:</b> ${esc(profile.mobile||missing)}<br>
+    <b>${esc(t("address"))}:</b> ${esc(profile.address||missing)} | <b>${esc(t("reportDate"))}:</b> ${esc(reportDate)}
+   </div>
   </div>
  </div>
- <div style="background:#eaf7f0;border:1px solid #b8e2cc;border-radius:6px;padding:12px;margin-bottom:16px">
-  <b>${esc(t("grandTotal"))}:</b> ${money(total)} &nbsp; | &nbsp; <b>${esc(t("recordCount"))}:</b> ${recordsList.length}
+ <div style="background:#eaf7f0;border:1px solid #b8e2cc;border-radius:6px;padding:8px 12px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
+  <span><b>${esc(t("grandTotal"))}:</b> <span style="color:#059669;font-size:12px;font-weight:bold">${money(total)}</span></span>
+  <span><b>${esc(t("recordCount"))}:</b> ${recordsList.length}</span>
  </div>
- <h2 style="font-size:16px;margin:12px 0 7px">${esc(t("detailsTitle"))}</h2>
- <table><thead><tr><th>${esc(t("serial"))}</th><th>${esc(t("dateLabel"))}</th><th>${esc(t("partyName"))}</th><th>${esc(t("typeLabel"))}</th><th>NPR</th><th>INR</th><th>${esc(t("rate"))}</th><th>${esc(t("monthsLabel"))}</th><th>${esc(t("total"))} NPR</th><th>${esc(t("remark"))}</th></tr></thead>
- <tbody>${rows||`<tr><td colspan="10">${esc(t("pdfEmpty"))}</td></tr>`}</tbody>
- <tfoot><tr><td colspan="8" class="right"><b>${esc(t("total"))}</b></td><td class="right"><b>${total.toFixed(2)}</b></td><td></td></tr></tfoot></table>
- <div style="margin-top:18px;border-top:1px solid #ccd5d1;padding-top:8px;color:#52635d">${esc(t("reportFoot"))}</div>
- <style>table{border-collapse:collapse;width:100%;margin-bottom:16px}th,td{border:1px solid #9aada6;padding:6px;vertical-align:top}th{background:#dcebe5;text-align:left}.right{text-align:right}tr{page-break-inside:avoid}</style>`;
+ <h3 style="font-size:13px;margin:8px 0 6px;color:#1e293b">${esc(t("detailsTitle"))}</h3>
+ <table>
+  <thead>
+   <tr>
+    <th style="width:30px">${esc(t("serial"))}</th>
+    <th style="width:75px">${esc(t("dateLabel"))}</th>
+    <th>${esc(t("partyName"))}</th>
+    <th style="width:65px">${esc(t("typeLabel"))}</th>
+    <th style="width:60px">NPR</th>
+    <th style="width:60px">INR</th>
+    <th style="width:45px">${esc(t("rate"))}</th>
+    <th style="width:40px">${esc(t("monthsLabel"))}</th>
+    <th style="width:75px">${esc(t("total"))} NPR</th>
+    <th>${esc(t("remark"))}</th>
+   </tr>
+  </thead>
+  <tbody>${rows||`<tr><td colspan="10" style="text-align:center">${esc(t("pdfEmpty"))}</td></tr>`}</tbody>
+  <tfoot>
+   <tr>
+    <td colspan="8" class="right"><b>${esc(t("total"))}</b></td>
+    <td class="right" style="color:#059669"><b>${total.toFixed(2)}</b></td>
+    <td></td>
+   </tr>
+  </tfoot>
+ </table>
+ <div style="margin-top:12px;border-top:1px solid #cbd5e1;padding-top:6px;font-size:9px;color:#64748b;text-align:center">${esc(t("reportFoot"))}</div>
+ <style>
+  table{border-collapse:collapse;width:100%;margin-bottom:10px;font-size:9.5px}
+  th,td{border:1px solid #cbd5e1;padding:5px 4px;vertical-align:middle;word-break:break-word}
+  th{background:#f1f5f9;color:#334155;text-align:left;font-weight:bold}
+  .right{text-align:right}
+  tr{page-break-inside:avoid}
+ </style>`;
 
  try{
   await html2pdf().set({
-   margin:8,
-   filename:"Digital-Notebook-Transactions-"+new Date().toISOString().slice(0,10)+".pdf",
+   margin:[6, 6, 6, 6],
+   filename: (subtitle ? subtitle.replace(/[^a-zA-Z0-9]/g, "_") : "Digital-Notebook-Transactions") + "-" + new Date().toISOString().slice(0,10) + ".pdf",
    image:{type:"jpeg",quality:.98},
    html2canvas:{scale:2,useCORS:true},
    pagebreak:{mode:["css","legacy"]},
@@ -553,6 +590,7 @@ async function exportPdf(recordsList, subtitle=""){
  }catch(e){toast(t("pdfError")+e.message,true);}
 }
 
+/* व्यक्तिगत समूह PDF */
 async function exportOneGroup(key){
  const g=grouped(values()).find(x=>x.key===key);
  if(!g||!g.items.length)return toast(t("pdfEmpty"),true);
@@ -560,13 +598,14 @@ async function exportOneGroup(key){
  await exportPdf(list, g.name);
 }
 
+/* पुरा कारोबार PDF */
 $("pdfAllButton").addEventListener("click",async()=>{
  const all=values().sort((a,b)=>String(a.date||"").localeCompare(String(b.date||"")));
  if(!all.length)return toast(t("pdfEmpty"),true);
  await exportPdf(all);
 });
 
-/* Safe one-time import: never replace the existing cloud tree. */
+/* Safe one-time import */
 async function importOldData(){
  if(!currentUser)return toast(t("authError"),true);
  if(!(await askConfirm(t("confirmImport"))))return;
