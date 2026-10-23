@@ -552,7 +552,8 @@ function renderTrash(){
   btn.disabled=expired||item.originalPath!=="users/"+user.uid+"/"+PATH+"/"+item.id;
   btn.onclick=()=>restoreExpense(item.id);
   top.append(info,btn);card.appendChild(top);list.appendChild(card);
-}
+ });
+} 
 
 /* PDF labels are intentionally English regardless of the app's selected language. */
 function profileObject(){
