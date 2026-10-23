@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="ne">
 <head>
@@ -11,10 +12,9 @@
   const KEY="digital_notebook_settings";
   const DEF={theme:"dark",lang:"ne",font_size:"16",font_family:"Poppins",accentColor:"#10b981",layout:"comfortable"};
   let s={};
-  try{s=JSON.parse(localStorage.getItem(KEY)||"{}")||{};}catch(e){}
+  try{s=JSON.parse(localStorage.getItem(KEY)||"{}")||{}}catch(e){}
   if(!s.theme&&localStorage.getItem("theme"))s.theme=localStorage.getItem("theme");
   s={...DEF,...s};
-  try{localStorage.setItem(KEY,JSON.stringify(s));}catch(e){}
   const r=document.documentElement;
   r.classList.toggle("light",s.theme==="light");
   r.style.setProperty("--accent",s.accentColor||DEF.accentColor);
@@ -28,15 +28,12 @@
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
-:root{
- --bg:#0b1220;--panel:#151f31;--field:#1c2940;--text:#edf3ff;
- --muted:#9cacc5;--line:#2b3a54;--accent:#10b981;--danger:#fb7185;
- --app-font-size:16px;--app-font-family:Poppins,Arial,sans-serif
-}
+:root{--bg:#0b1220;--panel:#151f31;--field:#1c2940;--text:#edf3ff;--muted:#9cacc5;--line:#2b3a54;--accent:#10b981;--danger:#fb7185;--app-font-size:16px;--app-font-family:Poppins,Arial,sans-serif}
 html.light{--bg:#f3f6fb;--panel:#fff;--field:#edf2f9;--text:#152033;--muted:#586780;--line:#d7e0ed;--danger:#be123c}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--text);font:var(--app-font-size)/1.55 var(--app-font-family)}
@@ -49,10 +46,10 @@ h1,h2,h3,p{margin-top:0}h2{font-size:1.2em}.muted{color:var(--muted)}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:10px}
 label{display:block;color:var(--muted);font-size:.88em}
 input,select,textarea,button{width:100%;min-width:0;font:inherit;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--field);margin-top:4px}
-button{cursor:pointer;font-weight:650}
-button:disabled{opacity:.55;cursor:not-allowed}
+button{cursor:pointer;font-weight:650}button:disabled{opacity:.55;cursor:not-allowed}
 .primary{background:var(--accent);color:#062319;border-color:var(--accent)}
-.danger{color:var(--danger)}.row,.actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.danger{color:var(--danger)}
+.row,.actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .row button,.actions button{width:auto}
 .summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin:12px 0}
 .summary>div{background:var(--field);padding:12px;border-radius:12px;overflow-wrap:anywhere}
@@ -63,14 +60,16 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .record-meta{color:var(--muted);font-size:.88em;white-space:pre-wrap;overflow-wrap:anywhere;margin-top:4px}
 .empty{text-align:center;color:var(--muted);padding:18px 5px}
 .status{border:1px solid var(--line);background:var(--field);border-radius:10px;padding:10px 12px;margin:0 0 12px;overflow-wrap:anywhere}
-.status:empty{display:none}.status.error{border-color:var(--danger);color:var(--danger)}
-.status.good{border-color:var(--accent)}
+.status:empty{display:none}.status.error{border-color:var(--danger);color:var(--danger)}.status.good{border-color:var(--accent)}
 .progress{height:12px;border-radius:10px;background:var(--field);border:1px solid var(--line);overflow:hidden;margin-top:8px}
 #progressBar{height:100%;width:0;background:var(--accent)}
 #chartBox{height:250px}
 .hidden{display:none!important}
 .modal{position:fixed;inset:0;background:#000b;z-index:20;display:none;align-items:center;justify-content:center;padding:12px}
-.modal-panel{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:14px;padding:16px;width:min(700px,100%);max-height:90vh;overflow:auto}
+.modal-panel{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:16px;padding:20px;width:min(460px,100%);max-height:90vh;overflow:auto;box-shadow:0 20px 70px #0008}
+.modal-panel h2{margin-bottom:12px}.modal-panel p{white-space:pre-line;overflow-wrap:anywhere}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:20px}
+.modal-actions button{width:auto;min-width:100px}
 body.auth-pending main,body.auth-pending header{visibility:hidden}
 body[data-layout="compact"] main{gap:8px;padding:8px}
 body[data-layout="compact"] .card{padding:12px}
@@ -91,7 +90,7 @@ body[data-layout="compact"] .expense{padding:8px;margin-top:6px}
 <section class="card">
   <div class="summary">
     <div><span class="muted" data-i18n="periodTotal">छानिएको अवधिको खर्च</span><strong id="periodTotal">NPR 0.00</strong></div>
-    <div><span class="muted" data-i18n="allTotal">कुल खर्च</span><strong id="allTotal">NPR 0.00</strong></div>
+    <div><span class="muted" data-i18n="allTotal">कुल जम्मा खर्च</span><strong id="allTotal">NPR 0.00</strong></div>
   </div>
 </section>
 
@@ -190,8 +189,8 @@ body[data-layout="compact"] .expense{padding:8px;margin-top:6px}
 </main>
 
 <div id="budgetModal" class="modal">
-  <div class="modal-panel">
-    <h2 data-i18n="setMonthlyBudget">मासिक बजेट सेट गर्नुहोस्</h2>
+  <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="budgetTitle">
+    <h2 id="budgetTitle" data-i18n="setMonthlyBudget">मासिक बजेट सेट गर्नुहोस्</h2>
     <label data-i18n="budgetAmount">मासिक खर्च सीमा (NPR)
       <input id="budgetInput" type="number" min="0" step="0.01">
     </label>
@@ -199,7 +198,18 @@ body[data-layout="compact"] .expense{padding:8px;margin-top:6px}
       <button id="saveBudget" class="primary" type="button" data-i18n="save">सेभ</button>
       <button type="button" data-close="budgetModal" data-i18n="cancel">रद्द</button>
     </div>
-  </div>
+  </section>
+</div>
+
+<div id="confirmModal" class="modal">
+  <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmMessage">
+    <h2 id="confirmTitle">पुष्टि गर्नुहोस्</h2>
+    <p id="confirmMessage"></p>
+    <div class="modal-actions">
+      <button type="button" id="confirmCancel">रद्द</button>
+      <button type="button" id="confirmOK" class="primary">पुष्टि गर्नुहोस्</button>
+    </div>
+  </section>
 </div>
 
 <script>
@@ -215,96 +225,72 @@ const FIREBASE_CONFIG={
  appId:"1:218135618179:web:821b76920d3e5669ac31b6"
 };
 
+if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);
+
+const auth=firebase.auth(),db=firebase.database();
 const SETTINGS_KEY="digital_notebook_settings";
 const LOCAL_KEY="local_house_expenses_v2";
 const LOCAL_BUDGET_KEY="local_house_budget_val";
 const PATH="house_expenses";
 const TRASH_PATH="trash/house_expenses";
 const RETENTION=30*24*60*60*1000;
-const RATE=1.6;
+const $=id=>document.getElementById(id);
 
 const TEXT={
 ne:{
- periodTotal:"छानिएको अवधिको खर्च",allTotal:"कुल जम्मा खर्च",budgetProgress:"महिनाको बजेट प्रगति",
- setBudget:"मासिक बजेट सेट गर्नुहोस्",chartTitle:"शीर्षक अनुसार खर्च विवरण",addExpense:"➕ नयाँ खर्च लेख्नुहोस्",
- editExpense:"✏️ खर्च सम्पादन गर्नुहोस्",expenseName:"सामान वा खर्चको नाम",amount:"रकम (रु.)",
- category:"खर्चको प्रकार",grocery:"किराना पसल",vegetables:"तरकारी",bills:"बिल तथा रिचार्ज",
- transport:"यातायात",health:"स्वास्थ्य",education:"शिक्षा",agriculture:"कृषि",other:"अन्य",
- payment:"भुक्तानीको माध्यम",cash:"नगद",online:"अनलाइन / QR",bank:"बैंक ट्रान्सफर",credit:"उधारो",
- date:"मिति",note:"कैफियत (ऐच्छिक)",saveExpense:"💾 खर्च सेभ गर्नुहोस्",updateExpense:"खर्च अपडेट गर्नुहोस्",
- cancel:"रद्द गर्नुहोस्",expenseDetails:"खर्चको विवरण",search:"खर्च खोज्नुहोस्",filterBy:"मिति फिल्टर",
- month:"महिना अनुसार",day:"दिन अनुसार",year:"वर्ष अनुसार",allDates:"सबै मिति",loading:"डाटा लोड हुँदैछ…",
- pdf:"PDF रिपोर्ट",jsonExport:"JSON Export",trashTitle:"Trash / मेटाइएका खर्च",
- trashInfo:"मेटाइएका खर्च ३० दिनसम्म पुनःस्थापना गर्न सकिन्छ।",setMonthlyBudget:"मासिक बजेट सेट गर्नुहोस्",
- budgetAmount:"मासिक खर्च सीमा (रु.)",save:"सेभ गर्नुहोस्",signIn:"पहिले index.html बाट लगइन गर्नुहोस्。",
- onlineRequired:"यो कामका लागि इन्टरनेट आवश्यक छ।",cloudReady:"Cloud Sync जडान भयो।",
- cloudError:"Cloud जडान असफल भयो। इन्टरनेट र Firebase Rules जाँच्नुहोस्।",
- saved:"खर्च Cloud मा सेभ भयो।",updated:"खर्च अपडेट भयो।",saveFailed:"खर्च सेभ गर्न सकिएन: ",
- deleteQuestion:"यो खर्च साझा Account Trash मा सार्ने हो? ३० दिनभित्र Restore गर्न सकिन्छ।",
- deleteSuccess:"खर्च साझा Account Trash मा सारियो।",deleteFailed:"Trash मा सार्न सकिएन: ",
- restoreQuestion:"यो खर्च Restore गर्ने हो?",restoreSuccess:"खर्च Restore भयो।",
- restoreFailed:"Restore गर्न सकिएन: ",expired:"Restore गर्ने ३० दिनको अवधि सकिएको छ।",
- invalidTrash:"Trash रेकर्डको मूल स्थान पुष्टि हुन सकेन।",occupied:"यो ID को सक्रिय रेकर्ड पहिल्यै छ; केही प्रतिस्थापन भएन।",
- noRecords:"कुनै खर्च रेकर्ड भेटिएन।",emptyTrash:"Trash खाली छ।",remaining:"दिन बाँकी",
- budgetNone:"मासिक बजेट सेट गरिएको छैन।",thisMonth:"यो महिनाको खर्च",budgetSaved:"मासिक बजेट सेभ भयो।",
- budgetFailed:"बजेट सेभ गर्न सकिएन: ",noPdf:"PDF बनाउन खर्च रेकर्ड छैन।",pdfFailed:"PDF बनाउन सकिएन: ",
- report:"घर खर्च विवरण रिपोर्ट",profile:"प्रयोगकर्ताको विवरण",name:"नाम",email:"इमेल",address:"ठेगाना",
- mobile:"मोबाइल",missing:"उल्लेख गरिएको छैन",reportDate:"रिपोर्ट मिति",total:"जम्मा",
- records:"रेकर्ड",serial:"क्र.सं.",reportDateCol:"मिति",reportName:"खर्चको नाम",
- reportCategory:"प्रकार / भुक्तानी",reportAmount:"रकम (NPR)",remark:"कैफियत",
- reportFoot:"यो रिपोर्ट उपलब्ध Cloud House Expense रेकर्डका आधारमा तयार गरिएको हो।",
- edit:"सम्पादन",delete:"Trash मा पठाउनुहोस्",period:"अवधि",printError:"PDF सुविधा लोड भएन。",
- detailsTitle:"खर्चको विस्तृत विवरण",typeLabel:"प्रकार",partyName:"खर्चको नाम"
+periodTotal:"छानिएको अवधिको खर्च",allTotal:"कुल जम्मा खर्च",budgetProgress:"मासिक बजेट प्रगति",setBudget:"मासिक बजेट सेट गर्नुहोस्",chartTitle:"शीर्षक अनुसार खर्च",
+addExpense:"➕ नयाँ खर्च लेख्नुहोस्",editExpense:"✏️ खर्च सम्पादन गर्नुहोस्",expenseName:"सामान वा खर्चको नाम",amount:"रकम (NPR)",category:"खर्चको प्रकार",
+grocery:"किराना",vegetables:"तरकारी",bills:"बिल तथा रिचार्ज",transport:"यातायात",health:"स्वास्थ्य",education:"शिक्षा",agriculture:"कृषि",other:"अन्य",
+payment:"भुक्तानी माध्यम",cash:"नगद",online:"अनलाइन / QR",bank:"बैंक ट्रान्सफर",credit:"उधारो",date:"मिति",note:"कैफियत (ऐच्छिक)",
+saveExpense:"💾 खर्च सेभ गर्नुहोस्",updateExpense:"खर्च अपडेट गर्नुहोस्",cancel:"रद्द गर्नुहोस्",expenseDetails:"खर्च विवरण",search:"खर्च खोज्नुहोस्",filterBy:"मिति फिल्टर",
+month:"महिना अनुसार",day:"दिन अनुसार",year:"वर्ष अनुसार",allDates:"सबै मिति",loading:"डाटा लोड हुँदैछ…",pdf:"PDF रिपोर्ट",jsonExport:"JSON Export",
+trashTitle:"Trash / मेटाइएका खर्च",trashInfo:"मेटाइएका खर्च ३० दिनभित्र Restore गर्न सकिन्छ।",setMonthlyBudget:"मासिक बजेट सेट गर्नुहोस्",budgetAmount:"मासिक खर्च सीमा (NPR)",save:"सेभ गर्नुहोस्",
+signIn:"पहिले index.html बाट लगइन गर्नुहोस्।",onlineRequired:"यो कामका लागि इन्टरनेट आवश्यक छ।",cloudReady:"Cloud sync जडान भयो।",cloudError:"Cloud जडान असफल भयो। Firebase र इन्टरनेट जाँच्नुहोस्।",
+saved:"खर्च सेभ भयो।",updated:"खर्च अपडेट भयो।",saveFailed:"खर्च सेभ गर्न सकिएन: ",deleteQuestion:"यो खर्च साझा Account Trash मा सार्ने हो? ३० दिनभित्र Restore गर्न सकिन्छ।",
+deleteSuccess:"खर्च साझा Account Trash मा सारियो।",deleteFailed:"Trash मा सार्न सकिएन: ",restoreQuestion:"यो खर्च Restore गर्ने हो?",restoreSuccess:"खर्च Restore भयो।",
+restoreFailed:"Restore गर्न सकिएन: ",expired:"Restore को ३०-दिने अवधि सकिएको छ।",invalidTrash:"Trash रेकर्डको मूल स्थान पुष्टि हुन सकेन।",
+occupied:"त्यही ID को सक्रिय रेकर्ड पहिल्यै छ।",noRecords:"कुनै खर्च रेकर्ड भेटिएन।",emptyTrash:"Trash खाली छ।",remaining:"दिन बाँकी",
+budgetNone:"मासिक बजेट सेट गरिएको छैन।",thisMonth:"यो महिनाको खर्च",budgetSaved:"मासिक बजेट सेभ भयो।",budgetFailed:"बजेट सेभ गर्न सकिएन: ",
+noPdf:"PDF बनाउन खर्च रेकर्ड छैन।",pdfFailed:"PDF बनाउन सकिएन: ",printError:"PDF सुविधा लोड भएन।",confirmTitle:"पुष्टि गर्नुहोस्",confirmYes:"पुष्टि गर्नुहोस्",
+confirmSave:"यो खर्च सेभ गर्ने हो?",confirmUpdate:"यो खर्चको परिवर्तन सेभ गर्ने हो?",confirmBudget:"यो मासिक बजेट सेभ गर्ने हो?",missing:"Not provided",
+report:"House Expense Report",reportDate:"Report Date",name:"Name",email:"Email",address:"Address",mobile:"Mobile",total:"Total",records:"Records",
+serial:"No.",reportDateCol:"Date",reportName:"Expense Name",reportCategory:"Category",reportPayment:"Payment",reportAmount:"Amount (NPR)",remark:"Note",
+reportFoot:"This report was created from available Cloud House Expense records.",edit:"सम्पादन",delete:"Trash मा पठाउनुहोस्",detailsTitle:"Detailed Expense Records"
 },
 en:{
- periodTotal:"Selected period expenses",allTotal:"All expenses",budgetProgress:"Monthly budget progress",
- setBudget:"Set monthly budget",chartTitle:"Expenses by category",addExpense:"➕ Add expense",
- editExpense:"✏️ Edit expense",expenseName:"Item or expense name",amount:"Amount (NPR)",
- category:"Expense category",grocery:"Groceries",vegetables:"Vegetables",bills:"Bills and recharge",
- transport:"Transport",health:"Health",education:"Education",agriculture:"Agriculture",other:"Other",
- payment:"Payment method",cash:"Cash",online:"Online / QR",bank:"Bank transfer",credit:"Credit",
- date:"Date",note:"Note (optional)",saveExpense:"💾 Save expense",updateExpense:"Update expense",
- cancel:"Cancel",expenseDetails:"Expense records",search:"Search expenses",filterBy:"Date filter",
- month:"By month",day:"By day",year:"By year",allDates:"All dates",loading:"Loading data…",
- pdf:"PDF report",jsonExport:"JSON Export",trashTitle:"Trash / Deleted expenses",
- trashInfo:"Deleted expenses can be restored within 30 days.",setMonthlyBudget:"Set monthly budget",
- budgetAmount:"Monthly spending limit (NPR)",save:"Save",signIn:"Please sign in through index.html first.",
- onlineRequired:"Internet is required for this operation.",cloudReady:"Cloud sync connected.",
- cloudError:"Cloud connection failed. Check internet and Firebase Rules.",
- saved:"Expense saved to Cloud.",updated:"Expense updated.",saveFailed:"Could not save expense: ",
- deleteQuestion:"Move this expense to the shared Account Trash? It can be restored within 30 days.",
- deleteSuccess:"Expense moved to shared Account Trash.",deleteFailed:"Could not move to Trash: ",
- restoreQuestion:"Restore this expense?",restoreSuccess:"Expense restored.",
- restoreFailed:"Could not restore expense: ",expired:"The 30-day restore period has expired.",
- invalidTrash:"The original Trash record path could not be verified.",
- occupied:"An active record with this ID already exists; nothing was overwritten.",
- noRecords:"No expense records found.",emptyTrash:"Trash is empty.",remaining:"days left",
- budgetNone:"No monthly budget has been set.",thisMonth:"This month's spending",budgetSaved:"Monthly budget saved.",
- budgetFailed:"Could not save budget: ",noPdf:"No expenses are available for the PDF report.",
- pdfFailed:"Could not create PDF: ",report:"House Expense Report",profile:"User details",
- name:"Name",email:"Email",address:"Address",mobile:"Mobile",missing:"Not provided",
- reportDate:"Report date",total:"Total",records:"records",serial:"No.",reportDateCol:"Date",
- reportName:"Expense name",reportCategory:"Category / payment",reportAmount:"Amount (NPR)",
- remark:"Note",reportFoot:"This report was created from available Cloud House Expense records.",
- edit:"Edit",delete:"Move to Trash",period:"Period",printError:"PDF support did not load.",
- detailsTitle:"Detailed expense records",typeLabel:"Type",partyName:"Expense name"
+periodTotal:"Selected period expenses",allTotal:"All expenses",budgetProgress:"Monthly budget progress",setBudget:"Set monthly budget",chartTitle:"Expenses by category",
+addExpense:"➕ Add expense",editExpense:"✏️ Edit expense",expenseName:"Item or expense name",amount:"Amount (NPR)",category:"Expense category",
+grocery:"Groceries",vegetables:"Vegetables",bills:"Bills and recharge",transport:"Transport",health:"Health",education:"Education",agriculture:"Agriculture",other:"Other",
+payment:"Payment method",cash:"Cash",online:"Online / QR",bank:"Bank transfer",credit:"Credit",date:"Date",note:"Note (optional)",
+saveExpense:"💾 Save expense",updateExpense:"Update expense",cancel:"Cancel",expenseDetails:"Expense records",search:"Search expenses",filterBy:"Date filter",
+month:"By month",day:"By day",year:"By year",allDates:"All dates",loading:"Loading data…",pdf:"PDF report",jsonExport:"JSON Export",
+trashTitle:"Trash / Deleted expenses",trashInfo:"Deleted expenses can be restored within 30 days.",setMonthlyBudget:"Set monthly budget",budgetAmount:"Monthly spending limit (NPR)",save:"Save",
+signIn:"Please sign in through index.html first.",onlineRequired:"Internet is required for this operation.",cloudReady:"Cloud sync connected.",cloudError:"Cloud connection failed. Check Firebase and internet.",
+saved:"Expense saved.",updated:"Expense updated.",saveFailed:"Could not save expense: ",deleteQuestion:"Move this expense to the shared Account Trash? It can be restored within 30 days.",
+deleteSuccess:"Expense moved to shared Account Trash.",deleteFailed:"Could not move to Trash: ",restoreQuestion:"Restore this expense?",restoreSuccess:"Expense restored.",
+restoreFailed:"Could not restore expense: ",expired:"The 30-day restore period has expired.",invalidTrash:"The original Trash record path could not be verified.",
+occupied:"An active record with this ID already exists.",noRecords:"No expense records found.",emptyTrash:"Trash is empty.",remaining:"days left",
+budgetNone:"No monthly budget has been set.",thisMonth:"This month's spending",budgetSaved:"Monthly budget saved.",budgetFailed:"Could not save budget: ",
+noPdf:"No expenses are available for the PDF report.",pdfFailed:"Could not create PDF: ",printError:"PDF support did not load.",confirmTitle:"Please confirm",confirmYes:"Confirm",
+confirmSave:"Save this expense?",confirmUpdate:"Save changes to this expense?",confirmBudget:"Save this monthly budget?",missing:"Not provided",
+report:"House Expense Report",reportDate:"Report Date",name:"Name",email:"Email",address:"Address",mobile:"Mobile",total:"Total",records:"Records",
+serial:"No.",reportDateCol:"Date",reportName:"Expense Name",reportCategory:"Category",reportPayment:"Payment",reportAmount:"Amount (NPR)",remark:"Note",
+reportFoot:"This report was created from available Cloud House Expense records.",edit:"Edit",delete:"Move to Trash",detailsTitle:"Detailed Expense Records"
 }
 };
 
-const $=id=>document.getElementById(id);
-let settings=readSettings(),auth=null,db=null,user=null;
-let expenses=[],trashItems=[],budget=0,chart=null;
+let settings=readSettings(),user=null,expenses=[],trashItems=[],budget=0,chart=null;
 let expenseRef=null,budgetRef=null,trashRef=null;
 let expenseCallback=null,budgetCallback=null,trashCallback=null;
+let confirmResolve=null,previousFocus=null;
 
 function readSettings(){
  try{
   const s=JSON.parse(localStorage.getItem(SETTINGS_KEY)||"{}");
-  return {...{theme:"dark",lang:"ne",font_size:"16",font_family:"Poppins",accentColor:"#10b981",layout:"comfortable"},
-    ...(s&&typeof s==="object"&&!Array.isArray(s)?s:{})};
- }catch(e){return {theme:"dark",lang:"ne",font_size:"16",font_family:"Poppins",accentColor:"#10b981",layout:"comfortable"};}
+  return {...{theme:"dark",lang:"ne",font_size:"16",font_family:"Poppins",accentColor:"#10b981",layout:"comfortable"},...(s&&typeof s==="object"&&!Array.isArray(s)?s:{})};
+ }catch(e){return {theme:"dark",lang:"ne",font_size:"16",font_family:"Poppins",accentColor:"#10b981",layout:"comfortable"}}
 }
-function t(key){return (TEXT[settings.lang==="en"?"en":"ne"][key]||TEXT.en[key]||key);}
+function t(key){return TEXT[settings.lang==="en"?"en":"ne"][key]||TEXT.en[key]||key}
 function applyPreferences(){
  settings=readSettings();
  const root=document.documentElement;
@@ -318,11 +304,9 @@ function applyPreferences(){
  root.dataset.layout=settings.layout==="compact"?"compact":"comfortable";
  document.body.dataset.layout=root.dataset.layout;
  document.querySelectorAll("[data-i18n]").forEach(el=>{
-  const key=el.dataset.i18n;
-  const input=el.querySelector("input,select,textarea");
-  if(input){el.childNodes[0].textContent=t(key)+" ";return;}
-  if(el.tagName==="OPTION")el.textContent=t(key);
-  else el.textContent=t(key);
+  const key=el.dataset.i18n,input=el.querySelector("input,select,textarea");
+  if(input){el.childNodes[0].textContent=t(key)+" ";return}
+  el.textContent=t(key);
  });
  document.querySelectorAll("[data-i18n-placeholder]").forEach(el=>el.placeholder=t(el.dataset.i18nPlaceholder));
  document.title="Digital NoteBook · "+(settings.lang==="en"?"House Expense":"घर खर्च");
@@ -330,42 +314,56 @@ function applyPreferences(){
  $("saveButton").textContent=$("editId").value?t("updateExpense"):t("saveExpense");
  renderExpenses();renderTrash();updateBudget();renderChart();
 }
-window.addEventListener("storage",e=>{if(e.key===SETTINGS_KEY)applyPreferences();});
+window.addEventListener("storage",e=>{if(e.key===SETTINGS_KEY)applyPreferences()});
 window.addEventListener("focus",applyPreferences);
 window.addEventListener("pageshow",applyPreferences);
 
-function showStatus(message,kind=""){
- const el=$("status");el.textContent=message||"";
- el.className="status"+(kind?" "+kind:"");
-}
-function clearStatus(){showStatus("");}
-function esc(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
-function n(value){const x=Number(value);return Number.isFinite(x)?x:0;}
-function money(value){return "NPR "+n(value).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2});}
-function localDate(){
- const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);
-}
-function currentMonth(){return localDate().slice(0,7);}
-function userPath(path=""){if(!user)throw new Error(t("signIn"));return "users/"+user.uid+(path?"/"+path:"");}
-function newId(){return "house_"+(crypto.randomUUID?crypto.randomUUID():Date.now()+"_"+Math.random().toString(36).slice(2));}
-function categoryName(key){return t(key)||key||t("other");}
-function paymentName(key){return t(key)||key||"";}
-function isValidKey(key){return typeof key==="string"&&key.length>0&&!/[.#$[\]\/]/.test(key);}
+function showStatus(message,kind=""){const el=$("status");el.textContent=message||"";el.className="status"+(kind?" "+kind:"")}
+function clearStatus(){showStatus("")}
+function esc(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function n(value){const x=Number(value);return Number.isFinite(x)?x:0}
+function money(value){return "NPR "+n(value).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}
+function localDate(){const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)}
+function currentMonth(){return localDate().slice(0,7)}
+function userPath(path=""){if(!user)throw new Error(t("signIn"));return "users/"+user.uid+(path?"/"+path:"")}
+function newId(){return "house_"+(crypto.randomUUID?crypto.randomUUID():Date.now()+"_"+Math.random().toString(36).slice(2))}
+function isValidKey(key){return typeof key==="string"&&key.length>0&&!/[.#$[\]\/]/.test(key)}
+function categoryName(key){return t(key)||key||t("other")}
+function paymentName(key){return t(key)||key||""}
 function objectRecords(raw){
- const out=[];
- if(!raw||typeof raw!=="object"||Array.isArray(raw))return out;
- Object.entries(raw).forEach(([id,v])=>{
-  if(v&&typeof v==="object"&&!Array.isArray(v))out.push({...v,id:String(v.id||id)});
- });
- return out;
+ if(!raw||typeof raw!=="object"||Array.isArray(raw))return [];
+ return Object.entries(raw).filter(([,v])=>v&&typeof v==="object"&&!Array.isArray(v)).map(([id,v])=>({...v,id:String(v.id||id)}));
 }
-function loadLocal(){
- try{const v=JSON.parse(localStorage.getItem(LOCAL_KEY)||"[]");return Array.isArray(v)?v:[];}
- catch(e){return [];}
+function addText(parent,className,value){const el=document.createElement("div");el.className=className;el.textContent=String(value??"");parent.appendChild(el);return el}
+function loadLocal(){try{const v=JSON.parse(localStorage.getItem(LOCAL_KEY)||"[]");return Array.isArray(v)?v:[]}catch(e){return []}}
+function cacheLocal(){try{localStorage.setItem(LOCAL_KEY,JSON.stringify(expenses))}catch(e){}}
+
+function askConfirm(message,{title=null,yes=null,danger=false}={}){
+ if(confirmResolve)return Promise.resolve(false);
+ previousFocus=document.activeElement;
+ $("confirmTitle").textContent=title||t("confirmTitle");
+ $("confirmMessage").textContent=message;
+ $("confirmOK").textContent=yes||t("confirmYes");
+ $("confirmOK").classList.toggle("danger",!!danger);
+ $("confirmModal").style.display="flex";
+ $("confirmOK").focus();
+ return new Promise(resolve=>{confirmResolve=resolve});
 }
-function cacheLocal(){
- try{localStorage.setItem(LOCAL_KEY,JSON.stringify(expenses));}catch(e){}
+function closeConfirm(answer){
+ if(!$("confirmModal"))return;
+ $("confirmModal").style.display="none";
+ const resolve=confirmResolve;confirmResolve=null;
+ if(previousFocus&&previousFocus.focus)previousFocus.focus();
+ if(resolve)resolve(!!answer);
 }
+$("confirmOK").addEventListener("click",()=>closeConfirm(true));
+$("confirmCancel").addEventListener("click",()=>closeConfirm(false));
+$("confirmModal").addEventListener("click",e=>{if(e.target===$("confirmModal"))closeConfirm(false)});
+document.addEventListener("keydown",e=>{
+ if($("confirmModal").style.display==="flex"&&e.key==="Escape"){e.preventDefault();closeConfirm(false)}
+ if($("confirmModal").style.display==="flex"&&e.key==="Enter"&&document.activeElement!==$("confirmCancel")){e.preventDefault();closeConfirm(true)}
+});
+
 function detachListeners(){
  if(expenseRef&&expenseCallback)expenseRef.off("value",expenseCallback);
  if(budgetRef&&budgetCallback)budgetRef.off("value",budgetCallback);
@@ -374,11 +372,9 @@ function detachListeners(){
  expenseCallback=budgetCallback=trashCallback=null;
 }
 async function migrateLegacyIfCloudEmpty(){
- const ref=db.ref(userPath(PATH));
- const snap=await ref.once("value");
+ const ref=db.ref(userPath(PATH)),snap=await ref.once("value");
  if(snap.exists()&&snap.val()&&Object.keys(snap.val()).length)return;
- const legacy=loadLocal();
- if(!legacy.length)return;
+ const legacy=loadLocal();if(!legacy.length)return;
  const converted={};
  legacy.forEach(record=>{
   if(!record||typeof record!=="object"||Array.isArray(record))return;
@@ -401,7 +397,7 @@ function attachListeners(){
  budgetRef=db.ref(userPath("house_budget"));
  budgetCallback=snap=>{
   budget=n(snap.val());
-  try{localStorage.setItem(LOCAL_BUDGET_KEY,String(budget));}catch(e){}
+  try{localStorage.setItem(LOCAL_BUDGET_KEY,String(budget))}catch(e){}
   $("budgetInput").value=budget||"";updateBudget();
  };
  budgetRef.on("value",budgetCallback,error=>showStatus(t("cloudError")+" "+(error.message||""),"error"));
@@ -409,18 +405,16 @@ function attachListeners(){
  trashRef=db.ref(userPath(TRASH_PATH));
  trashCallback=snap=>{
   const raw=snap.val()||{};
-  trashItems=Object.entries(raw).map(([id,v])=>{
-   if(!v||typeof v!=="object")return null;
-   return {...v,id:String(v.id||id)};
-  }).filter(v=>v&&v.data&&v.originalPath==="users/"+user.uid+"/"+PATH+"/"+v.id);
+  trashItems=Object.entries(raw).map(([id,v])=>v&&typeof v==="object"?{...v,id:String(v.id||id)}:null)
+   .filter(v=>v&&v.data&&v.originalPath==="users/"+user.uid+"/"+PATH+"/"+v.id);
   renderTrash();
  };
  trashRef.on("value",trashCallback,error=>showStatus(t("cloudError")+" "+(error.message||""),"error"));
 }
 async function startCloud(u){
  user=u;
- try{await migrateLegacyIfCloudEmpty();attachListeners();showStatus(t("cloudReady"),"good");}
- catch(e){console.error(e);showStatus(t("cloudError")+" "+(e.message||""),"error");}
+ try{await migrateLegacyIfCloudEmpty();attachListeners();showStatus(t("cloudReady"),"good")}
+ catch(e){console.error(e);showStatus(t("cloudError")+" "+(e.message||""),"error")}
 }
 
 function filteredExpenses(){
@@ -441,26 +435,21 @@ function updateYears(){
  years.add(String(new Date().getFullYear()));
  select.replaceChildren();
  const first=document.createElement("option");first.value="";first.textContent=t("year");select.appendChild(first);
- [...years].sort().reverse().forEach(y=>{const o=document.createElement("option");o.value=y;o.textContent=y;select.appendChild(o);});
+ [...years].sort().reverse().forEach(y=>{const o=document.createElement("option");o.value=y;o.textContent=y;select.appendChild(o)});
  if(years.has(old))select.value=old;
 }
-function addText(parent,className,value){
- const el=document.createElement("div");el.className=className;el.textContent=String(value??"");parent.appendChild(el);return el;
-}
 function renderExpenses(){
- if(!$("expenseList"))return;
  updateYears();
  const list=$("expenseList"),rows=filteredExpenses();list.replaceChildren();
  $("periodTotal").textContent=money(rows.reduce((s,x)=>s+n(x.amount),0));
  $("allTotal").textContent=money(expenses.reduce((s,x)=>s+n(x.amount),0));
  $("filterSummary").textContent=rows.length+" "+t("records");
- if(!rows.length){addText(list,"empty",t("noRecords"));return;}
+ if(!rows.length){addText(list,"empty",t("noRecords"));return}
  rows.forEach(x=>{
   const card=document.createElement("article");card.className="expense";
   const top=document.createElement("div");top.className="expense-top";
   const info=document.createElement("div");info.style.minWidth="0";
-  addText(info,"expense-name",x.title||"—");
-  addText(info,"",money(x.amount));
+  addText(info,"expense-name",x.title||"—");addText(info,"",money(x.amount));
   addText(info,"record-meta",[x.date,categoryName(x.category),paymentName(x.paymentMethod)].filter(Boolean).join(" · "));
   if(x.note)addText(info,"record-meta",x.note);
   const actions=document.createElement("div");actions.className="actions";
@@ -480,19 +469,16 @@ function updateBudget(){
 function renderChart(){
  if(!window.Chart)return;
  const totals={};
- filteredExpenses().forEach(x=>{
-  const label=categoryName(x.category||"other");totals[label]=(totals[label]||0)+n(x.amount);
- });
- if(chart){chart.destroy();chart=null;}
+ filteredExpenses().forEach(x=>{const label=categoryName(x.category||"other");totals[label]=(totals[label]||0)+n(x.amount)});
+ if(chart){chart.destroy();chart=null}
  if(!Object.keys(totals).length)return;
  chart=new Chart($("expenseChart"),{
   type:"doughnut",
   data:{labels:Object.keys(totals),datasets:[{data:Object.values(totals)}]},
-  options:{responsive:true,maintainAspectRatio:false,
-   plugins:{legend:{position:"bottom",labels:{color:getComputedStyle(document.body).color}}}}
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{color:getComputedStyle(document.body).color}}}}
  });
 }
-function refresh(){renderExpenses();updateBudget();renderChart();}
+function refresh(){renderExpenses();updateBudget();renderChart()}
 function resetForm(){
  $("expenseForm").reset();$("editId").value="";$("date").value=localDate();
  $("formTitle").textContent=t("addExpense");$("saveButton").textContent=t("saveExpense");
@@ -507,19 +493,15 @@ function editExpense(id){
 }
 async function saveExpense(event){
  event.preventDefault();clearStatus();
- if(!user){showStatus(t("signIn"),"error");return;}
- if(!navigator.onLine){showStatus(t("onlineRequired"),"error");return;}
+ if(!user){showStatus(t("signIn"),"error");return}
+ if(!navigator.onLine){showStatus(t("onlineRequired"),"error");return}
  const title=$("title").value.trim(),amount=Number($("amount").value),date=$("date").value;
  if(!title||!Number.isFinite(amount)||amount<=0||!date)return;
- const editing=!!$("editId").value;
- const id=$("editId").value||db.ref(userPath(PATH)).push().key;
- if(!isValidKey(id)){showStatus(t("saveFailed")+"Invalid record ID.","error");return;}
+ const editing=!!$("editId").value,id=$("editId").value||db.ref(userPath(PATH)).push().key;
+ if(!isValidKey(id)){showStatus(t("saveFailed")+"Invalid record ID.","error");return}
+ if(!await askConfirm(editing?t("confirmUpdate"):t("confirmSave")))return;
  const existing=expenses.find(x=>x.id===id);
- const item={
-  ...(existing||{}),id,title,amount,category:$("category").value,
-  paymentMethod:$("payment").value,date,note:$("note").value.trim(),
-  createdAt:existing?.createdAt||Date.now(),updatedAt:Date.now()
- };
+ const item={...(existing||{}),id,title,amount,category:$("category").value,paymentMethod:$("payment").value,date,note:$("note").value.trim(),createdAt:existing?.createdAt||Date.now(),updatedAt:Date.now()};
  $("saveButton").disabled=true;
  try{
   const result=await db.ref(userPath(PATH+"/"+id)).transaction(old=>{
@@ -529,58 +511,40 @@ async function saveExpense(event){
   },undefined,false);
   if(!result.committed)throw new Error(t("occupied"));
   resetForm();showStatus(editing?t("updated"):t("saved"),"good");
- }catch(e){console.error(e);showStatus(t("saveFailed")+(e.message||""),"error");}
- finally{$("saveButton").disabled=false;}
+ }catch(e){console.error(e);showStatus(t("saveFailed")+(e.message||""),"error")}
+ finally{$("saveButton").disabled=false}
 }
 async function deleteExpense(id){
  const item=expenses.find(x=>x.id===id);if(!item||!user)return;
- if(!navigator.onLine){showStatus(t("onlineRequired"),"error");return;}
- if(!window.confirm(t("deleteQuestion")+"\n\n"+(item.title||"")))return;
- const now=Date.now();
- const entry={
-  id,category:PATH,recordType:PATH,
-  originalPath:"users/"+user.uid+"/"+PATH+"/"+id,
-  data:{...item,id},
-  deletedAt:now,expiresAt:now+RETENTION,schemaVersion:1
- };
+ if(!navigator.onLine){showStatus(t("onlineRequired"),"error");return}
+ if(!await askConfirm(t("deleteQuestion")+"\n\n"+(item.title||""),{danger:true,yes:t("delete")}))return;
+ const now=Date.now(),entry={id,category:PATH,recordType:PATH,originalPath:"users/"+user.uid+"/"+PATH+"/"+id,data:{...item,id},deletedAt:now,expiresAt:now+RETENTION,schemaVersion:1};
  try{
-  const updates={};
-  updates[PATH+"/"+id]=null;
-  updates[TRASH_PATH+"/"+id]=entry;
+  const updates={};updates[PATH+"/"+id]=null;updates[TRASH_PATH+"/"+id]=entry;
   await db.ref(userPath()).update(updates);
-  showStatus(t("deleteSuccess"),"good");
- }catch(e){console.error(e);showStatus(t("deleteFailed")+(e.message||""),"error");}
+ }catch(e){console.error(e);showStatus(t("deleteFailed")+(e.message||""),"error")}
 }
 async function restoreExpense(id){
  const item=trashItems.find(x=>x.id===id);if(!item||!user)return;
- if(!item.data||item.originalPath!=="users/"+user.uid+"/"+PATH+"/"+item.id){
-  showStatus(t("invalidTrash"),"error");return;
- }
- if(!Number(item.deletedAt)||!Number(item.expiresAt)||Number(item.expiresAt)<=Date.now()){
-  showStatus(t("expired"),"error");return;
- }
- if(!navigator.onLine){showStatus(t("onlineRequired"),"error");return;}
- if(!window.confirm(t("restoreQuestion")+"\n\n"+(item.data.title||"")))return;
+ if(!item.data||item.originalPath!=="users/"+user.uid+"/"+PATH+"/"+item.id){showStatus(t("invalidTrash"),"error");return}
+ if(!Number(item.deletedAt)||!Number(item.expiresAt)||Number(item.expiresAt)<=Date.now()){showStatus(t("expired"),"error");return}
+ if(!navigator.onLine){showStatus(t("onlineRequired"),"error");return}
+ if(!await askConfirm(t("restoreQuestion")+"\n\n"+(item.data.title||"")))return;
  try{
-  const result=await db.ref(userPath(PATH+"/"+id)).transaction(current=>{
-   return current===null?{...item.data,id,deletedAt:null,restoredAt:Date.now()}:undefined;
-  },undefined,false);
-  if(!result.committed){showStatus(t("occupied"),"error");return;}
+  const result=await db.ref(userPath(PATH+"/"+id)).transaction(current=>current===null?{...item.data,id}:undefined,undefined,false);
+  if(!result.committed){showStatus(t("occupied"),"error");return}
   await db.ref(userPath(TRASH_PATH+"/"+id)).remove();
-  showStatus(t("restoreSuccess"),"good");
- }catch(e){console.error(e);showStatus(t("restoreFailed")+(e.message||""),"error");}
+ }catch(e){console.error(e);showStatus(t("restoreFailed")+(e.message||""),"error")}
 }
 function renderTrash(){
- const list=$("trashList");if(!list)return;list.replaceChildren();
- const now=Date.now();
+ const list=$("trashList");list.replaceChildren();const now=Date.now();
  trashItems.sort((a,b)=>n(b.deletedAt)-n(a.deletedAt));
- if(!trashItems.length){addText(list,"empty",t("emptyTrash"));return;}
+ if(!trashItems.length){addText(list,"empty",t("emptyTrash"));return}
  trashItems.forEach(item=>{
   const card=document.createElement("article");card.className="expense";
   const top=document.createElement("div");top.className="expense-top";
   const info=document.createElement("div");info.style.minWidth="0";
-  addText(info,"expense-name",item.data?.title||"—");
-  addText(info,"",money(item.data?.amount));
+  addText(info,"expense-name",item.data?.title||"—");addText(info,"",money(item.data?.amount));
   addText(info,"record-meta",[item.data?.date,categoryName(item.data?.category)].filter(Boolean).join(" · "));
   const left=n(item.expiresAt)-now,expired=left<=0;
   addText(info,"record-meta",expired?t("expired"):Math.ceil(left/86400000)+" "+t("remaining"));
@@ -588,109 +552,68 @@ function renderTrash(){
   btn.disabled=expired||item.originalPath!=="users/"+user.uid+"/"+PATH+"/"+item.id;
   btn.onclick=()=>restoreExpense(item.id);
   top.append(info,btn);card.appendChild(top);list.appendChild(card);
- });
 }
+
+/* PDF labels are intentionally English regardless of the app's selected language. */
+function profileObject(){
+ for(const key of ["digital_notebook_profile","user_profile","userProfile","profile","digital_notebook_user"]){
+  try{const v=JSON.parse(localStorage.getItem(key)||"null");if(v&&typeof v==="object"&&!Array.isArray(v))return v}catch(e){}
+ }
+ return {};
+}
+function firstLocal(keys){for(const key of keys){const value=localStorage.getItem(key);if(value&&value.trim())return value.trim()}return ""}
 function profileForPdf(){
+ const p=profileObject();
  return {
-  name:localStorage.getItem("profile_name")||localStorage.getItem("user_profile_name")||"",
-  email:localStorage.getItem("profile_email")||user?.email||"",
-  address:localStorage.getItem("profile_address")||"",
-  mobile:localStorage.getItem("profile_mobile")||""
+  name:firstLocal(["profile_name","user_profile_name","fullName","userName"])||p.name||p.fullName||p.full_name||p.username||"",
+  email:firstLocal(["profile_email","user_profile_email"])||p.email||user?.email||"",
+  address:firstLocal(["profile_address","user_profile_address"])||p.address||p.location||"",
+  mobile:firstLocal(["profile_mobile","user_profile_mobile","user_mobile"])||p.mobile||p.phone||p.phoneNumber||""
  };
 }
-
-/* Portrait (ठाडो) A4 PDF जेनेरेटर - Transactions फाइलको जस्तै ढाँचा */
 async function exportPdf(){
- if(!window.html2pdf){showStatus(t("printError"),"error");return;}
+ if(!window.html2pdf){showStatus(t("printError"),"error");return}
  const rows=filteredExpenses().slice().sort((a,b)=>String(a.date||"").localeCompare(String(b.date||"")));
- if(!rows.length){showStatus(t("noPdf"),"error");return;}
- const profile=profileForPdf(),total=rows.reduce((s,x)=>s+n(x.amount),0),reportDate=new Date().toLocaleString(),missing=t("missing");
- 
+ if(!rows.length){showStatus(t("noPdf"),"error");return}
+ const p=profileForPdf(),total=rows.reduce((s,x)=>s+n(x.amount),0);
+ const reportDate=new Date().toLocaleDateString("en-GB");
  const tableRows=rows.map((x,i)=>`<tr>
-   <td style="text-align:center">${i+1}</td>
-   <td>${esc(x.date||"")}</td>
-   <td><b>${esc(x.title||"")}</b></td>
-   <td>${esc(categoryName(x.category))}</td>
-   <td>${esc(paymentName(x.paymentMethod))}</td>
-   <td class="right">${n(x.amount).toFixed(2)}</td>
-   <td>${esc(x.note||"")}</td>
- </tr>`).join("");
-
+ <td class="center">${i+1}</td><td>${esc(x.date||"")}</td><td><b>${esc(x.title||"")}</b></td>
+ <td>${esc(TEXT.en[x.category]||x.category||"Other")}</td><td>${esc(TEXT.en[x.paymentMethod]||x.paymentMethod||"")}</td>
+ <td class="right">${n(x.amount).toFixed(2)}</td><td>${esc(x.note||"")}</td></tr>`).join("");
  const report=document.createElement("div");
- report.style.cssText="background:#fff;color:#172033;padding:10px;font-family:Arial,'Noto Sans Devanagari',sans-serif;font-size:10px;width:100%;box-sizing:border-box;";
+ report.style.cssText="background:#fff;color:#172033;padding:10px;font-family:Arial,sans-serif;font-size:10px;width:100%;box-sizing:border-box";
  report.innerHTML=`
- <div style="background:#102b3f;color:#fff;padding:10px;border-radius:6px;border-bottom:4px solid #10b981;margin-bottom:8px">
-  <div style="display:flex;justify-content:space-between;align-items:center">
-   <div>
-    <h1 style="font-size:15px;margin:0 0 2px">Digital NoteBook</h1>
-    <div style="font-size:10px;color:#34d399;font-weight:bold">${esc(t("report"))}</div>
-   </div>
-   <div style="text-align:right;font-size:8px">
-    <b>${esc(t("reportDate"))}:</b> ${esc(reportDate)}
-   </div>
+ <div style="background:#102b3f;color:#fff;padding:12px;border-radius:6px;border-bottom:4px solid #10b981;margin-bottom:8px">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+   <div><h1 style="font-size:17px;margin:0 0 3px">Digital NoteBook</h1><div style="font-size:11px;color:#34d399;font-weight:bold">HOUSE EXPENSE REPORT</div></div>
+   <div style="text-align:right;font-size:9px"><b>Report Date:</b> ${reportDate}</div>
   </div>
-  <hr style="border:0;border-top:1px solid #334e68;margin:5px 0">
-  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:3px;font-size:8.5px">
-   <div><b>${esc(t("name"))}:</b> ${esc(profile.name||missing)}</div>
-   <div><b>${esc(t("email"))}:</b> ${esc(profile.email||missing)}</div>
-   <div><b>${esc(t("address"))}:</b> ${esc(profile.address||missing)}</div>
-   <div><b>${esc(t("mobile"))}:</b> ${esc(profile.mobile||missing)}</div>
+  <hr style="border:0;border-top:1px solid #334e68;margin:8px 0">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:9px">
+   <div><b>Name:</b> ${esc(p.name||"Not provided")}</div>
+   <div style="text-align:right"><b>Email:</b> ${esc(p.email||"Not provided")}</div>
+   <div><b>Address:</b> ${esc(p.address||"Not provided")}</div>
+   <div style="text-align:right"><b>Mobile:</b> ${esc(p.mobile||"Not provided")}</div>
   </div>
  </div>
-
- <div style="background:#eaf7f0;border:1px solid #b8e2cc;border-radius:4px;padding:5px 8px;margin-bottom:8px;font-size:9.5px;display:flex;justify-content:space-between">
-  <div><b>${esc(t("allTotal"))}:</b> <span style="color:#059669;font-weight:bold">${money(total)}</span></div>
-  <div><b>${esc(t("records"))}:</b> ${rows.length}</div>
+ <div style="background:#eaf7f0;border:1px solid #b8e2cc;border-radius:4px;padding:7px 9px;margin-bottom:9px;font-size:10px;display:flex;justify-content:space-between;gap:10px">
+  <div><b>Total Expenses:</b> <span style="color:#059669;font-weight:bold">NPR ${total.toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div>
+  <div><b>Records:</b> ${rows.length}</div>
  </div>
-
- <h2 style="font-size:11px;margin:5px 0 3px;color:#102b3f">${esc(t("detailsTitle"))}</h2>
- 
- <table>
-  <thead>
-   <tr>
-    <th style="width:25px;text-align:center">${esc(t("serial"))}</th>
-    <th style="width:60px">${esc(t("reportDateCol"))}</th>
-    <th>${esc(t("reportName"))}</th>
-    <th style="width:70px">${esc(t("category"))}</th>
-    <th style="width:65px">${esc(t("payment"))}</th>
-    <th style="width:65px" class="right">${esc(t("total"))}</th>
-    <th>${esc(t("remark"))}</th>
-   </tr>
-  </thead>
-  <tbody>
-   ${tableRows||`<tr><td colspan="7" style="text-align:center">${esc(t("noPdf"))}</td></tr>`}
-  </tbody>
-  <tfoot>
-   <tr>
-    <td colspan="5" class="right"><b>${esc(t("total"))}</b></td>
-    <td class="right" style="color:#059669"><b>${total.toFixed(2)}</b></td>
-    <td></td>
-   </tr>
-  </tfoot>
- </table>
-
- <div style="margin-top:8px;border-top:1px solid #ccd5d1;padding-top:3px;font-size:7.5px;color:#64748b;text-align:center">${esc(t("reportFoot"))}</div>
- 
- <style>
-  table{border-collapse:collapse;width:100%;margin-bottom:6px;table-layout:fixed;}
-  th,td{border:1px solid #94a3b8;padding:3px 4px;vertical-align:middle;word-wrap:break-word;}
-  th{background:#f1f5f9;color:#0f172a;font-weight:bold;text-align:left}
-  .right{text-align:right}
-  tr{page-break-inside:avoid}
- </style>`;
-
+ <h2 style="font-size:12px;margin:6px 0;color:#102b3f">Detailed Expense Records</h2>
+ <table><thead><tr>
+ <th style="width:28px;text-align:center">No.</th><th style="width:65px">Date</th><th>Expense Name</th>
+ <th style="width:65px">Category</th><th style="width:62px">Payment</th>
+ <th style="width:72px" class="right">Amount (NPR)</th><th>Note</th>
+ </tr></thead><tbody>${tableRows}</tbody>
+ <tfoot><tr><td colspan="5" class="right"><b>Total</b></td><td class="right" style="color:#059669"><b>${total.toFixed(2)}</b></td><td></td></tr></tfoot></table>
+ <div style="margin-top:9px;border-top:1px solid #ccd5d1;padding-top:4px;font-size:8px;color:#64748b;text-align:center">This report was created from available Cloud House Expense records.</div>
+ <style>table{border-collapse:collapse;width:100%;margin-bottom:6px;table-layout:fixed}th,td{border:1px solid #94a3b8;padding:4px;vertical-align:middle;overflow-wrap:anywhere}th{background:#f1f5f9;color:#0f172a;text-align:left}.right{text-align:right}.center{text-align:center}tr{page-break-inside:avoid}</style>`;
  try{
-  await html2pdf().set({
-   margin:5,
-   filename:"Digital-Notebook-House-Expense-"+new Date().toISOString().slice(0,10)+".pdf",
-   image:{type:"jpeg",quality:0.98},
-   html2canvas:{scale:2,useCORS:true,scrollY:0},
-   jsPDF:{unit:"mm",format:"a4",orientation:"portrait"}
-  }).from(report).save();
-  showStatus("PDF ✓","good");
- }catch(e){console.error(e);showStatus(t("pdfFailed")+(e.message||""),"error");}
+  await html2pdf().set({margin:5,filename:"Digital-Notebook-House-Expense-"+localDate()+".pdf",image:{type:"jpeg",quality:.98},html2canvas:{scale:2,useCORS:true,scrollY:0},jsPDF:{unit:"mm",format:"a4",orientation:"portrait"}}).from(report).save();
+ }catch(e){console.error(e);showStatus(t("pdfFailed")+(e.message||""),"error")}
 }
-
 function exportJSON(){
  const blob=new Blob([JSON.stringify({format:"digital-notebook-house-expense-v1",exportedAt:new Date().toISOString(),expenses},null,2)],{type:"application/json;charset=utf-8"});
  const url=URL.createObjectURL(blob),a=document.createElement("a");
@@ -699,7 +622,7 @@ function exportJSON(){
 }
 
 $("expenseForm").addEventListener("submit",saveExpense);
-$("cancelEdit").addEventListener("click",()=>{resetForm();clearStatus();});
+$("cancelEdit").addEventListener("click",()=>{resetForm();clearStatus()});
 $("search").addEventListener("input",refresh);
 $("filterType").addEventListener("change",()=>{
  const type=$("filterType").value;
@@ -709,45 +632,42 @@ $("filterType").addEventListener("change",()=>{
  refresh();
 });
 ["dayFilter","monthFilter","yearFilter"].forEach(id=>$(id).addEventListener("change",refresh));
-$("budgetButton").addEventListener("click",()=>{$("budgetInput").value=budget||"";$("budgetModal").style.display="flex";});
+$("budgetButton").addEventListener("click",()=>{$("budgetInput").value=budget||"";$("budgetModal").style.display="flex"});
 document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>$(b.dataset.close).style.display="none"));
 $("saveBudget").addEventListener("click",async()=>{
- if(!user){showStatus(t("signIn"),"error");return;}
- if(!navigator.onLine){showStatus(t("onlineRequired"),"error");return;}
+ if(!user){showStatus(t("signIn"),"error");return}
+ if(!navigator.onLine){showStatus(t("onlineRequired"),"error");return}
  const raw=$("budgetInput").value,value=Number(raw);
  if(raw.trim()===""||!Number.isFinite(value)||value<0)return;
+ if(!await askConfirm(t("confirmBudget")))return;
  $("saveBudget").disabled=true;
  try{
   await db.ref(userPath("house_budget")).set(value);
   budget=value;updateBudget();$("budgetModal").style.display="none";showStatus(t("budgetSaved"),"good");
- }catch(e){showStatus(t("budgetFailed")+(e.message||""),"error");}
- finally{$("saveBudget").disabled=false;}
+ }catch(e){showStatus(t("budgetFailed")+(e.message||""),"error")}
+ finally{$("saveBudget").disabled=false}
 });
 $("pdfButton").addEventListener("click",exportPdf);
 $("jsonButton").addEventListener("click",exportJSON);
 $("backButton").addEventListener("click",event=>{
  event.preventDefault();
  if(history.length>1&&document.referrer){
-  try{if(new URL(document.referrer).origin===location.origin){history.back();return;}}catch(e){}
+  try{if(new URL(document.referrer).origin===location.origin){history.back();return}}catch(e){}
  }
  location.href="./index.html";
 });
 
-$("date").value=localDate();
-$("dayFilter").value=localDate();
-$("monthFilter").value=currentMonth();
+$("date").value=localDate();$("dayFilter").value=localDate();$("monthFilter").value=currentMonth();
 applyPreferences();
 
-try{
- if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);
- auth=firebase.auth();db=firebase.database();
- auth.onAuthStateChanged(async current=>{
-  detachListeners();user=null;
-  if(!current){showStatus(t("signIn"),"error");location.replace("./index.html");return;}
-  user=current;document.body.classList.remove("auth-pending");
-  await startCloud(current);
- },error=>showStatus(t("cloudError")+" "+(error.message||""),"error"));
-}catch(e){console.error(e);showStatus(t("cloudError")+" "+(e.message||""),"error");}
+auth.onAuthStateChanged(async current=>{
+ detachListeners();user=null;
+ if(!current){location.replace("./index.html");return}
+ user=current;document.body.classList.remove("auth-pending");
+ await startCloud(current);
+},error=>showStatus(t("cloudError")+" "+(error.message||""),"error"));
+
+window.addEventListener("beforeunload",detachListeners);
 </script>
 </body>
 </html>
