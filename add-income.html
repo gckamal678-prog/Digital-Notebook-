@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="ne">
 <head>
@@ -71,7 +70,6 @@ body[data-layout="compact"] main{gap:8px;padding:8px}
 body[data-layout="compact"] .card{padding:12px}
 body[data-layout="compact"] .record{padding:8px}
 
-/* एपभित्रकै पुष्टि संवाद: browser domain says प्रयोग हुँदैन */
 .modal-backdrop{position:fixed;inset:0;background:#000a;z-index:1000;display:flex;align-items:center;justify-content:center;padding:18px}
 .modal{width:min(100%,440px);background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:0 20px 70px #0008}
 .modal h2{margin:0 0 12px}
@@ -419,7 +417,6 @@ async function moveToTrash(id){
   updates[PATH+"/"+id]=null;
   updates["trash/"+PATH+"/"+id]=entry;
   await userRef("").update(updates);
-  /* Success toast intentionally omitted. */
  }catch(e){errorStatus(t("deleteFail")+e.message);}
 }
 
@@ -531,7 +528,6 @@ $("form").addEventListener("submit",async e=>{
  try{
   await saveOne(id,data,editing);
   resetForm();
-  /* सामान्य सफल Save सूचना हटाइएको छ। */
  }catch(err){errorStatus(t("saveFail")+err.message);}
  finally{$("saveButton").disabled=false;}
 });
@@ -576,13 +572,12 @@ async function importLegacyIncome(){
    if(result.committed)imported++;
   }
   await marker.set({completedAt:Date.now(),imported,source:sourceKey});
-  /* सफल Import सूचना पनि सामान्य toast का रूपमा देखाइँदैन। */
  }catch(err){errorStatus(t("importFail")+err.message);}
  finally{importingLegacy=false;$("importButton").disabled=false;}
 }
 $("importButton").addEventListener("click",importLegacyIncome);
 
-/* पुरानो प्रोफाइल key र सम्भावित profile object दुवै पढ्ने */
+/* प्रोफाइल तान्ने फंक्सन */
 function firstLocalValue(keys){
  for(const key of keys){
   const value=localStorage.getItem(key);
@@ -609,47 +604,93 @@ function profileForPdf(){
   mobile:firstLocalValue(["profile_mobile","user_profile_mobile","user_mobile"])||p.mobile||p.phone||p.phoneNumber||""
  };
 }
+
+/* Portrait (ठाडो) A4 PDF जेनेरेटर - Transactions जस्तै सुधारिएको */
 async function exportPdf(){
  if(!window.html2pdf){errorStatus(t("pdfFail"));return;}
  const records=getRecords().sort((a,b)=>String(a.date||"").localeCompare(String(b.date||"")));
  const profile=profileForPdf(),total=records.reduce((s,r)=>s+recordAmount(r),0),reportDate=new Date().toLocaleString(),missing=t("missing");
- const rows=records.map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r.date||"")}</td><td>${esc(r.sourceName||r.name||r.title||"")}</td><td class="right">${num(r.npr).toFixed(2)}</td><td class="right">${num(r.inr).toFixed(2)}</td><td class="right">${recordAmount(r).toFixed(2)}</td><td>${esc(r.note||r.description||"")}</td></tr>`).join("");
+ 
+ const rows=records.map((r,i)=>`<tr>
+   <td style="text-align:center">${i+1}</td>
+   <td>${esc(r.date||"")}</td>
+   <td><b>${esc(r.sourceName||r.name||r.title||"")}</b></td>
+   <td class="right">${num(r.npr).toFixed(2)}</td>
+   <td class="right">${num(r.inr).toFixed(2)}</td>
+   <td class="right">${recordAmount(r).toFixed(2)}</td>
+   <td>${esc(r.note||r.description||"")}</td>
+ </tr>`).join("");
 
  const report=document.createElement("div");
- report.style.cssText="background:#fff;color:#172033;padding:22px;font-family:Arial,'Noto Sans Devanagari',sans-serif;font-size:11px;width:100%";
+ report.style.cssText="background:#fff;color:#172033;padding:10px;font-family:Arial,'Noto Sans Devanagari',sans-serif;font-size:10px;width:100%;box-sizing:border-box;";
  report.innerHTML=`
- <div style="background:#102b3f;color:#fff;padding:18px;border-radius:8px;border-bottom:5px solid #10b981;margin-bottom:14px">
-  <div style="display:flex;align-items:center;gap:12px">
-   <img src="N1024.png" alt="Digital NoteBook" style="width:55px;height:55px;object-fit:contain" onerror="this.style.display='none'">
-   <div><h1 style="font-size:23px;margin:0 0 5px">Digital NoteBook</h1><div style="font-size:13px">${esc(t("report"))}</div></div>
+ <div style="background:#102b3f;color:#fff;padding:10px;border-radius:6px;border-bottom:4px solid #10b981;margin-bottom:8px">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+   <div>
+    <h1 style="font-size:15px;margin:0 0 2px">Digital NoteBook</h1>
+    <div style="font-size:10px;color:#34d399;font-weight:bold">${esc(t("report"))}</div>
+   </div>
+   <div style="text-align:right;font-size:8px">
+    <b>${esc(t("reportDate"))}:</b> ${esc(reportDate)}
+   </div>
   </div>
-  <hr style="border:0;border-top:1px solid #547080;margin:13px 0">
-  <div style="line-height:1.9"><b>${esc(t("profile"))}</b><br>
-   <b>${esc(t("name"))}:</b> ${esc(profile.name||missing)}<br>
-   <b>${esc(t("email"))}:</b> ${esc(profile.email||missing)}<br>
-   <b>${esc(t("address"))}:</b> ${esc(profile.address||missing)}<br>
-   <b>${esc(t("mobile"))}:</b> ${esc(profile.mobile||missing)}<br>
-   <b>${esc(t("reportDate"))}:</b> ${esc(reportDate)}
+  <hr style="border:0;border-top:1px solid #334e68;margin:5px 0">
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:3px;font-size:8.5px">
+   <div><b>${esc(t("name"))}:</b> ${esc(profile.name||missing)}</div>
+   <div><b>${esc(t("email"))}:</b> ${esc(profile.email||missing)}</div>
+   <div><b>${esc(t("address"))}:</b> ${esc(profile.address||missing)}</div>
+   <div><b>${esc(t("mobile"))}:</b> ${esc(profile.mobile||missing)}</div>
   </div>
  </div>
- <div style="background:#eaf7f0;border:1px solid #b8e2cc;border-radius:6px;padding:12px;margin-bottom:16px">
-  <b>${esc(t("grandTotal"))}:</b> ${money(total)} &nbsp; | &nbsp; <b>${esc(t("recordCount"))}:</b> ${records.length}
+
+ <div style="background:#eaf7f0;border:1px solid #b8e2cc;border-radius:4px;padding:5px 8px;margin-bottom:8px;font-size:9.5px;display:flex;justify-content:space-between">
+  <div><b>${esc(t("grandTotal"))}:</b> <span style="color:#059669;font-weight:bold">${money(total)}</span></div>
+  <div><b>${esc(t("recordCount"))}:</b> ${records.length}</div>
  </div>
- <h2 style="font-size:16px;margin:12px 0 7px">${esc(t("detailsTitle"))}</h2>
- <table><thead><tr><th>${esc(t("serial"))}</th><th>${esc(t("dateLabel"))}</th><th>${esc(t("incomeName"))}</th><th>NPR</th><th>INR</th><th>${esc(t("total"))} NPR</th><th>${esc(t("remark"))}</th></tr></thead>
- <tbody>${rows||`<tr><td colspan="7">${esc(t("pdfEmpty"))}</td></tr>`}</tbody>
- <tfoot><tr><td colspan="5" class="right"><b>${esc(t("total"))}</b></td><td class="right"><b>${total.toFixed(2)}</b></td><td></td></tr></tfoot></table>
- <div style="margin-top:18px;border-top:1px solid #ccd5d1;padding-top:8px;color:#52635d">${esc(t("reportFoot"))}</div>
- <style>table{border-collapse:collapse;width:100%;margin-bottom:16px}th,td{border:1px solid #9aada6;padding:6px;vertical-align:top}th{background:#dcebe5;text-align:left}.right{text-align:right}tr{page-break-inside:avoid}</style>`;
+
+ <h2 style="font-size:11px;margin:5px 0 3px;color:#102b3f">${esc(t("detailsTitle"))}</h2>
+ 
+ <table>
+  <thead>
+   <tr>
+    <th style="width:25px;text-align:center">${esc(t("serial"))}</th>
+    <th style="width:65px">${esc(t("dateLabel"))}</th>
+    <th>${esc(t("incomeName"))}</th>
+    <th style="width:60px" class="right">NPR</th>
+    <th style="width:55px" class="right">INR</th>
+    <th style="width:70px" class="right">${esc(t("total"))} NPR</th>
+    <th>${esc(t("remark"))}</th>
+   </tr>
+  </thead>
+  <tbody>
+   ${rows||`<tr><td colspan="7" style="text-align:center">${esc(t("pdfEmpty"))}</td></tr>`}
+  </tbody>
+  <tfoot>
+   <tr>
+    <td colspan="5" class="right"><b>${esc(t("total"))}</b></td>
+    <td class="right" style="color:#059669"><b>${total.toFixed(2)}</b></td>
+    <td></td>
+   </tr>
+  </tfoot>
+ </table>
+
+ <div style="margin-top:8px;border-top:1px solid #ccd5d1;padding-top:3px;font-size:7.5px;color:#64748b;text-align:center">${esc(t("reportFoot"))}</div>
+ 
+ <style>
+  table{border-collapse:collapse;width:100%;margin-bottom:6px;table-layout:fixed;}
+  th,td{border:1px solid #94a3b8;padding:3px 4px;vertical-align:middle;word-wrap:break-word;}
+  th{background:#f1f5f9;color:#0f172a;font-weight:bold;text-align:left}
+  .right{text-align:right}
+  tr{page-break-inside:avoid}
+ </style>`;
 
  try{
   await html2pdf().set({
-   margin:8,
+   margin:5,
    filename:"Digital-Notebook-Income-"+new Date().toISOString().slice(0,10)+".pdf",
-   image:{type:"jpeg",quality:.98},
-   html2canvas:{scale:2,useCORS:true},
-   pagebreak:{mode:["css","legacy"]},
-   jsPDF:{unit:"mm",format:"a4",orientation:"landscape"}
+   image:{type:"jpeg",quality:0.98},
+   html2canvas:{scale:2,useCORS:true,scrollY:0},
+   jsPDF:{unit:"mm",format:"a4",orientation:"portrait"}
   }).from(report).save();
  }catch(e){errorStatus(t("pdfError")+e.message);}
 }
