@@ -917,6 +917,50 @@ document.addEventListener("DOMContentLoaded", () => {
     if (backdrop) backdrop.classList.toggle("hidden", !open);
   }
 
+  // MPIN Unlock Logic
+  function checkMpinLock() {
+    const savedMpin = localStorage.getItem("digital_notebook_mpin");
+    const mpinOverlay = $("mpin-overlay");
+    const appEl = $("app");
+
+    if (savedMpin) {
+      // यदि MPIN सेट छ भने सुरुमा ड्यासबोर्ड लुकाउने र MPIN स्क्रिन देखाउने
+      if (appEl) appEl.classList.add("hidden");
+      if (mpinOverlay) mpinOverlay.classList.remove("hidden");
+      const doorMpin = $("door-mpin");
+      if (doorMpin) doorMpin.focus();
+    } else {
+      // यदि MPIN सेट छैन भने सिधै ड्यासबोर्ड खोल्ने
+      if (mpinOverlay) mpinOverlay.classList.add("hidden");
+      if (appEl) appEl.classList.remove("hidden");
+    }
+  }
+
+  const mpinForm = $("mpin-form");
+  if (mpinForm) {
+    mpinForm.addEventListener("submit", e => {
+      e.preventDefault();
+      const entered = $("door-mpin")?.value.trim();
+      const savedMpin = localStorage.getItem("digital_notebook_mpin");
+      const errEl = $("door-mpin-error");
+
+      if (entered === savedMpin) {
+        if (errEl) errEl.textContent = "";
+        $("mpin-overlay")?.classList.add("hidden");
+        $("app")?.classList.remove("hidden");
+      } else {
+        if (errEl) errEl.textContent = "Incorrect MPIN. Please try again.";
+      }
+    });
+  }
+
+  const doorLogout = $("door-logout");
+  if (doorLogout) {
+    doorLogout.addEventListener("click", async () => {
+      if (auth) await auth.signOut();
+    });
+  }
+
   if (auth && db) {
     auth.onAuthStateChanged(user => {
       stopListeners();
@@ -924,10 +968,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const appEl = $("app");
       const loginOverlay = $("login-overlay");
-      if (appEl) appEl.classList.toggle("hidden", !user);
-      if (loginOverlay) loginOverlay.classList.toggle("hidden", !!user);
+      const mpinOverlay = $("mpin-overlay");
 
-      if (!user) return;
+      if (!user) {
+        // लगइन छैन भने लगइन स्क्रिन मात्र देखाउने, बाँकी लुकाउने
+        if (appEl) appEl.classList.add("hidden");
+        if (mpinOverlay) mpinOverlay.classList.add("hidden");
+        if (loginOverlay) loginOverlay.classList.remove("hidden");
+        return;
+      }
+
+      // प्रयोगकर्ता लगइन भइसकेको छ भने सिधै लगइन ओभरले लुकाउने
+      if (loginOverlay) loginOverlay.classList.add("hidden");
 
       applySettings();
       loadLocalFallback();
@@ -938,6 +990,9 @@ document.addEventListener("DOMContentLoaded", () => {
       listenReminder();
       listenProfile();
       renderDashboard();
+
+      // MPIN सेट छ कि छैन जाँचेर सही स्क्रिन खोल्ने
+      checkMpinLock();
     });
   }
 
