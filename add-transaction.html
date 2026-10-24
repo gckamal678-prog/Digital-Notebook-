@@ -68,7 +68,7 @@ body[data-layout="compact"] .record{padding:8px}
 
 <section class="card">
 <h1 data-i18n="pageTitle">कारोबार / पार्टी लेजर</h1>
-<p class="muted"><span data-i18n="intro">लिनुपर्ने र दिनुपर्ने</span> · 1 INR = 1.6 NPR · <span data-i18n="simpleInterest">साधारण ब्याज</span></p>
+<p class="muted"><span data-i18n="intro">लिनुपर्ने र दिनुपर्ने</span>[span_0](start_span)[span_0](end_span) · 1 INR = 1.6 NPR · <span data-i18n="simpleInterest">साधारण ब्याज</span>[span_1](start_span)[span_1](end_span)</p>
 <form id="transactionForm">
 <input id="recordId" type="hidden">
 <div class="grid">
@@ -243,13 +243,38 @@ function dueCountdown(date){
  if(days<0)return `<span class="muted"> · ${Math.abs(days)} दिन भाका नाघ्यो</span>`;
  return `<span class="amount ${days===0?"net-neg":"net-pos"}"> · ${days} दिन बाँकी</span>`;
 }
+
+// ---------------------------------------------------------------------------
+// अटोमेटिक ड्यू डेट (Due Date) क्याल्कुलेट गर्ने फङ्सन
+// ---------------------------------------------------------------------------
+function updateDueDateAuto() {
+  const dateVal = $("date").value;
+  const monthsVal = parseInt($("period").value) || 0;
+  
+  if (dateVal && monthsVal > 0) {
+    const d = dateFromYMD(dateVal);
+    if (d) {
+      d.setMonth(d.getMonth() + monthsVal);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      $("dueDate").value = `${year}-${month}-${day}`;
+    }
+  }
+}
+
 function calculate(){
  const principal=num($("npr").value)+num($("inr").value)*RATE_INR;
  const interest=$("type").value==="Expense"?0:principal*num($("rate").value)*num($("period").value)/100;
  $("total").value=(principal+interest).toFixed(2);
+ updateDueDateAuto(); // महिना वा मिति परिवर्तन हुँदा Due Date अटोमेटिक अपडेट हुन्छ
  return principal+interest;
 }
-["npr","inr","rate","period","type"].forEach(id=>$(id).addEventListener("input",calculate));
+
+["npr","inr","rate","period","type","date"].forEach(id=>$(id).addEventListener("input",calculate));
+$("date").addEventListener("change",calculate);
+$("period").addEventListener("input",calculate);
+
 function localDateInputValue(){
  const d=new Date();
  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
@@ -451,7 +476,6 @@ async function handleRecordAction(e){
   }else{
    $("legacyExpenseOption").hidden=true;
   }
-  /* Correctly restore every field, including the due date. */
   ["date","party","type","rate","period","npr","inr","note","dueDate"].forEach(k=>{
    $(k).value=r[k]??"";
   });
@@ -609,7 +633,6 @@ async function importOldData(){
   for(const r of old){
    if(!r||typeof r!=="object"||Array.isArray(r))continue;
    const id=typeof r.id==="string"&&validKey(r.id)?r.id:userRef(PATH).push().key;
-   /* Do not invent due dates for old records. Keep only dates that existed. */
    const migrated={...r,id,party:String(r.party||r.name||r.person||"").trim(),createdAt:r.createdAt||Date.now(),updatedAt:Date.now(),migratedFromLocal:true};
    if(!migrated.dueDate)migrated.dueDate="";
    const result=await userRef(PATH+"/"+id).transaction(current=>current===null?migrated:undefined,undefined,false);
