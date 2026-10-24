@@ -186,7 +186,7 @@ let prefs=loadPrefs(),currentUser=null,records={},trash={},expandedGroups=new Se
 function loadPrefs(){try{const v=JSON.parse(localStorage.getItem(SETTINGS_KEY)||"{}");return {...{lang:"ne",theme:"dark",font_size:"16",font_family:"Poppins",accentColor:"#10b981",layout:"comfortable"},...(v&&typeof v==="object"?v:{})}}catch(e){return {lang:"ne",theme:"dark",font_size:"16",font_family:"Poppins",accentColor:"#10b981",layout:"comfortable"}}}
 function t(k){return words[prefs.lang==="en"?"en":"ne"][k]||words.en[k]||k}
 function status(message,bad=false){$("statusMessage").textContent=message||"";$("statusMessage").classList.toggle("error",!!bad)}
-function esc(v){return String(v?=""?v:"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function esc(v){return String(v?v:"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function num(v){const n=Number(v);return Number.isFinite(n)?n:0}
 function money(v){
  const n=num(v),sign=n<0?"- ":"";
