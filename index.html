@@ -77,16 +77,19 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 }
 button:disabled { opacity: .6; cursor: not-allowed; }
 
-#login-overlay {
+#login-overlay, #mpin-overlay {
   position: fixed;
   inset: 0;
-  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
   background: var(--bg);
 }
+#login-overlay { z-index: 1000; }
+#mpin-overlay { z-index: 1100; }
+#mpin-overlay.hidden { display: none !important; }
+
 .login-card {
   width: 100%;
   max-width: 390px;
@@ -106,20 +109,6 @@ button:disabled { opacity: .6; cursor: not-allowed; }
   background: var(--field);
 }
 .login-card button { width: 100%; margin-top: 12px; }
-
-#mpin-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 1100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  background: var(--bg);
-}
-#mpin-overlay.hidden {
-  display: none !important;
-}
 
 #topbar {
   position: sticky;
@@ -174,7 +163,6 @@ h2 { margin-bottom: 10px; font-size: 1.12em; }
   background: var(--panel);
   color: var(--text);
 }
-
 .card {
   min-width: 0;
   padding: 17px;
@@ -320,7 +308,6 @@ body[data-layout="compact"] .metric-grid, body[data-layout="compact"] .quick-gri
 </head>
 
 <body>
-<!-- सुरुमा लगइन र ड्यासबोर्ड दुवै लुकाउने (hidden) ताकि लोड हुँदा एकैछिन पनि लगइन पेज नझुल्कोस् -->
 <div id="login-overlay" class="hidden">
   <form id="login-form" class="login-card">
     <div style="text-align:center">
@@ -341,16 +328,12 @@ body[data-layout="compact"] .metric-grid, body[data-layout="compact"] .quick-gri
 <div id="mpin-overlay" class="hidden">
   <form id="mpin-form" class="login-card">
     <div style="text-align:center">
-      <img src="N1024.png" alt="Digital NoteBook"
-           style="width:66px;height:66px;object-fit:cover;border-radius:17px">
+      <img src="N1024.png" alt="Digital NoteBook" style="width:66px;height:66px;object-fit:cover;border-radius:17px">
       <h1 style="margin-top:12px;color:var(--accent)">🔐 MPIN Lock</h1>
       <p class="muted">Enter your 4-digit MPIN to open Digital NoteBook.</p>
     </div>
-    <input id="door-mpin" type="password" inputmode="numeric"
-           pattern="[0-9]{4}" maxlength="4" autocomplete="off"
-           required placeholder="Enter 4-digit MPIN">
-    <p id="door-mpin-error" role="alert"
-       style="color:#fb7185;font-size:.85em"></p>
+    <input id="door-mpin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="off" required placeholder="Enter 4-digit MPIN">
+    <p id="door-mpin-error" role="alert" style="color:#fb7185;font-size:.85em"></p>
     <button class="btn btn-primary" type="submit">Unlock</button>
     <button class="btn" id="door-logout" type="button">Log out</button>
   </form>
@@ -369,6 +352,9 @@ body[data-layout="compact"] .metric-grid, body[data-layout="compact"] .quick-gri
       <div id="sidebar-email" class="muted" style="font-size:.78em;overflow-wrap:anywhere"></div>
     </div>
   </div>
+  <label for="avatar-file">Profile photo</label>
+  <input id="avatar-file" class="form-control" type="file" accept="image/*">
+  <p class="muted" style="font-size:.75em">Photo is saved on this device.</p>
   <label for="profile-name">Full name</label>
   <input id="profile-name" class="form-control" placeholder="Full name">
   <label for="profile-address">Address</label>
@@ -429,9 +415,7 @@ body[data-layout="compact"] .metric-grid, body[data-layout="compact"] .quick-gri
 
     <section class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
-        <div>
-          <h2 style="margin-bottom:2px">Reminder</h2>
-        </div>
+        <h2 style="margin-bottom:2px">Reminder</h2>
         <span style="font-size:1.4em" aria-hidden="true">🔔</span>
       </div>
       <textarea id="reminder-text" class="form-control" maxlength="2000" placeholder="Write a reminder..." style="margin-top:12px"></textarea>
@@ -449,9 +433,7 @@ body[data-layout="compact"] .metric-grid, body[data-layout="compact"] .quick-gri
         </div>
         <span style="font-size:1.4em" aria-hidden="true">🔔</span>
       </div>
-      <div id="due-alerts" class="activity-list">
-        <p class="muted">Loading due dates…</p>
-      </div>
+      <div id="due-alerts" class="activity-list"><p class="muted">Loading due dates…</p></div>
     </section>
 
     <section id="custom-banner-ad" class="card banner" aria-label="Digital NoteBook banner">
@@ -486,15 +468,11 @@ body[data-layout="compact"] .metric-grid, body[data-layout="compact"] .quick-gri
           <div class="insight-item"><span>Saving records</span><strong id="monthly-savings">NPR 0</strong></div>
         </div>
       </article>
-
       <article class="card">
         <h2>Recent Activity</h2>
-        <div id="recent-activity" class="activity-list">
-          <p class="muted">Loading records…</p>
-        </div>
+        <div id="recent-activity" class="activity-list"><p class="muted">Loading records…</p></div>
       </article>
     </section>
-
     <footer>Digital NoteBook</footer>
   </main>
 </div>
@@ -530,6 +508,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let cloudData = {};
   let localRecords = {};
   let saveReminderBusy = false;
+  let mpinUnlockedForPage = false;
+  let dashboardStartedUid = null;
 
   try {
     app = firebase.initializeApp(FIREBASE_CONFIG);
@@ -542,11 +522,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function parseJSON(value, fallback = null) {
-    try {
-      return JSON.parse(value);
-    } catch (_) {
-      return fallback;
-    }
+    try { return JSON.parse(value); } catch (_) { return fallback; }
   }
 
   function number(value) {
@@ -590,27 +566,26 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.dataset.layout = root.dataset.layout;
 
     const words = s.lang === "ne" ? { overview: "तपाईंको आर्थिक विवरण" } : { overview: "Your financial overview" };
-
     document.querySelectorAll("[data-en][data-ne]").forEach(el => {
       el.textContent = s.lang === "ne" ? el.dataset.ne : el.dataset.en;
     });
-
     const subtitle = document.querySelector(".subtitle");
     if (subtitle) subtitle.textContent = words.overview;
-
     renderDashboard();
   }
 
   window.addEventListener("storage", event => {
     if (["digital_notebook_settings", "theme", "balance_privacy"].includes(event.key)) {
-      if (event.key === "balance_privacy") {
-        privacy = localStorage.getItem("balance_privacy") === "hidden";
-      }
+      if (event.key === "balance_privacy") privacy = localStorage.getItem("balance_privacy") === "hidden";
       applySettings();
     }
     if (Object.values(LOCAL).flat().includes(event.key)) {
       loadLocalFallback();
       renderDashboard();
+    }
+    if (event.key === "app_mpin") {
+      mpinUnlockedForPage = false;
+      if (auth?.currentUser) evaluateSecurityAccess(auth.currentUser);
     }
   });
 
@@ -621,9 +596,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!record || typeof record !== "object") return 0;
     const keys = ["amount", "price", "total", "cost", "totalAmount", "expenseAmount", "houseExpenseAmount", "incomeAmount", "savingAmount", "txAmount", "principalAmount", "val", "npr"];
     for (const key of keys) {
-      if (record[key] !== undefined && record[key] !== null && record[key] !== "") {
-        return number(record[key]);
-      }
+      if (record[key] !== undefined && record[key] !== null && record[key] !== "") return number(record[key]);
     }
     return 0;
   }
@@ -635,7 +608,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function recordDate(record) {
     const raw = record?.date || record?.dateExpense || record?.createdAt || record?.timestamp || record?.datedAt || record?.created_at || "";
     if (!raw) return null;
-    let date = typeof raw === "number" ? new Date(raw < 100000000000 ? raw * 1000 : raw) : new Date(raw);
+    const date = typeof raw === "number" ? new Date(raw < 100000000000 ? raw * 1000 : raw) : new Date(raw);
     return Number.isNaN(date.getTime()) ? null : date;
   }
 
@@ -646,15 +619,14 @@ document.addEventListener("DOMContentLoaded", () => {
   function normalizeRecords(raw) {
     if (!raw || typeof raw !== "object") return [];
     const entries = Array.isArray(raw) ? raw.map((value, index) => [String(index), value]) : Object.entries(raw);
-    return entries.filter(([, record]) => record && typeof record === "object" && !Array.isArray(record))
+    return entries
+      .filter(([, record]) => record && typeof record === "object" && !Array.isArray(record))
       .map(([id, record]) => ({ ...record, id: String(record.id || id) }))
       .filter(record => !isDeleted(record));
   }
 
   function getRecords(path) {
-    if (Object.prototype.hasOwnProperty.call(cloudData, path)) {
-      return normalizeRecords(cloudData[path]);
-    }
+    if (Object.prototype.hasOwnProperty.call(cloudData, path)) return normalizeRecords(cloudData[path]);
     return localRecords[path] || [];
   }
 
@@ -695,6 +667,11 @@ document.addEventListener("DOMContentLoaded", () => {
     return type.includes("payable") || type.includes("give") || type.includes("दिनुपर्ने") || type.includes("दिनु") || type === "pay" || type === "loan taken";
   }
 
+  function isExpense(record) {
+    const type = recordType(record);
+    return type.includes("expense") || type.includes("खर्च") || type === "debit" || type === "debit transaction";
+  }
+
   function renderDashboard() {
     const incomeRecords = getRecords("incomes");
     const savingsRecords = getRecords("savings");
@@ -710,24 +687,34 @@ document.addEventListener("DOMContentLoaded", () => {
     const totalIncome = activeIncomes.reduce((sum, record) => sum + amount(record), 0);
     const totalReceivable = activeTransactions.filter(isReceivable).reduce((sum, record) => sum + amount(record), 0);
     const totalPayable = activeTransactions.filter(isPayable).reduce((sum, record) => sum + amount(record), 0);
-    
-    const totalHouseExpenses = activeHouseExpenses.reduce((sum, record) => sum + amount(record), 0);
 
-    const netBalance = totalIncome + totalReceivable - totalPayable - totalHouseExpenses;
+    const transactionExpenses = activeTransactions
+      .filter(isExpense)
+      .reduce((sum, record) => sum + amount(record), 0);
+    const houseExpenses = activeHouseExpenses.reduce((sum, record) => sum + amount(record), 0);
+    const totalExpenses = transactionExpenses + houseExpenses;
+    const netBalance = totalIncome + totalReceivable - totalPayable - totalExpenses;
 
-    const monthIncome = activeIncomes.filter(record => monthMatch(record, now.getFullYear(), now.getMonth())).reduce((sum, record) => sum + amount(record), 0);
-    const monthSavings = activeSavings.filter(record => monthMatch(record, now.getFullYear(), now.getMonth())).reduce((sum, record) => sum + amount(record), 0);
-    const monthHouseExpenses = activeHouseExpenses.filter(record => monthMatch(record, now.getFullYear(), now.getMonth())).reduce((sum, record) => sum + amount(record), 0);
+    const monthIncome = activeIncomes
+      .filter(record => monthMatch(record, now.getFullYear(), now.getMonth()))
+      .reduce((sum, record) => sum + amount(record), 0);
+    const monthSavings = activeSavings
+      .filter(record => monthMatch(record, now.getFullYear(), now.getMonth()))
+      .reduce((sum, record) => sum + amount(record), 0);
+    const monthTransactionExpenses = activeTransactions
+      .filter(record => isExpense(record) && monthMatch(record, now.getFullYear(), now.getMonth()))
+      .reduce((sum, record) => sum + amount(record), 0);
+    const monthHouseExpenses = activeHouseExpenses
+      .filter(record => monthMatch(record, now.getFullYear(), now.getMonth()))
+      .reduce((sum, record) => sum + amount(record), 0);
 
     setText("summary-net-balance", money(netBalance));
     setText("summary-receivable", money(totalReceivable));
     setText("summary-payable", money(totalPayable));
-    setText("summary-expenses", money(totalHouseExpenses));
-
+    setText("summary-expenses", money(totalExpenses));
     setText("monthly-income", money(monthIncome));
-    setText("monthly-expenses", money(monthHouseExpenses));
+    setText("monthly-expenses", money(monthTransactionExpenses + monthHouseExpenses));
     setText("monthly-savings", money(monthSavings));
-
     setText("insight-month-label", now.toLocaleDateString(readSettings().lang === "ne" ? "ne-NP" : "en-IN", { month: "long", year: "numeric" }));
 
     const displayName = localStorage.getItem("profile_name") || localStorage.getItem("user_profile_name") || "";
@@ -758,12 +745,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const dueRecords = records.filter(record => typeof record.dueDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(record.dueDate)).map(record => {
-      const [year, month, day] = record.dueDate.split("-").map(Number);
-      const due = new Date(year, month - 1, day);
-      if (due.getFullYear() !== year || due.getMonth() !== month - 1 || due.getDate() !== day) return null;
-      return { ...record, _dueDateObject: due, _daysLeft: Math.round((due - today) / 86400000) };
-    }).filter(Boolean).sort((a, b) => a._dueDateObject - b._dueDateObject).slice(0, 8);
+    const dueRecords = records
+      .filter(record => typeof record.dueDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(record.dueDate))
+      .map(record => {
+        const [year, month, day] = record.dueDate.split("-").map(Number);
+        const due = new Date(year, month - 1, day);
+        if (due.getFullYear() !== year || due.getMonth() !== month - 1 || due.getDate() !== day) return null;
+        return { ...record, _dueDateObject: due, _daysLeft: Math.round((due - today) / 86400000) };
+      })
+      .filter(Boolean)
+      .sort((a, b) => a._dueDateObject - b._dueDateObject)
+      .slice(0, 8);
 
     if (!dueRecords.length) {
       const p = document.createElement("p");
@@ -794,7 +786,6 @@ document.addEventListener("DOMContentLoaded", () => {
       else right.textContent = record._daysLeft + " day(s) left";
 
       right.style.color = record._daysLeft <= 3 ? "#fb7185" : "var(--accent)";
-
       left.append(title, sub);
       row.append(left, right);
       root.appendChild(row);
@@ -841,23 +832,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function applyProfile(profile = {}) {
     const name = profile.name || localStorage.getItem("profile_name") || localStorage.getItem("user_profile_name") || "";
-    const addressField = $("profile-name");
-    if (addressField) addressField.value = name;
-    
-    const addr = $("profile-address");
-    if (addr) addr.value = profile.address || localStorage.getItem("profile_address") || "";
-    
-    const mob = $("profile-mobile");
-    if (mob) mob.value = profile.mobile || localStorage.getItem("profile_mobile") || "";
+    const nameField = $("profile-name");
+    if (nameField) nameField.value = name;
+
+    const addressField = $("profile-address");
+    if (addressField) addressField.value = profile.address || localStorage.getItem("profile_address") || "";
+
+    const mobileField = $("profile-mobile");
+    if (mobileField) mobileField.value = profile.mobile || localStorage.getItem("profile_mobile") || "";
 
     setText("sidebar-name", name || "My Account");
     setText("sidebar-email", auth?.currentUser?.email || "");
 
     const avatar = localStorage.getItem("profile_avatar") || "N1024.png";
-    const sAvatar = $("sidebar-avatar");
-    if (sAvatar) sAvatar.src = avatar;
-    const hAvatar = $("header-avatar");
-    if (hAvatar) hAvatar.src = avatar;
+    const sidebarAvatar = $("sidebar-avatar");
+    if (sidebarAvatar) sidebarAvatar.src = avatar;
+    const headerAvatar = $("header-avatar");
+    if (headerAvatar) headerAvatar.src = avatar;
 
     setText("greeting", name ? "Welcome, " + name : "Welcome");
   }
@@ -865,16 +856,19 @@ document.addEventListener("DOMContentLoaded", () => {
   function listen(path) {
     const firebasePath = path === "house" ? "house_expenses" : path;
     const reference = db.ref("users/" + uid + "/" + firebasePath);
+
     const callback = snapshot => {
       if (auth.currentUser?.uid !== uid) return;
       cloudData[path] = snapshot.val();
       localRecords[path] = normalizeRecords(snapshot.val());
+
       const key = LOCAL[path]?.[0];
       if (key) {
         try { localStorage.setItem(key, JSON.stringify(localRecords[path])); } catch (_) {}
       }
       renderDashboard();
     };
+
     reference.on("value", callback, error => console.error("Realtime listener failed:", path, error));
     listeners.push(() => reference.off("value", callback));
   }
@@ -884,10 +878,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const callback = snapshot => {
       if (auth.currentUser?.uid !== uid) return;
       const value = snapshot.val();
-      const rText = $("reminder-text");
-      if (rText && document.activeElement !== rText) {
-        rText.value = value?.text || "";
-      }
+      const reminder = $("reminder-text");
+      if (reminder && document.activeElement !== reminder) reminder.value = value?.text || "";
     };
     reference.on("value", callback, error => console.error("Reminder listener failed", error));
     listeners.push(() => reference.off("value", callback));
@@ -918,58 +910,86 @@ document.addEventListener("DOMContentLoaded", () => {
     if (backdrop) backdrop.classList.toggle("hidden", !open);
   }
 
-  // सुरक्षा जाँच र Lock व्यवस्थापन
   function evaluateSecurityAccess(user) {
     const loginOverlay = $("login-overlay");
     const mpinOverlay = $("mpin-overlay");
     const appEl = $("app");
 
     if (!user) {
-      // लगइन छैन भने लगइन पेज मात्र देखाउने
       if (appEl) appEl.classList.add("hidden");
       if (mpinOverlay) mpinOverlay.classList.add("hidden");
       if (loginOverlay) loginOverlay.classList.remove("hidden");
-      return;
+      return false;
     }
 
-    // प्रयोगकर्ता लगइन छ, अब लगइन ओभरले लुकाउने
     if (loginOverlay) loginOverlay.classList.add("hidden");
 
-    const savedMpin = localStorage.getItem("digital_notebook_mpin");
-    const sessionUnlocked = sessionStorage.getItem("digital_notebook_unlocked") === "true";
+    const savedMpin = localStorage.getItem("app_mpin");
 
-    if (savedMpin && !sessionUnlocked) {
-      // यदि MPIN सेट छ र यो ब्राउजर ट्याबमा हालसम्म अनलक गरिएको छैन भने MPIN माग्ने
+    if (savedMpin && !mpinUnlockedForPage) {
       if (appEl) appEl.classList.add("hidden");
       if (mpinOverlay) mpinOverlay.classList.remove("hidden");
-      const doorMpin = $("door-mpin");
-      if (doorMpin) {
-        doorMpin.value = "";
-        doorMpin.focus();
+
+      const field = $("door-mpin");
+      if (field) {
+        field.value = "";
+        setTimeout(() => field.focus(), 0);
       }
-    } else {
-      // MPIN छैन वा यो ट्याबमा पहिल्यै अनलक भइसकेको छ भने सिधै ड्यासबोर्ड देखाउने
-      if (mpinOverlay) mpinOverlay.classList.add("hidden");
-      if (appEl) appEl.classList.remove("hidden");
+      return false;
     }
+
+    if (mpinOverlay) mpinOverlay.classList.add("hidden");
+    if (appEl) appEl.classList.remove("hidden");
+    return true;
+  }
+
+  function startDashboard(user) {
+    if (!user || !db || !uid) return;
+    if (dashboardStartedUid === uid) return;
+
+    dashboardStartedUid = uid;
+    applySettings();
+    loadLocalFallback();
+
+    setText(
+      "today",
+      new Date().toLocaleDateString(
+        readSettings().lang === "ne" ? "ne-NP" : "en-GB",
+        { weekday: "long", year: "numeric", month: "long", day: "numeric" }
+      )
+    );
+
+    ["incomes", "transactions", "notes", "savings", "house"].forEach(listen);
+    listenReminder();
+    listenProfile();
+    renderDashboard();
   }
 
   const mpinForm = $("mpin-form");
   if (mpinForm) {
-    mpinForm.addEventListener("submit", e => {
-      e.preventDefault();
-      const entered = $("door-mpin")?.value.trim();
-      const savedMpin = localStorage.getItem("digital_notebook_mpin");
-      const errEl = $("door-mpin-error");
+    mpinForm.addEventListener("submit", event => {
+      event.preventDefault();
 
-      if (entered === savedMpin) {
-        if (errEl) errEl.textContent = "";
-        // यो ट्याबमा अनलक भयो भनी sessionStorage मा राख्ने (रिफ्रेस वा ब्याक गर्दा यो मेटिन्छ र फेरि लक मागिन्छ)
-        sessionStorage.setItem("digital_notebook_unlocked", "true");
-        $("mpin-overlay")?.classList.add("hidden");
-        $("app")?.classList.remove("hidden");
-      } else {
-        if (errEl) errEl.textContent = "Incorrect MPIN. Please try again.";
+      const entered = $("door-mpin")?.value.trim() || "";
+      const savedMpin = localStorage.getItem("app_mpin");
+      const errorEl = $("door-mpin-error");
+
+      if (!savedMpin) {
+        if (errorEl) errorEl.textContent = "MPIN is not set. Open Account & Recovery to set it.";
+        return;
+      }
+
+      if (!/^\d{4}$/.test(entered) || entered !== savedMpin) {
+        if (errorEl) errorEl.textContent = "गलत MPIN। कृपया फेरि प्रयास गर्नुहोस्।";
+        $("door-mpin")?.select();
+        return;
+      }
+
+      if (errorEl) errorEl.textContent = "";
+      mpinUnlockedForPage = true;
+
+      if (evaluateSecurityAccess(auth?.currentUser)) {
+        startDashboard(auth?.currentUser);
       }
     });
   }
@@ -977,7 +997,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const doorLogout = $("door-logout");
   if (doorLogout) {
     doorLogout.addEventListener("click", async () => {
-      sessionStorage.removeItem("digital_notebook_unlocked");
+      mpinUnlockedForPage = false;
+      stopListeners();
+      dashboardStartedUid = null;
       if (auth) await auth.signOut();
     });
   }
@@ -985,25 +1007,16 @@ document.addEventListener("DOMContentLoaded", () => {
   if (auth && db) {
     auth.onAuthStateChanged(user => {
       stopListeners();
+      dashboardStartedUid = null;
       uid = user?.uid || null;
 
       if (!user) {
+        mpinUnlockedForPage = false;
         evaluateSecurityAccess(null);
         return;
       }
 
-      applySettings();
-      loadLocalFallback();
-
-      setText("today", new Date().toLocaleDateString(readSettings().lang === "ne" ? "ne-NP" : "en-GB", { weekday: "long", year: "numeric", month: "long", day: "numeric" }));
-
-      ["incomes", "transactions", "notes", "savings", "house"].forEach(listen);
-      listenReminder();
-      listenProfile();
-      renderDashboard();
-
-      // सुरक्षा जाँच चलाउने
-      evaluateSecurityAccess(user);
+      if (evaluateSecurityAccess(user)) startDashboard(user);
     });
   }
 
@@ -1011,6 +1024,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (loginForm) {
     loginForm.addEventListener("submit", async event => {
       event.preventDefault();
+
       if (!auth) {
         setText("auth-error", "Firebase could not start. Check your connection.");
         return;
@@ -1025,20 +1039,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
       try {
         if (mode === "signup") {
-          const confirmPass = $("auth-confirm")?.value || "";
-          if (password !== confirmPass) throw new Error("Passwords do not match.");
+          const confirmPassword = $("auth-confirm")?.value || "";
+          if (password !== confirmPassword) throw new Error("Passwords do not match.");
           if (password.length < 6) throw new Error("Password must contain at least 6 characters.");
           await auth.createUserWithEmailAndPassword(email, password);
         } else {
           await auth.signInWithEmailAndPassword(email, password);
         }
-        // सफलतापूर्वक लगइन भएपछि अनलक फ्ल्याग सेट गर्ने
-        sessionStorage.setItem("digital_notebook_unlocked", "true");
       } catch (error) {
         const messages = {
           "auth/invalid-email": "Invalid email address.",
           "auth/invalid-credential": "Email or password is incorrect.",
-          "main/user-not-found": "Email or password is incorrect.",
+          "auth/user-not-found": "Email or password is incorrect.",
           "auth/wrong-password": "Email or password is incorrect.",
           "auth/email-already-in-use": "This email is already registered.",
           "auth/weak-password": "Choose a stronger password.",
@@ -1059,19 +1071,16 @@ document.addEventListener("DOMContentLoaded", () => {
       setText("auth-subtitle", mode === "login" ? "Login to your account" : "Create your account");
       setText("auth-submit", mode === "login" ? "Login" : "Sign up");
 
-      const authConfirm = $("auth-confirm");
-      if (authConfirm) {
-        authConfirm.classList.toggle("hidden", mode !== "signup");
-        authConfirm.required = mode === "signup";
+      const confirmField = $("auth-confirm");
+      if (confirmField) {
+        confirmField.classList.toggle("hidden", mode !== "signup");
+        confirmField.required = mode === "signup";
       }
 
-      const authPassword = $("auth-password");
-      if (authPassword) authPassword.autocomplete = mode === "login" ? "current-password" : "new-password";
+      const passwordField = $("auth-password");
+      if (passwordField) passwordField.autocomplete = mode === "login" ? "current-password" : "new-password";
 
       setText("auth-switch", mode === "login" ? "Create a new account" : "Already have an account? Login");
-      
-      const authForgot = $("auth-forgot");
-      if (authForgot) authForgot.clearClassList?.(); // safe check
       setText("auth-error", "");
     });
   }
@@ -1094,43 +1103,97 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   const logoutBtn = $("logout-button");
-  if (logoutBtn) logoutBtn.addEventListener("click", async () => { 
-    sessionStorage.removeItem("digital_notebook_unlocked");
-    if (auth) await auth.signOut(); 
-  });
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", async () => {
+      mpinUnlockedForPage = false;
+      stopListeners();
+      dashboardStartedUid = null;
+      if (auth) await auth.signOut();
+    });
+  }
 
   const openSidebarBtn = $("open-sidebar");
   if (openSidebarBtn) openSidebarBtn.addEventListener("click", () => openSidebar(true));
-  
+
   const closeSidebarBtn = $("close-sidebar");
   if (closeSidebarBtn) closeSidebarBtn.addEventListener("click", () => openSidebar(false));
-  
+
   const backdrop = $("sidebar-backdrop");
   if (backdrop) backdrop.addEventListener("click", () => openSidebar(false));
-  
+
   const headerAvatar = $("header-avatar");
   if (headerAvatar) headerAvatar.addEventListener("click", () => openSidebar(true));
+
+  const avatarInput = $("avatar-file");
+  if (avatarInput) {
+    avatarInput.addEventListener("change", event => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      if (!file.type.startsWith("image/")) {
+        alert("कृपया image फाइल छान्नुहोस्।");
+        avatarInput.value = "";
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const image = new Image();
+
+        image.onload = () => {
+          const scale = Math.min(1, 512 / Math.max(image.width, image.height));
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.max(1, Math.round(image.width * scale));
+          canvas.height = Math.max(1, Math.round(image.height * scale));
+
+          const context = canvas.getContext("2d");
+          if (!context) {
+            alert("फोटो प्रशोधन गर्न सकिएन।");
+            return;
+          }
+
+          context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+          try {
+            const dataUrl = canvas.toDataURL("image/jpeg", 0.82);
+            localStorage.setItem("profile_avatar", dataUrl);
+            applyProfile();
+          } catch (error) {
+            console.error("Avatar save failed:", error);
+            alert("फोटो सुरक्षित भएन। सानो फोटो छानेर प्रयास गर्नुहोस्।");
+          }
+        };
+
+        image.onerror = () => alert("फोटो खोल्न सकिएन।");
+        image.src = reader.result;
+      };
+
+      reader.onerror = () => alert("फोटो पढ्न सकिएन।");
+      reader.readAsDataURL(file);
+    });
+  }
 
   const privacyBtn = $("privacy-button");
   if (privacyBtn) {
     privacyBtn.addEventListener("click", () => {
       privacy = !privacy;
       localStorage.setItem("balance_privacy", privacy ? "hidden" : "visible");
-      const pIcon = $("privacy-icon");
-      if (pIcon) pIcon.className = privacy ? "fa-solid fa-eye-slash" : "fa-solid fa-eye";
+      const icon = $("privacy-icon");
+      if (icon) icon.className = privacy ? "fa-solid fa-eye-slash" : "fa-solid fa-eye";
       renderDashboard();
     });
   }
 
   if (privacy) {
-    const pIcon = $("privacy-icon");
-    if (pIcon) pIcon.className = "fa-solid fa-eye-slash";
+    const icon = $("privacy-icon");
+    if (icon) icon.className = "fa-solid fa-eye-slash";
   }
 
   const saveProfileBtn = $("save-profile");
   if (saveProfileBtn) {
     saveProfileBtn.addEventListener("click", async () => {
       if (!uid || !db) return;
+
       const profile = {
         name: $("profile-name")?.value.trim() || "",
         address: $("profile-address")?.value.trim() || "",
@@ -1138,6 +1201,7 @@ document.addEventListener("DOMContentLoaded", () => {
         email: auth.currentUser?.email || "",
         updatedAt: Date.now()
       };
+
       try {
         await db.ref("users/" + uid + "/profile").update(profile);
         localStorage.setItem("profile_name", profile.name);
@@ -1146,7 +1210,8 @@ document.addEventListener("DOMContentLoaded", () => {
         localStorage.setItem("profile_mobile", profile.mobile);
         applyProfile(profile);
       } catch (error) {
-        console.error(error);
+        console.error("Profile save failed:", error);
+        alert("Profile save failed. Please try again.");
       }
     });
   }
@@ -1157,13 +1222,15 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!uid || !db || saveReminderBusy) return;
       saveReminderBusy = true;
       saveReminderBtn.disabled = true;
+
       try {
         await db.ref("users/" + uid + "/dashboardReminder").update({
           text: $("reminder-text")?.value.trim() || "",
           updatedAt: Date.now()
         });
       } catch (error) {
-        console.error("Reminder save_failed", error);
+        console.error("Reminder save failed:", error);
+        alert("Reminder save failed. Please try again.");
       } finally {
         saveReminderBusy = false;
         saveReminderBtn.disabled = false;
@@ -1176,10 +1243,14 @@ document.addEventListener("DOMContentLoaded", () => {
     clearReminderBtn.addEventListener("click", async () => {
       if (!uid || !db) return;
       if (!confirm("Clear the shared dashboard reminder?")) return;
+
       try {
-        await db.ref("users/" + uid + "/dashboardReminder").update({ text: "", updatedAt: Date.now() });
-        const rText = $("reminder-text");
-        if (rText) rText.value = "";
+        await db.ref("users/" + uid + "/dashboardReminder").update({
+          text: "",
+          updatedAt: Date.now()
+        });
+        const reminder = $("reminder-text");
+        if (reminder) reminder.value = "";
       } catch (error) {
         console.error(error);
       }
@@ -1188,71 +1259,83 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function backupData() {
     if (!uid || !db) return;
-    if (!confirm("Merge this device's local records into the cloud?")) return;
+    if (!confirm("Merge this device's local records into the cloud? Existing cloud records will not be overwritten.")) return;
+
     try {
-      let inserted = 0, skipped = 0;
-      for (const [path] of Object.entries(LOCAL)) {
+      let inserted = 0;
+      let skipped = 0;
+
+      for (const path of Object.keys(LOCAL)) {
+        const firebasePath = path === "house" ? "house_expenses" : path;
         const local = localRecords[path] || [];
+
         for (const original of local) {
           if (!original || typeof original !== "object") continue;
+
           const record = { ...original };
           let id = String(record.id || "").trim();
+
           if (!id || id.startsWith("legacy-") || /^\d+$/.test(id)) {
-            const firebasePath = path === "house" ? "house_expenses" : path;
             id = db.ref("users/" + uid + "/" + firebasePath).push().key;
             if (!id) throw new Error("Could not create a record ID.");
             record.id = id;
           }
-          const ref = db.ref(
-            "users/" + uid + "/" +
-            (path === "house" ? "house_expenses" : path) +
-            "/" + id
-          );
+
+          const ref = db.ref("users/" + uid + "/" + firebasePath + "/" + id);
           const result = await ref.transaction(current => {
             if (current !== null) return;
             return record;
           }, undefined, false);
+
           if (result.committed) inserted++;
           else skipped++;
         }
       }
+
+      alert("Merge complete.\nAdded: " + inserted + "\nSkipped existing records: " + skipped);
     } catch (error) {
-      console.error("Backup failed", error);
+      console.error("Backup failed:", error);
+      alert("Merge failed. Check your connection and permissions.");
     }
   }
 
   async function restoreData() {
     if (!uid || !db) return;
-    if (!confirm("Refresh local copies from cloud? This changes local copies only.")) onfirm => {};
+
+    if (!confirm("Refresh local copies from cloud? This replaces the local copies with cloud records. Export a backup first if needed.")) return;
+
     try {
       const paths = Object.keys(LOCAL);
-      const snapshots = await Promise.all(paths.map(path =>
-        db.ref(
-          "users/" + uid + "/" +
-          (path === "house" ? "house_expenses" : path)
-        ).once("value")
-      ));
+      const snapshots = await Promise.all(paths.map(path => {
+        const firebasePath = path === "house" ? "house_expenses" : path;
+        return db.ref("users/" + uid + "/" + firebasePath).once("value");
+      }));
+
       snapshots.forEach((snapshot, index) => {
         const path = paths[index];
-        if (!snapshot.exists()) {
-          cloudData[path] = null;
-          localRecords[path] = [];
-          try { localStorage.setItem(LOCAL[path][0], JSON.stringify([])); } catch (_) {}
-          return;
-        }
-        const records = normalizeRecords(snapshot.val());
+        const records = snapshot.exists() ? normalizeRecords(snapshot.val()) : [];
+
+        cloudData[path] = snapshot.exists() ? snapshot.val() : null;
         localRecords[path] = records;
-        cloudData[path] = snapshot.val();
-        try { localStorage.setItem(LOCAL[path][0], JSON.stringify(records)); } catch (_) {}
+
+        try {
+          localStorage.setItem(LOCAL[path][0], JSON.stringify(records));
+        } catch (error) {
+          console.warn("Local copy could not be saved:", path, error);
+        }
       });
+
       renderDashboard();
+      alert("Local copies refreshed from cloud.");
     } catch (error) {
-      console.error("Restore failed", error);
+      console.error("Restore failed:", error);
+      alert("Refresh failed. Check your connection and permissions.");
     }
   }
 
   const backupBtn = $("backup-button");
   if (backupBtn) backupBtn.addEventListener("click", backupData);
+
   const restoreBtn = $("restore-button");
   if (restoreBtn) restoreBtn.addEventListener("click", restoreData);
 
@@ -1260,6 +1343,7 @@ document.addEventListener("DOMContentLoaded", () => {
   loadLocalFallback();
   renderDashboard();
 });
+
 </script>
 
 <script>
