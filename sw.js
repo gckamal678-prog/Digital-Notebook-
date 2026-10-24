@@ -1,9 +1,10 @@
 
-const CACHE_NAME = "digital-notebook-v3";
+const CACHE_NAME = "digital-notebook-v4";
 
 const URLS_TO_CACHE = [
   "./",
   "./index.html",
+  "./dashboard.js",
   "./add-transaction.html",
   "./add-income.html",
   "./add-saving.html",
