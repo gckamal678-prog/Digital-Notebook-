@@ -55,7 +55,10 @@
     root.classList.toggle("dark", saved.theme === "dark");
     root.style.setProperty("--accent", saved.accentColor);
     root.style.setProperty("--app-font-size", Number(saved.font_size) + "px");
-    root.style.setProperty("--app-font-family", '"' + saved.font_family + '", Arial, sans-serif');
+    root.style.setProperty(
+      "--app-font-family",
+      '"' + saved.font_family + '", Arial, sans-serif'
+    );
     root.dataset.layout = saved.layout;
   } catch (_) {}
 })();
@@ -80,6 +83,7 @@
   --app-font-size: 16px;
   --app-font-family: Poppins, Arial, sans-serif;
 }
+
 html:not(.dark) {
   --bg: #f3f6fb;
   --panel: #fff;
@@ -88,13 +92,16 @@ html:not(.dark) {
   --muted: #586780;
   --line: #d7e0ed;
 }
+
 * { box-sizing: border-box; }
+
 body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
   font: var(--app-font-size)/1.55 var(--app-font-family);
 }
+
 button, input, select, textarea { font: inherit; }
 button { cursor: pointer; }
 button:disabled { opacity: .55; cursor: not-allowed; }
@@ -110,6 +117,7 @@ header {
   background: var(--panel);
   border-bottom: 1px solid var(--line);
 }
+
 header a {
   display: inline-flex;
   align-items: center;
@@ -119,6 +127,7 @@ header a {
   text-decoration: none;
   font-size: 25px;
 }
+
 header .brand { font-weight: 750; }
 
 main {
@@ -128,12 +137,14 @@ main {
   display: grid;
   gap: 14px;
 }
+
 .card {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 16px;
   padding: 18px;
 }
+
 h1, h2, h3, p { margin-top: 0; }
 h1 { font-size: 1.4em; }
 h2 { font-size: 1.15em; }
@@ -147,14 +158,18 @@ p, .muted { color: var(--muted); }
   padding: 13px 0;
   border-bottom: 1px solid var(--line);
 }
+
 .field:last-child { border-bottom: 0; }
+
 .field label { font-weight: 650; }
+
 .field small {
   display: block;
   color: var(--muted);
   font-weight: 400;
   font-size: .8em;
 }
+
 input, select, textarea {
   width: 100%;
   min-width: 0;
@@ -164,7 +179,9 @@ input, select, textarea {
   border: 1px solid var(--line);
   border-radius: 10px;
 }
+
 input[type="color"] { height: 44px; padding: 4px; }
+
 button {
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -172,14 +189,22 @@ button {
   background: var(--field);
   color: var(--text);
 }
+
 .primary {
   color: #062319;
   background: var(--accent);
   border-color: var(--accent);
   font-weight: 750;
 }
+
 .danger { color: #fb7185; }
-.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .switch {
   justify-self: end;
   width: 56px;
@@ -189,6 +214,7 @@ button {
   border-radius: 30px;
   background: #64748b;
 }
+
 .switch::after {
   content: "";
   position: absolute;
@@ -200,20 +226,25 @@ button {
   background: white;
   transition: transform .15s;
 }
+
 .switch[aria-checked="true"] { background: var(--accent); }
 .switch[aria-checked="true"]::after { transform: translateX(24px); }
 
 .status { font-size: .85em; color: var(--muted); }
+
 .status.error {
   color: #fb7185;
   padding: 10px;
   border: 1px solid #9f1239;
   border-radius: 8px;
 }
+
 .status.success { color: #34d399; }
 .hidden { display: none !important; }
+
 body.auth-pending main,
 body.auth-pending header { visibility: hidden; }
+
 body[data-layout="compact"] main { gap: 8px; padding: 8px; }
 body[data-layout="compact"] .card { padding: 12px; border-radius: 12px; }
 body[data-layout="compact"] .field { padding: 7px 0; }
@@ -231,6 +262,7 @@ body[data-layout="comfortable"] .card { padding: 18px; }
 </head>
 
 <body class="auth-pending">
+
 <header>
   <a href="index.html" id="backButton" aria-label="Back" title="Back">←</a>
   <div class="brand">📘 Digital NoteBook</div>
@@ -262,7 +294,8 @@ body[data-layout="comfortable"] .card { padding: 18px; }
         <span data-i18n="theme">Dark mode</span>
         <small data-i18n="themeDesc">Change the page appearance.</small>
       </label>
-      <button id="themeToggle" class="switch" type="button" role="switch" aria-checked="true" aria-label="Dark mode"></button>
+      <button id="themeToggle" class="switch" type="button"
+        role="switch" aria-checked="true" aria-label="Dark mode"></button>
     </div>
 
     <div class="field">
@@ -325,18 +358,22 @@ body[data-layout="comfortable"] .card { padding: 18px; }
       <label for="profileName" data-i18n="fullName">Full name</label>
       <input id="profileName" autocomplete="name">
     </div>
+
     <div class="field">
       <label for="profileAddress" data-i18n="address">Address</label>
       <input id="profileAddress" autocomplete="street-address">
     </div>
+
     <div class="field">
       <label for="profileMobile" data-i18n="mobile">Mobile number</label>
       <input id="profileMobile" type="tel" autocomplete="tel">
     </div>
+
     <div class="field">
       <label for="profileEmail" data-i18n="email">Email</label>
       <input id="profileEmail" type="email" readonly>
     </div>
+
     <div class="actions">
       <button class="primary" id="saveProfile" type="button" data-i18n="saveInfo">Save information</button>
     </div>
@@ -352,15 +389,18 @@ body[data-layout="comfortable"] .card { padding: 18px; }
 
   <section class="card">
     <h2>✉️ <span data-i18n="feedback">Feedback & suggestions</span></h2>
+
     <form id="feedbackForm">
       <div class="field">
         <label for="feedbackName" data-i18n="yourName">Your name</label>
-        <input id="feedbackName" required>
+        <input id="feedbackName" required maxlength="120">
       </div>
+
       <div class="field">
         <label for="feedbackMessage" data-i18n="yourMessage">Message or feedback</label>
-        <textarea id="feedbackMessage" rows="4" required></textarea>
+        <textarea id="feedbackMessage" rows="4" required maxlength="5000"></textarea>
       </div>
+
       <button class="primary" type="submit" id="feedbackSubmit" data-i18n="submit">Submit</button>
       <p id="feedbackStatus" class="status" role="status" aria-live="polite"></p>
     </form>
@@ -382,18 +422,26 @@ body[data-layout="comfortable"] .card { padding: 18px; }
           <option value="Other" data-i18n="reasonOther">Other</option>
         </select>
       </div>
+
       <div class="field">
         <label for="deleteExtra" data-i18n="additionalReason">Additional details (optional)</label>
-        <textarea id="deleteExtra" rows="2"></textarea>
+        <textarea id="deleteExtra" rows="2" maxlength="1000"></textarea>
       </div>
+
       <div class="field">
         <label for="deletePassword" data-i18n="password">Current password</label>
         <input id="deletePassword" type="password" autocomplete="current-password" required>
       </div>
+
+      <p class="status" data-i18n="deleteDataNote">
+        Deleting your Firebase Authentication account does not automatically delete its Realtime Database data.
+      </p>
+
       <div class="actions">
         <button class="danger" type="submit" data-i18n="confirmDelete">Confirm account deletion</button>
         <button type="button" id="cancelDelete" data-i18n="cancel">Cancel</button>
       </div>
+
       <p id="deleteStatus" class="status" role="status" aria-live="polite"></p>
     </form>
   </section>
@@ -402,6 +450,12 @@ body[data-layout="comfortable"] .card { padding: 18px; }
 <script>
 "use strict";
 
+/*
+ * Firebase configuration aligned with the shared appId used by the
+ * other primary application pages in this repository.
+ *
+ * Confirm this Web App configuration in Firebase Console before deployment.
+ */
 const firebaseConfig = {
   apiKey: "AIzaSyDDY_v7RHnkCTI6uyV4DNDjqoaIBGweg8c",
   authDomain: "digital-a2552.firebaseapp.com",
@@ -409,10 +463,11 @@ const firebaseConfig = {
   projectId: "digital-a2552",
   storageBucket: "digital-a2552.firebasestorage.app",
   messagingSenderId: "218135618179",
-  appId: "1:135135618179:web:821b76920d3e5669ac31b6"
+  appId: "1:218135618179:web:821b76920d3e5669ac31b6"
 };
 
 const SETTINGS_KEY = "digital_notebook_settings";
+
 const DEFAULTS = {
   lang: "en",
   theme: "dark",
@@ -422,28 +477,179 @@ const DEFAULTS = {
   layout: "comfortable"
 };
 
-if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-let currentUser = null;
-
 function $(id) {
   return document.getElementById(id);
 }
 
+const translations = {
+  en: {
+    pageTitle: "Settings & Preferences",
+    intro: "Choose your display preferences. Changes are saved on this device and work offline.",
+    displayHeading: "Display & Preferences",
+    language: "Language",
+    languageDesc: "Choose the language used throughout supported pages.",
+    theme: "Dark mode",
+    themeDesc: "Change the page appearance.",
+    fontSize: "Text size",
+    fontSizeDesc: "Adjust the text size.",
+    fontFamily: "Font family",
+    fontFamilyDesc: "Choose your preferred font.",
+    accentColor: "Accent color",
+    accentDesc: "Choose the highlight color.",
+    layout: "Layout",
+    layoutDesc: "Choose the spacing used by supported pages.",
+    small: "Small",
+    medium: "Medium",
+    large: "Large",
+    extraLarge: "Extra large",
+    comfortable: "Comfortable",
+    compact: "Compact",
+    save: "Save preferences",
+    reset: "Reset preferences",
+    profile: "Personal information",
+    profileDesc: "These details can be used in your PDF report banner.",
+    fullName: "Full name",
+    address: "Address",
+    mobile: "Mobile number",
+    email: "Email",
+    saveInfo: "Save information",
+    about: "About & help",
+    aboutText: "Display preferences are stored locally on this device. Internet access is needed for Firebase account features and cloud data synchronization.",
+    version: "Version 6.7",
+    feedback: "Feedback & suggestions",
+    yourName: "Your name",
+    yourMessage: "Message or feedback",
+    submit: "Submit",
+    sending: "Sending…",
+    feedbackSent: "Feedback sent successfully.",
+    feedbackFailed: "Could not send feedback. Check your internet connection.",
+    dangerZone: "Danger zone",
+    deleteWarning: "Account deletion is permanent. Confirm your password before requesting deletion.",
+    deleteAccount: "Delete account",
+    deleteReason: "Reason for deletion",
+    selectReason: "Select a reason",
+    reasonNotUsing: "No longer using the app",
+    reasonPrivacy: "Privacy concerns",
+    reasonAlternative: "Found a better alternative",
+    reasonOther: "Other",
+    additionalReason: "Additional details (optional)",
+    password: "Current password",
+    confirmDelete: "Confirm account deletion",
+    cancel: "Cancel",
+    savedOk: "Preferences saved on this device.",
+    resetOk: "Preferences reset to defaults.",
+    profileSaved: "Personal information saved on this device.",
+    latest: "You are using version 6.7.",
+    loginRequired: "Please sign in through index.html first.",
+    offline: "You are offline. Connect to the internet and try again.",
+    deleteNeedReason: "Select a reason for deletion.",
+    deleteNeedPassword: "Enter your current password.",
+    deleteFailed: "Account deletion failed: ",
+    confirmDeleteText: "Are you sure you want to permanently delete this Firebase account? This cannot be undone.",
+    accountUnavailable: "Account deletion is unavailable while offline.",
+    emailMissing: "Feedback service is not configured.",
+    storageFailed: "Could not save to this device. Check available device storage.",
+    back: "Back",
+    deleteDataNote: "Deleting your Firebase Authentication account does not automatically delete its Realtime Database data."
+  },
+
+  ne: {
+    pageTitle: "सेटिङ र प्राथमिकताहरू",
+    intro: "आफ्ना देखावट प्राथमिकता छान्नुहोस्। परिवर्तन यसै उपकरणमा सुरक्षित हुन्छ र इन्टरनेट नभए पनि काम गर्छ।",
+    displayHeading: "देखावट र प्राथमिकताहरू",
+    language: "भाषा",
+    languageDesc: "समर्थित पेजहरूमा प्रयोग हुने भाषा छान्नुहोस्।",
+    theme: "डार्क मोड",
+    themeDesc: "पेजको देखावट परिवर्तन गर्नुहोस्।",
+    fontSize: "अक्षरको आकार",
+    fontSizeDesc: "अक्षरको आकार परिवर्तन गर्नुहोस्।",
+    fontFamily: "फन्ट शैली",
+    fontFamilyDesc: "आफूलाई मन पर्ने फन्ट छान्नुहोस्।",
+    accentColor: "मुख्य रङ",
+    accentDesc: "हाइलाइटको रङ छान्नुहोस्।",
+    layout: "लेआउट",
+    layoutDesc: "समर्थित पेजहरूको खाली ठाउँ छान्नुहोस्।",
+    small: "सानो",
+    medium: "मध्यम",
+    large: "ठूलो",
+    extraLarge: "अझ ठूलो",
+    comfortable: "सहज",
+    compact: "कम्प्याक्ट",
+    save: "प्राथमिकता सुरक्षित गर्नुहोस्",
+    reset: "पूर्वनिर्धारित बनाउनुहोस्",
+    profile: "व्यक्तिगत विवरण",
+    profileDesc: "यी विवरण PDF रिपोर्टको ब्यानरमा प्रयोग गर्न सकिन्छ।",
+    fullName: "पूरा नाम",
+    address: "ठेगाना",
+    mobile: "मोबाइल नम्बर",
+    email: "इमेल",
+    saveInfo: "विवरण सुरक्षित गर्नुहोस्",
+    about: "जानकारी र सहायता",
+    aboutText: "देखावटका प्राथमिकता यस उपकरणमै सुरक्षित हुन्छन्। Firebase खाता र Cloud Sync का लागि इन्टरनेट चाहिन्छ।",
+    version: "संस्करण ६.७",
+    feedback: "सुझाव र प्रतिक्रिया",
+    yourName: "तपाईंको नाम",
+    yourMessage: "सन्देश वा प्रतिक्रिया",
+    submit: "पठाउनुहोस्",
+    sending: "पठाउँदै…",
+    feedbackSent: "प्रतिक्रिया सफलतापूर्वक पठाइयो।",
+    feedbackFailed: "प्रतिक्रिया पठाउन सकिएन। इन्टरनेट जाँच्नुहोस्।",
+    dangerZone: "सावधानी क्षेत्र",
+    deleteWarning: "खाता हटाएपछि फिर्ता ल्याउन नमिल्न सक्छ। अनुरोध गर्नुअघि पासवर्ड पुष्टि गर्नुहोस्।",
+    deleteAccount: "खाता हटाउनुहोस्",
+    deleteReason: "खाता हटाउने कारण",
+    selectReason: "कारण छान्नुहोस्",
+    reasonNotUsing: "अब एप प्रयोग गर्दिनँ",
+    reasonPrivacy: "गोपनीयताको चिन्ता",
+    reasonAlternative: "अर्को विकल्प भेटियो",
+    reasonOther: "अन्य",
+    additionalReason: "थप विवरण (ऐच्छिक)",
+    password: "हालको पासवर्ड",
+    confirmDelete: "खाता हटाउने पुष्टि गर्नुहोस्",
+    cancel: "रद्द गर्नुहोस्",
+    savedOk: "प्राथमिकता यस उपकरणमा सुरक्षित भयो।",
+    resetOk: "प्राथमिकता पूर्वनिर्धारित अवस्थामा फर्काइयो।",
+    profileSaved: "व्यक्तिगत विवरण यस उपकरणमा सुरक्षित भयो।",
+    latest: "तपाईं संस्करण ६.७ प्रयोग गर्दै हुनुहुन्छ।",
+    loginRequired: "पहिले index.html बाट लगइन गर्नुहोस्।",
+    offline: "इन्टरनेट छैन। जडान गरेर फेरि प्रयास गर्नुहोस्।",
+    deleteNeedReason: "खाता हटाउने कारण छान्नुहोस्।",
+    deleteNeedPassword: "हालको पासवर्ड लेख्नुहोस्।",
+    deleteFailed: "खाता हटाउन सकिएन: ",
+    confirmDeleteText: "के तपाईं Firebase खाता स्थायी रूपमा हटाउन चाहनुहुन्छ? यो कार्य फिर्ता गर्न सकिँदैन।",
+    accountUnavailable: "अफलाइन हुँदा खाता हटाउन मिल्दैन।",
+    emailMissing: "Feedback सेवा कन्फिगर गरिएको छैन।",
+    storageFailed: "यस उपकरणमा सुरक्षित गर्न सकिएन। उपलब्ध स्टोरेज जाँच्नुहोस्।",
+    back: "पछाडि",
+    deleteDataNote: "Firebase Authentication खाता हटाउँदैमा Realtime Database को डेटा स्वतः हट्दैन।"
+  }
+};
+
 function normalizeSettings(value) {
   const input = value && typeof value === "object" && !Array.isArray(value)
-    ? value : {};
+    ? value
+    : {};
 
   const result = { ...DEFAULTS, ...input };
 
   if (!["en", "ne"].includes(result.lang)) result.lang = "en";
   if (!["dark", "light"].includes(result.theme)) result.theme = "dark";
-  if (!["14", "16", "18", "20"].includes(String(result.font_size))) result.font_size = "16";
+
+  if (!["14", "16", "18", "20"].includes(String(result.font_size))) {
+    result.font_size = "16";
+  }
+
   if (!["Poppins", "Arial", "Roboto", "Georgia", "system-ui"].includes(result.font_family)) {
     result.font_family = "Poppins";
   }
-  if (!/^#[0-9a-f]{6}$/i.test(result.accentColor)) result.accentColor = "#10b981";
-  if (!["comfortable", "compact"].includes(result.layout)) result.layout = "comfortable";
+
+  if (!/^#[0-9a-f]{6}$/i.test(result.accentColor)) {
+    result.accentColor = "#10b981";
+  }
+
+  if (!["comfortable", "compact"].includes(result.layout)) {
+    result.layout = "comfortable";
+  }
 
   result.font_size = String(result.font_size);
   return result;
@@ -452,11 +658,18 @@ function normalizeSettings(value) {
 function loadSettings() {
   try {
     const raw = localStorage.getItem(SETTINGS_KEY);
-    if (raw !== null) return normalizeSettings(JSON.parse(raw));
+
+    if (raw !== null) {
+      return normalizeSettings(JSON.parse(raw));
+    }
 
     const initial = { ...DEFAULTS };
     const oldTheme = localStorage.getItem("theme");
-    if (oldTheme === "light" || oldTheme === "dark") initial.theme = oldTheme;
+
+    if (oldTheme === "light" || oldTheme === "dark") {
+      initial.theme = oldTheme;
+    }
+
     return normalizeSettings(initial);
   } catch (_) {
     return { ...DEFAULTS };
@@ -464,110 +677,20 @@ function loadSettings() {
 }
 
 let settings = loadSettings();
-
-const translations = {
-  en: {
-    pageTitle:"Settings & Preferences",
-    intro:"Choose your display preferences. Changes are saved on this device and work offline.",
-    displayHeading:"Display & Preferences",
-    language:"Language", languageDesc:"Choose the language used throughout supported pages.",
-    theme:"Dark mode", themeDesc:"Change the page appearance.",
-    fontSize:"Text size", fontSizeDesc:"Adjust the text size.",
-    fontFamily:"Font family", fontFamilyDesc:"Choose your preferred font.",
-    accentColor:"Accent color", accentDesc:"Choose the highlight color.",
-    layout:"Layout", layoutDesc:"Choose the spacing used by supported pages.",
-    small:"Small", medium:"Medium", large:"Large", extraLarge:"Extra large",
-    comfortable:"Comfortable", compact:"Compact",
-    save:"Save preferences", reset:"Reset preferences",
-    profile:"Personal information",
-    profileDesc:"These details can be used in your PDF report banner.",
-    fullName:"Full name", address:"Address", mobile:"Mobile number", email:"Email",
-    saveInfo:"Save information",
-    about:"About & help",
-    aboutText:"Display preferences are stored locally on this device. Internet access is needed for Firebase account features and cloud data synchronization.",
-    version:"Version 6.7",
-    feedback:"Feedback & suggestions", yourName:"Your name",
-    yourMessage:"Message or feedback", submit:"Submit", sending:"Sending…",
-    feedbackSent:"Feedback sent successfully.",
-    feedbackFailed:"Could not send feedback. Check your internet connection.",
-    dangerZone:"Danger zone",
-    deleteWarning:"Account deletion is permanent. Confirm your password before requesting deletion.",
-    deleteAccount:"Delete account", deleteReason:"Reason for deletion",
-    selectReason:"Select a reason", reasonNotUsing:"No longer using the app",
-    reasonPrivacy:"Privacy concerns", reasonAlternative:"Found a better alternative",
-    reasonOther:"Other", additionalReason:"Additional details (optional)",
-    password:"Current password", confirmDelete:"Confirm account deletion",
-    cancel:"Cancel", savedOk:"Preferences saved on this device.",
-    resetOk:"Preferences reset to defaults.",
-    profileSaved:"Personal information saved on this device.",
-    latest:"You are using version 6.7.",
-    loginRequired:"Please sign in through index.html first.",
-    offline:"You are offline. Connect to the internet and try again.",
-    deleteNeedReason:"Select a reason for deletion.",
-    deleteNeedPassword:"Enter your current password.",
-    deleteFailed:"Account deletion failed: ",
-    confirmDeleteText:"Are you sure you want to permanently delete this Firebase account? This cannot be undone.",
-    accountUnavailable:"Account deletion is unavailable while offline.",
-    emailMissing:"Feedback service is not configured.",
-    storageFailed:"Could not save to this device. Check available device storage.",
-    back:"Back"
-  },
-  ne: {
-    pageTitle:"सेटिङ र प्राथमिकताहरू",
-    intro:"आफ्ना देखावट प्राथमिकता छान्नुहोस्। परिवर्तन यसै उपकरणमा सुरक्षित हुन्छ र इन्टरनेट नभए पनि काम गर्छ।",
-    displayHeading:"देखावट र प्राथमिकताहरू",
-    language:"भाषा", languageDesc:"समर्थित पेजहरूमा प्रयोग हुने भाषा छान्नुहोस्।",
-    theme:"डार्क मोड", themeDesc:"पेजको देखावट परिवर्तन गर्नुहोस्।",
-    fontSize:"अक्षरको आकार", fontSizeDesc:"अक्षरको आकार परिवर्तन गर्नुहोस्।",
-    fontFamily:"फन्ट शैली", fontFamilyDesc:"आफूलाई मन पर्ने फन्ट छान्नुहोस्।",
-    accentColor:"मुख्य रङ", accentDesc:"हाइलाइटको रङ छान्नुहोस्।",
-    layout:"लेआउट", layoutDesc:"समर्थित पेजहरूको खाली ठाउँ छान्नुहोस्।",
-    small:"सानो", medium:"मध्यम", large:"ठूलो", extraLarge:"अझ ठूलो",
-    comfortable:"सहज", compact:"कम्प्याक्ट",
-    save:"प्राथमिकता सुरक्षित गर्नुहोस्", reset:"पूर्वनिर्धारित बनाउनुहोस्",
-    profile:"व्यक्तिगत विवरण",
-    profileDesc:"यी विवरण PDF रिपोर्टको ब्यानरमा प्रयोग गर्न सकिन्छ।",
-    fullName:"पूरा नाम", address:"ठेगाना", mobile:"मोबाइल नम्बर", email:"इमेल",
-    saveInfo:"विवरण सुरक्षित गर्नुहोस्",
-    about:"जानकारी र सहायता",
-    aboutText:"देखावटका प्राथमिकता यस उपकरणमै सुरक्षित हुन्छन्। Firebase खाता र Cloud Sync का लागि इन्टरनेट चाहिन्छ।",
-    version:"संस्करण ६.७",
-    feedback:"सुझाव र प्रतिक्रिया", yourName:"तपाईंको नाम",
-    yourMessage:"सन्देश वा प्रतिक्रिया", submit:"पठाउनुहोस्", sending:"पठाउँदै…",
-    feedbackSent:"प्रतिक्रिया सफलतापूर्वक पठाइयो।",
-    feedbackFailed:"प्रतिक्रिया पठाउन सकिएन। इन्टरनेट जाँच्नुहोस्।",
-    dangerZone:"सावधानी क्षेत्र",
-    deleteWarning:"खाता हटाएपछि फिर्ता ल्याउन नमिल्न सक्छ। अनुरोध गर्नुअघि पासवर्ड पुष्टि गर्नुहोस्।",
-    deleteAccount:"खाता हटाउनुहोस्", deleteReason:"खाता हटाउने कारण",
-    selectReason:"कारण छान्नुहोस्", reasonNotUsing:"अब एप प्रयोग गर्दिनँ",
-    reasonPrivacy:"गोपनीयताको चिन्ता", reasonAlternative:"अर्को विकल्प भेटियो",
-    reasonOther:"अन्य", additionalReason:"थप विवरण (ऐच्छिक)",
-    password:"हालको पासवर्ड", confirmDelete:"खाता हटाउने पुष्टि गर्नुहोस्",
-    cancel:"रद्द गर्नुहोस्", savedOk:"प्राथमिकता यस उपकरणमा सुरक्षित भयो।",
-    resetOk:"प्राथमिकता पूर्वनिर्धारित अवस्थामा फर्काइयो।",
-    profileSaved:"व्यक्तिगत विवरण यस उपकरणमा सुरक्षित भयो।",
-    latest:"तपाईं संस्करण ६.७ प्रयोग गर्दै हुनुहुन्छ।",
-    loginRequired:"पहिले index.html बाट लगइन गर्नुहोस्।",
-    offline:"इन्टरनेट छैन। जडान गरेर फेरि प्रयास गर्नुहोस्।",
-    deleteNeedReason:"खाता हटाउने कारण छान्नुहोस्।",
-    deleteNeedPassword:"हालको पासवर्ड लेख्नुहोस्।",
-    deleteFailed:"खाता हटाउन सकिएन: ",
-    confirmDeleteText:"के तपाईं Firebase खाता स्थायी रूपमा हटाउन चाहनुहुन्छ? यो कार्य फिर्ता गर्न सकिँदैन।",
-    accountUnavailable:"अफलाइन हुँदा खाता हटाउन मिल्दैन।",
-    emailMissing:"Feedback सेवा कन्फिगर गरिएको छैन।",
-    storageFailed:"यस उपकरणमा सुरक्षित गर्न सकिएन। उपलब्ध स्टोरेज जाँच्नुहोस्।",
-    back:"पछाडि"
-  }
-};
+let currentUser = null;
+let authReady = false;
+let authRedirecting = false;
 
 function t(key) {
-  return (translations[settings.lang] || translations.en)[key] ||
-    translations.en[key] || key;
+  return (translations[settings.lang] || translations.en)[key]
+    || translations.en[key]
+    || key;
 }
 
 function setStatus(id, message, type = "") {
   const element = $(id);
   if (!element) return;
+
   element.textContent = message || "";
   element.className = "status" + (type ? " " + type : "");
 }
@@ -576,7 +699,6 @@ function saveSettingsToDevice() {
   try {
     settings = normalizeSettings(settings);
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-    /* Compatibility for older pages which still read the legacy theme key. */
     localStorage.setItem("theme", settings.theme);
     return true;
   } catch (error) {
@@ -586,34 +708,11 @@ function saveSettingsToDevice() {
   }
 }
 
-function applySettings() {
-  const root = document.documentElement;
-  root.lang = settings.lang === "ne" ? "ne" : "en";
-  root.classList.toggle("dark", settings.theme === "dark");
-  root.style.setProperty("--accent", settings.accentColor);
-  root.style.setProperty("--app-font-size", settings.font_size + "px");
-  root.style.setProperty(
-    "--app-font-family",
-    '"' + settings.font_family + '", Arial, sans-serif'
-  );
-  root.dataset.layout = settings.layout;
-  document.body.dataset.layout = settings.layout;
-
-  $("languageSelect").value = settings.lang;
-  $("fontSizeSelect").value = settings.font_size;
-  $("fontFamilySelect").value = settings.font_family;
-  $("accentColor").value = settings.accentColor;
-  $("layoutSelect").value = settings.layout;
-  $("themeToggle").setAttribute("aria-checked", String(settings.theme === "dark"));
-  $("themeToggle").setAttribute("aria-label", t("theme"));
-
-  translatePage();
-}
-
 function translatePage() {
   document.querySelectorAll("[data-i18n]").forEach(element => {
     const key = element.getAttribute("data-i18n");
     const value = t(key);
+
     if (value) element.textContent = value;
   });
 
@@ -622,8 +721,39 @@ function translatePage() {
   document.title = "Digital NoteBook - " + t("pageTitle");
 }
 
+function applySettings() {
+  const root = document.documentElement;
+
+  root.lang = settings.lang === "ne" ? "ne" : "en";
+  root.classList.toggle("dark", settings.theme === "dark");
+  root.style.setProperty("--accent", settings.accentColor);
+  root.style.setProperty("--app-font-size", settings.font_size + "px");
+  root.style.setProperty(
+    "--app-font-family",
+    '"' + settings.font_family + '", Arial, sans-serif'
+  );
+
+  root.dataset.layout = settings.layout;
+  document.body.dataset.layout = settings.layout;
+
+  $("languageSelect").value = settings.lang;
+  $("fontSizeSelect").value = settings.font_size;
+  $("fontFamilySelect").value = settings.font_family;
+  $("accentColor").value = settings.accentColor;
+  $("layoutSelect").value = settings.layout;
+
+  $("themeToggle").setAttribute(
+    "aria-checked",
+    String(settings.theme === "dark")
+  );
+  $("themeToggle").setAttribute("aria-label", t("theme"));
+
+  translatePage();
+}
+
 function changeSetting(key, value) {
   const previous = { ...settings };
+
   settings[key] = value;
   settings = normalizeSettings(settings);
 
@@ -637,13 +767,27 @@ function changeSetting(key, value) {
   setStatus("pageStatus", "");
 }
 
-/* Back goes to the previous page; it never signs out or requests a password. */
+function loadProfile() {
+  try {
+    $("profileName").value = localStorage.getItem("profile_name") || "";
+    $("profileAddress").value = localStorage.getItem("profile_address") || "";
+    $("profileMobile").value = localStorage.getItem("profile_mobile") || "";
+    $("profileEmail").value = currentUser?.email || "";
+    $("feedbackName").value = localStorage.getItem("profile_name") || "";
+  } catch (error) {
+    console.error("Profile loading error:", error);
+    setStatus("pageStatus", t("storageFailed"), "error");
+  }
+}
+
+/* Navigation */
 $("backButton").addEventListener("click", event => {
   event.preventDefault();
 
   if (window.history.length > 1 && document.referrer) {
     try {
       const previous = new URL(document.referrer);
+
       if (previous.origin === window.location.origin) {
         window.history.back();
         return;
@@ -654,12 +798,16 @@ $("backButton").addEventListener("click", event => {
   window.location.href = "index.html";
 });
 
+/* Display preferences */
 $("languageSelect").addEventListener("change", event => {
   changeSetting("lang", event.target.value);
 });
 
 $("themeToggle").addEventListener("click", () => {
-  changeSetting("theme", settings.theme === "dark" ? "light" : "dark");
+  changeSetting(
+    "theme",
+    settings.theme === "dark" ? "light" : "dark"
+  );
 });
 
 $("fontSizeSelect").addEventListener("change", event => {
@@ -680,16 +828,17 @@ $("layoutSelect").addEventListener("change", event => {
 
 $("saveSettings").addEventListener("click", () => {
   if (saveSettingsToDevice()) {
+    applySettings();
     setStatus("pageStatus", t("savedOk"), "success");
   }
 });
 
 $("resetSettings").addEventListener("click", () => {
-  const old = { ...settings };
+  const previous = { ...settings };
   settings = { ...DEFAULTS };
 
   if (!saveSettingsToDevice()) {
-    settings = old;
+    settings = previous;
     applySettings();
     return;
   }
@@ -698,7 +847,7 @@ $("resetSettings").addEventListener("click", () => {
   setStatus("pageStatus", t("resetOk"), "success");
 });
 
-/* If another tab changes the shared preferences, reflect them here. */
+/* Synchronize preferences when another tab changes them. */
 window.addEventListener("storage", event => {
   if (event.key !== SETTINGS_KEY || !event.newValue) return;
 
@@ -710,22 +859,16 @@ window.addEventListener("storage", event => {
   }
 });
 
-function loadProfile() {
-  $("profileName").value = localStorage.getItem("profile_name") || "";
-  $("profileAddress").value = localStorage.getItem("profile_address") || "";
-  $("profileMobile").value = localStorage.getItem("profile_mobile") || "";
-  $("profileEmail").value = currentUser?.email || "";
-  $("feedbackName").value = localStorage.getItem("profile_name") || "";
-}
-
+/* Profile information */
 $("saveProfile").addEventListener("click", () => {
   try {
     localStorage.setItem("profile_name", $("profileName").value.trim());
     localStorage.setItem("profile_address", $("profileAddress").value.trim());
     localStorage.setItem("profile_mobile", $("profileMobile").value.trim());
+
     setStatus("pageStatus", t("profileSaved"), "success");
   } catch (error) {
-    console.error(error);
+    console.error("Profile saving error:", error);
     setStatus("pageStatus", t("storageFailed"), "error");
   }
 });
@@ -734,20 +877,15 @@ $("checkVersion").addEventListener("click", () => {
   setStatus("pageStatus", t("latest"), "success");
 });
 
-$("showDelete").addEventListener("click", () => {
-  $("deleteForm").classList.toggle("hidden");
-  setStatus("deleteStatus", "");
-});
-
-$("cancelDelete").addEventListener("click", () => {
-  $("deleteForm").reset();
-  $("deleteForm").classList.add("hidden");
-  setStatus("deleteStatus", "");
-});
-
+/* Feedback */
 $("feedbackForm").addEventListener("submit", async event => {
   event.preventDefault();
   setStatus("feedbackStatus", "");
+
+  if (!authReady || !currentUser) {
+    setStatus("feedbackStatus", t("loginRequired"), "error");
+    return;
+  }
 
   if (!navigator.onLine) {
     setStatus("feedbackStatus", t("offline"), "error");
@@ -759,23 +897,34 @@ $("feedbackForm").addEventListener("submit", async event => {
     return;
   }
 
+  const name = $("feedbackName").value.trim();
+  const message = $("feedbackMessage").value.trim();
+
+  if (!name || !message) return;
+
   const button = $("feedbackSubmit");
   button.disabled = true;
-  button.textContent = t("sending");
 
   try {
-    emailjs.init({ publicKey: "K1o1WC9jydWnUnUl7" });
-
-    await emailjs.send("service_8zfv1vu", "template_36j91tf", {
-      name: $("feedbackName").value.trim(),
-      email: currentUser?.email || "",
-      title: "Digital NoteBook Feedback",
-      message: $("feedbackMessage").value.trim(),
-      time: new Date().toLocaleString()
+    emailjs.init({
+      publicKey: "K1o1WC9jydWnUnUl7"
     });
 
-    $("feedbackForm").reset();
-    loadProfile();
+    button.textContent = t("sending");
+
+    await emailjs.send(
+      "service_8zfv1vu",
+      "template_36j91tf",
+      {
+        name,
+        email: currentUser.email || "",
+        title: "Digital NoteBook Feedback",
+        message,
+        time: new Date().toLocaleString()
+      }
+    );
+
+    $("feedbackMessage").value = "";
     setStatus("feedbackStatus", t("feedbackSent"), "success");
   } catch (error) {
     console.error("Feedback send error:", error);
@@ -786,11 +935,23 @@ $("feedbackForm").addEventListener("submit", async event => {
   }
 });
 
+/* Account deletion */
+$("showDelete").addEventListener("click", () => {
+  $("deleteForm").classList.toggle("hidden");
+  setStatus("deleteStatus", "");
+});
+
+$("cancelDelete").addEventListener("click", () => {
+  $("deleteForm").reset();
+  $("deleteForm").classList.add("hidden");
+  setStatus("deleteStatus", "");
+});
+
 $("deleteForm").addEventListener("submit", async event => {
   event.preventDefault();
   setStatus("deleteStatus", "");
 
-  if (!currentUser) {
+  if (!authReady || !currentUser) {
     setStatus("deleteStatus", t("loginRequired"), "error");
     return;
   }
@@ -807,8 +968,14 @@ $("deleteForm").addEventListener("submit", async event => {
     setStatus("deleteStatus", t("deleteNeedReason"), "error");
     return;
   }
+
   if (!password) {
     setStatus("deleteStatus", t("deleteNeedPassword"), "error");
+    return;
+  }
+
+  if (!currentUser.email) {
+    setStatus("deleteStatus", t("deleteFailed") + "Email account unavailable.", "error");
     return;
   }
 
@@ -826,36 +993,81 @@ $("deleteForm").addEventListener("submit", async event => {
     await currentUser.reauthenticateWithCredential(credential);
 
     /*
-     * Do not pretend Auth deletion also deletes Realtime Database data.
-     * This control deletes the Firebase Authentication account only.
+     * This deletes the Firebase Authentication account only.
+     * Realtime Database cleanup must be implemented and secured separately
+     * with a trusted server-side deletion workflow.
      */
     await currentUser.delete();
+
     window.location.replace("index.html");
   } catch (error) {
     console.error("Account deletion error:", error);
-    setStatus(
-      "deleteStatus",
-      t("deleteFailed") + (error.message || "Unknown error"),
-      "error"
-    );
+
+    let message = error.message || "Unknown error";
+
+    if (error.code === "auth/wrong-password" ||
+        error.code === "auth/invalid-credential") {
+      message = "The password is incorrect.";
+    } else if (error.code === "auth/requires-recent-login") {
+      message = "Please sign in again and retry.";
+    } else if (error.code === "auth/network-request-failed") {
+      message = t("offline");
+    }
+
+    setStatus("deleteStatus", t("deleteFailed") + message, "error");
     submitButton.disabled = false;
   }
 });
 
-/* Authentication gate: Settings requires a signed-in Firebase user. */
-auth.onAuthStateChanged(user => {
-  if (!user) {
-    currentUser = null;
-    window.location.replace("index.html");
-    return;
+/* Firebase initialization and authentication */
+function initializeFirebase() {
+  if (!window.firebase) {
+    throw new Error("Firebase SDK failed to load.");
   }
 
-  currentUser = user;
-  loadProfile();
-  document.body.classList.remove("auth-pending");
-});
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
+
+  return firebase.auth();
+}
+
+try {
+  const auth = initializeFirebase();
+
+  auth.onAuthStateChanged(
+    user => {
+      authReady = true;
+
+      if (!user) {
+        currentUser = null;
+
+        if (!authRedirecting) {
+          authRedirecting = true;
+          window.location.replace("index.html");
+        }
+
+        return;
+      }
+
+      authRedirecting = false;
+      currentUser = user;
+
+      loadProfile();
+      document.body.classList.remove("auth-pending");
+    },
+    error => {
+      console.error("Authentication state error:", error);
+      setStatus("pageStatus", error.message || "Authentication failed.", "error");
+    }
+  );
+} catch (error) {
+  console.error("Firebase initialization error:", error);
+  setStatus("pageStatus", error.message || "Firebase initialization failed.", "error");
+}
 
 applySettings();
 </script>
+
 </body>
 </html>
