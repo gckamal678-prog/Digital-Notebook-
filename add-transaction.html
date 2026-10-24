@@ -68,15 +68,16 @@ body[data-layout="compact"] .record{padding:8px}
 <div id="statusMessage" class="status" role="status" aria-live="polite"></div>
 <section class="card">
 <h1 data-i18n="pageTitle">कारोबार / पार्टी लेजर</h1>
-<p class="muted"><span data-i18n="intro">लिनुपर्ने, दिनुपर्ने र खर्च</span> · 1 INR = 1.6 NPR · <span data-i18n="simpleInterest">साधारण ब्याज</span></p>
+<p class="muted"><span data-i18n="intro">लिनुपर्ने र दिनुपर्ने</span> · 1 INR = 1.6 NPR · <span data-i18n="simpleInterest">साधारण ब्याज</span></p>
 <form id="transactionForm">
 <input id="recordId" type="hidden">
 <div class="grid">
 <label><span data-i18n="date">मिति</span><input id="date" type="date" required></label>
 <label><span data-i18n="party">पार्टी / समूहको नाम</span><input id="party" maxlength="120" required></label>
-<label><span data-i18n="type">कारोबारको प्रकार</span><select id="type"><option value="Receivable" data-i18n="receivable">लिनुपर्ने</option><option value="Payable" data-i18n="payable">दिनुपर्ने</option><option value="Expense" data-i18n="expense">खर्च</option></select></label>
+<label><span data-i18n="type">कारोबारको प्रकार</span><select id="type"><option value="Receivable" data-i18n="receivable">लिनुपर्ने</option><option value="Payable" data-i18n="payable">दिनुपर्ने</option><option value="Expense" id="legacyExpenseOption" hidden>Expense (legacy)</option></select></label>
 <label><span data-i18n="rate">ब्याज दर (% प्रति महिना)</span><input id="rate" type="number" min="0" step="any" value="0"></label>
 <label><span data-i18n="period">महिना</span><input id="period" type="number" min="0" step="any" value="0"></label>
+<label><span data-i18n="dueDate">ब्याज/किस्ता भाका मिति</span><input id="dueDate" type="date"></label>
 <label><span data-i18n="npr">रकम NPR</span><input id="npr" type="number" min="0" step="any" value="0"></label>
 <label><span data-i18n="inr">रकम INR</span><input id="inr" type="number" min="0" step="any" value="0"></label>
 <label><span data-i18n="total">कुल NPR</span><input id="total" readonly></label>
@@ -97,17 +98,12 @@ body[data-layout="compact"] .record{padding:8px}
 <div class="stats">
 <div class="stat"><small data-i18n="totalReceivable">कुल लिनुपर्ने</small><b id="totalReceivable">NPR 0.00</b></div>
 <div class="stat"><small data-i18n="totalPayable">कुल दिनुपर्ने</small><b id="totalPayable">NPR 0.00</b></div>
-<div class="stat"><small data-i18n="totalExpense">कुल खर्च</small><b id="totalExpense">NPR 0.00</b></div>
+<div class="stat"><small data-i18n="totalExpense">पुराना Expense रेकर्ड</small><b id="totalExpense">NPR 0.00</b></div>
 <div class="stat"><small data-i18n="netBalance">बाँकी हिसाब (Net)</small><b id="grandTotal">NPR 0.00</b></div>
 <div class="stat"><small data-i18n="groupCount">समूह संख्या</small><b id="groupCount">0</b></div>
 <div class="stat"><small data-i18n="recordCount">रेकर्ड संख्या</small><b id="recordCount">0</b></div>
 </div>
 <div id="groups"></div>
-</section>
-<section class="card">
-<h2 data-i18n="recordsTitle">सबै कारोबार रेकर्ड</h2>
-<input id="recordSearch" type="search" data-i18n-placeholder="searchRecords" placeholder="नाम, कैफियत वा प्रकार खोज्नुहोस्">
-<div id="records"></div>
 </section>
 <section class="card">
 <h2 data-i18n="trashTitle">हालै हटाइएका कारोबार</h2>
@@ -142,14 +138,14 @@ const SETTINGS_KEY="digital_notebook_settings",DAY=86400000,RATE_INR=1.6,PATH="t
 const $=id=>document.getElementById(id);
 const words={
 en:{
-appTitle:"Transactions",pageTitle:"Transaction / Party Ledger",intro:"Receivable, Payable and Expense",simpleInterest:"Simple interest",
-date:"Date",party:"Party / Group name",type:"Transaction type",receivable:"Receivable",payable:"Payable",expense:"Expense",
+appTitle:"Transactions",pageTitle:"Transaction / Party Ledger",intro:"Receivable and Payable",simpleInterest:"Simple interest",dueDate:"Interest / installment due date",
+date:"Date",party:"Party / Group name",type:"Transaction type",receivable:"Receivable",payable:"Payable",
 rate:"Interest rate (% per month)",period:"Months",npr:"Amount NPR",inr:"Amount INR",total:"Total NPR",note:"Notes / Details",
 save:"Save transaction",update:"Update transaction",cancel:"Cancel",import:"Import old local data",pdfAll:"Export PDF",
 groupTitle:"Group Ledger / Party Summary",groupHelp:"Transactions with the same party name are grouped together. Tap a name to see all records.",
 searchGroup:"Search party or notes",grandTotal:"Total NPR",groupCount:"Groups",recordCount:"Records",pdfOne:"Group PDF",
-totalReceivable:"Total Receivable",totalPayable:"Total Payable",totalExpense:"Total Expense",netBalance:"Net Balance",
-recordsTitle:"All transaction records",searchRecords:"Search party, notes or type",trashTitle:"Recently deleted transactions",trashHelp:"Restore within 30 days.",
+totalReceivable:"Total Receivable",totalPayable:"Total Payable",totalExpense:"Legacy Expense records",netBalance:"Net Balance",
+trashTitle:"Recently deleted transactions",trashHelp:"Restore within 30 days.",
 noGroups:"No matching groups found.",noRecords:"No records found.",noTrash:"Trash is empty.",edit:"Edit",delete:"Move to Trash",restore:"Restore",expired:"Expired",
 dateLabel:"Date",partyLabel:"Party",typeLabel:"Type",amountLabel:"Total NPR",monthsLabel:"Months",noteLabel:"Notes",
 name:"Name",email:"Email",address:"Address",mobile:"Mobile",reportDate:"Report date",detailsTitle:"Detailed transaction records",serial:"No.",partyName:"Party name",remark:"Note",
@@ -164,14 +160,14 @@ confirmSave:"Save this transaction?",confirmUpdate:"Save changes to this transac
 saveFailed:"The transaction could not be saved.",restoreOk:"Transaction restored.",confirmDelete:"Move this transaction to Trash?",deleteError:"Could not move record to Trash: "
 },
 ne:{
-appTitle:"कारोबार",pageTitle:"कारोबार / पार्टी लेजर",intro:"लिनुपर्ने, दिनुपर्ने र खर्च",simpleInterest:"साधारण ब्याज",
-date:"मिति",party:"पार्टी / समूहको नाम",type:"कारोबारको प्रकार",receivable:"लिनुपर्ने",payable:"दिनुपर्ने",expense:"खर्च",
+appTitle:"कारोबार",pageTitle:"कारोबार / पार्टी लेजर",intro:"लिनुपर्ने र दिनुपर्ने",simpleInterest:"साधारण ब्याज",dueDate:"ब्याज/किस्ता भाका मिति",
+date:"मिति",party:"पार्टी / समूहको नाम",type:"कारोबारको प्रकार",receivable:"लिनुपर्ने",payable:"दिनुपर्ने",
 rate:"ब्याज दर (% प्रति महिना)",period:"महिना",npr:"रकम NPR",inr:"रकम INR",total:"कुल NPR",note:"कैफियत / विवरण",
 save:"कारोबार सेभ",update:"कारोबार अपडेट",cancel:"रद्द",import:"पुरानो स्थानीय डाटा Import",pdfAll:"PDF निकाल्नुहोस्",
 groupTitle:"Group Ledger / समूहगत हिसाब",groupHelp:"एउटै पार्टी नामका कारोबार एउटै समूहमा देखिन्छन्। नाम थिचेर सबै विवरण खोल्नुहोस्।",
 searchGroup:"पार्टीको नाम वा कैफियत खोज्नुहोस्",grandTotal:"कुल रकम NPR",groupCount:"समूह संख्या",recordCount:"रेकर्ड संख्या",
-totalReceivable:"कुल लिनुपर्ने",totalPayable:"कुल दिनुपर्ने",totalExpense:"कुल खर्च",netBalance:"बाँकी हिसाब (Net)",
-pdfOne:"समूह PDF",recordsTitle:"सबै कारोबार रेकर्ड",searchRecords:"नाम, कैफियत वा प्रकार खोज्नुहोस्",trashTitle:"हालै हटाइएका कारोबार",trashHelp:"३० दिनभित्र Restore गर्न सकिन्छ।",
+totalReceivable:"कुल लिनुपर्ने",totalPayable:"कुल दिनुपर्ने",totalExpense:"पुराना Expense रेकर्ड",netBalance:"बाँकी हिसाब (Net)",
+pdfOne:"समूह PDF",trashTitle:"हालै हटाइएका कारोबार",trashHelp:"३० दिनभित्र Restore गर्न सकिन्छ।",
 noGroups:"मिल्ने समूह भेटिएन।",noRecords:"रेकर्ड भेटिएन।",noTrash:"Trash खाली छ।",edit:"सम्पादन",delete:"Trash मा सार्नुहोस्",restore:"Restore",expired:"म्याद सकियो",
 dateLabel:"मिति",partyLabel:"पार्टी",typeLabel:"प्रकार",amountLabel:"कुल NPR",monthsLabel:"महिना",noteLabel:"कैफियत",
 name:"नाम",email:"इमेल",address:"ठेगाना",mobile:"मोबाइल",reportDate:"रिपोर्ट मिति",detailsTitle:"कारोबारको विस्तृत विवरण",serial:"क्र.सं.",partyName:"पार्टीको नाम",remark:"कैफियत",
@@ -185,13 +181,13 @@ confirmYes:"पुष्टि गर्नुहोस्",confirmNo:"रद्
 confirmSave:"यो कारोबार सेभ गर्ने?",confirmUpdate:"कारोबारको परिवर्तन सेभ गर्ने?",saveError:"सेभ हुन सकेन: ",restoreError:"Restore हुन सकेन: ",importConfirm:"पुरानो डाटा Import गर्ने?",
 saveFailed:"कारोबार सेभ हुन सकेन।",restoreOk:"कारोबार Restore भयो।",confirmDelete:"यो कारोबार Trash मा सार्ने?",deleteError:"Trash मा सार्न सकिएन: "
 }};
+
 let prefs=loadPrefs(),currentUser=null,records={},trash={},expandedGroups=new Set(),dataRef=null,trashRef=null,dataHandler=null,trashHandler=null,confirmResolver=null;
 function loadPrefs(){try{const v=JSON.parse(localStorage.getItem(SETTINGS_KEY)||"{}");return {...{lang:"ne",theme:"dark",font_size:"16",font_family:"Poppins",accentColor:"#10b981",layout:"comfortable"},...(v&&typeof v==="object"?v:{})}}catch(e){return {lang:"ne",theme:"dark",font_size:"16",font_family:"Poppins",accentColor:"#10b981",layout:"comfortable"}}}
 function t(k){return words[prefs.lang==="en"?"en":"ne"][k]||words.en[k]||k}
 function status(message,bad=false){$("statusMessage").textContent=message||"";$("statusMessage").classList.toggle("error",!!bad)}
-function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function esc(v){return String(v?=""?v:"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function num(v){const n=Number(v);return Number.isFinite(n)?n:0}
-function signedAmount(r){const val=num(r.total);return r.type==="Receivable"?val:-val}
 function money(v){
  const n=num(v),sign=n<0?"- ":"";
  return sign+"NPR "+Math.abs(n).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -200,8 +196,9 @@ function validKey(k){return typeof k==="string"&&k.length>0&&!/[.#$\[\]\/]/.test
 function normalizedName(v){return String(v||"").trim().replace(/\s+/g," ").toLocaleLowerCase()}
 function userRef(path=""){if(!currentUser)throw Error(t("authError"));return db.ref("users/"+currentUser.uid+(path?"/"+path:""))}
 function values(){return Object.entries(records||{}).filter(([,r])=>r&&typeof r==="object"&&!Array.isArray(r)).map(([id,r])=>({...r,id:typeof r.id==="string"&&r.id?r.id:id}))}
-function typeText(type){return type==="Receivable"?t("receivable"):type==="Payable"?t("payable"):type==="Expense"?t("expense"):String(type||"")}
-function calculate(){const principal=num($("npr").value)+num($("inr").value)*RATE_INR;const interest=$("type").value==="Expense"?0:principal*num($("rate").value)*num($("period").value)/100;$("total").value=(principal+interest).toFixed(2);return principal+interest}
+function typeText(type){return type==="Receivable"?t("receivable"):type==="Payable"?t("payable"):type==="Expense"?"Expense (legacy)":String(type||"")}
+function dueCountdown(date){if(!/^\d{4}-\d{2}-\d{2}$/.test(String(date||"")))return "";const due=new Date(date+"T00:00:00");if(Number.isNaN(due.getTime()))return "";const today=new Date();today.setHours(0,0,0,0);const days=Math.round((due.getTime()-today.getTime())/DAY);if(days>30)return "";if(days<0)return `<span class="muted"> · ${Math.abs(days)} दिन भाका नाघ्यो</span>`;return `<span class="amount ${days===0?"net-neg":"net-pos"}"> · ${days} दिन बाँकी</span>`}
+function calculate(){const principal=num($("npr").value)+num($("inr").value)*RATE_INR;const interest=principal*num($("rate").value)*num($("period").value)/100;$("total").value=(principal+interest).toFixed(2);return principal+interest}
 ["npr","inr","rate","period","type"].forEach(id=>$(id).addEventListener("input",calculate));
 $("date").value=new Date().toISOString().slice(0,10);
 function askConfirm(message){$("confirmTitle").textContent=t("confirmTitle");$("confirmMessage").textContent=message;$("confirmYes").textContent=t("confirmYes");$("confirmNo").textContent=t("confirmNo");$("confirmOverlay").classList.remove("hidden");$("confirmYes").focus();return new Promise(resolve=>{confirmResolver=resolve})}
@@ -226,11 +223,11 @@ function grouped(list){
 function recordCard(r){
  const signClass=r.type==="Receivable"?"net-pos":"net-neg";
  const signPrefix=r.type==="Receivable"?"+ ":"- ";
- return `<div class="record"><b>${esc(r.party||"—")}</b> · ${esc(r.date||"—")}<p>${esc(typeText(r.type))} · <span class="amount ${signClass}">${signPrefix}${money(r.total)}</span></p><p class="muted">${esc(r.note||"")}</p><p class="muted">${esc(t("rate"))}: ${num(r.rate)}% · ${esc(t("period"))}: ${num(r.period)}</p><div class="actions"><button type="button" data-edit="${esc(r.id)}">${esc(t("edit"))}</button><button type="button" class="danger" data-delete="${esc(r.id)}">${esc(t("delete"))}</button></div></div>`;
+ const due=r.dueDate?`<p>${esc(t("dueDate"))}: ${esc(r.dueDate)}${dueCountdown(r.dueDate)}</p>`:"";
+ return `<div class="record"><b>${esc(r.party||"—")}</b> · ${esc(r.date||"—")}<p>${esc(typeText(r.type))} · <span class="amount ${signClass}">${signPrefix}${money(r.total)}</span></p><p class="muted">${esc(r.note||"")}</p><p class="muted">${esc(t("rate"))}: ${num(r.rate)}% · ${esc(t("period"))}: ${num(r.period)}</p>${due}<div class="actions"><button type="button" data-edit="${esc(r.id)}">${esc(t("edit"))}</button><button type="button" class="danger" data-delete="${esc(r.id)}">${esc(t("delete"))}</button></div></div>`;
 }
 function render(){
  const all=values(),q=normalizedName($("groupSearch").value),filtered=all.filter(r=>(normalizedName(r.party)+" "+normalizedName(r.note)).includes(q)),groups=grouped(filtered);
- 
  let totRec=0,totPay=0,totExp=0;
  filtered.forEach(r=>{
   const amt=num(r.total);
@@ -239,7 +236,6 @@ function render(){
   else if(r.type==="Expense")totExp+=amt;
  });
  const netBal=totRec-totPay-totExp;
-
  $("totalReceivable").textContent=money(totRec);
  $("totalPayable").textContent=money(totPay);
  $("totalExpense").textContent=money(totExp);
@@ -247,15 +243,11 @@ function render(){
  $("grandTotal").className="amount "+(netBal>=0?"net-pos":"net-neg");
  $("groupCount").textContent=String(groups.length);
  $("recordCount").textContent=String(filtered.length);
-
  $("groups").innerHTML=groups.map(g=>{
   const open=expandedGroups.has(g.key),sorted=g.items.slice().sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
   const netClass=g.netTotal>=0?"net-pos":"net-neg";
   return `<div class="group"><div class="group-head"><button class="group-button" type="button" data-group="${esc(g.key)}" aria-expanded="${open}"><span>${open?"▾":"▸"}</span><span class="group-name"><b>${esc(g.name)}</b><br><small>${g.items.length} ${esc(t("recordCount"))}</small></span><span class="amount ${netClass}">${money(g.netTotal)}</span></button><button class="group-pdf primary" type="button" data-pdf-group="${esc(g.key)}">${esc(t("pdfOne"))}</button></div><div class="group-details ${open?"":"hidden"}">${sorted.map(recordCard).join("")}</div></div>`;
  }).join("")||`<p class="muted">${esc(t("noGroups"))}</p>`;
-
- const rq=normalizedName($("recordSearch").value),listed=all.filter(r=>(normalizedName(r.party)+" "+normalizedName(r.note)+" "+normalizedName(typeText(r.type))).includes(rq)).sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
- $("records").innerHTML=listed.map(recordCard).join("")||`<p class="muted">${esc(t("noRecords"))}</p>`;
 }
 function renderTrash(){
  const rows=[];Object.entries(trash||{}).forEach(([cat,group])=>{if(!group||typeof group!=="object"||Array.isArray(group))return;Object.entries(group).forEach(([id,v])=>{if(v&&typeof v==="object"&&(v.data||v.originalPath))rows.push({...v,id,category:v.category||cat})})});
@@ -267,13 +259,25 @@ async function saveRecord(id,data,isEdit){
  const result=await userRef(PATH+"/"+id).transaction(old=>{if(isEdit&&old===null)return;if(!isEdit&&old!==null)return;return {...(old&&typeof old==="object"?old:{}),...data,id,createdAt:old?.createdAt||Date.now(),updatedAt:Date.now()}},undefined,false);
  if(!result.committed)throw Error(t("notFound"));
 }
-function resetForm(){$("transactionForm").reset();$("recordId").value="";$("date").value=new Date().toISOString().slice(0,10);$("rate").value="0";$("period").value="0";$("npr").value="0";$("inr").value="0";$("saveButton").textContent=t("save");calculate()}
+function resetForm(){
+ $("transactionForm").reset();
+ $("recordId").value="";
+ $("legacyExpenseOption").hidden=true;
+ $("type").value="Receivable";
+ $("date").value=new Date().toISOString().slice(0,10);
+ $("rate").value="0";
+ $("period").value="0";
+ $("npr").value="0";
+ $("inr").value="0";
+ $("saveButton").textContent=t("save");
+ calculate();
+}
 $("cancelButton").addEventListener("click",()=>{resetForm();status("")});
 $("transactionForm").addEventListener("submit",async e=>{
  e.preventDefault();if(!currentUser){status(t("authError"),true);return}
- const party=$("party").value.trim(),rate=Number($("rate").value),period=Number($("period").value),npr=Number($("npr").value),inr=Number($("inr").value);
- if(!party||![rate,period,npr,inr].every(v=>Number.isFinite(v)&&v>=0)){status(t("badInput"),true);return}
- const isEdit=!!$("recordId").value,id=$("recordId").value||userRef(PATH).push().key,data={date:$("date").value,party,type:$("type").value,rate,period,npr,inr,total:calculate(),note:$("note").value.trim()};
+ const party=$("party").value.trim(),rate=Number($("rate").value),period=Number($("period").value),npr=Number($("npr").value),inr=Number($("inr").value),type=$("type").value,isEdit=!!$("recordId").value;
+ if(!party||(!["Receivable","Payable"].includes(type)&&!(isEdit&&type==="Expense"))||![rate,period,npr,inr].every(v=>Number.isFinite(v)&&v>=0)){status(t("badInput"),true);return}
+ const id=$("recordId").value||userRef(PATH).push().key,data={date:$("date").value,party,type,rate,period,npr,inr,total:calculate(),note:$("note").value.trim(),dueDate:$("dueDate").value||""};
  if(!await askConfirm(t(isEdit?"confirmUpdate":"confirmSave")))return;
  $("saveButton").disabled=true;status("");
  try{await saveRecord(id,data,isEdit);resetForm();status(t("save"))}
@@ -289,7 +293,7 @@ async function moveToTrash(id){
 async function handleRecordAction(e){
  const edit=e.target.closest("[data-edit]"),del=e.target.closest("[data-delete]");
  if(edit){const id=edit.dataset.edit,r=records[id];if(!r){status(t("notFound"),true);return}
- $("recordId").value=id;["date","party","type","rate","period","npr","inr","note"].forEach(k=>$(k).value=r[k]??"");
+ $("recordId").value=id;if(r.type==="Expense"){$("legacyExpenseOption").hidden=false;$("legacyExpenseOption").textContent=t("totalExpense")}else{$("legacyExpenseOption").hidden=true;}$["date","party","type","rate","period","npr","inr","note","dueDate"].forEach(k=>$(k).value=r[k]??"");
  calculate();$("saveButton").textContent=t("update");window.scrollTo({top:0,behavior:"smooth"});return}
  if(del&&await askConfirm(t("deleteConfirm")))await moveToTrash(del.dataset.delete);
 }
@@ -298,7 +302,7 @@ $("groups").addEventListener("click",async e=>{
  const group=e.target.closest("[data-group]");if(group){const key=group.dataset.group;expandedGroups.has(key)?expandedGroups.delete(key):expandedGroups.add(key);render();return}
  await handleRecordAction(e)
 });
-$("records").addEventListener("click",handleRecordAction);$("groupSearch").addEventListener("input",render);$("recordSearch").addEventListener("input",render);
+$("groupSearch").addEventListener("input",render);
 $("trashList").addEventListener("click",async e=>{
  const b=e.target.closest("[data-restore]");if(!b)return;
  const [cat,id]=b.dataset.restore.split("/"),item=trash?.[cat]?.[id];
@@ -351,7 +355,7 @@ async function exportPdf(recordsList,subtitle="",filenamePrefix="Digital-Noteboo
  catch(e){status(t("pdfError")+e.message,true)}
 }
 async function exportOneGroup(key){const g=grouped(values()).find(x=>x.key===key);if(!g||!g.items.length){status(t("pdfEmpty"),true);return}const list=g.items.slice().sort((a,b)=>String(a.date||"").localeCompare(String(b.date||"")));await exportPdf(list,g.name,"Group-Ledger-"+g.name.replace(/[^a-zA-Z0-9]/g,"_"))}
-$("pdfAllButton").addEventListener("click",async()=>{const all=values().sort((a,b)=>String(a.date||"").localeCompare(String(a.date||"")));if(!all.length){status(t("pdfEmpty"),true);return}await exportPdf(all,"","Full-Transaction-Ledger")});
+$("pdfAllButton").addEventListener("click",async()=>{const all=values().sort((a,b)=>String(a.date||"").localeCompare(String(b.date||"")));if(!all.length){status(t("pdfEmpty"),true);return}await exportPdf(all,"","Full-Transaction-Ledger")});
 async function importOldData(){
  if(!currentUser){status(t("authError"),true);return}if(!await askConfirm(t("confirmImport")))return;
  const marker=userRef("migration/local-transactions-v2");
@@ -379,14 +383,14 @@ window.addEventListener("storage",e=>{if(e.key===SETTINGS_KEY)applyPreferences()
 function attachListeners(){
  if(dataRef&&dataHandler)dataRef.off("value",dataHandler);if(trashRef&&trashHandler)trashRef.off("value",trashHandler);
  dataRef=userRef(PATH);trashRef=userRef("trash");
- dataHandler=snap=>{const raw=snap.val()||{};records=raw&&typeof raw==="object"&&!Array.isArray(raw)?raw:{};render()};
+ dataHandler=snap=>{const raw=snap.val()||{};records=raw&&typeof raw==="object"&&!Array.isArray(raw)?raw:{};render();document.body.classList.remove("auth-pending")};
  trashHandler=snap=>{trash=snap.val()||{};renderTrash()};
- dataRef.on("value",dataHandler,error=>status(t("loadError")+error.message,true));
+ dataRef.on("value",dataHandler,error=>{status(t("loadError")+error.message,true);document.body.classList.remove("auth-pending")});
  trashRef.on("value",trashHandler,error=>status(t("loadError")+error.message,true))
 }
 auth.onAuthStateChanged(user=>{
  if(!user){currentUser=null;location.replace("index.html");return}
- currentUser=user;document.body.classList.remove("auth-pending");attachListeners();applyPreferences()
+ currentUser=user;attachListeners();applyPreferences()
 });
 $("backButton").addEventListener("click",e=>{if(document.referrer){try{const u=new URL(document.referrer);if(u.origin===location.origin){e.preventDefault();history.back()}}catch(err){}}});
 applyPreferences();calculate();
