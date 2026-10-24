@@ -107,6 +107,20 @@ button:disabled { opacity: .6; cursor: not-allowed; }
 }
 .login-card button { width: 100%; margin-top: 12px; }
 
+#mpin-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: var(--bg);
+}
+#mpin-overlay.hidden {
+  display: none !important;
+}
+
 #topbar {
   position: sticky;
   top: 0;
@@ -323,6 +337,24 @@ body[data-layout="compact"] .metric-grid, body[data-layout="compact"] .quick-gri
   </form>
 </div>
 
+<div id="mpin-overlay" class="hidden">
+  <form id="mpin-form" class="login-card">
+    <div style="text-align:center">
+      <img src="N1024.png" alt="Digital NoteBook"
+           style="width:66px;height:66px;object-fit:cover;border-radius:17px">
+      <h1 style="margin-top:12px;color:var(--accent)">🔐 MPIN Lock</h1>
+      <p class="muted">Enter your 4-digit MPIN to open Digital NoteBook.</p>
+    </div>
+    <input id="door-mpin" type="password" inputmode="numeric"
+           pattern="[0-9]{4}" maxlength="4" autocomplete="off"
+           required placeholder="Enter 4-digit MPIN">
+    <p id="door-mpin-error" role="alert"
+       style="color:#fb7185;font-size:.85em"></p>
+    <button class="btn btn-primary" type="submit">Unlock</button>
+    <button class="btn" id="door-logout" type="button">Log out</button>
+  </form>
+</div>
+
 <div id="sidebar-backdrop" class="hidden"></div>
 <aside id="sidebar" class="hidden" aria-label="Account menu">
   <div class="sidebar-head">
@@ -347,7 +379,7 @@ body[data-layout="compact"] .metric-grid, body[data-layout="compact"] .quick-gri
   <button id="backup-button" class="btn" type="button" style="width:100%;margin-bottom:8px">Merge local records to cloud</button>
   <button id="restore-button" class="btn" type="button" style="width:100%;margin-bottom:8px">Refresh local copies from cloud</button>
   <button id="logout-button" class="btn btn-danger" type="button" style="width:100%">Log out</button>
-  <p class="muted" style="font-size:.78em;margin-top:15px"></p>
+  <p class="muted" style="font-size:.78em;margin-top:15px">Theme, color, language and text size are managed from Settings.</p>
 </aside>
 
 <div id="app" class="hidden">
@@ -487,7 +519,7 @@ document.addEventListener("DOMContentLoaded", () => {
     transactions: ["digital_notebook_transactions", "transactions", "transaction_list"],
     notes: ["advanced_notebook_notes", "notes"],
     savings: ["digital_notebook_savings", "savings", "saving_data", "add_saving_list"],
-    house: ["digital_notebook_house_expenses", "house_expenses", "houseExpenses", "house_expense_list"]
+    house: ["digital_notebook_house_expenses", "house_expenses", "houseExpenses", "house_expense_list", "local_house_expenses_v2"]
   };
 
   let app, auth, db, uid = null;
@@ -586,7 +618,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function amount(record) {
     if (!record || typeof record !== "object") return 0;
-    const keys = ["total", "amount", "incomeAmount", "savingAmount", "txAmount", "principalAmount", "val", "price", "npr", "totalAmount", "expenseAmount"];
+    const keys = ["amount", "price", "total", "cost", "totalAmount", "expenseAmount", "houseExpenseAmount", "incomeAmount", "savingAmount", "txAmount", "principalAmount", "val", "npr"];
     for (const key of keys) {
       if (record[key] !== undefined && record[key] !== null && record[key] !== "") {
         return number(record[key]);
@@ -652,11 +684,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return !!date && date.getFullYear() === year && date.getMonth() === month;
   }
 
-  function isExpense(record) {
-    const type = recordType(record);
-    return type.includes("expense") || type.includes("खर्च") || type.includes("invest") || type === "cost" || type === "expenditure";
-  }
-
   function isReceivable(record) {
     const type = recordType(record);
     return type.includes("receivable") || type.includes("receive") || type.includes("लिनुपर्ने") || type.includes("पाउनुपर्ने") || type === "lend" || type === "loan given";
@@ -682,28 +709,22 @@ document.addEventListener("DOMContentLoaded", () => {
     const totalIncome = activeIncomes.reduce((sum, record) => sum + amount(record), 0);
     const totalReceivable = activeTransactions.filter(isReceivable).reduce((sum, record) => sum + amount(record), 0);
     const totalPayable = activeTransactions.filter(isPayable).reduce((sum, record) => sum + amount(record), 0);
-    const totalTransactionExpenses = activeTransactions.filter(isExpense).reduce((sum, record) => sum + amount(record), 0);
+    
     const totalHouseExpenses = activeHouseExpenses.reduce((sum, record) => sum + amount(record), 0);
 
-    // सुरुदेखि हालसम्मको कुल खर्च (Total Expense)
-    const totalAllExpenses = totalTransactionExpenses + totalHouseExpenses;
+    const netBalance = totalIncome + totalReceivable - totalPayable - totalHouseExpenses;
 
-    const netBalance = totalIncome + totalReceivable - totalPayable - totalAllExpenses;
-
-    // चालू १ महिनाको मात्र कुल खर्च (Monthly Expenses)
     const monthIncome = activeIncomes.filter(record => monthMatch(record, now.getFullYear(), now.getMonth())).reduce((sum, record) => sum + amount(record), 0);
     const monthSavings = activeSavings.filter(record => monthMatch(record, now.getFullYear(), now.getMonth())).reduce((sum, record) => sum + amount(record), 0);
-    const monthTransactionExpenses = activeTransactions.filter(record => monthMatch(record, now.getFullYear(), now.getMonth()) && isExpense(record)).reduce((sum, record) => sum + amount(record), 0);
     const monthHouseExpenses = activeHouseExpenses.filter(record => monthMatch(record, now.getFullYear(), now.getMonth())).reduce((sum, record) => sum + amount(record), 0);
-    const monthExpenses = monthTransactionExpenses + monthHouseExpenses;
 
     setText("summary-net-balance", money(netBalance));
     setText("summary-receivable", money(totalReceivable));
     setText("summary-payable", money(totalPayable));
-    setText("summary-expenses", money(totalAllExpenses)); // ड्यासबोर्ड कार्डमा कुल खर्च
+    setText("summary-expenses", money(totalHouseExpenses));
 
     setText("monthly-income", money(monthIncome));
-    setText("monthly-expenses", money(monthExpenses)); // Monthly Insight कार्डमा चालू महिनाको खर्च
+    setText("monthly-expenses", money(monthHouseExpenses));
     setText("monthly-savings", money(monthSavings));
 
     setText("insight-month-label", now.toLocaleDateString(readSettings().lang === "ne" ? "ne-NP" : "en-IN", { month: "long", year: "numeric" }));
@@ -800,7 +821,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const title = document.createElement("strong");
       title.className = "activity-title";
-      title.textContent = record.party || record.title || record.sourceName || record.name || record.description || record.note || record._kind;
+      title.textContent = record.party || record.title || record.sourceName || record.name || record.description || record.note || record.itemName || record._kind;
 
       const sub = document.createElement("span");
       sub.className = "activity-sub";
@@ -841,7 +862,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function listen(path) {
-    const reference = db.ref("users/" + uid + "/" + path);
+    const firebasePath = path === "house" ? "house_expenses" : path;
+    const reference = db.ref("users/" + uid + "/" + firebasePath);
     const callback = snapshot => {
       if (auth.currentUser?.uid !== uid) return;
       cloudData[path] = snapshot.val();
@@ -1105,11 +1127,16 @@ document.addEventListener("DOMContentLoaded", () => {
           const record = { ...original };
           let id = String(record.id || "").trim();
           if (!id || id.startsWith("legacy-") || /^\d+$/.test(id)) {
-            id = db.ref("users/" + uid + "/" + path).push().key;
+            const firebasePath = path === "house" ? "house_expenses" : path;
+            id = db.ref("users/" + uid + "/" + firebasePath).push().key;
             if (!id) throw new Error("Could not create a record ID.");
             record.id = id;
           }
-          const ref = db.ref("users/" + uid + "/" + path + "/" + id);
+          const ref = db.ref(
+            "users/" + uid + "/" +
+            (path === "house" ? "house_expenses" : path) +
+            "/" + id
+          );
           const result = await ref.transaction(current => {
             if (current !== null) return;
             return record;
@@ -1128,7 +1155,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!confirm("Refresh local copies from cloud? This changes local copies only.")) return;
     try {
       const paths = Object.keys(LOCAL);
-      const snapshots = await Promise.all(paths.map(path => db.ref("users/" + uid + "/" + path).once("value")));
+      const snapshots = await Promise.all(paths.map(path =>
+        db.ref(
+          "users/" + uid + "/" +
+          (path === "house" ? "house_expenses" : path)
+        ).once("value")
+      ));
       let found = false;
       snapshots.forEach((snapshot, index) => {
         const path = paths[index];
