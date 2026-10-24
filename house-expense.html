@@ -236,7 +236,6 @@ body[data-layout="compact"] .expense{padding:8px;margin-top:6px}
 <script>
 "use strict";
 
-/* Firebase project configuration: existing project preserved. */
 const FIREBASE_CONFIG={
   apiKey:"AIzaSyDDY_v7RHnkCTI6uyV4DNDjqoaIBGweg8c",
   authDomain:"digital-a2552.firebaseapp.com",
@@ -928,10 +927,6 @@ async function restoreExpense(id){
       return;
     }
 
-    /*
-     * Restore first, then remove the Trash copy.
-     * If removal fails, report it; do not overwrite active data.
-     */
     await db.ref(userPath(TRASH_PATH+"/"+id)).remove();
     showStatus(t("restoreSuccess"),"good");
   }catch(error){
@@ -992,7 +987,6 @@ function renderTrash(){
   });
 }
 
-/* PDF profile information is read only from available local profile data. */
 function profileObject(){
   for(const key of [
     "digital_notebook_profile","user_profile","userProfile","profile","digital_notebook_user"
@@ -1059,7 +1053,7 @@ async function exportPdf(){
   `).join("");
 
   const report=document.createElement("div");
-  report.style.cssText="background:#fff;color:#172033;padding:10px;font-family:Arial,sans-serif;font-size:10px;width:100%;box-sizing:border-box";
+  report.style.cssText="background:#fff;color:#172033;padding:15px;font-family:Arial,sans-serif;font-size:11px;width:700px;box-sizing:border-box;position:absolute;left:-9999px;top:0;";
 
   report.innerHTML=`
     <div style="background:#102b3f;color:#fff;padding:12px;border-radius:6px;border-bottom:4px solid #10b981;margin-bottom:8px">
@@ -1107,12 +1101,14 @@ async function exportPdf(){
     <div style="margin-top:9px;border-top:1px solid #ccd5d1;padding-top:4px;font-size:8px;color:#64748b;text-align:center">This report was created from available Cloud House Expense records.</div>
     <style>
       table{border-collapse:collapse;width:100%;margin-bottom:6px;table-layout:fixed}
-      th,td{border:1px solid #94a3b8;padding:4px;vertical-align:middle;overflow-wrap:anywhere}
+      th,td{border:1px solid #94a3b8;padding:5px;vertical-align:middle;overflow-wrap:anywhere}
       th{background:#f1f5f9;color:#0f172a;text-align:left}
       .right{text-align:right}.center{text-align:center}
-      tr{page-break-inside:avoid}
+      tr{page-break-inside:avoid;break-inside:avoid;}
     </style>
   `;
+
+  document.body.appendChild(report);
 
   try{
     await html2pdf().set({
@@ -1127,6 +1123,8 @@ async function exportPdf(){
   }catch(error){
     console.error("PDF export failed:",error);
     showStatus(t("pdfFailed")+friendlyError(error),"error");
+  }finally{
+    report.remove();
   }
 }
 
@@ -1159,7 +1157,6 @@ function exportJSON(){
   }
 }
 
-/* Event handlers */
 $("expenseForm").addEventListener("submit",saveExpense);
 
 $("cancelEdit").addEventListener("click",()=>{
@@ -1258,7 +1255,6 @@ $("date").value=localDate();
 $("dayFilter").value=localDate();
 $("monthFilter").value=currentMonth();
 
-/* Authentication lifecycle: remove old listeners on every account change. */
 if(!window.firebase){
   document.body.classList.remove("auth-pending");
   showStatus("Firebase SDK लोड भएन। इन्टरनेट र Firebase CDN जाँच गर्नुहोस्।","error");
