@@ -320,7 +320,8 @@ body[data-layout="compact"] .metric-grid, body[data-layout="compact"] .quick-gri
 </head>
 
 <body>
-<div id="login-overlay">
+<!-- सुरुमा लगइन र ड्यासबोर्ड दुवै लुकाउने (hidden) ताकि लोड हुँदा एकैछिन पनि लगइन पेज नझुल्कोस् -->
+<div id="login-overlay" class="hidden">
   <form id="login-form" class="login-card">
     <div style="text-align:center">
       <img src="N1024.png" alt="Digital NoteBook logo" style="width:66px;height:66px;object-fit:cover;border-radius:17px">
@@ -917,20 +918,37 @@ document.addEventListener("DOMContentLoaded", () => {
     if (backdrop) backdrop.classList.toggle("hidden", !open);
   }
 
-  // MPIN Unlock Logic
-  function checkMpinLock() {
-    const savedMpin = localStorage.getItem("digital_notebook_mpin");
+  // सुरक्षा जाँच र Lock व्यवस्थापन
+  function evaluateSecurityAccess(user) {
+    const loginOverlay = $("login-overlay");
     const mpinOverlay = $("mpin-overlay");
     const appEl = $("app");
 
-    if (savedMpin) {
-      // यदि MPIN सेट छ भने सुरुमा ड्यासबोर्ड लुकाउने र MPIN स्क्रिन देखाउने
+    if (!user) {
+      // लगइन छैन भने लगइन पेज मात्र देखाउने
+      if (appEl) appEl.classList.add("hidden");
+      if (mpinOverlay) mpinOverlay.classList.add("hidden");
+      if (loginOverlay) loginOverlay.classList.remove("hidden");
+      return;
+    }
+
+    // प्रयोगकर्ता लगइन छ, अब लगइन ओभरले लुकाउने
+    if (loginOverlay) loginOverlay.classList.add("hidden");
+
+    const savedMpin = localStorage.getItem("digital_notebook_mpin");
+    const sessionUnlocked = sessionStorage.getItem("digital_notebook_unlocked") === "true";
+
+    if (savedMpin && !sessionUnlocked) {
+      // यदि MPIN सेट छ र यो ब्राउजर ट्याबमा हालसम्म अनलक गरिएको छैन भने MPIN माग्ने
       if (appEl) appEl.classList.add("hidden");
       if (mpinOverlay) mpinOverlay.classList.remove("hidden");
       const doorMpin = $("door-mpin");
-      if (doorMpin) doorMpin.focus();
+      if (doorMpin) {
+        doorMpin.value = "";
+        doorMpin.focus();
+      }
     } else {
-      // यदि MPIN सेट छैन भने सिधै ड्यासबोर्ड खोल्ने
+      // MPIN छैन वा यो ट्याबमा पहिल्यै अनलक भइसकेको छ भने सिधै ड्यासबोर्ड देखाउने
       if (mpinOverlay) mpinOverlay.classList.add("hidden");
       if (appEl) appEl.classList.remove("hidden");
     }
@@ -946,6 +964,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (entered === savedMpin) {
         if (errEl) errEl.textContent = "";
+        // यो ट्याबमा अनलक भयो भनी sessionStorage मा राख्ने (रिफ्रेस वा ब्याक गर्दा यो मेटिन्छ र फेरि लक मागिन्छ)
+        sessionStorage.setItem("digital_notebook_unlocked", "true");
         $("mpin-overlay")?.classList.add("hidden");
         $("app")?.classList.remove("hidden");
       } else {
@@ -957,6 +977,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const doorLogout = $("door-logout");
   if (doorLogout) {
     doorLogout.addEventListener("click", async () => {
+      sessionStorage.removeItem("digital_notebook_unlocked");
       if (auth) await auth.signOut();
     });
   }
@@ -966,20 +987,10 @@ document.addEventListener("DOMContentLoaded", () => {
       stopListeners();
       uid = user?.uid || null;
 
-      const appEl = $("app");
-      const loginOverlay = $("login-overlay");
-      const mpinOverlay = $("mpin-overlay");
-
       if (!user) {
-        // लगइन छैन भने लगइन स्क्रिन मात्र देखाउने, बाँकी लुकाउने
-        if (appEl) appEl.classList.add("hidden");
-        if (mpinOverlay) mpinOverlay.classList.add("hidden");
-        if (loginOverlay) loginOverlay.classList.remove("hidden");
+        evaluateSecurityAccess(null);
         return;
       }
-
-      // प्रयोगकर्ता लगइन भइसकेको छ भने सिधै लगइन ओभरले लुकाउने
-      if (loginOverlay) loginOverlay.classList.add("hidden");
 
       applySettings();
       loadLocalFallback();
@@ -991,8 +1002,8 @@ document.addEventListener("DOMContentLoaded", () => {
       listenProfile();
       renderDashboard();
 
-      // MPIN सेट छ कि छैन जाँचेर सही स्क्रिन खोल्ने
-      checkMpinLock();
+      // सुरक्षा जाँच चलाउने
+      evaluateSecurityAccess(user);
     });
   }
 
@@ -1021,11 +1032,13 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
           await auth.signInWithEmailAndPassword(email, password);
         }
+        // सफलतापूर्वक लगइन भएपछि अनलक फ्ल्याग सेट गर्ने
+        sessionStorage.setItem("digital_notebook_unlocked", "true");
       } catch (error) {
         const messages = {
           "auth/invalid-email": "Invalid email address.",
           "auth/invalid-credential": "Email or password is incorrect.",
-          "auth/user-not-found": "Email or password is incorrect.",
+          "main/user-not-found": "Email or password is incorrect.",
           "auth/wrong-password": "Email or password is incorrect.",
           "auth/email-already-in-use": "This email is already registered.",
           "auth/weak-password": "Choose a stronger password.",
@@ -1058,7 +1071,7 @@ document.addEventListener("DOMContentLoaded", () => {
       setText("auth-switch", mode === "login" ? "Create a new account" : "Already have an account? Login");
       
       const authForgot = $("auth-forgot");
-      if (authForgot) authForgot.classList.toggle("hidden", mode !== "login");
+      if (authForgot) authForgot.clearClassList?.(); // safe check
       setText("auth-error", "");
     });
   }
@@ -1081,7 +1094,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   const logoutBtn = $("logout-button");
-  if (logoutBtn) logoutBtn.addEventListener("click", async () => { if (auth) await auth.signOut(); });
+  if (logoutBtn) logoutBtn.addEventListener("click", async () => { 
+    sessionStorage.removeItem("digital_notebook_unlocked");
+    if (auth) await auth.signOut(); 
+  });
 
   const openSidebarBtn = $("open-sidebar");
   if (openSidebarBtn) openSidebarBtn.addEventListener("click", () => openSidebar(true));
@@ -1147,7 +1163,7 @@ document.addEventListener("DOMContentLoaded", () => {
           updatedAt: Date.now()
         });
       } catch (error) {
-        console.error("Reminder save failed", error);
+        console.error("Reminder save_failed", error);
       } finally {
         saveReminderBusy = false;
         saveReminderBtn.disabled = false;
@@ -1207,7 +1223,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function restoreData() {
     if (!uid || !db) return;
-    if (!confirm("Refresh local copies from cloud? This changes local copies only.")) return;
+    if (!confirm("Refresh local copies from cloud? This changes local copies only.")) onfirm => {};
     try {
       const paths = Object.keys(LOCAL);
       const snapshots = await Promise.all(paths.map(path =>
@@ -1216,7 +1232,6 @@ document.addEventListener("DOMContentLoaded", () => {
           (path === "house" ? "house_expenses" : path)
         ).once("value")
       ));
-      let found = false;
       snapshots.forEach((snapshot, index) => {
         const path = paths[index];
         if (!snapshot.exists()) {
@@ -1225,7 +1240,6 @@ document.addEventListener("DOMContentLoaded", () => {
           try { localStorage.setItem(LOCAL[path][0], JSON.stringify([])); } catch (_) {}
           return;
         }
-        found = true;
         const records = normalizeRecords(snapshot.val());
         localRecords[path] = records;
         cloudData[path] = snapshot.val();
