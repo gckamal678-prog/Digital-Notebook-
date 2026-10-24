@@ -1,23 +1,20 @@
 
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ne">
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#101827">
-<title>Digital NoteBook · कारोबार</title>
+<title>Digital NoteBook - Transactions</title>
 
 <script>
-(()=>{
-  let s={};
-  try{s=JSON.parse(localStorage.getItem("digital_notebook_settings")||"{}")||{};}catch(e){}
-  const d=document.documentElement;
-  d.classList.toggle("light",s.theme==="light");
-  d.lang=s.lang==="en"?"en":"ne";
-  d.style.setProperty("--accent",s.accentColor||"#10b981");
-  d.style.setProperty("--font-size",(Number(s.font_size)||16)+"px");
-  d.style.setProperty("--font-family",JSON.stringify(s.font_family||"Poppins")+",Arial,sans-serif");
-  d.dataset.layout=s.layout==="compact"?"compact":"comfortable";
+(function(){
+  try {
+    const s=JSON.parse(localStorage.getItem("digital_notebook_settings")||"{}");
+    document.documentElement.lang=s.lang==="en"?"en":"ne";
+    document.documentElement.classList.toggle("light",s.theme==="light");
+    document.documentElement.style.setProperty("--accent",s.accentColor||"#ed00e9");
+  } catch(e){}
 })();
 </script>
 
@@ -25,232 +22,180 @@
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
-:root{
-  --bg:#0b1220;--panel:#151f31;--field:#1c2940;--text:#edf3ff;
-  --muted:#9cacc5;--line:#2b3a54;--accent:#ed00e9;--danger:#fb7185;
-  --font-size:16px;--font-family:Poppins,Arial,sans-serif;
-}
-html.light{
-  --bg:#f3f6fb;--panel:#fff;--field:#edf2f9;--text:#152033;
-  --muted:#586780;--line:#d7e0ed;--danger:#be123c;
-}
+:root{--bg:#0b1220;--panel:#151f31;--field:#1c2940;--text:#edf3ff;--muted:#9cacc5;--line:#2b3a54;--accent:#ed00e9;--danger:#fb7185}
+html.light{--bg:#f3f6fb;--panel:#fff;--field:#edf2f9;--text:#152033;--muted:#586780;--line:#d7e0ed;--danger:#be123c}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font:var(--font-size)/1.55 var(--font-family)}
-button,input,select,textarea{font:inherit}
-header{
-  position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:14px;
-  padding:14px 18px;background:var(--panel);border-bottom:1px solid var(--line)
-}
-header a{color:var(--text);font-size:27px;text-decoration:none}
-header strong{font-size:1.1rem}
-main{width:min(1100px,100%);margin:auto;padding:14px;display:grid;gap:14px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:20px;min-width:0}
-h1{font-size:1.4em;margin:0 0 8px}
-h2{font-size:1.2em;margin:0 0 10px}
-p{margin:6px 0}
-.muted{color:var(--muted)}
-.status{padding:8px 0;color:var(--muted);overflow-wrap:anywhere}
-.status.error{color:var(--danger)}
-.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-label{display:block;min-width:0;color:var(--muted);font-size:.92em}
-input,select,textarea,button{
-  width:100%;min-width:0;margin-top:5px;padding:12px;
-  border:1px solid var(--line);border-radius:12px;
-  background:var(--field);color:var(--text)
-}
-input,select,textarea{min-height:48px}
-textarea{resize:vertical}
-button{cursor:pointer;font-weight:650}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 Arial,sans-serif}
+button,input,select{font:inherit}
+header{display:flex;align-items:center;gap:14px;padding:15px;background:var(--panel);border-bottom:1px solid var(--line)}
+header a{font-size:26px;color:var(--text);text-decoration:none}
+header strong{font-size:18px}
+main{width:min(1150px,100%);margin:auto;padding:14px;display:grid;gap:14px}
+.card{min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px}
+h1{font-size:23px;margin:0 0 8px}h2{font-size:19px;margin:0 0 10px}
+.muted{color:var(--muted)}.status{padding:6px 0;color:var(--muted);overflow-wrap:anywhere}.error{color:var(--danger)!important}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+label{display:block;min-width:0;color:var(--muted);font-size:14px}
+input,select{display:block;width:100%;min-width:0;min-height:48px;margin-top:5px;padding:11px;background:var(--field);color:var(--text);border:1px solid var(--line);border-radius:12px}
+input[readonly]{opacity:.9}
+button{border:1px solid var(--line);border-radius:12px;padding:11px 14px;background:var(--field);color:var(--text);font-weight:650;cursor:pointer}
 button:disabled{opacity:.5;cursor:not-allowed}
-.primary{background:var(--accent);color:#16051a;border-color:var(--accent)}
+.primary{background:var(--accent);border-color:var(--accent);color:#17051a}
 .danger{color:var(--danger)}
-.row,.actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:14px}
-.row button{width:auto;max-width:100%}
+.actions,.form-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}
+.form-actions button{flex:0 1 auto}
 .stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0}
-.stat{min-width:0;padding:14px;background:var(--field);border-radius:14px;overflow-wrap:anywhere}
-.stat small{display:block;color:var(--muted);font-size:.88em}
-.stat b{display:block;font-size:1.08em;overflow-wrap:anywhere}
-.group{margin-top:10px;border:1px solid var(--line);border-radius:15px;overflow:hidden}
-.group-head{display:flex;align-items:center;gap:10px;padding:12px;background:var(--field)}
-.group-button{display:flex;align-items:center;gap:10px;flex:1;min-width:0;margin:0;text-align:left}
-.group-name{flex:1;min-width:0;overflow-wrap:anywhere}
-.group-total{color:var(--accent);font-weight:750;text-align:right;overflow-wrap:anywhere}
-.group-details{padding:6px 12px 12px}
-.record{padding:14px 0;border-bottom:1px solid var(--line);overflow-wrap:anywhere}
+.stat{background:var(--field);border-radius:13px;padding:14px;min-width:0;overflow-wrap:anywhere}
+.stat small{display:block;color:var(--muted)}
+.stat b{display:block;font-size:18px;overflow-wrap:anywhere}
+.search{margin:8px 0 14px}
+.group{border:1px solid var(--line);border-radius:14px;margin-top:10px;overflow:hidden}
+.group-head{display:flex;align-items:center;gap:10px;background:var(--field);padding:10px}
+.group-toggle{flex:1;text-align:left;min-width:0;overflow-wrap:anywhere}
+.group-total{font-weight:700;color:var(--accent);text-align:right;overflow-wrap:anywhere}
+.group-body{padding:0 13px}
+.record{padding:13px 0;border-bottom:1px solid var(--line);overflow-wrap:anywhere}
 .record:last-child{border-bottom:0}
 .record p{margin:5px 0}
-.amount{font-weight:750}
-.net-pos{color:var(--accent)}
-.net-neg{color:var(--danger)}
-.actions{margin-top:10px}
-.actions button{width:auto;margin:0}
 .table-wrap{width:100%;overflow-x:auto;border:1px solid var(--line);border-radius:12px}
-table{width:100%;border-collapse:collapse;min-width:900px}
+table{border-collapse:collapse;width:100%;min-width:900px}
 th,td{padding:11px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);overflow-wrap:anywhere}
 th{background:var(--field);white-space:nowrap}
-tbody tr:last-child td{border-bottom:0}
-td button{width:auto;margin:0;padding:8px}
-.badge{display:inline-block;padding:3px 8px;border-radius:7px;background:var(--field);white-space:nowrap}
+td button{padding:8px;margin:0}
+.badge{display:inline-block;padding:3px 8px;border-radius:7px;background:var(--field)}
 .hidden{display:none!important}
 body.auth-pending main{visibility:hidden}
-body[data-layout="compact"] main{padding:8px;gap:8px}
-body[data-layout="compact"] .card{padding:12px}
-.confirm-overlay{position:fixed;inset:0;z-index:100;background:#0009;display:grid;place-items:center;padding:18px}
-.confirm-overlay.hidden{display:none!important}
-.confirm-box{width:min(420px,100%);background:var(--panel);color:var(--text);padding:20px;border:1px solid var(--line);border-radius:16px}
-.confirm-box p{white-space:pre-line;overflow-wrap:anywhere}
-@media(min-width:760px){
-  .stats{grid-template-columns:repeat(3,minmax(0,1fr))}
-}
-@media(max-width:560px){
-  header{padding:12px}
-  main{padding:9px}
-  .card{padding:14px}
-  .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-  input,select,textarea{padding:10px;font-size:16px}
-  .row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
-  .row button{width:100%;padding:11px 8px}
-  .group-head{gap:8px;padding:9px}
-  .group-button{padding:9px 5px}
-  .group-total{font-size:.92em}
-  .group-details{padding:5px 10px}
-}
-@media(max-width:360px){
-  .grid{grid-template-columns:1fr}
-  .stats{grid-template-columns:1fr 1fr}
-}
+.overlay{position:fixed;inset:0;z-index:99;background:#0009;display:grid;place-items:center;padding:18px}
+.dialog{width:min(420px,100%);background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px}
+@media(min-width:760px){.stats{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:560px){main{padding:9px}.card{padding:14px}.grid{gap:10px}.form-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.form-actions button{width:100%;padding:10px 6px}.group-head{padding:8px}.group-total{font-size:14px}}
+@media(max-width:350px){.grid{grid-template-columns:1fr}}
 </style>
 </head>
 
 <body class="auth-pending">
 <header>
   <a href="index.html" id="backButton" aria-label="Back">←</a>
-  <strong>📘 Digital NoteBook · <span id="headerTitle">कारोबार</span></strong>
+  <strong>📘 Digital NoteBook · <span data-i18n="transactions">कारोबार</span></strong>
 </header>
 
 <main>
-  <div id="statusMessage" class="status" role="status" aria-live="polite"></div>
+  <div id="status" class="status" role="status" aria-live="polite"></div>
 
   <section class="card">
-    <h1 id="pageTitle">कारोबार / पार्टी लेजर</h1>
-    <p class="muted" id="intro">लिनुपर्ने र दिनुपर्ने · 1 INR = 1.6 NPR · साधारण ब्याज</p>
+    <h1 data-i18n="ledgerTitle">कारोबार / पार्टी लेजर</h1>
+    <p class="muted" data-i18n="intro">लिनुपर्ने र दिनुपर्ने · 1 INR = 1.6 NPR · साधारण ब्याज</p>
 
-    <form id="transactionForm">
-      <input id="recordId" type="hidden">
-
+    <form id="form">
+      <input type="hidden" id="recordId">
       <div class="grid">
-        <label>पार्टी / समूहको नाम
+        <label><span data-i18n="party">पार्टी / समूहको नाम</span>
           <input id="party" maxlength="120" required autocomplete="off">
         </label>
 
-        <label>मिति
+        <label><span data-i18n="date">कारोबार मिति</span>
           <input id="date" type="date" required>
         </label>
 
-        <label>कारोबारको प्रकार
-          <select id="type" required>
-            <option value="Receivable">लिनुपर्ने (Receivable)</option>
-            <option value="Payable">दिनुपर्ने (Payable)</option>
+        <label><span data-i18n="type">कारोबारको प्रकार</span>
+          <select id="type">
+            <option value="Receivable" data-i18n="receivable">लिनुपर्ने (Receivable)</option>
+            <option value="Payable" data-i18n="payable">दिनुपर्ने (Payable)</option>
           </select>
         </label>
 
-        <label>भाका / किस्ता मिति
-          <input id="dueDate" type="date">
-        </label>
-
-        <label>रकम NPR
-          <input id="npr" type="number" min="0" step="0.01" value="0" required>
-        </label>
-
-        <label>रकम INR
-          <input id="inr" type="number" min="0" step="0.01" value="0" required>
-        </label>
-
-        <label>ब्याज दर (% प्रति महिना)
-          <input id="rate" type="number" min="0" step="any" value="0" required>
-        </label>
-
-        <label>महिना
+        <label><span data-i18n="months">महिना</span>
           <input id="period" type="number" min="0" step="any" value="0" required>
         </label>
 
-        <label>जम्मा मूल रकम NPR
+        <label><span data-i18n="dueDate">भाका / किस्ता मिति (Auto)</span>
+          <input id="dueDate" type="date">
+        </label>
+
+        <label><span data-i18n="rate">ब्याज दर (% प्रति महिना)</span>
+          <input id="rate" type="number" min="0" step="any" value="0" required>
+        </label>
+
+        <label><span data-i18n="npr">रकम NPR</span>
+          <input id="npr" type="number" min="0" step="0.01" value="0" required>
+        </label>
+
+        <label><span data-i18n="inr">रकम INR</span>
+          <input id="inr" type="number" min="0" step="0.01" value="0" required>
+        </label>
+
+        <label><span data-i18n="principal">जम्मा मूल रकम NPR</span>
           <input id="principal" readonly>
         </label>
 
-        <label>ब्याज NPR
+        <label><span data-i18n="interest">ब्याज NPR</span>
           <input id="interest" readonly>
         </label>
 
-        <label>कुल रकम NPR
+        <label><span data-i18n="total">कुल रकम NPR</span>
           <input id="total" readonly>
         </label>
 
-        <label>कैफियत / विवरण
+        <label><span data-i18n="note">कैफियत / विवरण</span>
           <input id="note" maxlength="1000">
         </label>
       </div>
 
-      <div class="row">
-        <button class="primary" id="saveButton" type="submit">कारोबार सेभ</button>
-        <button id="cancelButton" type="button">रद्द</button>
-        <button id="importButton" type="button">पुरानो डाटा Import</button>
-        <button id="pdfAllButton" type="button">PDF निकाल्नुहोस्</button>
+      <div class="form-actions">
+        <button class="primary" id="saveButton" type="submit" data-i18n="save">कारोबार सेभ</button>
+        <button id="cancelButton" type="button" data-i18n="cancel">रद्द</button>
+        <button id="importButton" type="button" data-i18n="import">पुरानो डाटा Import</button>
+        <button id="pdfButton" type="button" data-i18n="pdf">PDF निकाल्नुहोस्</button>
       </div>
     </form>
   </section>
 
   <section class="card">
-    <h2>समूहगत हिसाब</h2>
-    <p class="muted">एउटै पार्टी नामका कारोबार एउटै समूहमा देखिन्छन्। पार्टीको नाम थिचेर विवरण खोल्नुहोस्।</p>
-    <input id="groupSearch" type="search" placeholder="पार्टी वा कैफियत खोज्नुहोस्">
+    <h2 data-i18n="grouped">समूहगत हिसाब</h2>
+    <p class="muted" data-i18n="groupHelp">एउटै पार्टी नामका कारोबार एउटै समूहमा देखिन्छन्। पार्टीको नाम थिचेर विवरण खोल्नुहोस्।</p>
+    <input class="search" id="search" type="search" data-i18n-placeholder="search" placeholder="पार्टी वा कैफियत खोज्नुहोस्">
 
     <div class="stats">
-      <div class="stat"><small>कुल लिनुपर्ने</small><b id="totalReceivable">NPR 0.00</b></div>
-      <div class="stat"><small>कुल दिनुपर्ने</small><b id="totalPayable">NPR 0.00</b></div>
-      <div class="stat"><small>बाँकी हिसाब (Net)</small><b id="grandTotal">NPR 0.00</b></div>
-      <div class="stat"><small>समूह संख्या</small><b id="groupCount">0</b></div>
-      <div class="stat"><small>रेकर्ड संख्या</small><b id="recordCount">0</b></div>
+      <div class="stat"><small data-i18n="totalReceivable">कुल लिनुपर्ने</small><b id="receivableSum">NPR 0.00</b></div>
+      <div class="stat"><small data-i18n="totalPayable">कुल दिनुपर्ने</small><b id="payableSum">NPR 0.00</b></div>
+      <div class="stat"><small data-i18n="net">बाँकी हिसाब (Net)</small><b id="netSum">NPR 0.00</b></div>
+      <div class="stat"><small data-i18n="groups">समूह संख्या</small><b id="groupCount">0</b></div>
+      <div class="stat"><small data-i18n="records">रेकर्ड संख्या</small><b id="recordCount">0</b></div>
     </div>
-
     <div id="groups"></div>
   </section>
 
   <section class="card">
-    <h2>कारोबार टेबल</h2>
+    <h2 data-i18n="tableTitle">कारोबार टेबल</h2>
     <div class="table-wrap">
       <table>
-        <thead>
-          <tr>
-            <th>मिति</th><th>पार्टी / समूह</th><th>प्रकार</th>
-            <th>मूल रकम NPR</th><th>ब्याज NPR</th><th>कुल NPR</th>
-            <th>भाका मिति</th><th>कैफियत</th><th>कार्य</th>
-          </tr>
-        </thead>
-        <tbody id="recordsTable">
-          <tr><td colspan="9">Cloud डाटा लोड हुँदैछ…</td></tr>
-        </tbody>
+        <thead><tr>
+          <th data-i18n="date">मिति</th><th data-i18n="party">पार्टी / समूह</th>
+          <th data-i18n="type">प्रकार</th><th data-i18n="principal">मूल रकम NPR</th>
+          <th data-i18n="interest">ब्याज NPR</th><th data-i18n="total">कुल NPR</th>
+          <th data-i18n="dueDate">भाका मिति</th><th data-i18n="note">कैफियत</th><th data-i18n="actions">कार्य</th>
+        </tr></thead>
+        <tbody id="tableBody"></tbody>
       </table>
     </div>
   </section>
 
   <section class="card">
-    <h2>हटाइएका कारोबार</h2>
-    <p class="muted">Trash मा सारिएका कारोबार ३० दिनभित्र Restore गर्न सकिन्छ।</p>
+    <h2 data-i18n="trash">हटाइएका कारोबार</h2>
+    <p class="muted" data-i18n="trashHelp">Trash मा सारिएका कारोबार ३० दिनभित्र Restore गर्न सकिन्छ।</p>
     <div id="trashList"></div>
   </section>
 </main>
 
-<div id="confirmOverlay" class="confirm-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
-  <div class="confirm-box">
-    <h2 id="confirmTitle">पुष्टि गर्नुहोस्</h2>
-    <p id="confirmMessage"></p>
-    <div class="row">
-      <button class="primary" id="confirmYes" type="button">पुष्टि गर्नुहोस्</button>
-      <button id="confirmNo" type="button">रद्द</button>
+<div id="overlay" class="overlay hidden" role="dialog" aria-modal="true">
+  <div class="dialog">
+    <h2 id="dialogTitle"></h2>
+    <p id="dialogMessage"></p>
+    <div class="actions">
+      <button class="primary" id="yesButton" type="button"></button>
+      <button id="noButton" type="button" data-i18n="cancel">रद्द</button>
     </div>
   </div>
 </div>
@@ -258,6 +203,7 @@ body[data-layout="compact"] .card{padding:12px}
 <script>
 "use strict";
 
+/* Keep the existing project's Firebase configuration. */
 const firebaseConfig = {
   apiKey: "AIzaSyDDY_v7RHnkCTI6uyV4DNDjqoaIBGweg8c",
   authDomain: "digital-a2552.firebaseapp.com",
@@ -270,806 +216,629 @@ const firebaseConfig = {
 
 if (!window.firebase) {
   document.body.classList.remove("auth-pending");
-  document.getElementById("statusMessage").textContent = "Firebase SDK लोड भएन। इन्टरनेट जाँच गर्नुहोस्।";
+  document.getElementById("status").textContent = "Firebase SDK failed to load. Check your internet connection.";
   throw new Error("Firebase SDK unavailable");
 }
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 
-const auth = firebase.auth();
-const db = firebase.database();
-const $ = id => document.getElementById(id);
+const auth=firebase.auth();
+const db=firebase.database();
+const $=id=>document.getElementById(id);
+const PATH="transactions";
+const INR_RATE=1.6;
+const RETENTION=30*24*60*60*1000;
+const SETTINGS_KEY="digital_notebook_settings";
 
-const SETTINGS_KEY = "digital_notebook_settings";
-const PATH = "transactions";
-const DAY = 86400000;
-const RETENTION = 30 * DAY;
-const INR_RATE = 1.6;
+let user=null,records={},trashData={};
+let recordsRef=null,trashRef=null,recordsListener=null,trashListener=null;
+let busy=false,importing=false,confirmResolver=null;
+const expanded=new Set();
 
-let currentUser = null;
-let records = {};
-let trash = {};
-let dataRef = null;
-let trashRef = null;
-let dataHandler = null;
-let trashHandler = null;
-let confirmResolver = null;
-let busy = false;
-let importing = false;
-let expandedGroups = new Set();
-
-function prefs() {
-  try {
-    const p = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
-    return p && typeof p === "object" && !Array.isArray(p) ? p : {};
-  } catch (_) {
-    return {};
+const words={
+  en:{
+    transactions:"Transactions",ledgerTitle:"Transaction / Party Ledger",
+    intro:"Receivable and Payable · 1 INR = 1.6 NPR · Simple interest",
+    party:"Party / Group Name",date:"Date",type:"Transaction Type",
+    receivable:"Receivable",payable:"Payable",months:"Months",
+    dueDate:"Due / Installment Date (Auto)",rate:"Interest Rate (% per month)",
+    npr:"Amount NPR",inr:"Amount INR",principal:"Total Principal NPR",
+    interest:"Interest NPR",total:"Total Amount NPR",note:"Note / Details",
+    save:"Save Transaction",update:"Update Transaction",cancel:"Cancel",
+    import:"Import Old Data",pdf:"Export PDF",grouped:"Grouped Ledger",
+    groupHelp:"Transactions with the same party name are grouped together. Tap a party to see its details.",
+    search:"Search party or notes",totalReceivable:"Total Receivable",
+    totalPayable:"Total Payable",net:"Net Balance",groups:"Groups",
+    records:"Records",tableTitle:"Transaction Table",actions:"Actions",
+    trash:"Deleted Transactions",trashHelp:"Items in Trash can be restored within 30 days.",
+    confirm:"Confirm",delete:"Delete",edit:"Edit",restore:"Restore",
+    empty:"No records found.",emptyTrash:"Trash is empty.",saveConfirm:"Save this transaction?",
+    updateConfirm:"Update this transaction?",deleteConfirm:"Move this transaction to Trash? It can be restored within 30 days.",
+    restoreConfirm:"Restore this transaction?",saved:"Transaction saved.",
+    updated:"Transaction updated.",deleted:"Transaction moved to Trash.",
+    restored:"Transaction restored.",login:"Please sign in first.",
+    invalid:"Please check the party name, dates and amounts.",
+    saveFail:"Could not save: ",deleteFail:"Could not delete: ",
+    restoreFail:"Restore failed: ",loadFail:"Could not load Cloud data: ",
+    importConfirm:"Import old local transaction data? Cloud data will not be overwritten.",
+    noOld:"No old local transaction data was found.",
+    alreadyImported:"Old data has already been imported.",
+    cloudNotEmpty:"Cloud already contains transactions. Import was stopped.",
+    importDone:"Import complete. Records imported: ",importFail:"Import failed: ",
+    notFound:"Record not found.",conflict:"The record changed or already exists. Refresh and try again.",
+    pdfFail:"Could not create PDF: ",noPdf:"There are no records to export.",
+    deletedAt:"Deleted",expired:"Expired",notRestorable:"This item cannot be restored.",
+    noParty:"Unnamed party",interestRate:"Rate",monthsShort:"months",
+    typeReceivable:"Receivable",typePayable:"Payable",loading:"Loading Cloud data…",
+    periodDue:"Due date automatically follows the transaction date and month count."
+  },
+  ne:{
+    transactions:"कारोबार",ledgerTitle:"कारोबार / पार्टी लेजर",
+    intro:"लिनुपर्ने र दिनुपर्ने · 1 INR = 1.6 NPR · साधारण ब्याज",
+    party:"पार्टी / समूहको नाम",date:"मिति",type:"कारोबारको प्रकार",
+    receivable:"लिनुपर्ने (Receivable)",payable:"दिनुपर्ने (Payable)",months:"महिना",
+    dueDate:"भाका / किस्ता मिति (अटो)",rate:"ब्याज दर (% प्रति महिना)",
+    npr:"रकम NPR",inr:"रकम INR",principal:"जम्मा मूल रकम NPR",
+    interest:"ब्याज NPR",total:"कुल रकम NPR",note:"कैफियत / विवरण",
+    save:"कारोबार सेभ",update:"कारोबार अपडेट",cancel:"रद्द",
+    import:"पुरानो डाटा Import",pdf:"PDF निकाल्नुहोस्",grouped:"समूहगत हिसाब",
+    groupHelp:"एउटै पार्टी नामका कारोबार एउटै समूहमा देखिन्छन्। पार्टीको नाम थिचेर विवरण खोल्नुहोस्।",
+    search:"पार्टी वा कैफियत खोज्नुहोस्",totalReceivable:"कुल लिनुपर्ने",
+    totalPayable:"कुल दिनुपर्ने",net:"बाँकी हिसाब (Net)",groups:"समूह संख्या",
+    records:"रेकर्ड संख्या",tableTitle:"कारोबार टेबल",actions:"कार्य",
+    trash:"हटाइएका कारोबार",trashHelp:"Trash मा सारिएका कारोबार ३० दिनभित्र Restore गर्न सकिन्छ।",
+    confirm:"पुष्टि गर्नुहोस्",delete:"हटाउनुहोस्",edit:"सम्पादन",restore:"Restore",
+    empty:"रेकर्ड भेटिएन।",emptyTrash:"Trash खाली छ।",saveConfirm:"यो कारोबार सेभ गर्ने?",
+    updateConfirm:"यो कारोबार अपडेट गर्ने?",deleteConfirm:"यो कारोबार Trash मा सार्ने? ३० दिनभित्र Restore गर्न सकिन्छ।",
+    restoreConfirm:"यो कारोबार Restore गर्ने?",saved:"कारोबार सेभ भयो।",
+    updated:"कारोबार अपडेट भयो।",deleted:"कारोबार Trash मा सारियो।",
+    restored:"कारोबार Restore भयो।",login:"पहिले लगइन गर्नुहोस्।",
+    invalid:"पार्टीको नाम, मिति र रकम जाँच्नुहोस्।",
+    saveFail:"सेभ हुन सकेन: ",deleteFail:"हटाउन सकिएन: ",
+    restoreFail:"Restore असफल: ",loadFail:"Cloud डाटा लोड भएन: ",
+    importConfirm:"पुरानो स्थानीय कारोबार Import गर्ने? Cloud डाटा overwrite गरिने छैन.",
+    noOld:"पुरानो स्थानीय कारोबार डाटा भेटिएन।",
+    alreadyImported:"पुरानो डाटा पहिले नै Import गरिएको छ।",
+    cloudNotEmpty:"Cloud मा कारोबार डाटा छ। Import रोकियो।",
+    importDone:"Import पूरा भयो। Import भएका रेकर्ड: ",importFail:"Import असफल: ",
+    notFound:"रेकर्ड भेटिएन।",conflict:"रेकर्ड परिवर्तन भयो वा पहिले नै छ। Refresh गरेर फेरि प्रयास गर्नुहोस्।",
+    pdfFail:"PDF बनाउन सकिएन: ",noPdf:"PDF बनाउन कारोबार छैन।",
+    deletedAt:"हटाइएको",expired:"म्याद सकियो",notRestorable:"यो रेकर्ड Restore गर्न मिल्दैन।",
+    noParty:"नाम नभएको पार्टी",interestRate:"दर",monthsShort:"महिना",
+    typeReceivable:"लिनुपर्ने",typePayable:"दिनुपर्ने",loading:"Cloud डाटा लोड हुँदैछ…",
+    periodDue:"कारोबार मिति र महिना परिवर्तन गर्दा भाका मिति स्वतः परिवर्तन हुन्छ।"
   }
+};
+
+function tr(key){
+  const lang=document.documentElement.lang==="en"?"en":"ne";
+  return words[lang][key]??words.ne[key]??key;
 }
-
-function applyPreferences() {
-  const p = prefs();
-  const d = document.documentElement;
-  d.lang = p.lang === "en" ? "en" : "ne";
-  d.classList.toggle("light", p.theme === "light");
-  d.style.setProperty("--accent", p.accentColor || "#ed00e9");
-  d.style.setProperty("--font-size", (Number(p.font_size) || 16) + "px");
-  d.style.setProperty("--font-family", JSON.stringify(p.font_family || "Poppins") + ",Arial,sans-serif");
-  d.dataset.layout = p.layout === "compact" ? "compact" : "comfortable";
-  document.body.dataset.layout = d.dataset.layout;
-
-  const en = d.lang === "en";
-  $("headerTitle").textContent = en ? "Transactions" : "कारोबार";
-  $("pageTitle").textContent = en ? "Transaction / Party Ledger" : "कारोबार / पार्टी लेजर";
-  $("intro").textContent = en
-    ? "Receivable and Payable · 1 INR = 1.6 NPR · Simple interest"
-    : "लिनुपर्ने र दिनुपर्ने · 1 INR = 1.6 NPR · साधारण ब्याज";
-
-  $("saveButton").textContent = $("recordId").value
-    ? (en ? "Update transaction" : "कारोबार अपडेट")
-    : (en ? "Save transaction" : "कारोबार सेभ");
-  $("cancelButton").textContent = en ? "Cancel" : "रद्द";
-  $("importButton").textContent = en ? "Import old data" : "पुरानो डाटा Import";
-  $("pdfAllButton").textContent = en ? "Export PDF" : "PDF निकाल्नुहोस्";
-  $("groupSearch").placeholder = en ? "Search party or notes" : "पार्टी वा कैफियत खोज्नुहोस्";
-
+function applyLanguage(){
+  const s=readSettings();
+  document.documentElement.lang=s.lang==="en"?"en":"ne";
+  document.documentElement.classList.toggle("light",s.theme==="light");
+  document.documentElement.style.setProperty("--accent",s.accentColor||"#ed00e9");
+  document.querySelectorAll("[data-i18n]").forEach(el=>{
+    const k=el.dataset.i18n;
+    if(el.tagName==="OPTION")el.textContent=tr(k);
+    else el.textContent=tr(k);
+  });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach(el=>{
+    el.placeholder=tr(el.dataset.i18nPlaceholder);
+  });
+  $("saveButton").textContent=$("recordId").value?tr("update"):tr("save");
   render();
   renderTrash();
 }
-
-function t(ne, en) {
-  return document.documentElement.lang === "en" ? en : ne;
+function readSettings(){
+  try{return JSON.parse(localStorage.getItem(SETTINGS_KEY)||"{}")||{};}
+  catch(e){return {};}
 }
-
-function status(message = "", error = false) {
-  $("statusMessage").textContent = message;
-  $("statusMessage").classList.toggle("error", error);
+function setStatus(msg="",error=false){
+  $("status").textContent=msg;
+  $("status").classList.toggle("error",error);
 }
-
-function esc(value) {
-  return String(value ?? "").replace(/[&<>"']/g, c => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+function esc(v){
+  return String(v??"").replace(/[&<>"']/g,c=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
   })[c]);
 }
-
-function money(value) {
-  const n = Number(value);
-  if (!Number.isFinite(n)) return "NPR 0.00";
-  return "NPR " + n.toLocaleString("en-IN", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
+function validKey(k){
+  return typeof k==="string"&&k.length>0&&!/[.#$\[\]\/]/.test(k);
+}
+function validDate(v){
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(String(v||"")))return false;
+  const [y,m,d]=v.split("-").map(Number);
+  const x=new Date(y,m-1,d);
+  return x.getFullYear()===y&&x.getMonth()===m-1&&x.getDate()===d;
+}
+function localDate(){
+  const d=new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+function money(v){
+  const n=Number(v);
+  return "NPR "+(Number.isFinite(n)?n:0).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function userRef(path=""){
+  if(!user)throw new Error(tr("login"));
+  return db.ref("users/"+user.uid+(path?"/"+path:""));
+}
+function typeLabel(type){
+  return type==="Receivable"?tr("typeReceivable"):tr("typePayable");
 }
 
-function validKey(key) {
-  return typeof key === "string" && key.length > 0 && !/[.#$\[\]\/]/.test(key);
-}
+/* Date calculation: clamp month-end dates correctly.
+   Example: 31 Jan + 1 month = last day of February. */
+function addMonths(dateString,monthCount){
+  if(!validDate(dateString)||!Number.isFinite(monthCount)||monthCount<0)return "";
+  const whole=Math.floor(monthCount);
+  const fraction=monthCount-whole;
+  const [y,m,d]=dateString.split("-").map(Number);
+  const targetMonthIndex=(m-1)+whole;
+  const targetYear=y+Math.floor(targetMonthIndex/12);
+  const targetMonth=((targetMonthIndex%12)+12)%12;
+  const lastDay=new Date(targetYear,targetMonth+1,0).getDate();
+  let result=new Date(targetYear,targetMonth,Math.min(d,lastDay));
 
-function validDate(value) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(value || ""))) return false;
-  const [y, m, d] = value.split("-").map(Number);
-  const dt = new Date(y, m - 1, d);
-  return dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d;
-}
-
-function localDate() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
-function userRef(path = "") {
-  if (!currentUser) throw new Error("पहिले लगइन गर्नुहोस्।");
-  return db.ref("users/" + currentUser.uid + (path ? "/" + path : ""));
-}
-
-function confirmApp(message, yesLabel) {
-  if (confirmResolver) return Promise.resolve(false);
-  $("confirmMessage").textContent = message;
-  $("confirmYes").textContent = yesLabel || t("पुष्टि गर्नुहोस्", "Confirm");
-  $("confirmNo").textContent = t("रद्द", "Cancel");
-  $("confirmOverlay").classList.remove("hidden");
-  $("confirmYes").focus();
-  return new Promise(resolve => { confirmResolver = resolve; });
-}
-
-function closeConfirm(answer) {
-  $("confirmOverlay").classList.add("hidden");
-  if (confirmResolver) {
-    const resolve = confirmResolver;
-    confirmResolver = null;
-    resolve(Boolean(answer));
+  /* Preserve fractional months as a proportional part of the next month. */
+  if(fraction>0){
+    const nextMonth=new Date(targetYear,targetMonth+1,1);
+    const daysInNextMonth=new Date(nextMonth.getFullYear(),nextMonth.getMonth()+1,0).getDate();
+    result=new Date(result.getFullYear(),result.getMonth(),result.getDate()+Math.round(fraction*daysInNextMonth));
   }
+  return `${result.getFullYear()}-${String(result.getMonth()+1).padStart(2,"0")}-${String(result.getDate()).padStart(2,"0")}`;
 }
-
-$("confirmYes").addEventListener("click", () => closeConfirm(true));
-$("confirmNo").addEventListener("click", () => closeConfirm(false));
-$("confirmOverlay").addEventListener("click", e => {
-  if (e.target === $("confirmOverlay")) closeConfirm(false);
-});
-document.addEventListener("keydown", e => {
-  if (e.key === "Escape" && !$("confirmOverlay").classList.contains("hidden")) closeConfirm(false);
-});
-
-function calculate() {
-  const npr = Number($("npr").value);
-  const inr = Number($("inr").value);
-  const rate = Number($("rate").value);
-  const period = Number($("period").value);
-  const principal = npr + inr * INR_RATE;
-  const interest = principal * rate * period / 100;
-  const total = principal + interest;
-
-  $("principal").value = Number.isFinite(principal) ? principal.toFixed(2) : "";
-  $("interest").value = Number.isFinite(interest) ? interest.toFixed(2) : "";
-  $("total").value = Number.isFinite(total) ? total.toFixed(2) : "";
-  return { principal, interest, total };
+let manualDueDate=false;
+function updateDueDate(force=false){
+  const start=$("date").value;
+  const months=Number($("period").value);
+  if(!validDate(start)||!Number.isFinite(months)||months<0){
+    if(force)$("dueDate").value="";
+    return;
+  }
+  if(manualDueDate&&!force)return;
+  $("dueDate").value=addMonths(start,months);
 }
+$("dueDate").addEventListener("input",()=>{manualDueDate=true;});
+$("date").addEventListener("input",()=>{manualDueDate=false;updateDueDate(true);});
+$("period").addEventListener("input",()=>{manualDueDate=false;updateDueDate(true);});
+$("dueDate").addEventListener("change",()=>{manualDueDate=!!$("dueDate").value;});
 
-["npr", "inr", "rate", "period"].forEach(id => {
-  $(id).addEventListener("input", calculate);
-});
-
-$("date").addEventListener("change", () => {
-  const date = $("date").value;
-  const months = Math.floor(Number($("period").value));
-  if (!validDate(date) || months <= 0 || $("dueDate").value) return;
-  const [y, m, d] = date.split("-").map(Number);
-  const due = new Date(y, m - 1, d);
-  const day = due.getDate();
-  due.setMonth(due.getMonth() + months);
-  if (due.getDate() < day) due.setDate(0);
-  $("dueDate").value = `${due.getFullYear()}-${String(due.getMonth() + 1).padStart(2, "0")}-${String(due.getDate()).padStart(2, "0")}`;
-});
-
-function getRecords() {
-  return Object.entries(records || {})
-    .filter(([, r]) => r && typeof r === "object" && !Array.isArray(r) &&
-      ["Receivable", "Payable"].includes(r.type))
-    .map(([id, r]) => ({ ...r, id: String(r.id || id) }));
+/* Amount calculation */
+function calculate(){
+  const npr=Number($("npr").value||0);
+  const inr=Number($("inr").value||0);
+  const rate=Number($("rate").value||0);
+  const months=Number($("period").value||0);
+  const principal=npr+inr*INR_RATE;
+  const interest=principal*rate*months/100;
+  const total=principal+interest;
+  $("principal").value=Number.isFinite(principal)?principal.toFixed(2):"";
+  $("interest").value=Number.isFinite(interest)?interest.toFixed(2):"";
+  $("total").value=Number.isFinite(total)?total.toFixed(2):"";
+  return {principal,interest,total};
 }
-
-function normalized(value) {
-  return String(value || "").trim().replace(/\s+/g, " ").toLocaleLowerCase();
-}
-
-function grouped(list) {
-  const map = new Map();
-  list.forEach(r => {
-    const name = String(r.party || "").trim() || "(नाम छैन)";
-    const key = normalized(name);
-    if (!map.has(key)) {
-      map.set(key, { key, name, items: [], receivable: 0, payable: 0, net: 0 });
-    }
-    const g = map.get(key);
-    g.items.push(r);
-    const amount = Number(r.total) || 0;
-    if (r.type === "Receivable") {
-      g.receivable += amount;
-      g.net += amount;
-    } else {
-      g.payable += amount;
-      g.net -= amount;
-    }
+["npr","inr","rate","period"].forEach(id=>{
+  $(id).addEventListener("input",()=>{
+    calculate();
+    if(id==="period"){manualDueDate=false;updateDueDate(true);}
   });
-  return [...map.values()].sort((a, b) => a.name.localeCompare(b.name));
-}
+});
+$("date").addEventListener("change",()=>{manualDueDate=false;updateDueDate(true);});
 
-function typeText(type) {
-  return type === "Receivable"
-    ? t("लिनुपर्ने", "Receivable")
-    : t("दिनुपर्ने", "Payable");
+function allRecords(){
+  return Object.entries(records||{})
+    .filter(([,r])=>r&&typeof r==="object"&&!Array.isArray(r)&&["Receivable","Payable"].includes(r.type))
+    .map(([id,r])=>({...r,id:String(r.id||id)}));
 }
-
-function recordCard(r) {
-  const signClass = r.type === "Receivable" ? "net-pos" : "net-neg";
-  const sign = r.type === "Receivable" ? "+" : "−";
-  return `<div class="record">
-    <b>${esc(r.party || "—")}</b>
-    <p>${esc(r.date || "—")} · <span class="badge">${esc(typeText(r.type))}</span></p>
-    <p>${t("मूल रकम", "Principal")}: ${money(r.principal)} · ${t("ब्याज", "Interest")}: ${money(r.interest)}</p>
-    <p>${t("कुल रकम", "Total")}: <span class="amount ${signClass}">${sign} ${money(r.total)}</span></p>
-    ${r.dueDate ? `<p>${t("भाका मिति", "Due date")}: ${esc(r.dueDate)}</p>` : ""}
-    <p class="muted">${esc(r.note || "")}</p>
-    <div class="actions">
-      <button type="button" data-edit="${esc(r.id)}">${t("सम्पादन", "Edit")}</button>
-      <button type="button" class="danger" data-delete="${esc(r.id)}">${t("हटाउनुहोस्", "Delete")}</button>
-    </div>
+function norm(v){return String(v||"").trim().replace(/\s+/g," ").toLocaleLowerCase();}
+function groupRecords(list){
+  const map=new Map();
+  list.forEach(r=>{
+    const name=String(r.party||"").trim()||tr("noParty");
+    const key=norm(name);
+    if(!map.has(key))map.set(key,{key,name,items:[],receivable:0,payable:0,net:0});
+    const g=map.get(key),amount=Number(r.total)||0;
+    g.items.push(r);
+    if(r.type==="Receivable"){g.receivable+=amount;g.net+=amount;}
+    else{g.payable+=amount;g.net-=amount;}
+  });
+  return [...map.values()].sort((a,b)=>a.name.localeCompare(b.name));
+}
+function actionButtons(r){
+  return `<div class="actions">
+    <button type="button" data-edit="${esc(r.id)}">${esc(tr("edit"))}</button>
+    <button type="button" class="danger" data-delete="${esc(r.id)}">${esc(tr("delete"))}</button>
   </div>`;
 }
-
-function render() {
-  const all = getRecords();
-  const q = normalized($("groupSearch").value);
-  const filtered = all.filter(r =>
-    (normalized(r.party) + " " + normalized(r.note) + " " + normalized(r.type)).includes(q)
-  );
-
-  let receivable = 0, payable = 0;
-  filtered.forEach(r => {
-    if (r.type === "Receivable") receivable += Number(r.total) || 0;
-    else payable += Number(r.total) || 0;
+function renderRecord(r){
+  return `<div class="record">
+    <b>${esc(r.party||tr("noParty"))}</b>
+    <p>${esc(r.date||"—")} · <span class="badge">${esc(typeLabel(r.type))}</span></p>
+    <p>${esc(tr("principal"))}: ${money(r.principal)} · ${esc(tr("interest"))}: ${money(r.interest)}</p>
+    <p>${esc(tr("total"))}: <b>${money(r.total)}</b></p>
+    <p>${esc(tr("dueDate"))}: ${esc(r.dueDate||"—")}</p>
+    <p class="muted">${esc(r.note||"")}</p>
+    ${actionButtons(r)}
+  </div>`;
+}
+function render(){
+  if(!$("groups"))return;
+  const q=norm($("search").value);
+  const filtered=allRecords().filter(r=>(norm(r.party)+" "+norm(r.note)+" "+norm(r.type)).includes(q));
+  const groups=groupRecords(filtered);
+  let rec=0,pay=0;
+  filtered.forEach(r=>{
+    if(r.type==="Receivable")rec+=Number(r.total)||0;
+    else pay+=Number(r.total)||0;
   });
+  $("receivableSum").textContent=money(rec);
+  $("payableSum").textContent=money(pay);
+  $("netSum").textContent=money(rec-pay);
+  $("groupCount").textContent=groups.length;
+  $("recordCount").textContent=filtered.length;
 
-  const groups = grouped(filtered);
-  $("totalReceivable").textContent = money(receivable);
-  $("totalPayable").textContent = money(payable);
-  $("grandTotal").textContent = money(receivable - payable);
-  $("grandTotal").className = "amount " + (receivable - payable >= 0 ? "net-pos" : "net-neg");
-  $("groupCount").textContent = String(groups.length);
-  $("recordCount").textContent = String(filtered.length);
-
-  $("groups").innerHTML = groups.map(g => {
-    const open = expandedGroups.has(g.key);
-    const sorted = g.items.slice().sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
-    const cls = g.net >= 0 ? "net-pos" : "net-neg";
+  $("groups").innerHTML=groups.map(g=>{
+    const open=expanded.has(g.key);
+    const sorted=g.items.slice().sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
     return `<div class="group">
       <div class="group-head">
-        <button class="group-button" type="button" data-group="${esc(g.key)}" aria-expanded="${open}">
-          <span>${open ? "▾" : "▸"}</span>
-          <span class="group-name"><b>${esc(g.name)}</b><br><small>${g.items.length} ${t("रेकर्ड", "records")}</small></span>
-          <span class="group-total ${cls}">${money(g.net)}</span>
+        <button type="button" class="group-toggle" data-group="${esc(g.key)}" aria-expanded="${open}">
+          ${open?"▾":"▸"} ${esc(g.name)} (${g.items.length})
         </button>
+        <span class="group-total">${money(g.net)}</span>
       </div>
-      <div class="group-details ${open ? "" : "hidden"}">${sorted.map(recordCard).join("")}</div>
+      <div class="group-body ${open?"":"hidden"}">${sorted.map(renderRecord).join("")}</div>
     </div>`;
-  }).join("") || `<p class="muted">${t("मिल्ने समूह भेटिएन।", "No matching groups found.")}</p>`;
+  }).join("")||`<p class="muted">${esc(tr("empty"))}</p>`;
 
-  const tableRecords = filtered.slice().sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
-  $("recordsTable").innerHTML = tableRecords.map(r => {
-    const cls = r.type === "Receivable" ? "net-pos" : "net-neg";
-    return `<tr>
-      <td>${esc(r.date || "—")}</td>
-      <td><b>${esc(r.party || "—")}</b></td>
-      <td><span class="badge">${esc(typeText(r.type))}</span></td>
-      <td>${money(r.principal)}</td>
-      <td>${money(r.interest)}</td>
-      <td class="amount ${cls}">${money(r.total)}</td>
-      <td>${esc(r.dueDate || "—")}</td>
-      <td>${esc(r.note || "—")}</td>
-      <td><div class="actions">
-        <button type="button" data-edit="${esc(r.id)}">${t("सम्पादन", "Edit")}</button>
-        <button type="button" class="danger" data-delete="${esc(r.id)}">${t("हटाउनुहोस्", "Delete")}</button>
-      </div></td>
-    </tr>`;
-  }).join("") || `<tr><td colspan="9">${t("रेकर्ड भेटिएन।", "No records found.")}</td></tr>`;
+  const sorted=filtered.slice().sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
+  $("tableBody").innerHTML=sorted.map(r=>`<tr>
+    <td>${esc(r.date||"—")}</td>
+    <td><b>${esc(r.party||tr("noParty"))}</b></td>
+    <td><span class="badge">${esc(typeLabel(r.type))}</span></td>
+    <td>${money(r.principal)}</td><td>${money(r.interest)}</td><td><b>${money(r.total)}</b></td>
+    <td>${esc(r.dueDate||"—")}</td><td>${esc(r.note||"—")}</td>
+    <td>${actionButtons(r)}</td>
+  </tr>`).join("")||`<tr><td colspan="9">${esc(tr("empty"))}</td></tr>`;
 }
 
-function getTrashEntries() {
-  const out = [];
-  Object.entries(trash || {}).forEach(([category, group]) => {
-    if (!group || typeof group !== "object" || Array.isArray(group)) return;
-    Object.entries(group).forEach(([id, item]) => {
-      if (!item || typeof item !== "object" || Array.isArray(item)) return;
-      if (item.data || item.originalPath) {
-        out.push({
-          ...item,
-          id: String(item.id || id),
-          category: String(item.category || category),
-          location: category + "/" + id
-        });
+function confirmAction(message,yesText){
+  if(confirmResolver)return Promise.resolve(false);
+  $("dialogTitle").textContent=tr("confirm");
+  $("dialogMessage").textContent=message;
+  $("yesButton").textContent=yesText||tr("confirm");
+  $("noButton").textContent=tr("cancel");
+  $("overlay").classList.remove("hidden");
+  return new Promise(resolve=>{confirmResolver=resolve;});
+}
+function closeDialog(value){
+  $("overlay").classList.add("hidden");
+  if(confirmResolver){const resolve=confirmResolver;confirmResolver=null;resolve(!!value);}
+}
+$("yesButton").addEventListener("click",()=>closeDialog(true));
+$("noButton").addEventListener("click",()=>closeDialog(false));
+$("overlay").addEventListener("click",e=>{if(e.target===$("overlay"))closeDialog(false);});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDialog(false);});
+
+function resetForm(){
+  $("form").reset();
+  $("recordId").value="";
+  $("date").value=localDate();
+  $("period").value="0";
+  $("rate").value="0";
+  $("npr").value="0";
+  $("inr").value="0";
+  $("type").value="Receivable";
+  manualDueDate=false;
+  updateDueDate(true);
+  calculate();
+  $("saveButton").textContent=tr("save");
+}
+$("cancelButton").addEventListener("click",()=>{resetForm();setStatus("");});
+
+$("form").addEventListener("submit",async e=>{
+  e.preventDefault();
+  if(!user){setStatus(tr("login"),true);return;}
+  if(busy)return;
+  const party=$("party").value.trim();
+  const date=$("date").value;
+  const dueDate=$("dueDate").value;
+  const type=$("type").value;
+  const npr=Number($("npr").value),inr=Number($("inr").value);
+  const rate=Number($("rate").value),period=Number($("period").value);
+  const totals=calculate();
+  if(!party||!validDate(date)||(dueDate&&!validDate(dueDate))||
+     !["Receivable","Payable"].includes(type)||
+     ![npr,inr,rate,period,totals.principal,totals.interest,totals.total].every(n=>Number.isFinite(n)&&n>=0)){
+    setStatus(tr("invalid"),true);return;
+  }
+  const editing=!!$("recordId").value;
+  const id=$("recordId").value||userRef(PATH).push().key;
+  if(!validKey(id)){setStatus(tr("invalid"),true);return;}
+  const data={id,party,date,dueDate:dueDate||"",type,npr,inr,rate,period,
+    principal:totals.principal,interest:totals.interest,total:totals.total,
+    note:$("note").value.trim(),updatedAt:Date.now()};
+  if(!await confirmAction(editing?tr("updateConfirm"):tr("saveConfirm"),editing?tr("update"):tr("save")))return;
+
+  busy=true;$("saveButton").disabled=true;
+  try{
+    const ref=userRef(PATH+"/"+id);
+    const result=await ref.transaction(old=>{
+      if(editing&&old===null)return;
+      if(!editing&&old!==null)return;
+      return {...(old||{}),...data,createdAt:old?.createdAt||Date.now()};
+    },undefined,false);
+    if(!result.committed)throw new Error(tr("conflict"));
+    resetForm();
+    setStatus(editing?tr("updated"):tr("saved"));
+  }catch(err){
+    console.error(err);setStatus(tr("saveFail")+err.message,true);
+  }finally{busy=false;$("saveButton").disabled=false;}
+});
+
+function editRecord(id){
+  const r=records[id];
+  if(!r){setStatus(tr("notFound"),true);return;}
+  $("recordId").value=id;
+  $("party").value=r.party||"";
+  $("date").value=validDate(r.date)?r.date:localDate();
+  $("type").value=["Receivable","Payable"].includes(r.type)?r.type:"Receivable";
+  $("period").value=Number(r.period)||0;
+  $("rate").value=Number(r.rate)||0;
+  $("npr").value=Number(r.npr)||0;
+  $("inr").value=Number(r.inr)||0;
+  $("note").value=r.note||"";
+  manualDueDate=!!r.dueDate;
+  $("dueDate").value=r.dueDate||"";
+  if(!manualDueDate)updateDueDate(true);
+  calculate();
+  $("saveButton").textContent=tr("update");
+  window.scrollTo({top:0,behavior:"smooth"});
+  $("party").focus();
+  setStatus("");
+}
+async function deleteRecord(id){
+  const r=records[id];
+  if(!r){setStatus(tr("notFound"),true);return;}
+  if(!await confirmAction(tr("deleteConfirm"),tr("delete")))return;
+  const now=Date.now();
+  const entry={id,category:PATH,recordType:PATH,
+    originalPath:"users/"+user.uid+"/"+PATH+"/"+id,
+    data:{...r,id},deletedAt:now,expiresAt:now+RETENTION,schemaVersion:1};
+  try{
+    const result=await userRef("").transaction(root=>{
+      if(!root||typeof root!=="object"||Array.isArray(root))return;
+      if(!root[PATH]||!root[PATH][id])return;
+      const next={...root};
+      next[PATH]={...root[PATH]};
+      next.trash={...(root.trash||{})};
+      next.trash[PATH]={...(root.trash?.[PATH]||{}),[id]:entry};
+      delete next[PATH][id];
+      if(!Object.keys(next[PATH]).length)delete next[PATH];
+      return next;
+    },undefined,false);
+    if(!result.committed)throw new Error(tr("conflict"));
+    setStatus(tr("deleted"));
+  }catch(err){console.error(err);setStatus(tr("deleteFail")+err.message,true);}
+}
+function handleActions(e){
+  const edit=e.target.closest("[data-edit]");
+  const del=e.target.closest("[data-delete]");
+  const group=e.target.closest("[data-group]");
+  if(group){
+    const key=group.dataset.group;
+    expanded.has(key)?expanded.delete(key):expanded.add(key);
+    render();return;
+  }
+  if(edit){editRecord(edit.dataset.edit);return;}
+  if(del)deleteRecord(del.dataset.delete);
+}
+$("groups").addEventListener("click",handleActions);
+$("tableBody").addEventListener("click",handleActions);
+$("search").addEventListener("input",render);
+
+/* Supports both category/id and root-level Trash entries. */
+function trashEntries(){
+  const out=[];
+  Object.entries(trashData||{}).forEach(([category,value])=>{
+    if(!value||typeof value!=="object"||Array.isArray(value))return;
+    if(value.originalPath||value.data||value.originalData||value.deletedAt){
+      out.push(normalizeTrash(value,category,"__root__"));return;
+    }
+    Object.entries(value).forEach(([id,item])=>{
+      if(item&&typeof item==="object"&&!Array.isArray(item)&&
+         (item.originalPath||item.data||item.originalData||item.deletedAt)){
+        out.push(normalizeTrash(item,id,category));
       }
     });
   });
-  return out.sort((a, b) => Number(b.deletedAt || 0) - Number(a.deletedAt || 0));
+  return out.filter(Boolean);
 }
-
-function renderTrash() {
-  const uid = currentUser?.uid;
-  const entries = getTrashEntries().filter(e =>
-    e.category === PATH &&
-    e.originalPath === "users/" + uid + "/" + PATH + "/" + e.id
-  );
-
-  $("trashList").innerHTML = entries.map(e => {
-    const data = e.data && typeof e.data === "object" ? e.data : {};
-    const expired = Number(e.expiresAt || 0) > 0 && Number(e.expiresAt) <= Date.now();
+function normalizeTrash(raw,id,category){
+  const realId=String(raw.id||id);
+  const data=raw.data??raw.originalData??null;
+  const path=String(raw.originalPath||"");
+  const deletedAt=Number(raw.deletedAt||raw.deleted_at||raw.deleted_at_ms||0);
+  const expiresAt=Number(raw.expiresAt||(deletedAt?deletedAt+RETENTION:0));
+  return {id:realId,data,path,deletedAt,expiresAt,category,
+    location:category==="__root__"?"trash/"+id:"trash/"+category+"/"+id,
+    validPath:path==="users/"+user.uid+"/"+PATH+"/"+realId};
+}
+function renderTrash(){
+  if(!user)return;
+  const entries=trashEntries().filter(e=>e.category===PATH||e.path==="users/"+user.uid+"/"+PATH+"/"+e.id);
+  $("trashList").innerHTML=entries.map(e=>{
+    const d=e.data&&typeof e.data==="object"?e.data:{};
+    const can=e.validPath&&d&&typeof d==="object"&&(!e.expiresAt||e.expiresAt>Date.now());
     return `<div class="record">
-      <b>${esc(data.party || t("कारोबार", "Transaction"))}</b>
-      <p>${esc(data.date || "—")} · ${esc(typeText(data.type))}</p>
-      <p>${money(data.total)}</p>
-      <p class="muted">${t("हटाइएको", "Deleted")}: ${e.deletedAt ? esc(new Date(Number(e.deletedAt)).toLocaleString()) : "—"}</p>
-      <button type="button" data-restore="${esc(e.location)}" ${expired ? "disabled" : ""}>
-        ${expired ? t("म्याद सकियो", "Expired") : "Restore"}
-      </button>
+      <b>${esc(d.party||tr("transactions"))}</b>
+      <p>${esc(d.date||"—")} · ${esc(typeLabel(d.type))}</p>
+      <p>${money(d.total)}</p>
+      <p class="muted">${esc(tr("deletedAt"))}: ${e.deletedAt?esc(new Date(e.deletedAt).toLocaleString()):"—"}</p>
+      <button type="button" data-restore="${esc(e.location)}" ${can?"":"disabled"}>${esc(can?tr("restore"):tr("expired"))}</button>
     </div>`;
-  }).join("") || `<p class="muted">${t("Trash खाली छ।", "Trash is empty.")}</p>`;
+  }).join("")||`<p class="muted">${esc(tr("emptyTrash"))}</p>`;
 }
-
-function resetForm() {
-  $("transactionForm").reset();
-  $("recordId").value = "";
-  $("date").value = localDate();
-  $("type").value = "Receivable";
-  $("rate").value = "0";
-  $("period").value = "0";
-  $("npr").value = "0";
-  $("inr").value = "0";
-  $("dueDate").value = "";
-  $("saveButton").textContent = t("कारोबार सेभ", "Save transaction");
-  calculate();
-}
-
-$("cancelButton").addEventListener("click", () => {
-  resetForm();
-  status("");
-});
-
-$("transactionForm").addEventListener("submit", async e => {
-  e.preventDefault();
-  if (!currentUser) {
-    status(t("पहिले लगइन गर्नुहोस्।", "Please sign in first."), true);
-    return;
+$("trashList").addEventListener("click",async e=>{
+  const b=e.target.closest("[data-restore]");
+  if(!b||!user)return;
+  const entry=trashEntries().find(x=>x.location===b.dataset.restore);
+  if(!entry||!entry.validPath||!entry.data||typeof entry.data!=="object"||
+     (entry.expiresAt&&entry.expiresAt<=Date.now())){
+    setStatus(tr("notRestorable"),true);return;
   }
-  if (busy) return;
-
-  const party = $("party").value.trim();
-  const date = $("date").value;
-  const dueDate = $("dueDate").value;
-  const type = $("type").value;
-  const rate = Number($("rate").value);
-  const period = Number($("period").value);
-  const npr = Number($("npr").value);
-  const inr = Number($("inr").value);
-  const editing = Boolean($("recordId").value);
-  const totals = calculate();
-
-  if (!party || !validDate(date) || (dueDate && !validDate(dueDate)) ||
-      !["Receivable", "Payable"].includes(type) ||
-      ![rate, period, npr, inr, totals.principal, totals.interest, totals.total]
-        .every(v => Number.isFinite(v) && v >= 0)) {
-    status(t("पार्टी, मिति र रकम जाँच्नुहोस्।", "Check the party, dates and amounts."), true);
-    return;
-  }
-
-  const id = $("recordId").value || userRef(PATH).push().key;
-  if (!validKey(id)) {
-    status(t("रेकर्ड ID मान्य छैन।", "Invalid record ID."), true);
-    return;
-  }
-
-  const data = {
-    date, party, type, rate, period, npr, inr,
-    principal: totals.principal,
-    interest: totals.interest,
-    total: totals.total,
-    note: $("note").value.trim(),
-    dueDate: dueDate || ""
-  };
-
-  if (!await confirmApp(
-    editing ? t("परिवर्तन सेभ गर्ने?", "Save changes?") : t("कारोबार सेभ गर्ने?", "Save transaction?"),
-    editing ? t("अपडेट", "Update") : t("सेभ", "Save")
-  )) return;
-
-  busy = true;
-  $("saveButton").disabled = true;
-  try {
-    const result = await userRef(PATH + "/" + id).transaction(old => {
-      if (editing && old === null) return;
-      if (!editing && old !== null) return;
-      const now = Date.now();
-      return {
-        ...(old && typeof old === "object" ? old : {}),
-        ...data, id,
-        createdAt: old?.createdAt || now,
-        updatedAt: now
-      };
-    }, undefined, false);
-
-    if (!result.committed) throw new Error(t("रेकर्ड परिवर्तन भयो वा भेटिएन।", "Record changed or not found."));
-    resetForm();
-    status(t("कारोबार सेभ भयो।", "Transaction saved."));
-  } catch (err) {
-    console.error("Transaction save failed:", err);
-    status(t("सेभ हुन सकेन: ", "Could not save: ") + err.message, true);
-  } finally {
-    busy = false;
-    $("saveButton").disabled = false;
-  }
-});
-
-async function moveToTrash(id) {
-  const item = records[id];
-  if (!item || !currentUser) {
-    status(t("रेकर्ड भेटिएन।", "Record not found."), true);
-    return;
-  }
-
-  if (!await confirmApp(
-    t("यो कारोबार Trash मा सार्ने? ३० दिनभित्र Restore गर्न सकिन्छ।",
-      "Move this transaction to Trash? It can be restored within 30 days."),
-    t("Trash मा सार्नुहोस्", "Move to Trash")
-  )) return;
-
-  const now = Date.now();
-  const entry = {
-    id,
-    category: PATH,
-    recordType: PATH,
-    originalPath: "users/" + currentUser.uid + "/" + PATH + "/" + id,
-    data: { ...item, id },
-    deletedAt: now,
-    expiresAt: now + RETENTION,
-    schemaVersion: 1
-  };
-
-  try {
-    const result = await userRef("").transaction(root => {
-      if (!root || typeof root !== "object" || Array.isArray(root)) return;
-      const existing = root[PATH]?.[id];
-      if (!existing) return;
-
-      const next = { ...root };
-      next[PATH] = { ...(root[PATH] || {}) };
-      next.trash = { ...(root.trash || {}) };
-      next.trash[PATH] = { ...(root.trash[PATH] || {}), [id]: entry };
-      delete next[PATH][id];
-      if (!Object.keys(next[PATH]).length) delete next[PATH];
-      return next;
-    }, undefined, false);
-
-    if (!result.committed) throw new Error(t("रेकर्ड पहिले नै हटाइएको वा परिवर्तन भएको छ।", "Record changed or was already deleted."));
-    status(t("कारोबार Trash मा सारियो।", "Transaction moved to Trash."));
-  } catch (err) {
-    console.error("Transaction delete failed:", err);
-    status(t("हटाउन सकिएन: ", "Could not delete: ") + err.message, true);
-  }
-}
-
-async function handleRecordAction(e) {
-  const edit = e.target.closest("[data-edit]");
-  const del = e.target.closest("[data-delete]");
-
-  if (edit) {
-    const id = edit.dataset.edit;
-    const r = records[id];
-    if (!r) {
-      status(t("रेकर्ड भेटिएन।", "Record not found."), true);
-      return;
-    }
-
-    $("recordId").value = id;
-    ["date", "party", "type", "rate", "period", "npr", "inr", "note", "dueDate"]
-      .forEach(k => $(k).value = r[k] ?? "");
-    $("date").value = validDate(r.date) ? r.date : localDate();
-    $("type").value = ["Receivable", "Payable"].includes(r.type) ? r.type : "Receivable";
-    $("saveButton").textContent = t("अपडेट", "Update");
-    calculate();
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    $("party").focus();
-    status("");
-    return;
-  }
-
-  if (del) await moveToTrash(del.dataset.delete);
-}
-
-$("groups").addEventListener("click", async e => {
-  const toggle = e.target.closest("[data-group]");
-  if (toggle) {
-    const key = toggle.dataset.group;
-    expandedGroups.has(key) ? expandedGroups.delete(key) : expandedGroups.add(key);
-    render();
-    return;
-  }
-  await handleRecordAction(e);
-});
-
-$("recordsTable").addEventListener("click", handleRecordAction);
-$("groupSearch").addEventListener("input", render);
-
-$("trashList").addEventListener("click", async e => {
-  const button = e.target.closest("[data-restore]");
-  if (!button || !currentUser) return;
-
-  const [category, id] = button.dataset.restore.split("/");
-  const entry = trash?.[category]?.[id];
-
-  if (!entry || !entry.data || typeof entry.data !== "object") {
-    status(t("Restore गर्न मिल्ने डाटा भेटिएन।", "Restorable data not found."), true);
-    return;
-  }
-
-  if (entry.originalPath !== "users/" + currentUser.uid + "/" + category + "/" + id) {
-    status(t("रेकर्डको मूल स्थान पुष्टि भएन।", "Original record path could not be verified."), true);
-    return;
-  }
-  if (entry.expiresAt && Number(entry.expiresAt) <= Date.now()) {
-    status(t("Restore गर्ने म्याद सकियो।", "Restore period has expired."), true);
-    return;
-  }
-  if (!await confirmApp(t("यो कारोबार Restore गर्ने?", "Restore this transaction?"), "Restore")) return;
-
-  try {
-    const result = await userRef("").transaction(root => {
-      if (!root || typeof root !== "object" || Array.isArray(root)) return;
-      const currentTrash = root.trash?.[category]?.[id];
-      if (!currentTrash || root[PATH]?.[id] !== undefined) return;
-
-      const next = { ...root };
-      next[PATH] = { ...(root[PATH] || {}), [id]: { ...entry.data, id } };
-      next.trash = { ...(root.trash || {}) };
-      next.trash[category] = { ...(next.trash[category] || {}) };
-      delete next.trash[category][id];
-      if (!Object.keys(next.trash[category]).length) delete next.trash[category];
-      if (!Object.keys(next.trash).length) delete next.trash;
-      return next;
-    }, undefined, false);
-
-    if (!result.committed) {
-      status(t("यही ID को रेकर्ड पहिल्यै छ वा Trash रेकर्ड परिवर्तन भयो।", "Record already exists or Trash entry changed."), true);
-      return;
-    }
-    status(t("कारोबार Restore भयो।", "Transaction restored."));
-  } catch (err) {
-    console.error("Transaction restore failed:", err);
-    status(t("Restore असफल: ", "Restore failed: ") + err.message, true);
-  }
-});
-
-async function importOldData() {
-  if (!currentUser || importing) return;
-  if (!await confirmApp(
-    t("पुरानो स्थानीय कारोबार Import गर्ने? Cloud डाटा overwrite गरिने छैन।",
-      "Import old local transaction data? Cloud records will not be overwritten."),
-    "Import"
-  )) return;
-
-  importing = true;
-  $("importButton").disabled = true;
-
-  try {
-    const marker = userRef("migration/local-transactions-v2");
-    if ((await marker.once("value")).exists()) {
-      status(t("पुरानो डाटा पहिले नै Import गरिएको छ।", "Old data was already imported."), true);
-      return;
-    }
-
-    const cloud = await userRef(PATH).once("value");
-    const cloudValue = cloud.val();
-    if (cloud.exists() && cloudValue && Object.keys(cloudValue).length) {
-      status(t("Cloud मा कारोबार डाटा छ। Import रोकियो।", "Cloud records already exist. Import stopped."), true);
-      return;
-    }
-
-    let old = [];
-    let sourceKey = "";
-    for (const key of ["digital_notebook_transactions", "transactions", "transaction_list"]) {
-      try {
-        const raw = JSON.parse(localStorage.getItem(key) || "null");
-        const arr = Array.isArray(raw) ? raw : raw && typeof raw === "object" ? Object.values(raw) : [];
-        const valid = arr.filter(r => r && typeof r === "object" && !Array.isArray(r) &&
-          ["Receivable", "Payable"].includes(r.type));
-        if (valid.length) {
-          old = valid;
-          sourceKey = key;
-          break;
-        }
-      } catch (_) {}
-    }
-
-    if (!old.length) {
-      status(t("पुरानो स्थानीय डाटा भेटिएन।", "No old local data found."), true);
-      return;
-    }
-
-    let count = 0;
-    for (const r of old) {
-      const id = typeof r.id === "string" && validKey(r.id) ? r.id : userRef(PATH).push().key;
-      const npr = Number(r.npr || 0);
-      const inr = Number(r.inr || 0);
-      const rate = Number(r.rate || 0);
-      const period = Number(r.period || 0);
-      if (![npr, inr, rate, period].every(v => Number.isFinite(v) && v >= 0)) continue;
-
-      const principal = npr + inr * INR_RATE;
-      const interest = principal * rate * period / 100;
-      const data = {
-        ...r, id,
-        party: String(r.party || r.name || r.person || "").trim(),
-        date: validDate(r.date) ? r.date : localDate(),
-        dueDate: validDate(r.dueDate) ? r.dueDate : "",
-        npr, inr, rate, period, principal, interest,
-        total: principal + interest,
-        type: r.type,
-        note: String(r.note || ""),
-        createdAt: r.createdAt || Date.now(),
-        updatedAt: Date.now(),
-        migratedFromLocal: true
-      };
-      if (!data.party) continue;
-
-      const result = await userRef(PATH + "/" + id).transaction(current => {
-        if (current !== null) return;
-        return data;
-      }, undefined, false);
-      if (result.committed) count++;
-    }
-
-    await marker.set({ completedAt: Date.now(), imported: count, source: sourceKey });
-    status(t("Import पूरा भयो। रेकर्ड: ", "Import complete. Records: ") + count);
-  } catch (err) {
-    console.error("Transaction import failed:", err);
-    status(t("Import असफल: ", "Import failed: ") + err.message, true);
-  } finally {
-    importing = false;
-    $("importButton").disabled = false;
-  }
-}
-$("importButton").addEventListener("click", importOldData);
-
-function profileForPdf() {
-  let p = {};
-  for (const key of ["digital_notebook_profile", "user_profile", "userProfile", "profile", "digital_notebook_user"]) {
-    try {
-      const v = JSON.parse(localStorage.getItem(key) || "null");
-      if (v && typeof v === "object" && !Array.isArray(v)) {
-        p = v;
-        break;
+  if(!await confirmAction(tr("restoreConfirm"),tr("restore")))return;
+  try{
+    const result=await userRef("").transaction(root=>{
+      if(!root||typeof root!=="object"||Array.isArray(root))return;
+      let current=root;
+      const parts=entry.location.split("/");
+      for(const p of parts){if(!current||typeof current!=="object")return;current=current[p];}
+      if(!current||root[PATH]?.[entry.id]!==undefined)return;
+      const next={...root};
+      next[PATH]={...(root[PATH]||{}),[entry.id]:{...entry.data,id:entry.id}};
+      next.trash={...(root.trash||{})};
+      if(entry.category==="__root__")delete next.trash[entry.id];
+      else{
+        next.trash[entry.category]={...(next.trash[entry.category]||{})};
+        delete next.trash[entry.category][entry.id];
+        if(!Object.keys(next.trash[entry.category]).length)delete next.trash[entry.category];
       }
-    } catch (_) {}
-  }
-  return {
-    name: p.name || p.fullName || p.full_name || "",
-    email: auth.currentUser?.email || p.email || "",
-    address: p.address || p.location || "",
-    mobile: p.mobile || p.phone || p.phoneNumber || ""
-  };
-}
-
-async function exportPdf(list, title = "Transaction Ledger") {
-  if (!window.html2pdf) {
-    status(t("PDF सुविधा लोड भएन।", "PDF support did not load."), true);
-    return;
-  }
-  if (!list.length) {
-    status(t("PDF निकाल्न रेकर्ड छैन।", "No records to export."), true);
-    return;
-  }
-
-  const p = profileForPdf();
-  const rec = list.filter(r => r.type === "Receivable").reduce((s, r) => s + (Number(r.total) || 0), 0);
-  const pay = list.filter(r => r.type === "Payable").reduce((s, r) => s + (Number(r.total) || 0), 0);
-  const rows = list.map((r, i) => `<tr>
-    <td>${i + 1}</td><td>${esc(r.date || "")}</td><td>${esc(r.party || "")}</td>
-    <td>${esc(typeText(r.type))}</td><td>${Number(r.principal || 0).toFixed(2)}</td>
-    <td>${Number(r.interest || 0).toFixed(2)}</td><td>${Number(r.total || 0).toFixed(2)}</td>
-    <td>${esc(r.dueDate || "")}</td><td>${esc(r.note || "")}</td>
-  </tr>`).join("");
-
-  const report = document.createElement("div");
-  report.style.cssText = "background:#fff;color:#172033;padding:14px;font-family:Arial,sans-serif;font-size:10px;width:100%;";
-  report.innerHTML = `
-    <div style="background:#102b3f;color:#fff;padding:14px;border-bottom:4px solid #ed00e9">
-      <h1 style="margin:0 0 5px;font-size:18px;color:#fff">Digital NoteBook</h1>
-      <b>${esc(title)}</b>
-      <p>Report date: ${esc(localDate())}</p>
-      <p>Name: ${esc(p.name || "—")} · Email: ${esc(p.email || "—")}</p>
-      <p>Address: ${esc(p.address || "—")} · Mobile: ${esc(p.mobile || "—")}</p>
-    </div>
-    <div style="display:flex;gap:18px;background:#fdf0fd;padding:10px;margin:10px 0">
-      <b>Receivable: ${money(rec)}</b><b>Payable: ${money(pay)}</b><b>Net: ${money(rec-pay)}</b>
-    </div>
-    <table style="width:100%;border-collapse:collapse;table-layout:fixed">
-      <thead><tr><th>No.</th><th>Date</th><th>Party</th><th>Type</th><th>Principal</th><th>Interest</th><th>Total NPR</th><th>Due date</th><th>Note</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
-    <style>
-      th,td{border:1px solid #94a3b8;padding:5px;text-align:left;overflow-wrap:anywhere}
-      th{background:#f1f5f9}tr{page-break-inside:avoid}
-    </style>`;
-
-  try {
-    await html2pdf().set({
-      margin: 6,
-      filename: "Digital-Notebook-Transactions-" + localDate() + ".pdf",
-      image: { type: "jpeg", quality: .98 },
-      html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
-      jsPDF: { unit: "mm", format: "a4", orientation: "landscape" }
-    }).from(report).save();
-    status(t("PDF तयार भयो।", "PDF exported."));
-  } catch (err) {
-    console.error("PDF export failed:", err);
-    status(t("PDF तयार भएन: ", "Could not create PDF: ") + err.message, true);
-  }
-}
-
-$("pdfAllButton").addEventListener("click", () => {
-  const all = getRecords().sort((a, b) => String(a.date || "").localeCompare(String(b.date || "")));
-  exportPdf(all, "Transaction Ledger");
+      if(!Object.keys(next.trash).length)delete next.trash;
+      return next;
+    },undefined,false);
+    if(!result.committed)throw new Error(tr("conflict"));
+    setStatus(tr("restored"));
+  }catch(err){console.error(err);setStatus(tr("restoreFail")+err.message,true);}
 });
 
-function detachListeners() {
-  if (dataRef && dataHandler) dataRef.off("value", dataHandler);
-  if (trashRef && trashHandler) trashRef.off("value", trashHandler);
-  dataRef = trashRef = dataHandler = trashHandler = null;
+/* Import legacy browser data only when the Cloud transactions path is empty. */
+$("importButton").addEventListener("click",async()=>{
+  if(!user||importing)return;
+  if(!await confirmAction(tr("importConfirm"),tr("import")))return;
+  importing=true;$("importButton").disabled=true;
+  try{
+    const marker=userRef("migration/local-transactions-v2");
+    if((await marker.once("value")).exists()){setStatus(tr("alreadyImported"),true);return;}
+    const cloud=await userRef(PATH).once("value");
+    const cv=cloud.val();
+    if(cv&&typeof cv==="object"&&Object.keys(cv).length){setStatus(tr("cloudNotEmpty"),true);return;}
+    let old=[],source="";
+    for(const key of ["digital_notebook_transactions","transactions","transaction_list"]){
+      try{
+        const raw=JSON.parse(localStorage.getItem(key)||"null");
+        const arr=Array.isArray(raw)?raw:(raw&&typeof raw==="object"?Object.values(raw):[]);
+        const valid=arr.filter(r=>r&&typeof r==="object"&&["Receivable","Payable"].includes(r.type));
+        if(valid.length){old=valid;source=key;break;}
+      }catch(e){}
+    }
+    if(!old.length){setStatus(tr("noOld"),true);return;}
+    let count=0;
+    for(const r of old){
+      const id=validKey(r.id)?r.id:userRef(PATH).push().key;
+      const npr=Number(r.npr||0),inr=Number(r.inr||0),rate=Number(r.rate||0),period=Number(r.period||0);
+      if(![npr,inr,rate,period].every(n=>Number.isFinite(n)&&n>=0))continue;
+      const principal=npr+inr*INR_RATE,interest=principal*rate*period/100;
+      const data={...r,id,party:String(r.party||r.name||r.person||"").trim(),
+        date:validDate(r.date)?r.date:localDate(),
+        dueDate:validDate(r.dueDate)?r.dueDate:addMonths(validDate(r.date)?r.date:localDate(),period),
+        npr,inr,rate,period,principal,interest,total:principal+interest,
+        note:String(r.note||""),createdAt:r.createdAt||Date.now(),updatedAt:Date.now()};
+      if(!data.party)continue;
+      const result=await userRef(PATH+"/"+id).transaction(current=>{
+        if(current!==null)return;
+        return data;
+      },undefined,false);
+      if(result.committed)count++;
+    }
+    await marker.set({completedAt:Date.now(),imported:count,source});
+    setStatus(tr("importDone")+count);
+  }catch(err){console.error(err);setStatus(tr("importFail")+err.message,true);}
+  finally{importing=false;$("importButton").disabled=false;}
+});
+
+/* PDF export */
+$("pdfButton").addEventListener("click",async()=>{
+  if(!window.html2pdf){setStatus(tr("pdfFail")+"PDF library unavailable.",true);return;}
+  const list=allRecords().sort((a,b)=>String(a.date||"").localeCompare(String(b.date||"")));
+  if(!list.length){setStatus(tr("noPdf"),true);return;}
+  const rec=list.filter(r=>r.type==="Receivable").reduce((s,r)=>s+(Number(r.total)||0),0);
+  const pay=list.filter(r=>r.type==="Payable").reduce((s,r)=>s+(Number(r.total)||0),0);
+  const report=document.createElement("div");
+  report.style.cssText="background:#fff;color:#172033;padding:14px;font:10px Arial,sans-serif";
+  report.innerHTML=`<h1>Digital NoteBook - ${esc(tr("tableTitle"))}</h1>
+    <p>${esc(tr("date"))}: ${esc(localDate())}</p>
+    <p>${esc(tr("totalReceivable"))}: ${money(rec)} &nbsp; ${esc(tr("totalPayable"))}: ${money(pay)} &nbsp; ${esc(tr("net"))}: ${money(rec-pay)}</p>
+    <table style="width:100%;border-collapse:collapse">
+    <thead><tr><th>${esc(tr("date"))}</th><th>${esc(tr("party"))}</th><th>${esc(tr("type"))}</th>
+    <th>${esc(tr("principal"))}</th><th>${esc(tr("interest"))}</th><th>${esc(tr("total"))}</th>
+    <th>${esc(tr("dueDate"))}</th><th>${esc(tr("note"))}</th></tr></thead>
+    <tbody>${list.map(r=>`<tr><td>${esc(r.date||"")}</td><td>${esc(r.party||"")}</td>
+    <td>${esc(typeLabel(r.type))}</td><td>${money(r.principal)}</td><td>${money(r.interest)}</td>
+    <td>${money(r.total)}</td><td>${esc(r.dueDate||"")}</td><td>${esc(r.note||"")}</td></tr>`).join("")}</tbody></table>
+    <style>th,td{border:1px solid #94a3b8;padding:5px;text-align:left;overflow-wrap:anywhere}th{background:#f1f5f9}tr{page-break-inside:avoid}</style>`;
+  try{
+    await html2pdf().set({margin:6,filename:"Digital-Notebook-Transactions-"+localDate()+".pdf",
+      image:{type:"jpeg",quality:.98},html2canvas:{scale:2,useCORS:true,scrollY:0},
+      jsPDF:{unit:"mm",format:"a4",orientation:"landscape"}}).from(report).save();
+  }catch(err){console.error(err);setStatus(tr("pdfFail")+err.message,true);}
+});
+
+function detachListeners(){
+  if(recordsRef&&recordsListener)recordsRef.off("value",recordsListener);
+  if(trashRef&&trashListener)trashRef.off("value",trashListener);
+  recordsRef=trashRef=recordsListener=trashListener=null;
 }
-
-function attachListeners() {
+function attachListeners(){
   detachListeners();
-  dataRef = userRef(PATH);
-  trashRef = userRef("trash");
-
-  dataHandler = snapshot => {
-    const value = snapshot.val();
-    records = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  recordsRef=userRef(PATH);
+  trashRef=userRef("trash");
+  recordsListener=s=>{
+    const v=s.val();
+    records=v&&typeof v==="object"&&!Array.isArray(v)?v:{};
     render();
-    $("recordsTable").querySelectorAll("tr").length || render();
     document.body.classList.remove("auth-pending");
   };
-
-  trashHandler = snapshot => {
-    const value = snapshot.val();
-    trash = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  trashListener=s=>{
+    const v=s.val();
+    trashData=v&&typeof v==="object"&&!Array.isArray(v)?v:{};
     renderTrash();
   };
-
-  dataRef.on("value", dataHandler, err => {
-    status(t("Cloud डाटा लोड भएन: ", "Cloud data could not be loaded: ") + err.message, true);
+  recordsRef.on("value",recordsListener,e=>{
+    setStatus(tr("loadFail")+e.message,true);
     document.body.classList.remove("auth-pending");
   });
-
-  trashRef.on("value", trashHandler, err => {
-    status(t("Trash लोड भएन: ", "Trash could not be loaded: ") + err.message, true);
-  });
+  trashRef.on("value",trashListener,e=>setStatus(tr("loadFail")+e.message,true));
 }
-
-auth.onAuthStateChanged(user => {
-  if (!user) {
-    detachListeners();
-    currentUser = null;
-    records = {};
-    trash = {};
-    location.replace("./index.html");
-    return;
+auth.onAuthStateChanged(u=>{
+  if(!u){
+    detachListeners();user=null;records={};trashData={};
+    location.replace("./index.html");return;
   }
-  if (currentUser && currentUser.uid !== user.uid) detachListeners();
-  currentUser = user;
-  applyPreferences();
+  if(user&&user.uid!==u.uid)detachListeners();
+  user=u;
+  applyLanguage();
   attachListeners();
 });
-
-$("backButton").addEventListener("click", e => {
+$("backButton").addEventListener("click",e=>{
   e.preventDefault();
-  if (document.referrer) {
-    try {
-      if (new URL(document.referrer).origin === location.origin && history.length > 1) {
-        history.back();
-        return;
-      }
-    } catch (_) {}
-  }
-  location.href = "./index.html";
+  try{
+    if(history.length>1&&document.referrer&&new URL(document.referrer).origin===location.origin){
+      history.back();return;
+    }
+  }catch(err){}
+  location.href="./index.html";
 });
+window.addEventListener("storage",e=>{if(e.key===SETTINGS_KEY)applyLanguage();});
+window.addEventListener("pageshow",applyLanguage);
 
-window.addEventListener("storage", e => {
-  if (e.key === SETTINGS_KEY) applyPreferences();
-});
-window.addEventListener("focus", applyPreferences);
-window.addEventListener("pageshow", applyPreferences);
-
-$("date").value = localDate();
+$("date").value=localDate();
+manualDueDate=false;
+updateDueDate(true);
 calculate();
-applyPreferences();
+applyLanguage();
 </script>
 </body>
 </html>
