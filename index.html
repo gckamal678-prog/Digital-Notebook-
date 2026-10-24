@@ -220,9 +220,6 @@ textarea.form-control { min-height: 94px; resize: vertical; }
 .btn-primary { color: #03271d; background: var(--accent); border-color: var(--accent); }
 .btn-danger { color: #fff; background: #be123c; border-color: #be123c; }
 .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 11px; }
-.status { margin: 8px 0 0; color: var(--muted); font-size: .82em; overflow-wrap: anywhere; }
-.status.error { color: #fb7185; }
-.status.success { color: #34d399; }
 
 .banner { overflow: hidden; padding: 0; background: #0b1530; }
 .banner a, .banner video { display: block; width: 100%; }
@@ -319,7 +316,7 @@ body[data-layout="compact"] .metric-grid, body[data-layout="compact"] .quick-gri
     <input id="auth-email" type="email" autocomplete="email" required placeholder="Email address">
     <input id="auth-password" type="password" autocomplete="current-password" required minlength="6" placeholder="Password">
     <input id="auth-confirm" class="hidden" type="password" autocomplete="new-password" placeholder="Confirm password">
-    <p id="auth-error" class="status error" role="alert"></p>
+    <p id="auth-error" class="status error" role="alert" style="color:#fb7185;font-size:.82em;margin-top:8px;"></p>
     <button id="auth-submit" class="btn btn-primary" type="submit">Login</button>
     <button id="auth-forgot" class="btn" type="button">Forgot password?</button>
     <button id="auth-switch" class="btn" type="button">Create a new account</button>
@@ -350,7 +347,7 @@ body[data-layout="compact"] .metric-grid, body[data-layout="compact"] .quick-gri
   <button id="backup-button" class="btn" type="button" style="width:100%;margin-bottom:8px">Merge local records to cloud</button>
   <button id="restore-button" class="btn" type="button" style="width:100%;margin-bottom:8px">Refresh local copies from cloud</button>
   <button id="logout-button" class="btn btn-danger" type="button" style="width:100%">Log out</button>
-  <p class="muted" style="font-size:.78em;margin-top:15px">Theme, color, language and text size are managed from Settings.</p>
+  <p class="muted" style="font-size:.78em;margin-top:15px"></p>
 </aside>
 
 <div id="app" class="hidden">
@@ -384,15 +381,15 @@ body[data-layout="compact"] .metric-grid, body[data-layout="compact"] .quick-gri
         <strong id="summary-net-balance" class="metric-value">NPR 0</strong>
       </article>
       <article class="card metric" style="--metric-color:#22d3ee">
-        <div class="metric-label">लिनुपर्ने · Receivable</div>
+        <div class="metric-label">Receivable</div>
         <strong id="summary-receivable" class="metric-value">NPR 0</strong>
       </article>
       <article class="card metric" style="--metric-color:#fb7185">
-        <div class="metric-label">दिनुपर्ने · Payable</div>
+        <div class="metric-label">Payable</div>
         <strong id="summary-payable" class="metric-value">NPR 0</strong>
       </article>
       <article class="card metric" style="--metric-color:#fbbf24">
-        <div class="metric-label">This Month's Expenses</div>
+        <div class="metric-label">Total Expenses</div>
         <strong id="summary-expenses" class="metric-value">NPR 0</strong>
       </article>
     </section>
@@ -401,7 +398,6 @@ body[data-layout="compact"] .metric-grid, body[data-layout="compact"] .quick-gri
       <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
         <div>
           <h2 style="margin-bottom:2px">Reminder</h2>
-          <p class="muted" style="font-size:.8em;margin-bottom:0">Saved to your account and synced across devices</p>
         </div>
         <span style="font-size:1.4em" aria-hidden="true">🔔</span>
       </div>
@@ -410,7 +406,6 @@ body[data-layout="compact"] .metric-grid, body[data-layout="compact"] .quick-gri
         <button id="save-reminder" class="btn btn-primary" type="button">Save reminder</button>
         <button id="clear-reminder" class="btn" type="button">Clear</button>
       </div>
-      <p id="reminder-status" class="status" aria-live="polite"></p>
     </section>
 
     <section class="card" id="due-alert-card">
@@ -690,8 +685,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const totalTransactionExpenses = activeTransactions.filter(isExpense).reduce((sum, record) => sum + amount(record), 0);
     const totalHouseExpenses = activeHouseExpenses.reduce((sum, record) => sum + amount(record), 0);
 
-    const netBalance = totalIncome + totalReceivable - totalPayable - totalTransactionExpenses - totalHouseExpenses;
+    // सुरुदेखि हालसम्मको कुल खर्च (Total Expense)
+    const totalAllExpenses = totalTransactionExpenses + totalHouseExpenses;
 
+    const netBalance = totalIncome + totalReceivable - totalPayable - totalAllExpenses;
+
+    // चालू १ महिनाको मात्र कुल खर्च (Monthly Expenses)
     const monthIncome = activeIncomes.filter(record => monthMatch(record, now.getFullYear(), now.getMonth())).reduce((sum, record) => sum + amount(record), 0);
     const monthSavings = activeSavings.filter(record => monthMatch(record, now.getFullYear(), now.getMonth())).reduce((sum, record) => sum + amount(record), 0);
     const monthTransactionExpenses = activeTransactions.filter(record => monthMatch(record, now.getFullYear(), now.getMonth()) && isExpense(record)).reduce((sum, record) => sum + amount(record), 0);
@@ -701,10 +700,10 @@ document.addEventListener("DOMContentLoaded", () => {
     setText("summary-net-balance", money(netBalance));
     setText("summary-receivable", money(totalReceivable));
     setText("summary-payable", money(totalPayable));
-    setText("summary-expenses", money(monthExpenses));
+    setText("summary-expenses", money(totalAllExpenses)); // ड्यासबोर्ड कार्डमा कुल खर्च
 
     setText("monthly-income", money(monthIncome));
-    setText("monthly-expenses", money(monthExpenses));
+    setText("monthly-expenses", money(monthExpenses)); // Monthly Insight कार्डमा चालू महिनाको खर्च
     setText("monthly-savings", money(monthSavings));
 
     setText("insight-month-label", now.toLocaleDateString(readSettings().lang === "ne" ? "ne-NP" : "en-IN", { month: "long", year: "numeric" }));
@@ -866,7 +865,6 @@ document.addEventListener("DOMContentLoaded", () => {
       if (rText && document.activeElement !== rText) {
         rText.value = value?.text || "";
       }
-      if (value?.updatedAt) setText("reminder-status", "Reminder synced.");
     };
     reference.on("value", callback, error => console.error("Reminder listener failed", error));
     listeners.push(() => reference.off("value", callback));
@@ -1054,10 +1052,8 @@ document.addEventListener("DOMContentLoaded", () => {
         localStorage.setItem("profile_address", profile.address);
         localStorage.setItem("profile_mobile", profile.mobile);
         applyProfile(profile);
-        setText("reminder-status", "Profile saved and synced.");
       } catch (error) {
         console.error(error);
-        setText("reminder-status", "Profile could not sync. Check Firebase Rules and connection.");
       }
     });
   }
@@ -1073,10 +1069,8 @@ document.addEventListener("DOMContentLoaded", () => {
           text: $("reminder-text")?.value.trim() || "",
           updatedAt: Date.now()
         });
-        setText("reminder-status", "Reminder saved and synced across devices.");
       } catch (error) {
         console.error("Reminder save failed", error);
-        setText("reminder-status", "Could not save reminder. Check Firebase Rules and connection.");
       } finally {
         saveReminderBusy = false;
         saveReminderBtn.disabled = false;
@@ -1093,10 +1087,8 @@ document.addEventListener("DOMContentLoaded", () => {
         await db.ref("users/" + uid + "/dashboardReminder").update({ text: "", updatedAt: Date.now() });
         const rText = $("reminder-text");
         if (rText) rText.value = "";
-        setText("reminder-status", "Reminder cleared and synced.");
       } catch (error) {
         console.error(error);
-        setText("reminder-status", "Could not clear reminder. Check Firebase Rules and connection.");
       }
     });
   }
@@ -1126,10 +1118,8 @@ document.addEventListener("DOMContentLoaded", () => {
           else skipped++;
         }
       }
-      setText("reminder-status", "Merge finished. Added: " + inserted + "; existing IDs left unchanged: " + skipped + ".");
     } catch (error) {
       console.error("Backup failed", error);
-      setText("reminder-status", "Backup failed. Check internet and Firebase Rules.");
     }
   }
 
@@ -1154,16 +1144,9 @@ document.addEventListener("DOMContentLoaded", () => {
         cloudData[path] = snapshot.val();
         try { localStorage.setItem(LOCAL[path][0], JSON.stringify(records)); } catch (_) {}
       });
-      if (!found) {
-        renderDashboard();
-        setText("reminder-status", "No cloud records found. Local copies were refreshed as empty.");
-        return;
-      }
       renderDashboard();
-      setText("reminder-status", "Local copies refreshed from cloud.");
     } catch (error) {
       console.error("Restore failed", error);
-      setText("reminder-status", "Restore failed. Check internet and Firebase Rules.");
     }
   }
 
