@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="ne">
 <head>
@@ -236,7 +235,7 @@ recordMissing:"Record not found. Refresh and try again.",
 restoreExpired:"The restore period has expired or Trash data is incomplete.",
 restoreConflict:"A record with this ID already exists. Nothing was overwritten.",
 restorePath:"The original record location could not be verified. Restore stopped.",
-saveFail:"Could not save savings: ",deleteFail:"Could not move to Trash: ",restoreFail:"Restore failed: ",
+saveFail:"Could not save savings: ",deleteFail:"Could not move to Trash: ",restoreFail:"Could not restore failed: ",
 cloudFail:"Could not read Cloud savings. Check Firebase Rules and connection: ",
 trashFail:"Could not read Trash. Check Firebase Rules: ",
 needName:"Enter the savings name and date.",badAmount:"Amounts must be zero or greater, and the exchange rate must be above zero.",
@@ -555,52 +554,66 @@ async function exportPdf(){
  const p=profileForPdf(),total=records.reduce((s,r)=>s+totalOf(r),0);
  const reportDate=new Date().toLocaleDateString("en-GB");
  const rows=records.map((r,i)=>`<tr>
- <td class="center">${i+1}</td><td>${esc(r.date||"")}</td>
- <td><b>${esc(r.title||r.name||r.savingName||"")}</b></td><td>${esc(r.category||"")}</td>
- <td class="right">${num(r.npr).toFixed(2)}</td><td class="right">${num(r.inr).toFixed(2)}</td>
- <td class="right">${num(r.rate||1.6).toFixed(2)}</td><td class="right">${totalOf(r).toFixed(2)}</td>
- <td>${esc(r.note||r.description||"")}</td></tr>`).join("");
+ <td class="center" style="width:4%;">${i+1}</td>
+ <td style="width:10%;">${esc(r.date||"")}</td>
+ <td style="width:20%;"><b>${esc(r.title||r.name||r.savingName||"")}</b></td>
+ <td style="width:11%;">${esc(r.category||"")}</td>
+ <td class="right" style="width:9%;">${num(r.npr).toFixed(2)}</td>
+ <td class="right" style="width:8%;">${num(r.inr).toFixed(2)}</td>
+ <td class="right" style="width:7%;">${num(r.rate||1.6).toFixed(2)}</td>
+ <td class="right" style="width:11%;">${totalOf(r).toFixed(2)}</td>
+ <td style="width:20%;">${esc(r.note||r.description||"")}</td></tr>`).join("");
 
  const report=document.createElement("div");
- report.style.cssText="background:#fff;color:#172033;padding:10px;font-family:Arial,sans-serif;font-size:10px;width:100%;box-sizing:border-box";
+ report.style.cssText="background:#fff;color:#172033;padding:12px;font-family:Arial,sans-serif;font-size:11px;width:100%;box-sizing:border-box";
  report.innerHTML=`
- <div style="background:#102b3f;color:#fff;padding:10px;border-radius:6px;border-bottom:4px solid #10b981;margin-bottom:8px">
+ <div style="background:#102b3f;color:#fff;padding:14px;border-radius:6px;border-bottom:4px solid #10b981;margin-bottom:10px">
   <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
-   <div><h1 style="font-size:15px;margin:0 0 2px;color:#fff">Digital NoteBook</h1>
-   <div style="font-size:10px;color:#34d399;font-weight:bold">SAVINGS REPORT</div></div>
-   <div style="text-align:right;font-size:8px"><b>Report Date:</b> ${reportDate}</div>
+   <div><h1 style="font-size:19px;margin:0 0 2px;color:#fff">Digital NoteBook</h1>
+   <div style="font-size:12px;color:#34d399;font-weight:bold">SAVINGS REPORT</div></div>
+   <div style="text-align:right;font-size:10px"><b>Report Date:</b> ${reportDate}</div>
   </div>
-  <hr style="border:0;border-top:1px solid #334e68;margin:5px 0">
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:8.5px">
+  <hr style="border:0;border-top:1px solid #334e68;margin:10px 0">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:10px">
    <div><b>Name:</b> ${esc(p.name||"Not provided")}</div>
    <div style="text-align:right"><b>Email:</b> ${esc(p.email||"Not provided")}</div>
    <div><b>Address:</b> ${esc(p.address||"Not provided")}</div>
    <div style="text-align:right"><b>Mobile:</b> ${esc(p.mobile||"Not provided")}</div>
   </div>
  </div>
- <div style="background:#eaf7f0;border:1px solid #b8e2cc;border-radius:4px;padding:5px 8px;margin-bottom:8px;font-size:9.5px;display:flex;justify-content:space-between;gap:10px">
+ <div style="background:#eaf7f0;border:1px solid #b8e2cc;border-radius:4px;padding:8px 10px;margin-bottom:10px;font-size:11px;display:flex;justify-content:space-between;gap:10px">
   <div><b>Total Savings:</b> <span style="color:#059669;font-weight:bold">${total.toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})} NPR</span></div>
   <div><b>Records:</b> ${records.length}</div>
  </div>
- <h2 style="font-size:11px;margin:5px 0 3px;color:#102b3f">Detailed Savings Records</h2>
+ <h2 style="font-size:13px;margin:8px 0;color:#102b3f">Detailed Savings Records</h2>
  <table>
- <thead><tr><th style="width:22px;text-align:center">No.</th><th style="width:55px">Date</th><th>Savings Name</th><th style="width:50px">Category</th><th style="width:45px" class="right">NPR</th><th style="width:40px" class="right">INR</th><th style="width:40px" class="right">Rate</th><th style="width:55px" class="right">Total NPR</th><th>Note</th></tr></thead>
+ <thead><tr>
+  <th style="text-align:center">No.</th>
+  <th>Date</th>
+  <th>Savings Name</th>
+  <th>Category</th>
+  <th class="right">NPR</th>
+  <th class="right">INR</th>
+  <th class="right">Rate</th>
+  <th class="right">Total NPR</th>
+  <th>Note</th>
+ </tr></thead>
  <tbody>${rows||'<tr><td colspan="9" class="center">No records.</td></tr>'}</tbody>
  <tfoot><tr><td colspan="7" class="right"><b>Grand Total</b></td><td class="right"><b>${total.toFixed(2)}</b></td><td></td></tr></tfoot>
  </table>
- <div style="margin-top:8px;border-top:1px solid #ccd5d1;padding-top:3px;font-size:7.5px;color:#64748b;text-align:center">This report was created from the available Cloud Savings records.</div>
+ <div style="margin-top:10px;border-top:1px solid #ccd5d1;padding-top:6px;font-size:9px;color:#64748b;text-align:center">This report was created from the available Cloud Savings records.</div>
  <style>
- table{border-collapse:collapse;width:100%;margin-bottom:6px;table-layout:fixed}
- th,td{border:1px solid #94a3b8;padding:3px 4px;vertical-align:middle;overflow-wrap:anywhere}
+ table{border-collapse:collapse;width:100%;margin-bottom:8px;table-layout:fixed}
+ th,td{border:1px solid #94a3b8;padding:6px;vertical-align:middle;overflow-wrap:anywhere}
  th{background:#f1f5f9;color:#0f172a;font-weight:bold;text-align:left}
  .right{text-align:right}.center{text-align:center}tr{page-break-inside:avoid}
  </style>`;
 
  try{
   await html2pdf().set({
-   margin:5,filename:"Digital-Notebook-Savings-"+new Date().toISOString().slice(0,10)+".pdf",
+   margin:6,filename:"Digital-Notebook-Savings-"+new Date().toISOString().slice(0,10)+".pdf",
    image:{type:"jpeg",quality:.98},html2canvas:{scale:2,useCORS:true,scrollY:0},
-   jsPDF:{unit:"mm",format:"a4",orientation:"portrait"}
+   jsPDF:{unit:"mm",format:"a4",orientation:"landscape"}
   }).from(report).save();
  }catch(e){showStatus(t("pdfError")+(e.message||e),true)}
 }
