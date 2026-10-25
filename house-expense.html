@@ -577,40 +577,49 @@ async function exportPdf(){
  const p=profileForPdf(),total=rows.reduce((s,x)=>s+n(x.amount),0);
  const reportDate=new Date().toLocaleDateString("en-GB");
  const tableRows=rows.map((x,i)=>`<tr>
- <td class="center">${i+1}</td><td>${esc(x.date||"")}</td><td><b>${esc(x.title||"")}</b></td>
- <td>${esc(TEXT.en[x.category]||x.category||"Other")}</td><td>${esc(TEXT.en[x.paymentMethod]||x.paymentMethod||"")}</td>
- <td class="right">${n(x.amount).toFixed(2)}</td><td>${esc(x.note||"")}</td></tr>`).join("");
+ <td class="center" style="width:5%;">${i+1}</td>
+ <td style="width:12%;">${esc(x.date||"")}</td>
+ <td style="width:24%;"><b>${esc(x.title||"")}</b></td>
+ <td style="width:15%;">${esc(TEXT.en[x.category]||x.category||"Other")}</td>
+ <td style="width:11%;">${esc(TEXT.en[x.paymentMethod]||x.paymentMethod||"")}</td>
+ <td class="right" style="width:13%;">${n(x.amount).toFixed(2)}</td>
+ <td style="width:20%;">${esc(x.note||"")}</td>
+ </tr>`).join("");
  const report=document.createElement("div");
- report.style.cssText="background:#fff;color:#172033;padding:10px;font-family:Arial,sans-serif;font-size:10px;width:100%;box-sizing:border-box";
+ report.style.cssText="background:#fff;color:#172033;padding:12px;font-family:Arial,sans-serif;font-size:11px;width:100%;box-sizing:border-box";
  report.innerHTML=`
- <div style="background:#102b3f;color:#fff;padding:12px;border-radius:6px;border-bottom:4px solid #10b981;margin-bottom:8px">
+ <div style="background:#102b3f;color:#fff;padding:14px;border-radius:6px;border-bottom:4px solid #10b981;margin-bottom:10px">
   <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
-   <div><h1 style="font-size:17px;margin:0 0 3px">Digital NoteBook</h1><div style="font-size:11px;color:#34d399;font-weight:bold">HOUSE EXPENSE REPORT</div></div>
-   <div style="text-align:right;font-size:9px"><b>Report Date:</b> ${reportDate}</div>
+   <div><h1 style="font-size:19px;margin:0 0 3px">Digital NoteBook</h1><div style="font-size:12px;color:#34d399;font-weight:bold">HOUSE EXPENSE REPORT</div></div>
+   <div style="text-align:right;font-size:10px"><b>Report Date:</b> ${reportDate}</div>
   </div>
-  <hr style="border:0;border-top:1px solid #334e68;margin:8px 0">
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:9px">
+  <hr style="border:0;border-top:1px solid #334e68;margin:10px 0">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:10px">
    <div><b>Name:</b> ${esc(p.name||"Not provided")}</div>
    <div style="text-align:right"><b>Email:</b> ${esc(p.email||"Not provided")}</div>
    <div><b>Address:</b> ${esc(p.address||"Not provided")}</div>
    <div style="text-align:right"><b>Mobile:</b> ${esc(p.mobile||"Not provided")}</div>
   </div>
  </div>
- <div style="background:#eaf7f0;border:1px solid #b8e2cc;border-radius:4px;padding:7px 9px;margin-bottom:9px;font-size:10px;display:flex;justify-content:space-between;gap:10px">
+ <div style="background:#eaf7f0;border:1px solid #b8e2cc;border-radius:4px;padding:8px 10px;margin-bottom:10px;font-size:11px;display:flex;justify-content:space-between;gap:10px">
   <div><b>Total Expenses:</b> <span style="color:#059669;font-weight:bold">NPR ${total.toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div>
   <div><b>Records:</b> ${rows.length}</div>
  </div>
- <h2 style="font-size:12px;margin:6px 0;color:#102b3f">Detailed Expense Records</h2>
+ <h2 style="font-size:13px;margin:8px 0;color:#102b3f">Detailed Expense Records</h2>
  <table><thead><tr>
- <th style="width:28px;text-align:center">No.</th><th style="width:65px">Date</th><th>Expense Name</th>
- <th style="width:auto">Category</th><th style="width:62px">Payment</th>
- <th style="width:72px" class="right">Amount (NPR)</th><th>Note</th>
+ <th style="text-align:center">No.</th>
+ <th>Date</th>
+ <th>Expense Name</th>
+ <th>Category</th>
+ <th>Payment</th>
+ <th class="right">Amount (NPR)</th>
+ <th>Note</th>
  </tr></thead><tbody>${tableRows}</tbody>
  <tfoot><tr><td colspan="5" class="right"><b>Total</b></td><td class="right" style="color:#059669"><b>${total.toFixed(2)}</b></td><td></td></tr></tfoot></table>
- <div style="margin-top:9px;border-top:1px solid #ccd5d1;padding-top:4px;font-size:8px;color:#64748b;text-align:center">This report was created from available Cloud House Expense records.</div>
- <style>table{border-collapse:collapse;width:100%;margin-bottom:6px;table-layout:fixed}th,td{border:1px solid #94a3b8;padding:4px;vertical-align:middle;overflow-wrap:anywhere}th{background:#f1f5f9;color:#0f172a;text-align:left}.right{text-align:right}.center{text-align:center}tr{page-break-inside:avoid}</style>`;
+ <div style="margin-top:10px;border-top:1px solid #ccd5d1;padding-top:6px;font-size:9px;color:#64748b;text-align:center">This report was created from available Cloud House Expense records.</div>
+ <style>table{border-collapse:collapse;width:100%;margin-bottom:8px;table-layout:fixed}th,td{border:1px solid #94a3b8;padding:6px;vertical-align:middle;overflow-wrap:anywhere}th{background:#f1f5f9;color:#0f172a;text-align:left}.right{text-align:right}.center{text-align:center}tr{page-break-inside:avoid}</style>`;
  try{
-  await html2pdf().set({margin:5,filename:"Digital-Notebook-House-Expense-"+localDate()+".pdf",image:{type:"jpeg",quality:.98},html2canvas:{scale:2,useCORS:true,scrollY:0},jsPDF:{unit:"mm",format:"a4",orientation:"portrait"}}).from(report).save();
+  await html2pdf().set({margin:6,filename:"Digital-Notebook-House-Expense-"+localDate()+".pdf",image:{type:"jpeg",quality:.98},html2canvas:{scale:2,useCORS:true,scrollY:0},jsPDF:{unit:"mm",format:"a4",orientation:"landscape"}}).from(report).save();
  }catch(e){console.error(e);}
 }
 function exportJSON(){
