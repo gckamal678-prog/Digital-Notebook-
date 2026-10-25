@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#101827">
 <title>Digital NoteBook · Transactions</title>
 <script>
-(()=>{let s={};try{s=JSON.parse(localStorage.getItem("digital_notebook_settings")||"{}")||{}}catch(e){}let d=document.documentElement;d.classList.toggle("light",s.theme==="light");d.lang=s.lang==="en"?"en":"ne";d.style.setProperty("--accent",s.accentColor||"#10b981");d.style.setProperty("--font-size",(Number(s.font_size)||16)+"px");d.style.setProperty("--font-family",JSON.stringify(s.font_family||"Poppins")+",Arial,sans-serif");d.dataset.layout=s.layout==="compact"?"compact":"comfortable"})();
+(function(){try{var s=JSON.parse(localStorage.getItem('digital_notebook_settings')||'{}');var d=document.documentElement;d.classList.toggle('light',s.theme==='light');d.lang=s.lang==='en'?'en':'ne';d.style.setProperty('--accent',/^#[0-9a-f]{6}$/i.test(s.accentColor||'')?s.accentColor:'#10b981');d.style.setProperty('--font-size',Math.max(12,Math.min(24,Number(s.font_size)||16))+'px');var allowed=['Poppins','Arial','Roboto','Georgia','system-ui'];var f=allowed.indexOf(s.font_family)>=0?s.font_family:'Poppins';d.style.setProperty('--font-family',f+',Arial,sans-serif');d.dataset.layout=s.layout==='compact'?'compact':'comfortable';}catch(e){}})();
 </script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
@@ -14,8 +14,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0b1220;--panel:#151f31;--field:#1c2940;--text:#edf3ff;--muted:#9cacc5;--line:#2b3a54;--accent:#10b981;--danger:#fb7185;--font-size:16px;--font-family:Poppins,Arial,sans-serif}
-html.light{--bg:#f3f6fb;--panel:#fff;--field:#edf2f9;--text:#152033;--muted:#586780;--line:#d7e0ed;--danger:#be123c}
+:root{--bg:#0b1220;--panel:#151f31;--field:#1c2940;--text:#edf3ff;--muted:#9cacc5;--line:#2b3a54;--accent:#10b981;--danger:#fb7185;--font-size:16px;--font-family:Poppins,Arial,sans-serif;color-scheme:dark}
+html.light{--bg:#f3f6fb;--panel:#fff;--field:#edf2f9;--text:#152033;--muted:#586780;--line:#d7e0ed;--danger:#be123c;color-scheme:light}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--text);font:var(--font-size)/1.55 var(--font-family)}
 button,input,select,textarea{font:inherit}
@@ -24,30 +24,38 @@ header a{color:var(--text);font-size:25px;text-decoration:none}
 header strong{flex:1}
 main{width:min(1100px,100%);margin:auto;padding:14px;display:grid;gap:14px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px}
-h1{font-size:1.4em;margin:0 0 8px}h2{font-size:1.2em;margin:0 0 10px}
-p{margin:6px 0}.muted{color:var(--muted)}
+h1{font-size:1.4em;margin:0 0 8px}
+h2{font-size:1.2em;margin:0 0 10px}
+p{margin:6px 0}
+.muted{color:var(--muted)}
 .status{font-size:.9em;color:var(--muted);overflow-wrap:anywhere}
 .status.error{color:var(--danger)}
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 label{display:block;color:var(--muted);font-size:.88em}
 input,select,textarea,button{width:100%;min-width:0;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--field);color:var(--text);margin-top:4px}
-button{cursor:pointer;font-weight:650}button:disabled{opacity:.5;cursor:not-allowed}
+button{cursor:pointer;font-weight:650}
+button:disabled{opacity:.5;cursor:not-allowed}
 .primary{background:var(--accent);color:#062319;border-color:var(--accent)}
 .danger{color:var(--danger)}
 .row,.actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px}
 .row button,.actions button{width:auto}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin:12px 0}
 .stat{padding:12px;background:var(--field);border-radius:12px;overflow-wrap:anywhere}
-.stat small{display:block;color:var(--muted)}.stat b{display:block;font-size:1.05em}
+.stat small{display:block;color:var(--muted)}
+.stat b{display:block;font-size:1.05em}
 .record,.group{border:1px solid var(--line);border-radius:13px;padding:12px;margin-top:9px;overflow-wrap:anywhere}
 .group{padding:0;overflow:hidden}
 .group-head{display:flex;align-items:center;gap:8px;padding:8px;background:var(--field)}
 .group-button{display:flex;align-items:center;gap:10px;text-align:left;flex:1;margin:0}
-.group-button .group-name{flex:1}.group-pdf{width:auto;white-space:nowrap;margin:0;padding:8px}
-.group-details{padding:4px 10px 10px}.amount{font-weight:750}
-.amount.net-pos{color:var(--accent)}.amount.net-neg{color:var(--danger)}
-.hidden{display:none!important}
+.group-button .group-name{flex:1}
+.group-pdf{width:auto;white-space:nowrap;margin:0;padding:8px}
+.group-details{padding:4px 10px 10px}
+.amount{font-weight:750}
+.amount.net-pos{color:var(--accent)}
+.amount.net-neg{color:var(--danger)}
+.hidden,[hidden]{display:none!important}
 body.auth-pending main{visibility:hidden}
+.auth-error{margin:20px auto;width:min(700px,calc(100% - 28px));padding:14px;border:1px solid var(--danger);border-radius:12px;color:var(--text);background:var(--panel)}
 body[data-layout="compact"] main{padding:8px;gap:8px}
 body[data-layout="compact"] .card{padding:10px}
 body[data-layout="compact"] .record{padding:8px}
@@ -59,13 +67,9 @@ body[data-layout="compact"] .record{padding:8px}
 </style>
 </head>
 <body class="auth-pending">
-<header>
-<a href="index.html" id="backButton" aria-label="Back" title="Back">←</a>
-<strong>📘 Digital NoteBook · <span data-i18n="appTitle">कारोबार</span></strong>
-</header>
+<header><a href="index.html" id="backButton" aria-label="Back" title="Back">←</a><strong>📘 Digital NoteBook · <span data-i18n="appTitle">कारोबार</span></strong></header>
 <main>
 <div id="statusMessage" class="status" role="status" aria-live="polite"></div>
-
 <section class="card">
 <h1 data-i18n="pageTitle">कारोबार / पार्टी लेजर</h1>
 <p class="muted"><span data-i18n="intro">लिनुपर्ने र दिनुपर्ने</span> · 1 INR = 1.6 NPR · <span data-i18n="simpleInterest">साधारण ब्याज</span></p>
@@ -74,18 +78,12 @@ body[data-layout="compact"] .record{padding:8px}
 <div class="grid">
 <label><span data-i18n="party">पार्टी / समूहको नाम</span><input id="party" maxlength="120" required></label>
 <label><span data-i18n="date">मिति</span><input id="date" type="date" required></label>
-<label><span data-i18n="type">कारोबारको प्रकार</span>
-<select id="type">
-<option value="Receivable" data-i18n="receivable">लिनुपर्ने</option>
-<option value="Payable" data-i18n="payable">दिनुपर्ने</option>
-<option value="Expense" id="legacyExpenseOption" hidden>Expense (legacy)</option>
-</select>
-</label>
-<label><span data-i18n="period">महिना</span><input id="period" type="number" min="0" step="any" value="0"></label>
-<label><span data-i18n="dueDate">ब्याज/किस्ता भाका मिति (Auto)</span><input id="dueDate" type="date"></label>
-<label><span data-i18n="rate">ब्याज दर (% प्रति महिना)</span><input id="rate" type="number" min="0" step="any" value="0"></label>
-<label><span data-i18n="npr">रकम NPR</span><input id="npr" type="number" min="0" step="any" value="0"></label>
-<label><span data-i18n="inr">रकम INR</span><input id="inr" type="number" min="0" step="any" value="0"></label>
+<label><span data-i18n="type">कारोबारको प्रकार</span><select id="type"><option value="Receivable" data-i18n="receivable">लिनुपर्ने</option><option value="Payable" data-i18n="payable">दिनुपर्ने</option><option value="Expense" id="legacyExpenseOption" hidden>Expense (legacy)</option></select></label>
+<label><span data-i18n="period">महिना</span><input id="period" type="number" min="0" max="1200" step="any" value="0"></label>
+<label><span data-i18n="dueDate">ब्याज/किस्ता भाका मिति</span><input id="dueDate" type="date"></label>
+<label><span data-i18n="rate">ब्याज दर (% प्रति महिना)</span><input id="rate" type="number" min="0" max="1000" step="any" value="0"></label>
+<label><span data-i18n="npr">रकम NPR</span><input id="npr" type="number" min="0" step="any" value="0" required></label>
+<label><span data-i18n="inr">रकम INR</span><input id="inr" type="number" min="0" step="any" value="0" required></label>
 <label>कुल साँवा NPR<input id="totalPrincipal" readonly></label>
 <label>ब्याज NPR<input id="interestNpr" readonly></label>
 <label><span data-i18n="total">कुल जम्मा NPR</span><input id="total" readonly></label>
@@ -99,10 +97,9 @@ body[data-layout="compact"] .record{padding:8px}
 </div>
 </form>
 </section>
-
 <section class="card">
 <h2 data-i18n="groupTitle">Group Ledger / समूहगत हिसाब</h2>
-<p class="muted" data-i18n="groupHelp">एउटै पार्टी नामका कारोबार एउटै समूहमा देखिन्छन्। नाम थिचेर सबै विवरण खोल्नुहोस्।</p>
+<p class="muted" data-i18n="groupHelp">एउटै पार्टी नामका कारोबार एउटै समूहमा देखिन्छन्।</p>
 <input id="groupSearch" type="search" data-i18n-placeholder="searchGroup" placeholder="पार्टी वा कैफियत खोज्नुहोस्">
 <div class="stats">
 <div class="stat"><small data-i18n="totalReceivable">कुल लिनुपर्ने</small><b id="totalReceivable">NPR 0.00</b></div>
@@ -114,592 +111,359 @@ body[data-layout="compact"] .record{padding:8px}
 </div>
 <div id="groups"></div>
 </section>
-
 <section class="card">
 <h2 data-i18n="trashTitle">हालै हटाइएका कारोबार</h2>
 <p class="muted" data-i18n="trashHelp">३० दिनभित्र Restore गर्न सकिन्छ।</p>
 <div id="trashList"></div>
 </section>
 </main>
-
+<div id="fatalError" class="auth-error hidden" role="alert"></div>
 <div id="confirmOverlay" class="confirm-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
-<div class="confirm-box">
-<h2 id="confirmTitle" data-i18n="confirmTitle">पुष्टि गर्नुहोस्</h2>
-<p id="confirmMessage"></p>
-<div class="row">
-<button class="primary" id="confirmYes" type="button">पुष्टि गर्नुहोस्</button>
-<button id="confirmNo" type="button">रद्द</button>
+<div class="confirm-box"><h2 id="confirmTitle">पुष्टि गर्नुहोस्</h2><p id="confirmMessage"></p><div class="row"><button class="primary" id="confirmYes" type="button">पुष्टि गर्नुहोस्</button><button id="confirmNo" type="button">रद्द</button></div></div>
 </div>
-</div>
-</div>
-
 <script>
-"use strict";
+'use strict';
+(function(){
 const firebaseConfig={
- apiKey:"AIzaSyDDY_v7RHnkCTI6uyV4DNDjqoaIBGweg8c",
- authDomain:"digital-a2552.firebaseapp.com",
- databaseURL:"https://digital-a2552-default-rtdb.asia-southeast1.firebasedatabase.app",
- projectId:"digital-a2552",
- storageBucket:"digital-a2552.firebasestorage.app",
- messagingSenderId:"218135618179",
- appId:"1:218135618179:web:821b76920d3e5669ac31b6"
+apiKey:'AIzaSyDDY_v7RHnkCTI6uyV4DNDjqoaIBGweg8c',
+authDomain:'digital-a2552.firebaseapp.com',
+databaseURL:'https://digital-a2552-default-rtdb.asia-southeast1.firebasedatabase.app',
+projectId:'digital-a2552',
+storageBucket:'digital-a2552.firebasestorage.app',
+messagingSenderId:'218135618179',
+appId:'1:218135618179:web:821b76920d3e5669ac31b6'
 };
-if(!firebase.apps.length)firebase.initializeApp(firebaseConfig);
-const auth=firebase.auth(),db=firebase.database();
-const SETTINGS_KEY="digital_notebook_settings",DAY=86400000,RATE_INR=1.6,PATH="transactions";
+const SETTINGS_KEY='digital_notebook_settings',DAY=86400000,RATE_INR=1.6,PATH='transactions';
 const $=id=>document.getElementById(id);
+let auth,db,prefs={},currentUser=null,records={},trash={},profile={},expandedGroups=new Set(),dataRef=null,trashRef=null,dataHandler=null,trashHandler=null,profileRef=null,profileHandler=null,confirmResolver=null;
 
 const words={
 en:{
-appTitle:"Transactions",pageTitle:"Transaction / Party Ledger",intro:"Receivable and Payable",simpleInterest:"Simple interest",dueDate:"Interest / installment due date",
-date:"Date",party:"Party / Group name",type:"Transaction type",receivable:"Receivable",payable:"Payable",
-rate:"Interest rate (% per month)",period:"Months",npr:"Amount NPR",inr:"Amount INR",total:"Total NPR",note:"Notes / Details",
-save:"Save transaction",update:"Update transaction",cancel:"Cancel",import:"Import old local data",pdfAll:"Export PDF",
-groupTitle:"Group Ledger / Party Summary",groupHelp:"Transactions with the same party name are grouped together. Tap a name to see all records.",
-searchGroup:"Search party or notes",grandTotal:"Total NPR",groupCount:"Groups",recordCount:"Records",pdfOne:"Group PDF",
-totalReceivable:"Total Receivable",totalPayable:"Total Payable",totalExpense:"Legacy Expense records",netBalance:"Net Balance",
-trashTitle:"Recently deleted transactions",trashHelp:"Restore within 30 days.",
-noGroups:"No matching groups found.",noRecords:"No records found.",noTrash:"Trash is empty.",edit:"Edit",delete:"Move to Trash",restore:"Restore",expired:"Expired",
-name:"Name",email:"Email",address:"Address",mobile:"Mobile",reportDate:"Report date",
-reportFoot:"This report was created from the available Cloud Transaction records.",
-deleteConfirm:"Move this transaction to the shared Account Trash? It can be restored within 30 days.",
-restoreConflict:"A record with this ID already exists. Nothing was overwritten.",expiredError:"This record has expired or cannot be restored.",notFound:"Record not found. Refresh and try again.",
-importDone:"Import finished. Imported records: ",importNone:"No old local records found.",importCloud:"Cloud records already exist. Import stopped to prevent overwriting data.",
-importOnce:"Old-data import was already run on this account.",importError:"Import failed: ",pdfError:"PDF could not be created: ",pdfFail:"PDF support did not load. Check your internet connection.",
-authError:"Please sign in through index.html first.",loadError:"Cloud data could not be loaded: ",badInput:"Enter a party name and valid non-negative amounts.",pdfEmpty:"No records.",
-confirmImport:"Import old local transaction data? Existing cloud records will not be overwritten.",confirmRestore:"Restore this transaction from Trash?",
-confirmYes:"Confirm",confirmNo:"Cancel",missing:"Not provided",confirmTitle:"Please confirm",
-confirmSave:"Save this transaction?",confirmUpdate:"Save changes to this transaction?",saveError:"Could not save: ",restoreError:"Could not restore: ",
-restoreOk:"Transaction restored.",deleteError:"Could not move record to Trash: "
+appTitle:'Transactions',pageTitle:'Transaction / Party Ledger',intro:'Receivable and Payable',simpleInterest:'Simple interest',dueDate:'Interest / installment due date',date:'Date',party:'Party / Group name',type:'Transaction type',receivable:'Receivable',payable:'Payable',period:'Months',rate:'Interest rate (% per month)',npr:'Amount NPR',inr:'Amount INR',total:'Total NPR',note:'Notes / Details',save:'Save transaction',update:'Update transaction',cancel:'Cancel',import:'Import old local data',pdfAll:'Export PDF',groupTitle:'Group Ledger / Party Summary',groupHelp:'Transactions with the same party name are grouped together. Tap a name to see all records.',searchGroup:'Search party or notes',totalReceivable:'Total Receivable',totalPayable:'Total Payable',totalExpense:'Legacy Expense records',netBalance:'Net Balance',groupCount:'Groups',recordCount:'Records',pdfOne:'Group PDF',trashTitle:'Recently deleted transactions',trashHelp:'Restore within 30 days.',noGroups:'No matching groups found.',noTrash:'Trash is empty.',edit:'Edit',delete:'Move to Trash',restore:'Restore',expired:'Expired',name:'Name',email:'Email',address:'Address',mobile:'Mobile',reportDate:'Report date',reportFoot:'This report was created from the available Cloud Transaction records.',deleteConfirm:'Move this transaction to Trash? It can be restored within 30 days.',restoreConflict:'A record with this ID already exists. Nothing was overwritten.',expiredError:'This record has expired or cannot be restored.',notFound:'Record not found. Refresh and try again.',importDone:'Import finished. Imported records: ',importNone:'No old local records found.',importCloud:'Cloud records already exist. Import stopped to prevent overwriting data.',importOnce:'Old-data import was already run on this account.',importError:'Import failed: ',pdfError:'PDF could not be created: ',pdfFail:'PDF support did not load. Check your internet connection.',authError:'Please sign in through index.html first.',loadError:'Cloud data could not be loaded: ',badInput:'Enter a party name, valid date, and non-negative amounts.',pdfEmpty:'No records.',confirmImport:'Import old local transaction data? Existing cloud records will not be overwritten.',confirmRestore:'Restore this transaction from Trash?',confirmYes:'Confirm',confirmNo:'Cancel',missing:'Not provided',confirmTitle:'Please confirm',confirmSave:'Save this transaction?',confirmUpdate:'Save changes to this transaction?',saveError:'Could not save: ',restoreError:'Could not restore: ',restoreOk:'Transaction restored.',deleteError:'Could not move record to Trash: ',invalidDate:'Enter a valid date.'
 },
 ne:{
-appTitle:"कारोबार",pageTitle:"कारोबार / पार्टी लेजर",intro:"लिनुपर्ने र दिनुपर्ने",simpleInterest:"साधारण ब्याज",dueDate:"ब्याज/किस्ता भाका मिति",
-date:"मिति",party:"पार्टी / समूहको नाम",type:"कारोबारको प्रकार",receivable:"लिनुपर्ने",payable:"दिनुपर्ने",
-rate:"ब्याज दर (% प्रति महिना)",period:"महिना",npr:"रकम NPR",inr:"रकम INR",total:"कुल NPR",note:"कैफियत / विवरण",
-save:"कारोबार सेभ",update:"कारोबार अपडेट",cancel:"रद्द",import:"पुरानो स्थानीय डाटा Import",pdfAll:"PDF निकाल्नुहोस्",
-groupTitle:"Group Ledger / समूहगत हिसाब",groupHelp:"एउटै पार्टी नामका कारोबार एउटै समूहमा देखिन्छन्। नाम थिचेर सबै विवरण खोल्नुहोस्।",
-searchGroup:"पार्टीको नाम वा कैफियत खोज्नुहोस्",grandTotal:"कुल रकम NPR",groupCount:"समूह संख्या",recordCount:"रेकर्ड संख्या",
-totalReceivable:"कुल लिनुपर्ने",totalPayable:"कुल दिनुपर्ने",totalExpense:"पुराना Expense रेकर्ड",netBalance:"बाँकी हिसाब (Net)",
-pdfOne:"समूह PDF",trashTitle:"हालै हटाइएका कारोबार",trashHelp:"३० दिनभित्र Restore गर्न सकिन्छ.",
-noGroups:"मिल्ने समूह भेटिएन।",noRecords:"रेकर्ड भेटिएन।",noTrash:"Trash खाली छ।",edit:"सम्पादन",delete:"Trash मा सार्नुहोस्",restore:"Restore",expired:"म्याद सकियो",
-name:"नाम",email:"इमेल",address:"ठेगाना",mobile:"मोबाइल",reportDate:"रिपोर्ट मिति",
-reportFoot:"यो रिपोर्ट उपलब्ध Cloud Transaction रेकर्डका आधारमा तयार गरिएको हो।",
-deleteConfirm:"यो कारोबार साझा Account Trash मा सार्ने? ३० दिनभित्र Restore गर्न सकिन्छ।",
-restoreConflict:"यही ID को रेकर्ड पहिल्यै छ। कुनै डाटा overwrite गरिएको छैन।",expiredError:"यो रेकर्डको म्याद सकिएको छ वा Restore गर्न मिल्दैन।",notFound:"रेकर्ड भेटिएन। Refresh गरेर फेरि प्रयास गर्नुहोस्।",
-importDone:"Import पूरा भयो। आयात गरिएका रेकर्ड: ",importNone:"पुरानो स्थानीय रेकर्ड भेटिएन।",importCloud:"Cloud मा रेकर्ड छन्। डाटा नबिग्रियोस् भनेर Import रोकियो।",
-importOnce:"पुरानो डाटा Import पहिले नै गरिएको छ।",importError:"Import असफल: ",pdfError:"PDF तयार भएन: ",pdfFail:"PDF सुविधा लोड भएन। इन्टरनेट जडान जाँच्नुहोस्।",
-authError:"पहिले index.html बाट लगइन गर्नुहोस्।",loadError:"Cloud डाटा लोड हुन सकेन: ",badInput:"पार्टीको नाम र वैध शून्य वा सोभन्दा बढी रकम राख्नुहोस्।",pdfEmpty:"रेकर्ड छैन।",
-confirmImport:"पुरानो स्थानीय कारोबार Import गर्ने? Cloud का पुराना रेकर्ड overwrite गरिने छैनन्।",confirmRestore:"Trash बाट यो कारोबार Restore गर्ने?",
-confirmYes:"पुष्टि गर्नुहोस्",confirmNo:"रद्द",missing:"उल्लेख गरिएको छैन",confirmTitle:"पुष्टि गर्नुहोस्",
-confirmSave:"यो कारोबार सेभ गर्ने?",confirmUpdate:"कारोबारको परिवर्तन सेभ गर्ने?",saveError:"सेभ हुन सकेन: ",restoreError:"Restore हुन सकेन: ",
-restoreOk:"कारोबार Restore भयो।",deleteError:"Trash मा सार्न सकिएन: "
+appTitle:'कारोबार',pageTitle:'कारोबार / पार्टी लेजर',intro:'लिनुपर्ने र दिनुपर्ने',simpleInterest:'साधारण ब्याज',dueDate:'ब्याज/किस्ता भाका मिति',date:'मिति',party:'पार्टी / समूहको नाम',type:'कारोबारको प्रकार',receivable:'लिनुपर्ने',payable:'दिनुपर्ने',period:'महिना',rate:'ब्याज दर (% प्रति महिना)',npr:'रकम NPR',inr:'रकम INR',total:'कुल जम्मा NPR',note:'कैफियत / विवरण',save:'कारोबार सेभ',update:'कारोबार अपडेट',cancel:'रद्द',import:'पुरानो स्थानीय डाटा Import',pdfAll:'PDF निकाल्नुहोस्',groupTitle:'Group Ledger / समूहगत हिसाब',groupHelp:'एउटै पार्टी नामका कारोबार एउटै समूहमा देखिन्छन्। नाम थिचेर सबै विवरण खोल्नुहोस्।',searchGroup:'पार्टीको नाम वा कैफियत खोज्नुहोस्',totalReceivable:'कुल लिनुपर्ने',totalPayable:'कुल दिनुपर्ने',totalExpense:'पुराना Expense रेकर्ड',netBalance:'बाँकी हिसाब (Net)',groupCount:'समूह संख्या',recordCount:'रेकर्ड संख्या',pdfOne:'समूह PDF',trashTitle:'हालै हटाइएका कारोबार',trashHelp:'३० दिनभित्र Restore गर्न सकिन्छ।',noGroups:'मिल्ने समूह भेटिएन।',noTrash:'Trash खाली छ।',edit:'सम्पादन',delete:'Trash मा सार्नुहोस्',restore:'Restore',expired:'म्याद सकियो',name:'नाम',email:'इमेल',address:'ठेगाना',mobile:'मोबाइल',reportDate:'रिपोर्ट मिति',reportFoot:'यो रिपोर्ट उपलब्ध Cloud Transaction रेकर्डका आधारमा तयार गरिएको हो।',deleteConfirm:'यो कारोबार Trash मा सार्ने? ३० दिनभित्र Restore गर्न सकिन्छ।',restoreConflict:'यही ID को रेकर्ड पहिल्यै छ। कुनै डाटा overwrite गरिएको छैन।',expiredError:'यो रेकर्डको म्याद सकिएको छ वा Restore गर्न मिल्दैन।',notFound:'रेकर्ड भेटिएन। Refresh गरेर फेरि प्रयास गर्नुहोस्।',importDone:'Import पूरा भयो। आयात गरिएका रेकर्ड: ',importNone:'पुरानो स्थानीय रेकर्ड भेटिएन।',importCloud:'Cloud मा रेकर्ड छन्। डाटा नबिग्रियोस् भनेर Import रोकियो।',importOnce:'पुरानो डाटा Import पहिले नै गरिएको छ।',importError:'Import असफल: ',pdfError:'PDF तयार भएन: ',pdfFail:'PDF सुविधा लोड भएन। इन्टरनेट जडान जाँच्नुहोस्।',authError:'पहिले index.html बाट लगइन गर्नुहोस्।',loadError:'Cloud डाटा लोड हुन सकेन: ',badInput:'पार्टीको नाम, सही मिति र शून्य वा सोभन्दा बढी रकम राख्नुहोस्।',pdfEmpty:'रेकर्ड छैन।',confirmImport:'पुरानो स्थानीय कारोबार Import गर्ने? Cloud का पुराना रेकर्ड overwrite गरिने छैनन्।',confirmRestore:'Trash बाट यो कारोबार Restore गर्ने?',confirmYes:'पुष्टि गर्नुहोस्',confirmNo:'रद्द',missing:'उल्लेख गरिएको छैन',confirmTitle:'पुष्टि गर्नुहोस्',confirmSave:'यो कारोबार सेभ गर्ने?',confirmUpdate:'कारोबारको परिवर्तन सेभ गर्ने?',saveError:'सेभ हुन सकेन: ',restoreError:'Restore हुन सकेन: ',restoreOk:'कारोबार Restore भयो।',deleteError:'Trash मा सार्न सकिएन: ',invalidDate:'सही मिति राख्नुहोस्।'
 }};
 
-let prefs=loadPrefs(),currentUser=null,records={},trash={},expandedGroups=new Set(),dataRef=null,trashRef=null,dataHandler=null,trashHandler=null,confirmResolver=null;
+function loadPrefs(){try{const x=JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}');return x&&typeof x==='object'?x:{}}catch(e){return {}}}
+function t(k){return (words[prefs.lang==='en'?'en':'ne'][k]||words.en[k]||k)}
+function status(m,bad){$('statusMessage').textContent=m||'';$('statusMessage').classList.toggle('error',!!bad)}
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function num(v){if(v===''||v===null||typeof v==='undefined')return 0;const n=Number(v);return Number.isFinite(n)?n:0}
+function money(v){const n=num(v);return (n<0?'- ':'')+'NPR '+Math.abs(n).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function validKey(k){return typeof k==='string'&&k.length>0&&!/[.#$\/\[\]]/.test(k)}
+function norm(v){return String(v||'').trim().replace(/\s+/g,' ').toLocaleLowerCase()}
+function userRef(path){if(!currentUser)throw Error(t('authError'));return db.ref('users/'+currentUser.uid+(path?'/'+path:''))}
+function localDate(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function dateObj(s){if(!/^\d{4}-\d{2}-\d{2}$/.test(String(s||'')))return null;const a=s.split('-').map(Number),d=new Date(a[0],a[1]-1,a[2]);return d.getFullYear()===a[0]&&d.getMonth()===a[1]-1&&d.getDate()===a[2]?d:null}
+function dateDays(s){const d=dateObj(s);if(!d)return null;const n=new Date();n.setHours(0,0,0,0);return Math.round((d.getTime()-n.getTime())/DAY)}
+function dueCountdown(s){const days=dateDays(s);if(days===null||days>30)return '';if(days<0)return '<span class="muted"> · '+Math.abs(days)+' दिन भाका नाघ्यो</span>';return '<span class="amount '+(days===0?'net-neg':'net-pos')+'"> · '+days+' दिन बाँकी</span>'}
 
-function loadPrefs(){
- try{
-  const v=JSON.parse(localStorage.getItem(SETTINGS_KEY)||"{}");
-  return {...{lang:"ne",theme:"dark",font_size:"16",font_family:"Poppins",accentColor:"#10b981",layout:"comfortable"},...(v&&typeof v==="object"?v:{})};
- }catch(e){
-  return {lang:"ne",theme:"dark",font_size:"16",font_family:"Poppins",accentColor:"#10b981",layout:"comfortable"};
- }
+function calc(autodue){
+const principal=num($('npr').value)+num($('inr').value)*RATE_INR;
+const interest=$('type').value==='Expense'?0:principal*num($('rate').value)*num($('period').value)/100;
+$('totalPrincipal').value=principal.toFixed(2);
+$('interestNpr').value=interest.toFixed(2);
+$('total').value=(principal+interest).toFixed(2);
+if(autodue!==false){
+const d=dateObj($('date').value),months=num($('period').value);
+if(d&&months>0){
+const targetDay=d.getDate();
+d.setDate(1);
+d.setMonth(d.getMonth()+months);
+const last=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
+d.setDate(Math.min(targetDay,last));
+$('dueDate').value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}}
+return principal+interest
 }
-function t(k){return words[prefs.lang==="en"?"en":"ne"][k]||words.en[k]||k}
-function status(message,bad=false){$("statusMessage").textContent=message||"";$("statusMessage").classList.toggle("error",!!bad)}
-function esc(v){return String(v?=""].replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-function num(v){const n=Number(v);return Number.isFinite(n)?n:0}
-function money(v){
- const n=num(v),sign=n<0?"- ":"";
- return sign+"NPR "+Math.abs(n).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2});
-}
-function validKey(k){return typeof k==="string"&&k.length>0&&!/[.#$\[\]\/]/.test(k)}
-function normalizedName(v){return String(v||"").trim().replace(/\s+/g," ").toLocaleLowerCase()}
-function userRef(path=""){if(!currentUser)throw Error(t("authError"));return db.ref("users/"+currentUser.uid+(path?"/"+path:""))}
-function values(){
- return Object.entries(records||{})
-  .filter(([,r])=>r&&typeof r==="object"&&!Array.isArray(r))
-  .map(([id,r])=>({...r,id:typeof r.id==="string"&&r.id?r.id:id}));
-}
-function typeText(type){return type==="Receivable"?t("receivable"):type==="Payable"?t("payable"):type==="Expense"?"Expense (legacy)":String(type||"")}
-
-function localToday(){
- const d=new Date();
- return new Date(d.getFullYear(),d.getMonth(),d.getDate());
-}
-function dateFromYMD(value){
- if(!/^\d{4}-\d{2}-\d{2}$/.test(String(value||"")))return null;
- const [y,m,d]=value.split("-").map(Number);
- const result=new Date(y,m-1,d);
- return result.getFullYear()===y&&result.getMonth()===m-1&&result.getDate()===d?result:null;
-}
-function dueDays(date){
- const due=dateFromYMD(date);
- if(!due)return null;
- return Math.round((due.getTime()-localToday().getTime())/DAY);
-}
-function dueCountdown(date){
- const days=dueDays(date);
- if(days===null||days>30)return "";
- if(days<0)return `<span class="muted"> · ${Math.abs(days)} दिन भाका नाघ्यो</span>`;
- return `<span class="amount ${days===0?"net-neg":"net-pos"}"> · ${days} दिन बाँकी</span>`;
-}
-
-function updateDueDateAuto() {
-  const dateVal = $("date").value;
-  const monthsVal = parseInt($("period").value) || 0;
-  if (dateVal && monthsVal > 0) {
-    const d = dateFromYMD(dateVal);
-    if (d) {
-      d.setMonth(d.getMonth() + monthsVal);
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      $("dueDate").value = `${year}-${month}-${day}`;
-    }
-  }
-}
-
-function calculate(){
- const principal = num($("npr").value) + num($("inr").value) * RATE_INR;
- const interest = $("type").value === "Expense" ? 0 : principal * num($("rate").value) * num($("period").value) / 100;
- 
- $("totalPrincipal").value = principal.toFixed(2);
- $("interestNpr").value = interest.toFixed(2);
- $("total").value = (principal + interest).toFixed(2);
- 
- updateDueDateAuto();
- return principal + interest;
-}
-
-["npr","inr","rate","period","type","date"].forEach(id=>$(id).addEventListener("input",calculate));
-$("date").addEventListener("change",calculate);
-$("period").addEventListener("input",calculate);
-
-function localDateInputValue(){
- const d=new Date();
- return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
-}
-$("date").value=localDateInputValue();
-
-function askConfirm(message){
- $("confirmTitle").textContent=t("confirmTitle");
- $("confirmMessage").textContent=message;
- $("confirmYes").textContent=t("confirmYes");
- $("confirmNo").textContent=t("confirmNo");
- $("confirmOverlay").classList.remove("hidden");
- $("confirmYes").focus();
- return new Promise(resolve=>{confirmResolver=resolve});
-}
-function finishConfirm(v){
- $("confirmOverlay").classList.add("hidden");
- if(confirmResolver){const r=confirmResolver;confirmResolver=null;r(v)}
-}
-$("confirmYes").addEventListener("click",()=>finishConfirm(true));
-$("confirmNo").addEventListener("click",()=>finishConfirm(false));
-$("confirmOverlay").addEventListener("click",e=>{if(e.target===$("confirmOverlay"))finishConfirm(false)});
-document.addEventListener("keydown",e=>{if(!$("confirmOverlay").classList.contains("hidden")&&e.key==="Escape")finishConfirm(false)});
-
+function typeText(type){return type==='Receivable'?t('receivable'):type==='Payable'?t('payable'):type==='Expense'?'Expense (legacy)':String(type||'')}
+function values(){return Object.entries(records||{}).filter(([,r])=>r&&typeof r==='object'&&!Array.isArray(r)).map(([id,r])=>({...r,id:typeof r.id==='string'&&r.id?r.id:id}))}
 function grouped(list){
- const map=new Map();
- list.forEach(r=>{
-  const name=String(r.party||"").trim()||"(No party name)",key=normalizedName(name);
-  if(!map.has(key))map.set(key,{key,name,items:[],netTotal:0,receivable:0,payable:0,expense:0});
-  const g=map.get(key);
-  g.items.push(r);
-  const amt=num(r.total);
-  if(r.type==="Receivable"){g.receivable+=amt;g.netTotal+=amt}
-  else if(r.type==="Payable"){g.payable+=amt;g.netTotal-=amt}
-  else if(r.type==="Expense"){g.expense+=amt;g.netTotal-=amt}
- });
- return [...map.values()].sort((a,b)=>a.name.localeCompare(b.name));
+const map=new Map();
+list.forEach(r=>{
+const name=String(r.party||'').trim()||'(No party name)',key=norm(name);
+if(!map.has(key))map.set(key,{key,name,items:[],net:0});
+const g=map.get(key);g.items.push(r);
+const a=num(r.total);
+if(r.type==='Receivable')g.net+=a;else g.net-=a;
+});
+return [...map.values()].sort((a,b)=>a.name.localeCompare(b.name))
 }
 function recordCard(r){
- const signClass=r.type==="Receivable"?"net-pos":"net-neg";
- const signPrefix=r.type==="Receivable"?"+ ":"- ";
- const due=r.dueDate?`<p>${esc(t("dueDate"))}: ${esc(r.dueDate)}${dueCountdown(r.dueDate)}</p>`:"";
- return `<div class="record">
- <b>${esc(r.party||"—")}</b> · ${esc(r.date||")}
- <p>${esc(typeText(r.type))} · <span class="amount ${signClass}">${signPrefix}${money(r.total)}</span></p>
- <p class="muted">${esc(r.note||"")}</p>
- <p class="muted">${esc(t("rate"))}: ${num(r.rate)}% · ${esc(t("period"))}: ${num(r.period)}</p>
- ${due}
- <div class="actions">
- <button type="button" data-edit="${esc(r.id)}">${esc(t("edit"))}</button>
- <button type="button" class="danger" data-delete="${esc(r.id)}">${esc(t("delete"))}</button>
- </div></div>`;
+const cls=r.type==='Receivable'?'net-pos':'net-neg',sign=r.type==='Receivable'?'+ ':'- ';
+const due=r.dueDate?'<p>'+esc(t('dueDate'))+': '+esc(r.dueDate)+dueCountdown(r.dueDate)+'</p>':'';
+return '<article class="record"><b>'+esc(r.party||'—')+'</b> · '+esc(r.date||'—')+'<p>'+esc(typeText(r.type))+' · <span class="amount '+cls+'">'+sign+money(r.total)+'</span></p><p class="muted">'+esc(r.note||'')+'</p><p class="muted">'+esc(t('rate'))+': '+num(r.rate)+'% · '+esc(t('period'))+': '+num(r.period)+'</p>'+due+'<div class="actions"><button type="button" data-edit="'+esc(r.id)+'">'+esc(t('edit'))+'</button><button type="button" class="danger" data-delete="'+esc(r.id)+'">'+esc(t('delete'))+'</button></div></article>'
 }
 function render(){
- const all=values(),q=normalizedName($("groupSearch").value);
- const filtered=all.filter(r=>(normalizedName(r.party)+" "+normalizedName(r.note)).includes(q));
- const groups=grouped(filtered);
- let totRec=0,totPay=0,totExp=0;
- filtered.forEach(r=>{
-  const amt=num(r.total);
-  if(r.type==="Receivable")totRec+=amt;
-  else if(r.type==="Payable")totPay+=amt;
-  else if(r.type==="Expense")totExp+=amt;
- });
- const netBal=totRec-totPay-totExp;
- $("totalReceivable").textContent=money(totRec);
- $("totalPayable").textContent=money(totPay);
- $("totalExpense").textContent=money(totExp);
- $("grandTotal").textContent=money(netBal);
- $("grandTotal").className="amount "+(netBal>=0?"net-pos":"net-neg");
- $("groupCount").textContent=String(groups.length);
- $("recordCount").textContent=String(filtered.length);
- $("groups").innerHTML=groups.map(g=>{
-  const open=expandedGroups.has(g.key);
-  const sorted=g.items.slice().sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
-  const netClass=g.netTotal>=0?"net-pos":"net-neg";
-  return `<div class="group">
-   <div class="group-head">
-    <button class="group-button" type="button" data-group="${esc(g.key)}" aria-expanded="${open}">
-     <span>${open?"▾":"▸"}</span><span class="group-name"><b>${esc(g.name)}</b><br><small>${g.items.length} ${esc(t("recordCount"))}</small></span>
-     <span class="amount ${netClass}">${money(g.netTotal)}</span>
-    </button>
-    <button class="group-pdf primary" type="button" data-pdf-group="${esc(g.key)}">${esc(t("pdfOne"))}</button>
-   </div>
-   <div class="group-details ${open?"":"hidden"}">${sorted.map(recordCard).join("")}</div>
-  </div>`;
- }).join("")||`<p class="muted">${esc(t("noGroups"))}</p>`;
+const all=values(),q=norm($('groupSearch').value),filtered=all.filter(r=>(norm(r.party)+' '+norm(r.note)).includes(q)),groups=grouped(filtered);
+let rec=0,pay=0,exp=0;
+filtered.forEach(r=>{const a=num(r.total);if(r.type==='Receivable')rec+=a;else if(r.type==='Payable')pay+=a;else if(r.type==='Expense')exp+=a});
+const net=rec-pay-exp;
+$('totalReceivable').textContent=money(rec);
+$('totalPayable').textContent=money(pay);
+$('totalExpense').textContent=money(exp);
+$('grandTotal').textContent=money(net);
+$('grandTotal').className='amount '+(net>=0?'net-pos':'net-neg');
+$('groupCount').textContent=String(groups.length);
+$('recordCount').textContent=String(filtered.length);
+$('groups').innerHTML=groups.map(g=>{
+const open=expandedGroups.has(g.key),sorted=g.items.slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+return '<div class="group"><div class="group-head"><button class="group-button" type="button" data-group="'+esc(g.key)+'" aria-expanded="'+open+'"><span>'+(open?'▾':'▸')+'</span><span class="group-name"><b>'+esc(g.name)+'</b><br><small>'+g.items.length+' '+esc(t('recordCount'))+'</small></span><span class="amount '+(g.net>=0?'net-pos':'net-neg')+'">'+money(g.net)+'</span></button><button class="group-pdf primary" type="button" data-pdf-group="'+esc(g.key)+'">'+esc(t('pdfOne'))+'</button></div><div class="group-details '+(open?'':'hidden')+'">'+sorted.map(recordCard).join('')+'</div></div>'
+}).join('')||'<p class="muted">'+esc(t('noGroups'))+'</p>'
+}
+function trashRows(){
+const out=[];
+Object.entries(trash||{}).forEach(([cat,group])=>{
+if(!group||typeof group!=='object'||Array.isArray(group))return;
+Object.entries(group).forEach(([id,v])=>{if(v&&typeof v==='object'&&(v.data||v.originalPath))out.push({...v,id,category:v.category||cat})})
+});
+return out.filter(v=>v.category===PATH||v.originalPath==='users/'+(currentUser&&currentUser.uid)+'/'+PATH+'/'+v.id).sort((a,b)=>num(b.deletedAt)-num(a.deletedAt))
 }
 function renderTrash(){
- const rows=[];
- Object.entries(trash||{}).forEach(([cat,group])=>{
-  if(!group||typeof group!=="object"||Array.isArray(group))return;
-  Object.entries(group).forEach(([id,v])=>{
-   if(v&&typeof v==="object"&&(v.data||v.originalPath))rows.push({...v,id,category:v.category||cat});
-  });
- });
- rows.sort((a,b)=>num(b.deletedAt)-num(a.deletedAt));
- const list=rows.filter(v=>v.category===PATH||v.originalPath==="users/"+currentUser?.uid+"/"+PATH+"/"+v.id);
- $("trashList").innerHTML=list.map(v=>{
-  const expired=!!v.expiresAt&&num(v.expiresAt)<=Date.now();
-  return `<div class="record">
-   <b>${esc(v.data?.party||v.data?.title||t("pageTitle"))}</b>
-   <p>${esc(v.data?.date||"—")} · ${esc(typeText(v.data?.type))} · ${money(v.data?.total)}</p>
-   ${v.data?.dueDate?`<p>${esc(t("dueDate"))}: ${esc(v.data.dueDate)}</p>`:""}
-   <p class="muted">${esc(t("reportDate"))}: ${v.deletedAt?esc(new Date(v.deletedAt).toLocaleString()):"—"}</p>
-   <button type="button" data-restore="${esc(v.category+"/"+v.id)}" ${expired?"disabled":""}>${esc(expired?t("expired"):t("restore"))}</button>
-  </div>`;
- }).join("")||`<p class="muted">${esc(t("noTrash"))}</p>`;
+const list=trashRows();
+$('trashList').innerHTML=list.map(v=>{
+const expired=!!v.expiresAt&&num(v.expiresAt)<=Date.now();
+return '<article class="record"><b>'+esc(v.data&&(v.data.party||v.data.title)||t('pageTitle'))+'</b><p>'+esc(v.data&&v.data.date||'—')+' · '+esc(typeText(v.data&&v.data.type))+' · '+money(v.data&&v.data.total)+'</p>'+(v.data&&v.data.dueDate?'<p>'+esc(t('dueDate'))+': '+esc(v.data.dueDate)+'</p>':'')+'<p class="muted">'+esc(t('reportDate'))+': '+(v.deletedAt?esc(new Date(v.deletedAt).toLocaleString()):'—')+'</p><button type="button" data-restore="'+esc(v.category)+'/'+esc(v.id)+'" '+(expired?'disabled':'')+'>'+esc(expired?t('expired'):t('restore'))+'</button></article>'
+}).join('')||'<p class="muted">'+esc(t('noTrash'))+'</p>'
 }
+function askConfirm(message){
+$('confirmTitle').textContent=t('confirmTitle');
+$('confirmMessage').textContent=message;
+$('confirmYes').textContent=t('confirmYes');
+$('confirmNo').textContent=t('confirmNo');
+$('confirmOverlay').classList.remove('hidden');
+return new Promise(resolve=>{if(confirmResolver)confirmResolver(false);confirmResolver=resolve;$('confirmYes').focus()})
+}
+function finishConfirm(v){$('confirmOverlay').classList.add('hidden');if(confirmResolver){const r=confirmResolver;confirmResolver=null;r(v)}}
 async function saveRecord(id,data,isEdit){
- const result=await userRef(PATH+"/"+id).transaction(old=>{
-  if(isEdit&&old===null)return;
-  if(!isEdit&&old!==null)return;
-  return {...(old&&typeof old==="object"?old:{}),...data,id,createdAt:old?.createdAt||Date.now(),updatedAt:Date.now()};
- },undefined,false);
- if(!result.committed)throw Error(t("notFound"));
+const result=await userRef(PATH+'/'+id).transaction(old=>{
+if(isEdit&&old===null)return;
+if(!isEdit&&old!==null)return;
+return {...(old&&typeof old==='object'?old:{}),...data,id,createdAt:old&&old.createdAt||Date.now(),updatedAt:Date.now()}
+},undefined,false);
+if(!result.committed)throw Error(isEdit?t('notFound'):'This record ID already exists.')
 }
 function resetForm(){
- $("transactionForm").reset();
- $("recordId").value="";
- $("legacyExpenseOption").hidden=true;
- $("type").value="Receivable";
- $("date").value=localDateInputValue();
- $("dueDate").value="";
- $("rate").value="0";
- $("period").value="0";
- $("npr").value="0";
- $("inr").value="0";
- $("saveButton").textContent=t("save");
- calculate();
+$('transactionForm').reset();
+$('recordId').value='';
+$('legacyExpenseOption').hidden=true;
+$('type').value='Receivable';
+$('date').value=localDate();
+$('dueDate').value='';
+$('rate').value='0';
+$('period').value='0';
+$('npr').value='0';
+$('inr').value='0';
+$('saveButton').textContent=t('save');
+calc(false)
 }
-$("cancelButton").addEventListener("click",()=>{resetForm();status("")});
-
-$("transactionForm").addEventListener("submit",async e=>{
- e.preventDefault();
- if(!currentUser){status(t("authError"),true);return}
- const party=$("party").value.trim();
- const rate=Number($("rate").value),period=Number($("period").value);
- const npr=Number($("npr").value),inr=Number($("inr").value);
- const type=$("type").value,isEdit=!!$("recordId").value;
- const dueDate=$("dueDate").value||"";
-
- if(!party||(!["Receivable","Payable"].includes(type)&&!(isEdit&&type==="Expense"))||
-    ![rate,period,npr,inr].every(v=>Number.isFinite(v)&&v>=0)){
-  status(t("badInput"),true);return;
- }
- if(dueDate&&!dateFromYMD(dueDate)){
-  status("भाका मिति सही छैन।",true);return;
- }
- const id=$("recordId").value||userRef(PATH).push().key;
- const data={
-  date:$("date").value,
-  party,type,rate,period,npr,inr,
-  totalPrincipal:num($("totalPrincipal").value),
-  interestNpr:num($("interestNpr").value),
-  total:calculate(),
-  note:$("note").value.trim(),
-  dueDate
- };
- if(!await askConfirm(t(isEdit?"confirmUpdate":"confirmSave")))return;
- $("saveButton").disabled=true;status("");
- try{
-  await saveRecord(id,data,isEdit);
-  resetForm();
-  status(t("save"));
- }catch(err){
-  status(t("saveError")+err.message,true);
- }finally{
-  $("saveButton").disabled=false;
-  applyPreferences();
- }
-});
-
+async function submitForm(e){
+e.preventDefault();
+if(!currentUser){status(t('authError'),true);return}
+const party=$('party').value.trim(),rate=Number($('rate').value),period=Number($('period').value),npr=Number($('npr').value),inr=Number($('inr').value),type=$('type').value,isEdit=!!$('recordId').value,dueDate=$('dueDate').value||'',date=$('date').value;
+if(!party||!dateObj(date)||!['Receivable','Payable'].includes(type)&&!(isEdit&&type==='Expense')||![rate,period,npr,inr].every(v=>Number.isFinite(v)&&v>=0)||rate>1000||period>1200){status(t('badInput'),true);return}
+if(dueDate&&!dateObj(dueDate)){status(t('invalidDate'),true);return}
+const id=$('recordId').value||userRef(PATH).push().key;
+if(!validKey(id)){status(t('badInput'),true);return}
+const total=calc(false),data={date,party,type,rate,period,npr,inr,totalPrincipal:num($('totalPrincipal').value),interestNpr:num($('interestNpr').value),total,note:$('note').value.trim(),dueDate};
+if(!await askConfirm(t(isEdit?'confirmUpdate':'confirmSave')))return;
+$('saveButton').disabled=true;status('');
+try{await saveRecord(id,data,isEdit);resetForm();status(t('save'))}
+catch(err){status(t('saveError')+(err.message||err),true)}
+finally{$('saveButton').disabled=false}
+}
 async function moveToTrash(id){
- const item=records[id];
- if(!item){status(t("notFound"),true);return}
- const now=Date.now();
- const entry={
-  id,category:PATH,recordType:PATH,
-  originalPath:"users/"+currentUser.uid+"/"+PATH+"/"+id,
-  data:{...item,id},deletedAt:now,expiresAt:now+30*DAY,schemaVersion:1
- };
- try{
-  const updates={};
-  updates[PATH+"/"+id]=null;
-  updates["trash/"+PATH+"/"+id]=entry;
-  await userRef().update(updates);
-  status(t("delete"));
- }catch(err){status(t("deleteError")+err.message,true)}
+const item=records[id];
+if(!item||!currentUser){status(t('notFound'),true);return}
+const now=Date.now(),entry={id,category:PATH,recordType:PATH,originalPath:'users/'+currentUser.uid+'/'+PATH+'/'+id,data:{...item,id},deletedAt:now,expiresAt:now+30*DAY,schemaVersion:1};
+try{const updates={};updates[PATH+'/'+id]=null;updates['trash/'+PATH+'/'+id]=entry;await userRef().update(updates);status(t('delete'))}
+catch(err){status(t('deleteError')+(err.message||err),true)}
 }
-async function handleRecordAction(e){
- const edit=e.target.closest("[data-edit]");
- const del=e.target.closest("[data-delete]");
- if(edit){
-  const id=edit.dataset.edit,r=records[id];
-  if(!r){status(t("notFound"),true);return}
-  $("recordId").value=id;
-  if(r.type==="Expense"){
-   $("legacyExpenseOption").hidden=false;
-   $("legacyExpenseOption").textContent=t("totalExpense");
-  }else{
-   $("legacyExpenseOption").hidden=true;
-  }
-  ["date","party","type","rate","period","npr","inr","note","dueDate"].forEach(k=>{
-   $(k).value=r[k]??"";
-  });
-  calculate();
-  $("saveButton").textContent=t("update");
-  window.scrollTo({top:0,behavior:"smooth"});
-  return;
- }
- if(del&&await askConfirm(t("deleteConfirm")))await moveToTrash(del.dataset.delete);
+async function recordClick(e){
+const edit=e.target.closest('[data-edit]'),del=e.target.closest('[data-delete]');
+if(edit){
+const id=edit.dataset.edit,r=records[id];
+if(!r){status(t('notFound'),true);return}
+$('recordId').value=id;
+$('legacyExpenseOption').hidden=r.type!=='Expense';
+['date','party','type','rate','period','npr','inr','note','dueDate'].forEach(k=>$(k).value=r[k]??'');
+calc(false);
+$('saveButton').textContent=t('update');
+window.scrollTo({top:0,behavior:'smooth'});
+return
 }
-$("groups").addEventListener("click",async e=>{
- const pdf=e.target.closest("[data-pdf-group]");
- if(pdf){await exportOneGroup(pdf.dataset.pdfGroup);return}
- const group=e.target.closest("[data-group]");
- if(group){
-  const key=group.dataset.group;
-  expandedGroups.has(key)?expandedGroups.delete(key):expandedGroups.add(key);
-  render();return;
- }
- await handleRecordAction(e);
-});
-$("groupSearch").addEventListener("input",render);
-
-$("trashList").addEventListener("click",async e=>{
- const b=e.target.closest("[data-restore]");
- if(!b)return;
- const [cat,id]=b.dataset.restore.split("/");
- const item=trash?.[cat]?.[id];
- if(!item||!item.data||(item.expiresAt&&num(item.expiresAt)<=Date.now())){
-  status(t("expiredError"),true);return;
- }
- if(item.originalPath!=="users/"+currentUser.uid+"/"+cat+"/"+id){
-  status(t("restoreError")+t("notFound"),true);return;
- }
- if(!await askConfirm(t("confirmRestore")))return;
- try{
-  const dest="users/"+currentUser.uid+"/"+cat+"/"+id;
-  const result=await db.ref(dest).transaction(old=>old===null?{...item.data,id}:undefined,undefined,false);
-  if(!result.committed){status(t("restoreConflict"),true);return}
-  await userRef("trash/"+cat+"/"+id).remove();
-  status(t("restoreOk"));
- }catch(err){status(t("restoreError")+err.message,true)}
-});
-
-function firstLocalValue(keys){
- for(const key of keys){const v=localStorage.getItem(key);if(v&&v.trim())return v.trim()}
- return "";
+if(del&&await askConfirm(t('deleteConfirm')))await moveToTrash(del.dataset.delete)
 }
-function profileObject(){
- for(const key of ["digital_notebook_profile","user_profile","userProfile","profile","digital_notebook_user"]){
-  try{
-   const v=JSON.parse(localStorage.getItem(key)||"null");
-   if(v&&typeof v==="object"&&!Array.isArray(v))return v;
-  }catch(e){}
- }
- return {};
+async function restoreTrash(e){
+const b=e.target.closest('[data-restore]');
+if(!b)return;
+const parts=b.dataset.restore.split('/');
+if(parts.length!==2)return;
+const [cat,id]=parts,item=trash&&trash[cat]&&trash[cat][id];
+if(!item||!item.data||item.expiresAt&&num(item.expiresAt)<=Date.now()){status(t('expiredError'),true);return}
+if(item.originalPath!=='users/'+currentUser.uid+'/'+cat+'/'+id){status(t('restoreError')+t('notFound'),true);return}
+if(!await askConfirm(t('confirmRestore')))return;
+try{
+const result=await db.ref('users/'+currentUser.uid+'/'+cat+'/'+id).transaction(old=>old===null?{...item.data,id}:undefined,undefined,false);
+if(!result.committed){status(t('restoreConflict'),true);return}
+await userRef('trash/'+cat+'/'+id).remove();
+status(t('restoreOk'))
+}catch(err){status(t('restoreError')+(err.message||err),true)}
 }
-function profileForPdf(){
- const u=auth.currentUser,p=profileObject();
- return {
-  name:firstLocalValue(["profile_name","user_profile_name","fullName","userName"])||p.name||p.fullName||p.full_name||p.username||"",
-  email:firstLocalValue(["profile_email","user_profile_email"])||p.email||u?.email||"",
-  address:firstLocalValue(["profile_address","user_profile_address"])||p.address||p.location||"",
-  mobile:firstLocalValue(["profile_mobile","user_profile_mobile","user_mobile"])||p.mobile||p.phone||p.phoneNumber||""
- };
+function firstLocal(keys){for(const k of keys){try{const v=localStorage.getItem(k);if(v&&v.trim())return v.trim()}catch(e){}}return ''}
+function localProfile(){
+for(const k of ['digital_notebook_profile','user_profile','userProfile','profile','digital_notebook_user']){
+try{const v=JSON.parse(localStorage.getItem(k)||'null');if(v&&typeof v==='object'&&!Array.isArray(v))return v}catch(e){}
 }
-function englishType(type){
- return type==="Receivable"?"Receivable":type==="Payable"?"Payable":type==="Expense"?"Expense":String(type||"");
+return {}
 }
-async function exportPdf(recordsList,subtitle="",filenamePrefix="Digital-Notebook-Transactions"){
- if(!window.html2pdf){status(t("pdfFail"),true);return}
- const profile=profileForPdf(),reportDate=new Date().toLocaleDateString("en-GB");
- let totRec=0,totPay=0,totExp=0;
- recordsList.forEach(r=>{
-  const amt=num(r.total);
-  if(r.type==="Receivable")totRec+=amt;
-  else if(r.type==="Payable")totPay+=amt;
-  else if(r.type==="Expense")totExp+=amt;
- });
- const netBal=totRec-totPay-totExp;
- const rows=recordsList.map((r,i)=>`<tr>
- <td class="center">${i+1}</td>
- <td>${esc(r.date||"")}</td>
- <td>${esc(r.dueDate||"—")}</td>
- <td><b>${esc(r.party||"")}</b></td>
- <td>${esc(englishType(r.type))}</td>
- <td class="right">${num(r.npr).toFixed(2)}</td>
- <td class="right">${num(r.inr).toFixed(2)}</td>
- <td class="right">${num(r.total).toFixed(2)}</td>
- <td>${esc(r.note||"")}</td></tr>`).join("");
-
- const report=document.createElement("div");
- report.style.cssText="background:#fff;color:#111827;padding:12px;font-family:Arial,sans-serif;font-size:11px;width:100%;box-sizing:border-box";
- report.innerHTML=`
- <div style="background:#0f172a;color:#fff;padding:12px;border-radius:6px;border-bottom:4px solid #10b981;margin-bottom:10px">
-  <table style="width:100%;border:none;margin:0;background:transparent"><tr style="background:transparent">
-   <td style="border:none;padding:0;color:#fff"><h1 style="font-size:16px;margin:0 0 4px;color:#fff">Digital NoteBook</h1><div style="font-size:11px;color:#34d399;font-weight:bold">TRANSACTION REPORT${subtitle?" — "+esc(subtitle):""}</div></td>
-   <td style="border:none;padding:0;text-align:right;color:#cbd5e1;font-size:9px;vertical-align:top"><b>Report Date:</b> ${esc(reportDate)}</td>
-  </tr></table>
-  <div style="border-top:1px solid #334155;margin:8px 0"></div>
-  <table style="width:100%;border:none;margin:0;background:transparent;font-size:9.5px">
-   <tr style="background:transparent"><td style="border:none;padding:2px;color:#e2e8f0"><b>Name:</b> ${esc(profile.name||"Not provided")}</td><td style="border:none;padding:2px;color:#e2e8f0;text-align:right"><b>Email:</b> ${esc(profile.email||"Not provided")}</td></tr>
-   <tr style="background:transparent"><td style="border:none;padding:2px;color:#e2e8f0"><b>Address:</b> ${esc(profile.address||"Not provided")}</td><td style="border:none;padding:2px;color:#e2e8f0;text-align:right"><b>Mobile:</b> ${esc(profile.mobile||"Not provided")}</td></tr>
-  </table>
- </div>
- <div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:6px;padding:8px 12px;margin-bottom:10px;font-size:10.5px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
-  <div><b>Receivable:</b> <span style="color:#047857">${money(totRec)}</span></div>
-  <div><b>Payable:</b> <span style="color:#b91c1c">${money(totPay)}</span></div>
-  <div><b>Expense:</b> <span style="color:#b91c1c">${money(totExp)}</span></div>
-  <div><b>Net Balance:</b> <span style="color:${netBal>=0?'#047857':'#b91c1c'};font-weight:bold">${money(netBal)}</span></div>
- </div>
- <h2 style="font-size:12px;margin:8px 0 4px;color:#0f172a">Detailed Transaction Records</h2>
- <table class="pdf-table"><thead><tr>
- <th style="width:28px;text-align:center">No.</th><th style="width:58px">Date</th><th style="width:65px">Due date</th><th>Party Name</th><th style="width:58px">Type</th><th style="width:50px;text-align:right">NPR</th><th style="width:45px;text-align:right">INR</th><th style="width:65px;text-align:right">Total NPR</th><th style="width:auto">Note</th>
- </tr></thead><tbody>${rows||'<tr><td colspan="9" class="center">No records.</td></tr>'}</tbody>
- <tfoot><tr><td colspan="7" class="right"><b>Net Balance</b></td><td class="right" style="color:${netBal>=0?'#047857':'#b91c1c'}"><b>${money(netBal)}</b></td><td></td></tr></tfoot></table>
- <div style="margin-top:10px;border-top:1px solid #cbd5e1;padding-top:4px;font-size:8px;color:#64748b;text-align:center">${esc(t("reportFoot"))}</div>
- <style>.pdf-table{border-collapse:collapse;width:100%;margin-bottom:6px;table-layout:fixed}.pdf-table th,.pdf-table td{border:1px solid #94a3b8;padding:4px 5px;vertical-align:middle;overflow-wrap:anywhere;font-size:9px}.pdf-table th{background:#f1f5f9;color:#0f172a;font-weight:bold;text-align:left}.pdf-table tfoot td{background:#f8fafc;font-weight:bold}.right{text-align:right}.center{text-align:center}tr{page-break-inside:avoid}</style>`;
- try{
-  await html2pdf().set({margin:6,filename:filenamePrefix+"-"+new Date().toISOString().slice(0,10)+".pdf",image:{type:"jpeg",quality:.98},html2canvas:{scale:2,useCORS:true,scrollY:0},jsPDF:{unit:"mm",format:"a4",orientation:"landscape"}}).from(report).save();
- }catch(e){status(t("pdfError")+e.message,true)}
+function pdfProfile(){
+const p=profile||{},lp=localProfile();
+return {
+name:p.name||p.fullName||p.full_name||p.username||lp.name||lp.fullName||lp.full_name||firstLocal(['profile_name','user_profile_name','fullName','userName']),
+email:p.email||lp.email||firstLocal(['profile_email','user_profile_email'])||(currentUser&&currentUser.email)||'',
+address:p.address||p.location||lp.address||firstLocal(['profile_address','user_profile_address']),
+mobile:p.mobile||p.phone||p.phoneNumber||lp.mobile||lp.phone||firstLocal(['profile_mobile','user_profile_mobile','user_mobile'])
 }
-async function exportOneGroup(key){
- const g=grouped(values()).find(x=>x.key===key);
- if(!g||!g.items.length){status(t("pdfEmpty"),true);return}
- const list=g.items.slice().sort((a,b)=>String(a.date||"").localeCompare(String(b.date||"")));
- await exportPdf(list,g.name,"Group-Ledger-"+g.name.replace(/[^a-zA-Z0-9]/g,"_"));
 }
-$("pdfAllButton").addEventListener("click",async()=>{
- const all=values().sort((a,b)=>String(a.date||"").localeCompare(String(b.date||"")));
- if(!all.length){status(t("pdfEmpty"),true);return}
- await exportPdf(all,"","Full-Transaction-Ledger");
-});
-
-async function importOldData(){
- if(!currentUser){status(t("authError"),true);return}
- if(!await askConfirm(t("confirmImport")))return;
- const marker=userRef("migration/local-transactions-v2");
- try{
-  if((await marker.once("value")).exists()){status(t("importOnce"),true);return}
-  const first=await userRef(PATH).once("value");
-  if(first.exists()&&Object.keys(first.val()||{}).length){status(t("importCloud"),true);return}
-  let old=[];
-  for(const key of ["digital_notebook_transactions","transactions","transaction_list"]){
-   try{
-    const raw=JSON.parse(localStorage.getItem(key)||"null");
-    if(Array.isArray(raw))old.push(...raw);
-    else if(raw&&typeof raw==="object")old.push(...Object.values(raw));
-   }catch(e){}
-  }
-  if(!old.length){status(t("importNone"),true);return}
-  const second=await userRef(PATH).once("value");
-  if(second.exists()&&Object.keys(second.val()||{}).length){status(t("importCloud"),true);return}
-  let count=0;
-  for(const r of old){
-   if(!r||typeof r!=="object"||Array.isArray(r))continue;
-   const id=typeof r.id==="string"&&validKey(r.id)?r.id:userRef(PATH).push().key;
-   const migrated={...r,id,party:String(r.party||r.name||r.person||"").trim(),createdAt:r.createdAt||Date.now(),updatedAt:Date.now(),migratedFromLocal:true};
-   if(!migrated.dueDate)migrated.dueDate="";
-   const result=await userRef(PATH+"/"+id).transaction(current=>current===null?migrated:undefined,undefined,false);
-   if(result.committed)count++;
-  }
-  await marker.set({completedAt:Date.now(),imported:count});
-  status(t("importDone")+count);
- }catch(err){status(t("importError")+err.message,true)}
+async function exportPdf(list,subtitle,prefix){
+if(!list.length){status(t('pdfEmpty'),true);return}
+if(typeof window.html2pdf!=='function'){status(t('pdfFail'),true);return}
+if(currentUser){try{const profileSnap=await userRef('profile').once('value');profile=profileSnap.val()||profile||{}}catch(e){console.warn('Could not refresh PDF profile details:',e)}}
+const p=pdfProfile(),reportDate=new Date().toLocaleDateString(prefs.lang==='ne'?'ne-NP':'en-GB');
+let rec=0,pay=0,exp=0;
+list.forEach(r=>{const a=num(r.total);if(r.type==='Receivable')rec+=a;else if(r.type==='Payable')pay+=a;else if(r.type==='Expense')exp+=a});
+const net=rec-pay-exp;
+const rows=list.map((r,i)=>'<tr><td class="c">'+(i+1)+'</td><td>'+esc(r.date||'')+'</td><td>'+esc(r.dueDate||'—')+'</td><td><b>'+esc(r.party||'')+'</b></td><td>'+esc(typeText(r.type))+'</td><td class="r">'+num(r.npr).toFixed(2)+'</td><td class="r">'+num(r.inr).toFixed(2)+'</td><td class="r">'+num(r.total).toFixed(2)+'</td><td>'+esc(r.note||'')+'</td></tr>').join('');
+const report=document.createElement('div');
+report.style.cssText='background:#fff;color:#111827;padding:12px;font-family:Arial,sans-serif;font-size:11px;width:100%;box-sizing:border-box';
+report.innerHTML='<div style="background:#0f172a;color:#fff;padding:12px;border-radius:6px;border-bottom:4px solid #10b981;margin-bottom:10px"><table style="width:100%;border:0;margin:0;background:transparent"><tr><td style="border:0;padding:0;color:#fff"><h1 style="font-size:16px;margin:0 0 4px;color:#fff">Digital NoteBook</h1><div style="font-size:11px;color:#34d399;font-weight:bold">TRANSACTION REPORT'+(subtitle?' — '+esc(subtitle):'')+'</div></td><td style="border:0;padding:0;text-align:right;color:#cbd5e1;font-size:9px;vertical-align:top"><b>Report Date:</b> '+esc(reportDate)+'</td></tr></table><div style="border-top:1px solid #334155;margin:8px 0"></div><table style="width:100%;border:0;margin:0;background:transparent;font-size:9.5px"><tr><td style="border:0;padding:2px;color:#e2e8f0"><b>Name:</b> '+esc(p.name||t('missing'))+'</td><td style="border:0;padding:2px;color:#e2e8f0;text-align:right"><b>Email:</b> '+esc(p.email||t('missing'))+'</td></tr><tr><td style="border:0;padding:2px;color:#e2e8f0"><b>Address:</b> '+esc(p.address||t('missing'))+'</td><td style="border:0;padding:2px;color:#e2e8f0;text-align:right"><b>Mobile:</b> '+esc(p.mobile||t('missing'))+'</td></tr></table></div><div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:6px;padding:8px 12px;margin-bottom:10px;font-size:10.5px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px"><div><b>Receivable:</b> <span style="color:#047857">'+money(rec)+'</span></div><div><b>Payable:</b> <span style="color:#b91c1c">'+money(pay)+'</span></div><div><b>Expense:</b> <span style="color:#b91c1c">'+money(exp)+'</span></div><div><b>Net Balance:</b> <span style="color:'+(net>=0?'#047857':'#b91c1c')+';font-weight:bold">'+money(net)+'</span></div></div><h2 style="font-size:12px;margin:8px 0 4px;color:#0f172a">Detailed Transaction Records</h2><table class="pdf-table"><thead><tr><th style="width:28px;text-align:center">No.</th><th style="width:58px">Date</th><th style="width:65px">Due date</th><th>Party Name</th><th style="width:58px">Type</th><th style="width:50px;text-align:right">NPR</th><th style="width:45px;text-align:right">INR</th><th style="width:65px;text-align:right">Total NPR</th><th>Note</th></tr></thead><tbody>'+(rows||'<tr><td colspan="9" class="c">No records.</td></tr>')+'</tbody><tfoot><tr><td colspan="7" class="r"><b>Net Balance</b></td><td class="r"><b>'+money(net)+'</b></td><td></td></tr></tfoot></table><div style="margin-top:10px;border-top:1px solid #cbd5e1;padding-top:4px;font-size:8px;color:#64748b;text-align:center">'+esc(t('reportFoot'))+'</div><style>.pdf-table{border-collapse:collapse;width:100%;margin-bottom:6px;table-layout:fixed}.pdf-table th,.pdf-table td{border:1px solid #94a3b8;padding:4px 5px;vertical-align:middle;overflow-wrap:anywhere;font-size:9px}.pdf-table th{background:#f1f5f9;color:#0f172a;font-weight:bold;text-align:left}.pdf-table tfoot td{background:#f8fafc;font-weight:bold}.r{text-align:right}.c{text-align:center}tr{page-break-inside:avoid}</style>';
+try{
+await window.html2pdf().set({margin:6,filename:(prefix||'Digital-Notebook-Transactions')+'-'+localDate()+'.pdf',image:{type:'jpeg',quality:.98},html2canvas:{scale:2,useCORS:true,scrollY:0},jsPDF:{unit:'mm',format:'a4',orientation:'landscape'}}).from(report).save();
+}catch(err){status(t('pdfError')+(err.message||err),true)}
 }
-$("importButton").addEventListener("click",importOldData);
-
+async function exportGroup(key){
+const g=grouped(values()).find(x=>x.key===key);
+if(!g||!g.items.length){status(t('pdfEmpty'),true);return}
+await exportPdf(g.items.slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||''))),g.name,'Group-Ledger-'+g.name.replace(/[^a-zA-Z0-9_-]/g,'_'))
+}
+async function importOld(){
+if(!currentUser){status(t('authError'),true);return}
+if(!await askConfirm(t('confirmImport')))return;
+const marker=userRef('migration/local-transactions-v2');
+try{
+if((await marker.once('value')).exists()){status(t('importOnce'),true);return}
+const first=await userRef(PATH).once('value');
+if(first.exists()&&Object.keys(first.val()||{}).length){status(t('importCloud'),true);return}
+let old=[];
+for(const k of ['digital_notebook_transactions','transactions','transaction_list']){
+try{const raw=JSON.parse(localStorage.getItem(k)||'null');if(Array.isArray(raw))old.push(...raw);else if(raw&&typeof raw==='object')old.push(...Object.values(raw))}catch(e){}
+}
+if(!old.length){status(t('importNone'),true);return}
+if((await userRef(PATH).once('value')).exists()){status(t('importCloud'),true);return}
+let count=0;
+for(const r of old){
+if(!r||typeof r!=='object'||Array.isArray(r))continue;
+const id=typeof r.id==='string'&&validKey(r.id)?r.id:userRef(PATH).push().key;
+const type=['Receivable','Payable','Expense'].includes(r.type)?r.type:'Receivable';
+const principal=num(r.npr)+num(r.inr)*RATE_INR,interest=type==='Expense'?0:principal*num(r.rate)/100*num(r.period);
+const migrated={...r,id,party:String(r.party||r.name||r.person||'').trim(),type,npr:num(r.npr),inr:num(r.inr),rate:num(r.rate),period:num(r.period),totalPrincipal:num(r.totalPrincipal)||principal,interestNpr:num(r.interestNpr)||interest,total:num(r.total)||principal+interest,createdAt:r.createdAt||Date.now(),updatedAt:Date.now(),migratedFromLocal:true};
+const result=await userRef(PATH+'/'+id).transaction(cur=>cur===null?migrated:undefined,undefined,false);
+if(result.committed)count++
+}
+await marker.set({completedAt:Date.now(),imported:count});
+status(t('importDone')+count)
+}catch(err){status(t('importError')+(err.message||err),true)}
+}
 function applyPreferences(){
- prefs=loadPrefs();
- const d=document.documentElement;
- d.lang=prefs.lang==="ne"?"ne":"en";
- d.classList.toggle("light",prefs.theme==="light");
- d.style.setProperty("--accent",prefs.accentColor||"#10b981");
- d.style.setProperty("--font-size",(Number(prefs.font_size)||16)+"px");
- d.style.setProperty("--font-family",JSON.stringify(prefs.font_family||"Poppins")+",Arial,sans-serif");
- d.dataset.layout=prefs.layout==="compact"?"compact":"comfortable";
- document.body.dataset.layout=d.dataset.layout;
- document.querySelectorAll("[data-i18n]").forEach(el=>{
-  const k=el.dataset.i18n;
-  if(el.matches("option"))el.textContent=t(k);
-  else el.textContent=t(k);
- });
- document.querySelectorAll("[data-i18n-placeholder]").forEach(el=>el.placeholder=t(el.dataset.i18nPlaceholder));
- $("saveButton").textContent=$("recordId").value?t("update"):t("save");
- document.title="Digital NoteBook · "+t("appTitle");
- render();renderTrash();
+prefs=loadPrefs();
+const d=document.documentElement;
+d.lang=prefs.lang==='ne'?'ne':'en';
+d.classList.toggle('light',prefs.theme==='light');
+d.style.setProperty('--accent',/^#[0-9a-f]{6}$/i.test(prefs.accentColor||'')?prefs.accentColor:'#10b981');
+d.style.setProperty('--font-size',Math.max(12,Math.min(24,Number(prefs.font_size)||16))+'px');
+const allowed=['Poppins','Arial','Roboto','Georgia','system-ui'];
+const font=allowed.indexOf(prefs.font_family)>=0?prefs.font_family:'Poppins';
+d.style.setProperty('--font-family',font+',Arial,sans-serif');
+d.dataset.layout=prefs.layout==='compact'?'compact':'comfortable';
+document.body.dataset.layout=d.dataset.layout;
+document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.dataset.i18n;el.textContent=t(k)});
+document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>el.placeholder=t(el.dataset.i18nPlaceholder));
+$('saveButton').textContent=$('recordId').value?t('update'):t('save');
+document.title='Digital NoteBook · '+t('appTitle');
+render();renderTrash()
 }
-window.addEventListener("storage",e=>{if(e.key===SETTINGS_KEY)applyPreferences()});
-window.addEventListener("focus",applyPreferences);
-window.addEventListener("pageshow",applyPreferences);
-
-function attachListeners(){
- if(dataRef&&dataHandler)dataRef.off("value",dataHandler);
- if(trashRef&&trashHandler)trashRef.off("value",trashHandler);
- dataRef=userRef(PATH);trashRef=userRef("trash");
- dataHandler=snap=>{
-  const raw=snap.val()||{};
-  records=raw&&typeof raw==="object"&&!Array.isArray(raw)?raw:{};
-  render();document.body.classList.remove("auth-pending");
- };
- trashHandler=snap=>{trash=snap.val()||{};renderTrash()};
- dataRef.on("value",dataHandler,error=>{
-  status(t("loadError")+error.message,true);
-  document.body.classList.remove("auth-pending");
- });
- trashRef.on("value",trashHandler,error=>status(t("loadError")+error.message,true));
+function detach(){
+if(dataRef&&dataHandler)dataRef.off('value',dataHandler);
+if(trashRef&&trashHandler)trashRef.off('value',trashHandler);
+if(profileRef&&profileHandler)profileRef.off('value',profileHandler);
+dataRef=trashRef=profileRef=null;
+dataHandler=trashHandler=profileHandler=null;
+records={};trash={};profile={}
 }
+function attach(){
+detach();
+dataRef=userRef(PATH);trashRef=userRef('trash');profileRef=userRef('profile');
+dataHandler=s=>{
+if(!currentUser||auth.currentUser?.uid!==currentUser.uid)return;
+const v=s.val();records=v&&typeof v==='object'&&!Array.isArray(v)?v:{};
+render();document.body.classList.remove('auth-pending')
+};
+trashHandler=s=>{
+if(!currentUser||auth.currentUser?.uid!==currentUser.uid)return;
+const v=s.val();trash=v&&typeof v==='object'&&!Array.isArray(v)?v:{};
+renderTrash()
+};
+profileHandler=s=>{if(!currentUser||auth.currentUser?.uid!==currentUser.uid)return;profile=s.val()||{}};
+dataRef.on('value',dataHandler,e=>{status(t('loadError')+(e.message||e),true);document.body.classList.remove('auth-pending')});
+trashRef.on('value',trashHandler,e=>status(t('loadError')+(e.message||e),true));
+profileRef.on('value',profileHandler,e=>console.warn('Profile load failed',e))
+}
+function init(){
+try{
+if(!window.firebase||!firebase.apps)throw Error('Firebase SDK could not load. Check internet connection and reload.');
+if(!firebase.apps.length)firebase.initializeApp(firebaseConfig);
+auth=firebase.auth();db=firebase.database();
+$('date').value=localDate();$('dueDate').value='';calc(false);applyPreferences();
+$('transactionForm').addEventListener('submit',submitForm);
+$('cancelButton').addEventListener('click',()=>{resetForm();status('')});
+['npr','inr','rate','type'].forEach(id=>$(id).addEventListener('input',()=>calc(false)));
+$('date').addEventListener('change',()=>calc(true));
+$('period').addEventListener('input',()=>calc(true));
+$('groups').addEventListener('click',async e=>{
+const pdf=e.target.closest('[data-pdf-group]');
+if(pdf){await exportGroup(pdf.dataset.pdfGroup);return}
+const group=e.target.closest('[data-group]');
+if(group){const key=group.dataset.group;expandedGroups.has(key)?expandedGroups.delete(key):expandedGroups.add(key);render();return}
+await recordClick(e)
+});
+$('groupSearch').addEventListener('input',render);
+$('trashList').addEventListener('click',restoreTrash);
+$('confirmYes').addEventListener('click',()=>finishConfirm(true));
+$('confirmNo').addEventListener('click',()=>finishConfirm(false));
+$('confirmOverlay').addEventListener('click',e=>{if(e.target===$('confirmOverlay'))finishConfirm(false)});
+document.addEventListener('keydown',e=>{if(!$('confirmOverlay').classList.contains('hidden')&&e.key==='Escape')finishConfirm(false)});
+$('pdfAllButton').addEventListener('click',()=>exportPdf(values().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||''))),'','Full-Transaction-Ledger'));
+$('importButton').addEventListener('click',importOld);
+$('backButton').addEventListener('click',e=>{try{if(document.referrer&&new URL(document.referrer).origin===location.origin&&history.length>1){e.preventDefault();history.back()}}catch(err){}});
+window.addEventListener('storage',e=>{if(e.key===SETTINGS_KEY)applyPreferences()});
+window.addEventListener('focus',applyPreferences);
+window.addEventListener('pageshow',applyPreferences);
 auth.onAuthStateChanged(user=>{
- if(!user){currentUser=null;location.replace("index.html");return}
- currentUser=user;attachListeners();applyPreferences();
-});
-$("backButton").addEventListener("click",e=>{
- if(document.referrer){
-  try{
-   const u=new URL(document.referrer);
-   if(u.origin===location.origin){e.preventDefault();history.back()}
-  }catch(err){}
- }
-});
-applyPreferences();calculate();
+if(!user){detach();currentUser=null;location.replace('index.html');return}
+if(currentUser&&currentUser.uid===user.uid)return;
+detach();currentUser=user;attach();applyPreferences()
+})
+}catch(err){
+console.error('Transaction page initialization failed:',err);
+document.body.classList.remove('auth-pending');
+$('fatalError').classList.remove('hidden');
+$('fatalError').textContent='Transaction page could not start: '+(err.message||err)+'. Reload after checking internet/Firebase configuration.'
+}
+}
+init();
+})();
 </script>
 </body>
 </html>
