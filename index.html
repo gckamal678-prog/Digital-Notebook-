@@ -77,7 +77,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 }
 button:disabled { opacity: .6; cursor: not-allowed; }
 
-#login-overlay, #mpin-overlay {
+#login-overlay, #mpin-overlay, #reset-mpin-modal {
   position: fixed;
   inset: 0;
   display: flex;
@@ -88,7 +88,8 @@ button:disabled { opacity: .6; cursor: not-allowed; }
 }
 #login-overlay { z-index: 1000; }
 #mpin-overlay { z-index: 1100; }
-#mpin-overlay.hidden { display: none !important; }
+#reset-mpin-modal { z-index: 1200; background: rgba(8, 13, 28, 0.85); backdrop-filter: blur(4px); }
+#mpin-overlay.hidden, #reset-mpin-modal.hidden { display: none !important; }
 
 .login-card {
   width: 100%;
@@ -337,6 +338,22 @@ body[data-layout="compact"] .metric-grid, body[data-layout="compact"] .quick-gri
     <button class="btn btn-primary" type="submit">Unlock</button>
     <button class="btn" id="door-reset-mpin" type="button">Forgot MPIN? Reset MPIN</button>
   </form>
+</div>
+
+<!-- नयाँ MPIN Reset Modal (Prompt हटाएर यहाँ राखिएको छ) -->
+<div id="reset-mpin-modal" class="hidden">
+  <div class="login-card">
+    <div style="text-align:center">
+      <h2 style="color:var(--accent); margin-bottom: 5px;">Reset MPIN</h2>
+      <p id="reset-step-desc" class="muted" style="font-size: .9em;">खाताको Password राख्नुहोस्:</p>
+    </div>
+    <input id="reset-modal-input" type="password" class="form-control" placeholder="Password राख्नुहोस्..." style="margin-top: 10px;">
+    <p id="reset-modal-error" style="color:#fb7185;font-size:.85em; margin-top: 5px;"></p>
+    <div style="display: flex; gap: 8px; margin-top: 12px;">
+      <button id="reset-modal-cancel" class="btn" type="button" style="flex:1;">Cancel</button>
+      <button id="reset-modal-next" class="btn btn-primary" type="button" style="flex:1;">Next</button>
+    </div>
+  </div>
 </div>
 
 <div id="sidebar-backdrop" class="hidden"></div>
@@ -920,7 +937,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (backdrop) backdrop.classList.toggle("hidden", !open);
   }
 
-  // MPIN नभए पनि Dashboard नखोल्ने सुरक्षा जाँच
   function evaluateSecurityAccess(user) {
     const loginOverlay = $("login-overlay");
     const mpinOverlay = $("mpin-overlay");
@@ -992,7 +1008,6 @@ document.addEventListener("DOMContentLoaded", () => {
     renderDashboard();
   }
 
-  // सही MPIN भए मात्र Dashboard खुल्ने
   const mpinForm = $("mpin-form");
   if (mpinForm) {
     mpinForm.addEventListener("submit", event => {
@@ -1024,10 +1039,21 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Forgot MPIN: Firebase password प्रमाणित गरेपछि मात्र नयाँ MPIN राख्ने
+  // Modern UI custom modal for Forgot MPIN (replaces browser prompt())
   const resetMpinBtn = $("door-reset-mpin");
+  const resetMpinModal = $("reset-mpin-modal");
+  const resetModalInput = $("reset-modal-input");
+  const resetModalError = $("reset-modal-error");
+  const resetStepDesc = $("reset-step-desc");
+  const resetModalCancel = $("reset-modal-cancel");
+  const resetModalNext = $("reset-modal-next");
+
+  let resetState = 0; // 0: password, 1: new mpin, 2: confirm mpin
+  let tempPassword = "";
+  let tempNewMpin = "";
+
   if (resetMpinBtn) {
-    resetMpinBtn.addEventListener("click", async () => {
+    resetMpinBtn.addEventListener("click", () => {
       const currentUser = auth?.currentUser;
       const errorEl = $("door-mpin-error");
 
@@ -1038,78 +1064,95 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      const password = prompt(
-        "MPIN Reset गर्न आफ्नो Digital NoteBook खाताको Password राख्नुहोस्:"
-      );
+      resetState = 0;
+      tempPassword = "";
+      tempNewMpin = "";
+      if (resetModalInput) {
+        resetModalInput.value = "";
+        resetModalInput.type = "password";
+        resetModalInput.placeholder = "Password राख्नुहोस्...";
+      }
+      if (resetStepDesc) resetStepDesc.textContent = "MPIN Reset गर्न आफ्नो Digital NoteBook खाताको Password राख्नुहोस्:";
+      if (resetModalError) resetModalError.textContent = "";
+      if (resetMpinModal) resetMpinModal.classList.remove("hidden");
+      setTimeout(() => resetModalInput?.focus(), 50);
+    });
+  }
 
-      if (password === null) return;
+  if (resetModalCancel) {
+    resetModalCancel.addEventListener("click", () => {
+      if (resetMpinModal) resetMpinModal.classList.add("hidden");
+    });
+  }
 
-      if (!password) {
-        if (errorEl) errorEl.textContent = "Password राख्नुहोस्।";
+  if (resetModalNext) {
+    resetModalNext.addEventListener("click", async () => {
+      const currentUser = auth?.currentUser;
+      const val = resetModalInput?.value.trim() || "";
+
+      if (!val) {
+        if (resetModalError) resetModalError.textContent = "कृपया खाली ठाउँ भर्नुहोस्।";
         return;
       }
 
-      resetMpinBtn.disabled = true;
-      if (errorEl) errorEl.textContent = "खाता प्रमाणित हुँदैछ…";
+      if (resetState === 0) {
+        // Step 0: Password verification
+        tempPassword = val;
+        resetModalNext.disabled = true;
+        if (resetModalError) resetModalError.textContent = "खाता प्रमाणित हुँदैछ…";
 
-      try {
-        const credential = firebase.auth.EmailAuthProvider.credential(
-          currentUser.email,
-          password
-        );
+        try {
+          const credential = firebase.auth.EmailAuthProvider.credential(currentUser.email, tempPassword);
+          await currentUser.reauthenticateWithCredential(credential);
 
-        await currentUser.reauthenticateWithCredential(credential);
-
-        const newMpin = prompt("नयाँ ४ अङ्कको MPIN राख्नुहोस्:");
-
-        if (newMpin === null) {
-          if (errorEl) errorEl.textContent = "";
+          resetState = 1;
+          if (resetModalInput) {
+            resetModalInput.value = "";
+            resetModalInput.type = "password";
+            resetModalInput.placeholder = "नयाँ ४ अङ्कको MPIN राख्नुहोस्...";
+          }
+          if (resetStepDesc) resetStepDesc.textContent = "नयाँ ४ अङ्कको MPIN राख्नुहोस्:";
+          if (resetModalError) resetModalError.textContent = "";
+        } catch (error) {
+          const messages = {
+            "auth/wrong-password": "Password गलत छ। कृपया सही Password राख्नुहोस्।",
+            "auth/invalid-credential": "Password गलत छ। कृपया सही Password राख्नुहोस्.",
+            "auth/too-many-requests": "धेरै प्रयास भए। केही समयपछि फेरि प्रयास गर्नुहोस्।"
+          };
+          if (resetModalError) resetModalError.textContent = messages[error.code] || "खाता प्रमाणित भएन। Password जाँच गर्नुहोस्।";
+        } finally {
+          resetModalNext.disabled = false;
+        }
+      } else if (resetState === 1) {
+        // Step 1: New MPIN
+        if (!/^\d{4}$/.test(val)) {
+          if (resetModalError) resetModalError.textContent = "MPIN ठ्याक्कै ४ अङ्कको हुनुपर्छ।";
+          return;
+        }
+        tempNewMpin = val;
+        resetState = 2;
+        if (resetModalInput) {
+          resetModalInput.value = "";
+          resetModalInput.type = "password";
+          resetModalInput.placeholder = "नयाँ MPIN फेरि राखेर पुष्टि गर्नुहोस्...";
+        }
+        if (resetStepDesc) resetStepDesc.textContent = "नयाँ MPIN फेरि राखेर पुष्टि गर्नुहोस्:";
+        if (resetModalError) resetModalError.textContent = "";
+      } else if (resetState === 2) {
+        // Step 2: Confirm New MPIN
+        if (val !== tempNewMpin) {
+          if (resetModalError) resetModalError.textContent = "दुवै MPIN मिलेनन्। फेरि प्रयास गर्नुहोस्।";
           return;
         }
 
-        if (!/^\d{4}$/.test(newMpin)) {
-          if (errorEl) errorEl.textContent = "MPIN ठ्याक्कै ४ अङ्कको हुनुपर्छ।";
-          return;
-        }
-
-        const confirmMpin = prompt("नयाँ MPIN फेरि राखेर पुष्टि गर्नुहोस्:");
-
-        if (confirmMpin === null) {
-          if (errorEl) errorEl.textContent = "";
-          return;
-        }
-
-        if (newMpin !== confirmMpin) {
-          if (errorEl) errorEl.textContent = "दुवै MPIN मिलेनन्। फेरि प्रयास गर्नुहोस्।";
-          return;
-        }
-
-        // नयाँ MPIN सफलतापूर्वक सेट भएपछि मात्र Dashboard खोल्ने
-        localStorage.setItem("app_mpin", newMpin);
+        localStorage.setItem("app_mpin", tempNewMpin);
         mpinUnlockedForPage = true;
-
         if ($("door-mpin")) $("door-mpin").value = "";
-        if (errorEl) errorEl.textContent = "";
+        if (resetMpinModal) resetMpinModal.classList.add("hidden");
 
         if (evaluateSecurityAccess(currentUser)) {
           startDashboard(currentUser);
         }
-      } catch (error) {
-        console.error("MPIN reset failed:", error);
-
-        const messages = {
-          "auth/wrong-password": "Password गलत छ। कृपया सही Password राख्नुहोस्।",
-          "auth/invalid-credential": "Password गलत छ। कृपया सही Password राख्नुहोस्।",
-          "auth/too-many-requests": "धेरै प्रयास भए। केही समयपछि फेरि प्रयास गर्नुहोस्।",
-          "auth/network-request-failed": "Internet जाँच गरेर फेरि प्रयास गर्नुहोस्।"
-        };
-
-        if (errorEl) {
-          errorEl.textContent =
-            messages[error.code] || "खाता प्रमाणित भएन। Password जाँच गरेर फेरि प्रयास गर्नुहोस्।";
-        }
-      } finally {
-        resetMpinBtn.disabled = false;
       }
     });
   }
