@@ -77,19 +77,18 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 }
 button:disabled { opacity: .6; cursor: not-allowed; }
 
-#login-overlay, #mpin-overlay, #logout-confirm-modal, #forgot-mpin-modal {
+#login-overlay, #mpin-overlay {
   position: fixed;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(4px);
+  background: var(--bg);
 }
-#login-overlay { z-index: 1000; background: var(--bg); }
-#mpin-overlay { z-index: 1100; background: var(--bg); }
-#mpin-overlay.hidden, #logout-confirm-modal.hidden, #forgot-mpin-modal.hidden { display: none !important; }
+#login-overlay { z-index: 1000; }
+#mpin-overlay { z-index: 1100; }
+#mpin-overlay.hidden { display: none !important; }
 
 .login-card {
   width: 100%;
@@ -206,6 +205,7 @@ h2 { margin-bottom: 10px; font-size: 1.12em; }
   color: var(--text);
   background: var(--field);
 }
+textarea.form-control { min-height: 94px; resize: vertical; }
 .btn {
   display: inline-flex;
   align-items: center;
@@ -221,6 +221,7 @@ h2 { margin-bottom: 10px; font-size: 1.12em; }
 }
 .btn-primary { color: #03271d; background: var(--accent); border-color: var(--accent); }
 .btn-danger { color: #fff; background: #be123c; border-color: #be123c; }
+.btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 11px; }
 
 .banner { overflow: hidden; padding: 0; background: #0b1530; }
 .banner a, .banner video { display: block; width: 100%; }
@@ -282,19 +283,6 @@ footer { padding: 8px; text-align: center; color: var(--muted); font-size: .8em;
 #sidebar input { margin: 5px 0 10px; }
 #sidebar label { display: block; color: var(--muted); font-size: .83em; }
 
-.badge-count {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: #be123c;
-  color: #fff;
-  font-size: 0.7em;
-  font-weight: 700;
-  padding: 2px 7px;
-  border-radius: 10px;
-  vertical-align: middle;
-}
-
 body[data-layout="compact"] main { padding: 10px; gap: 10px; }
 body[data-layout="compact"] .card { padding: 12px; }
 body[data-layout="compact"] .quick-card { min-height: 82px; padding: 11px; }
@@ -345,37 +333,10 @@ body[data-layout="compact"] .metric-grid, body[data-layout="compact"] .quick-gri
       <p class="muted">Enter your 4-digit MPIN to open Digital NoteBook.</p>
     </div>
     <input id="door-mpin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="off" required placeholder="Enter 4-digit MPIN">
-    <p id="door-mpin-error" role="alert" style="color:#fb7185;font-size:.85em;margin-top:6px;"></p>
+    <p id="door-mpin-error" role="alert" style="color:#fb7185;font-size:.85em"></p>
     <button class="btn btn-primary" type="submit">Unlock</button>
-    <button class="btn" id="door-forgot-mpin" type="button" style="margin-top:8px;background:transparent;border:none;color:var(--accent);text-decoration:underline;">Forgot MPIN?</button>
     <button class="btn" id="door-logout" type="button">Log out</button>
   </form>
-</div>
-
-<!-- Forgot MPIN Modal -->
-<div id="forgot-mpin-modal" class="hidden">
-  <div class="login-card">
-    <h2 style="color:var(--accent)">Reset MPIN</h2>
-    <p class="muted" style="font-size:0.85em;">Enter your account email to clear/reset your device MPIN.</p>
-    <input id="forgot-mpin-email" type="email" class="form-control" placeholder="Registered Email" style="margin-bottom:10px;">
-    <p id="forgot-mpin-msg" style="font-size:0.8em;color:#fb7185;margin-bottom:8px;"></p>
-    <div style="display:flex;gap:8px;">
-      <button id="submit-forgot-mpin" class="btn btn-primary" type="button" style="flex:1;">Reset</button>
-      <button id="cancel-forgot-mpin" class="btn" type="button" style="flex:1;">Cancel</button>
-    </div>
-  </div>
-</div>
-
-<!-- Logout Confirmation Modal -->
-<div id="logout-confirm-modal" class="hidden">
-  <div class="login-card" style="text-align:center;max-width:320px;">
-    <h3 style="margin-bottom:8px;">Logout</h3>
-    <p style="color:var(--muted);font-size:0.9em;margin-bottom:16px;">के तपाईं बाहिरिन चाहनुहुन्छ?</p>
-    <div style="display:flex;gap:10px;">
-      <button id="confirm-logout-yes" class="btn btn-danger" style="flex:1;">Yes</button>
-      <button id="confirm-logout-no" class="btn" style="flex:1;">Cancel</button>
-    </div>
-  </div>
 </div>
 
 <div id="sidebar-backdrop" class="hidden"></div>
@@ -452,20 +413,19 @@ body[data-layout="compact"] .metric-grid, body[data-layout="compact"] .quick-gri
       </article>
     </section>
 
-    <!-- Reminder section removed -->
-
     <section class="card" id="due-alert-card">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;cursor:pointer;" id="due-bell-header">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
         <div>
           <h2 style="margin-bottom:2px">Due-date alerts</h2>
           <p class="muted" style="font-size:.8em;margin-bottom:0">Transaction interest / installment due dates</p>
         </div>
-        <div style="display:flex;align-items:center;gap:6px;">
-          <span id="due-badge" class="badge-count hidden">0</span>
-          <span style="font-size:1.4em" aria-hidden="true">🔔</span>
-        </div>
+        <button id="due-bell-toggle" class="icon-button" type="button" aria-label="Toggle due dates" style="position:relative; background:transparent; border:0; cursor:pointer; font-size:1.4em;">
+          🔔<span id="due-badge-count" style="position:absolute; top:-4px; right:-4px; background:#be123c; color:#fff; font-size:0.5em; padding:2px 5px; border-radius:50%; font-weight:bold; display:none;">0</span>
+        </button>
       </div>
-      <div id="due-alerts" class="activity-list hidden" style="margin-top:12px;"><p class="muted">Loading due dates…</p></div>
+      <div id="due-alerts-container" class="hidden" style="margin-top:12px;">
+        <div id="due-alerts" class="activity-list"><p class="muted">Loading due dates…</p></div>
+      </div>
     </section>
 
     <section id="custom-banner-ad" class="card banner" aria-label="Digital NoteBook banner">
@@ -501,11 +461,13 @@ body[data-layout="compact"] .metric-grid, body[data-layout="compact"] .quick-gri
         </div>
       </article>
       <article class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px;">
           <h2 style="margin-bottom:0;">Recent Activity</h2>
-          <button id="toggle-recent-btn" class="btn" style="min-height:30px;padding:4px 10px;font-size:0.8em;">Show</button>
+          <button id="toggle-recent-btn" class="btn" type="button" style="font-size:0.75em;padding:4px 8px;min-height:28px;">Show</button>
         </div>
-        <div id="recent-activity" class="activity-list hidden"><p class="muted">Loading records…</p></div>
+        <div id="recent-activity-container" class="hidden">
+          <div id="recent-activity" class="activity-list"><p class="muted">Loading records…</p></div>
+        </div>
       </article>
     </section>
     <footer>Digital NoteBook</footer>
@@ -773,7 +735,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderDueAlerts(records) {
     const root = $("due-alerts");
-    const badge = $("due-badge");
+    const badge = $("due-badge-count");
     if (!root) return;
     root.replaceChildren();
 
@@ -794,14 +756,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (badge) {
       if (dueRecords.length > 0) {
         badge.textContent = dueRecords.length;
-        badge.classList.remove("hidden");
+        badge.style.display = "inline-block";
       } else {
-        badge.classList.add("hidden");
+        badge.style.display = "none";
       }
     }
 
-    const sliced = dueRecords.slice(0, 8);
-    if (!sliced.length) {
+    const limitedRecords = dueRecords.slice(0, 8);
+    if (!limitedRecords.length) {
       const p = document.createElement("p");
       p.className = "muted";
       p.textContent = "No due dates recorded. Add a due date to a transaction to see alerts here.";
@@ -809,7 +771,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    for (const record of sliced) {
+    for (const record of limitedRecords) {
       const row = document.createElement("div");
       row.className = "activity-row";
       const left = document.createElement("div");
@@ -836,30 +798,22 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Due-date bell Toggle logic
-  const dueBellHeader = $("due-bell-header");
-  if (dueBellHeader) {
-    dueBellHeader.addEventListener("click", () => {
-      const alertsList = $("due-alerts");
-      if (alertsList) {
-        alertsList.classList.toggle("hidden");
-      }
+  // Due-date bell Toggle functionality (Hidden by default on app open)
+  const dueBellToggle = $("due-bell-toggle");
+  const dueAlertsContainer = $("due-alerts-container");
+  if (dueBellToggle && dueAlertsContainer) {
+    dueBellToggle.addEventListener("click", () => {
+      dueAlertsContainer.classList.toggle("hidden");
     });
   }
 
-  // Recent Activity Show/Hide toggle logic (Initially hidden)
+  // Recent Activity Show/Hide functionality (Hidden by default on app open)
   const toggleRecentBtn = $("toggle-recent-btn");
-  const recentActivityContainer = $("recent-activity");
+  const recentActivityContainer = $("recent-activity-container");
   if (toggleRecentBtn && recentActivityContainer) {
     toggleRecentBtn.addEventListener("click", () => {
-      const isHidden = recentActivityContainer.classList.contains("hidden");
-      if (isHidden) {
-        recentActivityContainer.classList.remove("hidden");
-        toggleRecentBtn.textContent = "Hide";
-      } else {
-        recentActivityContainer.classList.add("hidden");
-        toggleRecentBtn.textContent = "Show";
-      }
+      const isHidden = recentActivityContainer.classList.toggle("hidden");
+      toggleRecentBtn.textContent = isHidden ? "Show" : "Hide";
     });
   }
 
@@ -1033,10 +987,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const errorEl = $("door-mpin-error");
 
       if (!savedMpin) {
-        mpinUnlockedForPage = true;
-        if (evaluateSecurityAccess(auth?.currentUser)) {
-          startDashboard(auth?.currentUser);
-        }
+        if (errorEl) errorEl.textContent = "MPIN is not set. Open Account & Recovery to set it.";
         return;
       }
 
@@ -1055,68 +1006,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Forgot MPIN implementation via LocalStore / Email confirmation
-  const forgotMpinBtn = $("door-forgot-mpin");
-  const forgotMpinModal = $("forgot-mpin-modal");
-  const cancelForgotMpin = $("cancel-forgot-mpin");
-  const submitForgotMpin = $("submit-forgot-mpin");
-
-  if (forgotMpinBtn && forgotMpinModal) {
-    forgotMpinBtn.addEventListener("click", () => {
-      forgotMpinModal.classList.remove("hidden");
-    });
-  }
-  if (cancelForgotMpin && forgotMpinModal) {
-    cancelForgotMpin.addEventListener("click", () => {
-      forgotMpinModal.classList.add("hidden");
-    });
-  }
-  if (submitForgotMpin) {
-    submitForgotMpin.addEventListener("click", () => {
-      const emailInput = $("forgot-mpin-email")?.value.trim() || "";
-      const msgEl = $("forgot-mpin-msg");
-      const currentEmail = auth?.currentUser?.email || "";
-
-      if (!emailInput || emailInput !== currentEmail) {
-        if (msgEl) msgEl.textContent = "सहि इमेल ठेगाना प्रविष्ट गर्नुहोस्।";
-        return;
-      }
-
-      localStorage.removeItem("app_mpin");
-      alert("MPIN सफलतापूर्वक रिसेट/हटााइएको छ। अब तपाईं सिधै एप खोल्न सक्नुहुन्छ।");
-      forgotMpinModal.classList.add("hidden");
-      mpinUnlockedForPage = true;
-      if (evaluateSecurityAccess(auth?.currentUser)) {
-        startDashboard(auth?.currentUser);
-      }
-    });
-  }
-
+  // Logout confirmation from MPIN lock screen
   const doorLogout = $("door-logout");
   if (doorLogout) {
-    doorLogout.addEventListener("click", () => {
-      showLogoutConfirmation();
-    });
-  }
-
-  // Logout confirmation modal handlers
-  const logoutConfirmModal = $("logout-confirm-modal");
-  const confirmLogoutYes = $("confirm-logout-yes");
-  const confirmLogoutNo = $("confirm-logout-no");
-
-  function showLogoutConfirmation() {
-    if (logoutConfirmModal) logoutConfirmModal.classList.remove("hidden");
-  }
-
-  if (confirmLogoutNo && logoutConfirmModal) {
-    confirmLogoutNo.addEventListener("click", () => {
-      logoutConfirmModal.classList.add("hidden");
-    });
-  }
-
-  if (confirmLogoutYes) {
-    confirmLogoutYes.addEventListener("click", async () => {
-      if (logoutConfirmModal) logoutConfirmModal.classList.add("hidden");
+    doorLogout.addEventListener("click", async () => {
+      if (!confirm("के तपाईं बाहिरिन चाहनुहुन्छ?")) return;
       mpinUnlockedForPage = false;
       stopListeners();
       dashboardStartedUid = null;
@@ -1189,7 +1083,7 @@ document.addEventListener("DOMContentLoaded", () => {
     authSwitch.addEventListener("click", () => {
       mode = mode === "login" ? "signup" : "login";
       setText("auth-subtitle", mode === "login" ? "Login to your account" : "Create your account");
-      setText("auth-submit", mode ===="login" ? "Login" : "Sign up");
+      setText("auth-submit", mode === "login" ? "Login" : "Sign up");
 
       const confirmField = $("auth-confirm");
       if (confirmField) {
@@ -1222,10 +1116,15 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Logout confirmation from Account Sidebar
   const logoutBtn = $("logout-button");
   if (logoutBtn) {
-    logoutBtn.addEventListener("click", () => {
-      showLogoutConfirmation();
+    logoutBtn.addEventListener("click", async () => {
+      if (!confirm("के तपाईं बाहिरिन चाहनुहुन्छ?")) return;
+      mpinUnlockedForPage = false;
+      stopListeners();
+      dashboardStartedUid = null;
+      if (auth) await auth.signOut();
     });
   }
 
@@ -1382,7 +1281,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       const paths = Object.keys(LOCAL);
-      const snapshots = await Promise.all(paths.map(path => {
+      const snapshots = await Promise.all(paths.path = paths.map(path => {
         const firebasePath = path === "house" ? "house_expenses" : path;
         return db.ref("users/" + uid + "/" + firebasePath).once("value");
       }));
