@@ -6,7 +6,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#101521">
 <title>Digital NoteBook — Account & Recovery</title>
-
 <script>
 (function () {
   try {
@@ -16,9 +15,7 @@
   } catch (_) {}
 })();
 </script>
-
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-
 <style>
 :root {
   --bg:#101521;--surface:#1b2336;--surface2:#171e2e;
@@ -35,6 +32,9 @@ body{margin:0;background:var(--bg);color:var(--text);font:var(--app-font-size)/1
 button,input,select{font:inherit}
 button{border:1px solid var(--border);border-radius:10px;padding:10px 14px;background:var(--surface2);color:var(--text);font-weight:600;cursor:pointer}
 button:disabled{opacity:.5;cursor:not-allowed}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#trashPanelBody[hidden]{display:none!important}
+#toggleTrash{white-space:nowrap}
 .primary{background:var(--accent);border-color:var(--accent);color:#05251a}
 .danger{background:var(--danger);border-color:var(--danger);color:#fff}
 input,select{width:100%;margin-top:6px;padding:11px 12px;color:var(--text);background:var(--field);border:1px solid var(--border);border-radius:10px}
@@ -59,10 +59,16 @@ small,.muted{color:var(--muted)}
 .hidden{display:none!important}
 body[data-layout="compact"] main{padding:9px 8px 25px}
 body[data-layout="compact"] .panel{padding:11px;margin:8px 0}
-@media(max-width:480px){.appname{font-size:16px}main{padding:12px 9px 28px}.panel{padding:12px}}
+@media(max-width:480px){
+  .appname{font-size:16px}
+  main{padding:12px 9px 28px}
+  .panel{padding:12px}
+  .between{align-items:flex-start}
+  .between h2{margin-bottom:0}
+  .actions button{max-width:100%}
+}
 </style>
 </head>
-
 <body>
 <header>
   <button id="backButton" class="back" type="button" aria-label="Back">←</button>
@@ -78,9 +84,12 @@ body[data-layout="compact"] .panel{padding:11px;margin:8px 0}
   <section class="panel">
     <div class="between">
       <h2 data-i18n="trashTitle">Central Trash & Recovery</h2>
-      <button id="refreshTrash" type="button" data-i18n="refresh">Refresh</button>
+      <div class="actions">
+        <button id="toggleTrash" type="button" aria-expanded="false" aria-controls="trashPanelBody" data-i18n="showTrash">Show Trash</button>
+        <button id="refreshTrash" type="button" data-i18n="refresh">Refresh</button>
+      </div>
     </div>
-    <p class="muted" data-i18n="trashInfo">Restore records within 30 days.</p>
+    <p class="muted" data-i18n="trashInfo">Restore records within 30 days. Existing records are never overwritten.</p>
     <div class="row">
       <div class="card" style="flex:1;min-width:120px">
         <div class="muted" data-i18n="total">Total records</div>
@@ -91,11 +100,13 @@ body[data-layout="compact"] .panel{padding:11px;margin:8px 0}
         <strong id="expiredCount">0</strong>
       </div>
     </div>
-    <label>
-      <span data-i18n="search">Search Trash</span>
-      <input id="trashSearch" type="search" data-i18n-placeholder="searchPlaceholder" placeholder="Search name or details">
-    </label>
-    <div id="trashList"></div>
+    <div id="trashPanelBody" hidden>
+      <label>
+        <span data-i18n="search">Search Trash</span>
+        <input id="trashSearch" type="search" data-i18n-placeholder="searchPlaceholder" placeholder="Search name or details">
+      </label>
+      <div id="trashList"></div>
+    </div>
   </section>
 
   <div class="caption" data-i18n="backupCaption">BACKUP & RESTORE</div>
@@ -158,7 +169,6 @@ body[data-layout="compact"] .panel{padding:11px;margin:8px 0}
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
-
 <script>
 (function () {
 "use strict";
@@ -190,7 +200,9 @@ const words = {
   en: {
     title:"Account & Recovery",intro:"Manage Trash and account recovery.",
     trashCaption:"TRASH & RECOVERY",trashTitle:"Central Trash & Recovery",
-    refresh:"Refresh",trashInfo:"Restore records within 30 days. Existing records are never overwritten.",
+    refresh:"Refresh",showTrash:"Show Trash",hideTrash:"Hide Trash",
+    refreshing:"Refreshing…",refreshDone:"Trash list refreshed.",
+    trashInfo:"Restore records within 30 days. Existing records are never overwritten.",
     total:"Total records",expired:"Expired records",search:"Search Trash",
     searchPlaceholder:"Search name or details",backupCaption:"BACKUP & RESTORE",
     backupTitle:"Backup & Restore",backupInfo:"Export a backup or restore missing sections from a backup.",
@@ -214,9 +226,8 @@ const words = {
     restoreError:"Restore failed: ",deletedForever:"Trash entry permanently deleted.",
     deleteError:"Delete failed: ",expiredError:"The 30-day recovery period has expired.",
     ready:"Account ready.",signedOut:"Sign-in required. Redirecting…",
-    refreshError:"Could not refresh Trash: ",backupReady:"Ready.",
-    backupExported:"Backup exported.",backupError:"Backup failed: ",
-    backupTooLarge:"Backup file must be 25 MB or smaller.",
+    refreshError:"Could not refresh Trash: ",backupExported:"Backup exported.",
+    backupError:"Backup failed: ",backupTooLarge:"Backup file must be 25 MB or smaller.",
     invalidBackup:"Invalid backup JSON or unsupported format.",
     importConfirm:"Import missing sections only? Existing sections will not be overwritten.",
     importDone:"Import complete. Added: ",skipped:"; skipped: ",importError:"Import failed: ",
@@ -233,7 +244,9 @@ const words = {
   ne: {
     title:"खाता र पुनःप्राप्ति",intro:"ट्र्यास र खाता पुनःप्राप्ति व्यवस्थापन गर्नुहोस्।",
     trashCaption:"ट्र्यास र पुनःप्राप्ति",trashTitle:"केन्द्रीय ट्र्यास र पुनःप्राप्ति",
-    refresh:"फेरि लोड",trashInfo:"३० दिनभित्र रेकर्ड पुनःप्राप्त गर्नुहोस्। पहिल्यै भएको डेटा overwrite हुँदैन।",
+    refresh:"फेरि लोड",showTrash:"ट्र्यास देखाउनुहोस्",hideTrash:"ट्र्यास लुकाउनुहोस्",
+    refreshing:"फेरि लोड हुँदैछ…",refreshDone:"ट्र्यास सूची अद्यावधिक भयो।",
+    trashInfo:"३० दिनभित्र रेकर्ड पुनःप्राप्त गर्नुहोस्। पहिल्यै भएको डेटा overwrite हुँदैन।",
     total:"जम्मा रेकर्ड",expired:"म्याद सकिएका",search:"ट्र्यास खोज्नुहोस्",
     searchPlaceholder:"नाम वा विवरण खोज्नुहोस्",backupCaption:"ब्याकअप र पुनःस्थापना",
     backupTitle:"ब्याकअप र पुनःस्थापना",backupInfo:"ब्याकअप निर्यात वा खाली खण्ड पुनःस्थापना गर्नुहोस्।",
@@ -257,9 +270,8 @@ const words = {
     restoreError:"पुनःप्राप्ति असफल: ",deletedForever:"ट्र्यास प्रविष्टि स्थायी रूपमा मेटाइयो।",
     deleteError:"मेटाउन असफल: ",expiredError:"३० दिनको पुनःप्राप्ति अवधि सकियो।",
     ready:"खाता तयार भयो।",signedOut:"पहिले लगइन गर्नुहोस्। लगइन पेजमा जाँदैछ…",
-    refreshError:"ट्र्यास लोड गर्न सकिएन: ",backupReady:"तयार।",
-    backupExported:"ब्याकअप निर्यात भयो।",backupError:"ब्याकअप असफल: ",
-    backupTooLarge:"ब्याकअप फाइल २५ MB वा सानो हुनुपर्छ।",
+    refreshError:"ट्र्यास लोड गर्न सकिएन: ",backupExported:"ब्याकअप निर्यात भयो।",
+    backupError:"ब्याकअप असफल: ",backupTooLarge:"ब्याकअप फाइल २५ MB वा सानो हुनुपर्छ।",
     invalidBackup:"ब्याकअप JSON अमान्य छ।",
     importConfirm:"खाली खण्ड मात्र आयात गर्ने? भएका खण्ड overwrite हुँदैनन्।",
     importDone:"आयात पूरा भयो। थपिएका: ",skipped:"; छोडिएका: ",importError:"आयात असफल: ",
@@ -282,8 +294,7 @@ function readSettings() {
   } catch (_) { return {}; }
 }
 function t(key) {
-  return (words[prefs.lang === "ne" ? "ne" : "en"][key] ||
-          words.en[key] || key);
+  return words[prefs.lang === "ne" ? "ne" : "en"][key] || words.en[key] || key;
 }
 function applyPreferences() {
   prefs = readSettings();
@@ -292,8 +303,7 @@ function applyPreferences() {
   root.classList.toggle("dark", prefs.theme !== "light");
 
   const size = Number(prefs.font_size);
-  root.style.setProperty("--app-font-size",
-    (size >= 12 && size <= 24 ? size : 16) + "px");
+  root.style.setProperty("--app-font-size", (size >= 12 && size <= 24 ? size : 16) + "px");
 
   const font = String(prefs.font_family || "Poppins").replace(/[";]/g, "");
   root.style.setProperty("--app-font-family", '"' + font + '",Arial,sans-serif');
@@ -317,6 +327,12 @@ function applyPreferences() {
     t("size") + ": " + (size || 16) + "px\n" +
     t("font") + ": " + (prefs.font_family || "Poppins") + "\n" +
     t("layout") + ": " + (prefs.layout || "comfortable");
+
+  const trashBody = $("trashPanelBody");
+  if (trashBody) {
+    const expanded = !trashBody.hidden;
+    $("toggleTrash").textContent = t(expanded ? "hideTrash" : "showTrash");
+  }
 }
 window.addEventListener("storage", e => {
   if (e.key === SETTINGS_KEY) {
@@ -363,11 +379,6 @@ function validPath(path) {
     parts.every(p => p && p !== "." && p !== ".." && !/[.#$\[\]]/.test(p));
 }
 
-/*
- * Supports both:
- * users/UID/trash/category/recordID
- * users/UID/trash/recordID
- */
 function collectTrash(raw) {
   const out = [];
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return out;
@@ -408,7 +419,6 @@ function normalizeEntry(id, raw, category) {
   let recordType = String(raw.recordType || raw.trashType ||
     (category === "__root__" ? "record" : category));
 
-  // Compatibility for older flat house-expense entries.
   let recoveredData = data;
   if (recoveredData === null &&
       (recordType === "house_expense" || category === "house_expenses")) {
@@ -428,10 +438,7 @@ function normalizeEntry(id, raw, category) {
     ? "trash/" + id
     : "trash/" + category + "/" + id;
 
-  return {
-    id, category, location, path, data: recoveredData,
-    deletedAt, expiresAt, recordType
-  };
+  return {id,category,location,path,data:recoveredData,deletedAt,expiresAt,recordType};
 }
 function trashEntryRef(item) {
   return userRef.child(item.location);
@@ -600,17 +607,43 @@ async function deleteTrashItem(item) {
   }
 }
 async function refreshTrash() {
-  if (!trashRef) {
-    pageStatus("Firebase is not ready yet.", "error");
+  const button = $("refreshTrash");
+  if (!trashRef || !user) {
+    pageStatus("Firebase is not ready yet. Please wait for Account ready.", "error");
     return;
   }
+  if (button && button.disabled) return;
+
+  const oldText = button ? button.textContent : "";
+  if (button) {
+    button.disabled = true;
+    button.textContent = t("refreshing");
+    button.setAttribute("aria-busy", "true");
+  }
+  pageStatus(t("refreshing"));
   try {
     const snap = await trashRef.once("value");
     trashData = snap.val() || {};
     renderTrash();
+    pageStatus(t("refreshDone"), "good");
   } catch (error) {
     pageStatus(t("refreshError") + friendlyError(error), "error");
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.textContent = t("refresh");
+      button.removeAttribute("aria-busy");
+    }
   }
+}
+function setTrashExpanded(expanded) {
+  const body = $("trashPanelBody");
+  const button = $("toggleTrash");
+  if (!body || !button) return;
+  body.hidden = !expanded;
+  button.setAttribute("aria-expanded", String(expanded));
+  button.textContent = t(expanded ? "hideTrash" : "showTrash");
+  if (expanded) $("trashSearch")?.focus({preventScroll:true});
 }
 async function exportBackup() {
   if (!userRef) return pageStatus("Firebase is not ready yet.", "error");
@@ -763,12 +796,14 @@ function initFirebase() {
   }
 }
 
-/* Back never logs out and never requests a password. */
 $("backButton").addEventListener("click", () => {
   if (history.length > 1) history.back();
   else location.href = "index.html";
 });
 $("refreshTrash").addEventListener("click", refreshTrash);
+$("toggleTrash").addEventListener("click", () => {
+  setTrashExpanded($("trashPanelBody").hidden);
+});
 $("trashSearch").addEventListener("input", renderTrash);
 $("exportBackup").addEventListener("click", exportBackup);
 $("chooseBackup").addEventListener("click", () => $("backupFile").click());
