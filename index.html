@@ -292,7 +292,6 @@ footer { padding: 8px; text-align: center; color: var(--muted); font-size: .8em;
   font-weight: 700;
   padding: 2px 7px;
   border-radius: 10px;
-  margin-left: 6px;
   vertical-align: middle;
 }
 
@@ -458,10 +457,13 @@ body[data-layout="compact"] .metric-grid, body[data-layout="compact"] .quick-gri
     <section class="card" id="due-alert-card">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;cursor:pointer;" id="due-bell-header">
         <div>
-          <h2 style="margin-bottom:2px">Due-date alerts <span id="due-badge" class="badge-count hidden">0</span></h2>
+          <h2 style="margin-bottom:2px">Due-date alerts</h2>
           <p class="muted" style="font-size:.8em;margin-bottom:0">Transaction interest / installment due dates</p>
         </div>
-        <span style="font-size:1.4em" aria-hidden="true">🔔</span>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span id="due-badge" class="badge-count hidden">0</span>
+          <span style="font-size:1.4em" aria-hidden="true">🔔</span>
+        </div>
       </div>
       <div id="due-alerts" class="activity-list hidden" style="margin-top:12px;"><p class="muted">Loading due dates…</p></div>
     </section>
@@ -1031,7 +1033,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const errorEl = $("door-mpin-error");
 
       if (!savedMpin) {
-        if (errorEl) errorEl.textContent = "MPIN is not set.";
+        mpinUnlockedForPage = true;
+        if (evaluateSecurityAccess(auth?.currentUser)) {
+          startDashboard(auth?.currentUser);
+        }
         return;
       }
 
@@ -1184,7 +1189,7 @@ document.addEventListener("DOMContentLoaded", () => {
     authSwitch.addEventListener("click", () => {
       mode = mode === "login" ? "signup" : "login";
       setText("auth-subtitle", mode === "login" ? "Login to your account" : "Create your account");
-      setText("auth-submit", mode === "login" ? "Login" : "Sign up");
+      setText("auth-submit", mode ===="login" ? "Login" : "Sign up");
 
       const confirmField = $("auth-confirm");
       if (confirmField) {
