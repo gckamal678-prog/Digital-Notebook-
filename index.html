@@ -77,7 +77,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 }
 button:disabled { opacity: .6; cursor: not-allowed; }
 
-#login-overlay, #mpin-overlay {
+#login-overlay, #mpin-overlay, #logout-confirm-modal {
   position: fixed;
   inset: 0;
   display: flex;
@@ -88,7 +88,8 @@ button:disabled { opacity: .6; cursor: not-allowed; }
 }
 #login-overlay { z-index: 1000; }
 #mpin-overlay { z-index: 1100; }
-#mpin-overlay.hidden { display: none !important; }
+#logout-confirm-modal { z-index: 1200; background: rgba(0, 0, 0, 0.7); }
+#mpin-overlay.hidden, #logout-confirm-modal.hidden { display: none !important; }
 
 .login-card {
   width: 100%;
@@ -335,8 +336,22 @@ body[data-layout="compact"] .metric-grid, body[data-layout="compact"] .quick-gri
     <input id="door-mpin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="off" required placeholder="Enter 4-digit MPIN">
     <p id="door-mpin-error" role="alert" style="color:#fb7185;font-size:.85em"></p>
     <button class="btn btn-primary" type="submit">Unlock</button>
+    <div style="text-align:right; margin-top:8px;">
+      <button type="button" id="forgot-mpin-btn" style="background:none; border:none; color:var(--accent); padding:0; font-size:0.85em; text-decoration:underline; cursor:pointer;">Forgot MPIN?</button>
+    </div>
     <button class="btn" id="door-logout" type="button">Log out</button>
   </form>
+</div>
+
+<div id="logout-confirm-modal" class="hidden">
+  <div class="login-card" style="text-align:center;">
+    <h2 style="margin-bottom:8px;">Logout Confirmation</h2>
+    <p class="muted" style="font-size:0.9em; margin-bottom:20px;">Are you sure you want to log out of your account?</p>
+    <div style="display:flex; gap:10px;">
+      <button id="cancel-logout" class="btn" type="button" style="flex:1;">Cancel</button>
+      <button id="confirm-logout" class="btn btn-danger" type="button" style="flex:1;">Log out</button>
+    </div>
+  </div>
 </div>
 
 <div id="sidebar-backdrop" class="hidden"></div>
@@ -413,27 +428,18 @@ body[data-layout="compact"] .metric-grid, body[data-layout="compact"] .quick-gri
       </article>
     </section>
 
-    <section class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
-        <h2 style="margin-bottom:2px">Reminder</h2>
-        <span style="font-size:1.4em" aria-hidden="true">🔔</span>
-      </div>
-      <textarea id="reminder-text" class="form-control" maxlength="2000" placeholder="Write a reminder..." style="margin-top:12px"></textarea>
-      <div class="btn-row">
-        <button id="save-reminder" class="btn btn-primary" type="button">Save reminder</button>
-        <button id="clear-reminder" class="btn" type="button">Clear</button>
-      </div>
-    </section>
-
     <section class="card" id="due-alert-card">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
         <div>
           <h2 style="margin-bottom:2px">Due-date alerts</h2>
           <p class="muted" style="font-size:.8em;margin-bottom:0">Transaction interest / installment due dates</p>
         </div>
-        <span style="font-size:1.4em" aria-hidden="true">🔔</span>
+        <div id="due-alert-bell-container" style="position:relative; cursor:pointer; padding:5px;" title="Toggle alerts list">
+          <span style="font-size:1.4em" aria-hidden="true">🔔</span>
+          <span id="due-alert-badge" style="position:absolute; top:-2px; right:-4px; background:#fb7185; color:#fff; font-size:10px; font-weight:bold; padding:1px 5px; border-radius:10px; display:none;">0</span>
+        </div>
       </div>
-      <div id="due-alerts" class="activity-list"><p class="muted">Loading due dates…</p></div>
+      <div id="due-alerts" class="activity-list" style="margin-top:12px;"><p class="muted">Loading due dates…</p></div>
     </section>
 
     <section id="custom-banner-ad" class="card banner" aria-label="Digital NoteBook banner">
@@ -469,7 +475,10 @@ body[data-layout="compact"] .metric-grid, body[data-layout="compact"] .quick-gri
         </div>
       </article>
       <article class="card">
-        <h2>Recent Activity</h2>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <h2 style="margin-bottom:0;">Recent Activity</h2>
+          <button id="toggle-recent-activity" class="btn" type="button" style="padding:4px 10px; font-size:0.75em; min-height:auto;">Hide</button>
+        </div>
         <div id="recent-activity" class="activity-list"><p class="muted">Loading records…</p></div>
       </article>
     </section>
@@ -507,9 +516,10 @@ document.addEventListener("DOMContentLoaded", () => {
   let listeners = [];
   let cloudData = {};
   let localRecords = {};
-  let saveReminderBusy = false;
   let mpinUnlockedForPage = false;
   let dashboardStartedUid = null;
+  let dueAlertsVisible = true;
+  let recentActivityVisible = true;
 
   try {
     app = firebase.initializeApp(FIREBASE_CONFIG);
@@ -739,8 +749,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderDueAlerts(records) {
     const root = $("due-alerts");
+    const badge = $("due-alert-badge");
     if (!root) return;
-    root.replaceChildren();
+    
+    root.style.display = dueAlertsVisible ? "grid" : "none";
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -754,8 +766,18 @@ document.addEventListener("DOMContentLoaded", () => {
         return { ...record, _dueDateObject: due, _daysLeft: Math.round((due - today) / 86400000) };
       })
       .filter(Boolean)
-      .sort((a, b) => a._dueDateObject - b._dueDateObject)
-      .slice(0, 8);
+      .sort((a, b) => a._dueDateObject - b._dueDateObject);
+
+    if (badge) {
+      if (dueRecords.length > 0) {
+        badge.textContent = dueRecords.length;
+        badge.style.display = "block";
+      } else {
+        badge.style.display = "none";
+      }
+    }
+
+    root.replaceChildren();
 
     if (!dueRecords.length) {
       const p = document.createElement("p");
@@ -765,7 +787,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    for (const record of dueRecords) {
+    for (const record of dueRecords.slice(0, 8)) {
       const row = document.createElement("div");
       row.className = "activity-row";
       const left = document.createElement("div");
@@ -790,6 +812,15 @@ document.addEventListener("DOMContentLoaded", () => {
       row.append(left, right);
       root.appendChild(row);
     }
+  }
+
+  const bellContainer = $("due-alert-bell-container");
+  if (bellContainer) {
+    bellContainer.addEventListener("click", () => {
+      dueAlertsVisible = !dueAlertsVisible;
+      const root = $("due-alerts");
+      if (root) root.style.display = dueAlertsVisible ? "grid" : "none";
+    });
   }
 
   function renderRecent(records) {
@@ -828,6 +859,16 @@ document.addEventListener("DOMContentLoaded", () => {
       row.append(left, right);
       root.appendChild(row);
     }
+  }
+
+  const toggleRecentBtn = $("toggle-recent-activity");
+  if (toggleRecentBtn) {
+    toggleRecentBtn.addEventListener("click", () => {
+      recentActivityVisible = !recentActivityVisible;
+      const root = $("recent-activity");
+      if (root) root.style.display = recentActivityVisible ? "grid" : "none";
+      toggleRecentBtn.textContent = recentActivityVisible ? "Hide" : "Show";
+    });
   }
 
   function applyProfile(profile = {}) {
@@ -870,18 +911,6 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     reference.on("value", callback, error => console.error("Realtime listener failed:", path, error));
-    listeners.push(() => reference.off("value", callback));
-  }
-
-  function listenReminder() {
-    const reference = db.ref("users/" + uid + "/dashboardReminder");
-    const callback = snapshot => {
-      if (auth.currentUser?.uid !== uid) return;
-      const value = snapshot.val();
-      const reminder = $("reminder-text");
-      if (reminder && document.activeElement !== reminder) reminder.value = value?.text || "";
-    };
-    reference.on("value", callback, error => console.error("Reminder listener failed", error));
     listeners.push(() => reference.off("value", callback));
   }
 
@@ -960,7 +989,6 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 
     ["incomes", "transactions", "notes", "savings", "house"].forEach(listen);
-    listenReminder();
     listenProfile();
     renderDashboard();
   }
@@ -991,6 +1019,19 @@ document.addEventListener("DOMContentLoaded", () => {
       if (evaluateSecurityAccess(auth?.currentUser)) {
         startDashboard(auth?.currentUser);
       }
+    });
+  }
+
+  const forgotMpinBtn = $("forgot-mpin-btn");
+  if (forgotMpinBtn) {
+    forgotMpinBtn.addEventListener("click", () => {
+      const email = auth?.currentUser?.email || prompt("Enter your registered email address for password / MPIN assistance:");
+      if (!email) return;
+      auth.sendPasswordResetEmail(email).then(() => {
+        alert("Password and account recovery instructions have been sent to your email.");
+      }).catch(err => {
+        alert("Error: " + err.message);
+      });
     });
   }
 
@@ -1103,8 +1144,26 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   const logoutBtn = $("logout-button");
+  const logoutModal = $("logout-confirm-modal");
+  const cancelLogoutBtn = $("cancel-logout");
+  const confirmLogoutBtn = $("confirm-logout");
+
   if (logoutBtn) {
-    logoutBtn.addEventListener("click", async () => {
+    logoutBtn.addEventListener("click", () => {
+      openSidebar(false);
+      if (logoutModal) logoutModal.classList.remove("hidden");
+    });
+  }
+
+  if (cancelLogoutBtn) {
+    cancelLogoutBtn.addEventListener("click", () => {
+      if (logoutModal) logoutModal.classList.add("hidden");
+    });
+  }
+
+  if (confirmLogoutBtn) {
+    confirmLogoutBtn.addEventListener("click", async () => {
+      if (logoutModal) logoutModal.classList.add("hidden");
       mpinUnlockedForPage = false;
       stopListeners();
       dashboardStartedUid = null;
@@ -1216,47 +1275,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  const saveReminderBtn = $("save-reminder");
-  if (saveReminderBtn) {
-    saveReminderBtn.addEventListener("click", async () => {
-      if (!uid || !db || saveReminderBusy) return;
-      saveReminderBusy = true;
-      saveReminderBtn.disabled = true;
-
-      try {
-        await db.ref("users/" + uid + "/dashboardReminder").update({
-          text: $("reminder-text")?.value.trim() || "",
-          updatedAt: Date.now()
-        });
-      } catch (error) {
-        console.error("Reminder save failed:", error);
-        alert("Reminder save failed. Please try again.");
-      } finally {
-        saveReminderBusy = false;
-        saveReminderBtn.disabled = false;
-      }
-    });
-  }
-
-  const clearReminderBtn = $("clear-reminder");
-  if (clearReminderBtn) {
-    clearReminderBtn.addEventListener("click", async () => {
-      if (!uid || !db) return;
-      if (!confirm("Clear the shared dashboard reminder?")) return;
-
-      try {
-        await db.ref("users/" + uid + "/dashboardReminder").update({
-          text: "",
-          updatedAt: Date.now()
-        });
-        const reminder = $("reminder-text");
-        if (reminder) reminder.value = "";
-      } catch (error) {
-        console.error(error);
-      }
-    });
-  }
-
   async function backupData() {
     if (!uid || !db) return;
     if (!confirm("Merge this device's local records into the cloud? Existing cloud records will not be overwritten.")) return;
@@ -1343,7 +1361,6 @@ document.addEventListener("DOMContentLoaded", () => {
   loadLocalFallback();
   renderDashboard();
 });
-
 </script>
 
 <script>
