@@ -335,7 +335,7 @@ body[data-layout="compact"] .metric-grid, body[data-layout="compact"] .quick-gri
     <input id="door-mpin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="off" required placeholder="Enter 4-digit MPIN">
     <p id="door-mpin-error" role="alert" style="color:#fb7185;font-size:.85em"></p>
     <button class="btn btn-primary" type="submit">Unlock</button>
-    <button class="btn" id="door-logout" type="button">Log out</button>
+    <button class="btn" id="door-reset-mpin" type="button">Forgot MPIN? Reset MPIN</button>
   </form>
 </div>
 
@@ -365,7 +365,6 @@ body[data-layout="compact"] .metric-grid, body[data-layout="compact"] .quick-gri
   <hr style="border:0;border-top:1px solid var(--line);margin:18px 0">
   <button id="backup-button" class="btn" type="button" style="width:100%;margin-bottom:8px">Merge local records to cloud</button>
   <button id="restore-button" class="btn" type="button" style="width:100%;margin-bottom:8px">Refresh local copies from cloud</button>
-  <button id="logout-button" class="btn btn-danger" type="button" style="width:100%">Log out</button>
   <p class="muted" style="font-size:.78em;margin-top:15px">Theme, color, language and text size are managed from Settings.</p>
 </aside>
 
@@ -798,7 +797,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Due-date bell Toggle functionality (Hidden by default on app open)
   const dueBellToggle = $("due-bell-toggle");
   const dueAlertsContainer = $("due-alerts-container");
   if (dueBellToggle && dueAlertsContainer) {
@@ -807,7 +805,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Recent Activity Show/Hide functionality (Hidden by default on app open)
   const toggleRecentBtn = $("toggle-recent-btn");
   const recentActivityContainer = $("recent-activity-container");
   if (toggleRecentBtn && recentActivityContainer) {
@@ -1006,15 +1003,43 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Logout confirmation from MPIN lock screen
-  const doorLogout = $("door-logout");
-  if (doorLogout) {
-    doorLogout.addEventListener("click", async () => {
-      if (!confirm("के तपाईं बाहिरिन चाहनुहुन्छ?")) return;
-      mpinUnlockedForPage = false;
-      stopListeners();
-      dashboardStartedUid = null;
-      if (auth) await auth.signOut();
+  const resetMpinBtn = $("door-reset-mpin");
+  if (resetMpinBtn) {
+    resetMpinBtn.addEventListener("click", () => {
+      const confirmed = confirm(
+        "MPIN बिर्सनुभयो?\n\n" +
+        "पुष्टि गरेपछि यस उपकरणको MPIN हट्नेछ। " +
+        "तपाईंको Firebase खाता र नोटहरू मेटिने छैनन्।\n\n" +
+        "के MPIN Reset गर्ने?"
+      );
+
+      if (!confirmed) return;
+
+      try {
+        localStorage.removeItem("app_mpin");
+        mpinUnlockedForPage = true;
+
+        const pinField = $("door-mpin");
+        const errorField = $("door-mpin-error");
+
+        if (pinField) pinField.value = "";
+        if (errorField) {
+          errorField.textContent =
+            "MPIN Reset भयो। Account & Recovery मा गएर नयाँ MPIN राख्नुहोस्।";
+        }
+
+        if (evaluateSecurityAccess(auth?.currentUser)) {
+          startDashboard(auth?.currentUser);
+        }
+      } catch (error) {
+        console.error("MPIN reset failed:", error);
+
+        const errorField = $("door-mpin-error");
+        if (errorField) {
+          errorField.textContent =
+            "MPIN Reset गर्न सकिएन। कृपया फेरि प्रयास गर्नुहोस्।";
+        }
+      }
     });
   }
 
@@ -1113,18 +1138,6 @@ document.addEventListener("DOMContentLoaded", () => {
       } catch (error) {
         setText("auth-error", "Could not send reset email: " + (error.code || "unknown error"));
       }
-    });
-  }
-
-  // Logout confirmation from Account Sidebar
-  const logoutBtn = $("logout-button");
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", async () => {
-      if (!confirm("के तपाईं बाहिरिन चाहनुहुन्छ?")) return;
-      mpinUnlockedForPage = false;
-      stopListeners();
-      dashboardStartedUid = null;
-      if (auth) await auth.signOut();
     });
   }
 
