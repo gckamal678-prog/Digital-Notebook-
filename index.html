@@ -413,19 +413,27 @@ body[data-layout="compact"] .metric-grid, body[data-layout="compact"] .quick-gri
       </article>
     </section>
 
+    <section class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+        <h2 style="margin-bottom:2px">Reminder</h2>
+        <span style="font-size:1.4em" aria-hidden="true">🔔</span>
+      </div>
+      <textarea id="reminder-text" class="form-control" maxlength="2000" placeholder="Write a reminder..." style="margin-top:12px"></textarea>
+      <div class="btn-row">
+        <button id="save-reminder" class="btn btn-primary" type="button">Save reminder</button>
+        <button id="clear-reminder" class="btn" type="button">Clear</button>
+      </div>
+    </section>
+
     <section class="card" id="due-alert-card">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
         <div>
           <h2 style="margin-bottom:2px">Due-date alerts</h2>
           <p class="muted" style="font-size:.8em;margin-bottom:0">Transaction interest / installment due dates</p>
         </div>
-        <button id="due-bell-toggle" class="icon-button" type="button" aria-label="Toggle due dates" style="position:relative; background:transparent; border:0; cursor:pointer; font-size:1.4em;">
-          🔔<span id="due-badge-count" style="position:absolute; top:-4px; right:-4px; background:#be123c; color:#fff; font-size:0.5em; padding:2px 5px; border-radius:50%; font-weight:bold; display:none;">0</span>
-        </button>
+        <span style="font-size:1.4em" aria-hidden="true">🔔</span>
       </div>
-      <div id="due-alerts-container" class="hidden" style="margin-top:12px;">
-        <div id="due-alerts" class="activity-list"><p class="muted">Loading due dates…</p></div>
-      </div>
+      <div id="due-alerts" class="activity-list"><p class="muted">Loading due dates…</p></div>
     </section>
 
     <section id="custom-banner-ad" class="card banner" aria-label="Digital NoteBook banner">
@@ -461,13 +469,8 @@ body[data-layout="compact"] .metric-grid, body[data-layout="compact"] .quick-gri
         </div>
       </article>
       <article class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px;">
-          <h2 style="margin-bottom:0;">Recent Activity</h2>
-          <button id="toggle-recent-btn" class="btn" type="button" style="font-size:0.75em;padding:4px 8px;min-height:28px;">Show</button>
-        </div>
-        <div id="recent-activity-container" class="hidden">
-          <div id="recent-activity" class="activity-list"><p class="muted">Loading records…</p></div>
-        </div>
+        <h2>Recent Activity</h2>
+        <div id="recent-activity" class="activity-list"><p class="muted">Loading records…</p></div>
       </article>
     </section>
     <footer>Digital NoteBook</footer>
@@ -504,6 +507,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let listeners = [];
   let cloudData = {};
   let localRecords = {};
+  let saveReminderBusy = false;
   let mpinUnlockedForPage = false;
   let dashboardStartedUid = null;
 
@@ -735,7 +739,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderDueAlerts(records) {
     const root = $("due-alerts");
-    const badge = $("due-badge-count");
     if (!root) return;
     root.replaceChildren();
 
@@ -751,19 +754,10 @@ document.addEventListener("DOMContentLoaded", () => {
         return { ...record, _dueDateObject: due, _daysLeft: Math.round((due - today) / 86400000) };
       })
       .filter(Boolean)
-      .sort((a, b) => a._dueDateObject - b._dueDateObject);
+      .sort((a, b) => a._dueDateObject - b._dueDateObject)
+      .slice(0, 8);
 
-    if (badge) {
-      if (dueRecords.length > 0) {
-        badge.textContent = dueRecords.length;
-        badge.style.display = "inline-block";
-      } else {
-        badge.style.display = "none";
-      }
-    }
-
-    const limitedRecords = dueRecords.slice(0, 8);
-    if (!limitedRecords.length) {
+    if (!dueRecords.length) {
       const p = document.createElement("p");
       p.className = "muted";
       p.textContent = "No due dates recorded. Add a due date to a transaction to see alerts here.";
@@ -771,7 +765,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    for (const record of limitedRecords) {
+    for (const record of dueRecords) {
       const row = document.createElement("div");
       row.className = "activity-row";
       const left = document.createElement("div");
@@ -796,25 +790,6 @@ document.addEventListener("DOMContentLoaded", () => {
       row.append(left, right);
       root.appendChild(row);
     }
-  }
-
-  // Due-date bell Toggle functionality (Hidden by default on app open)
-  const dueBellToggle = $("due-bell-toggle");
-  const dueAlertsContainer = $("due-alerts-container");
-  if (dueBellToggle && dueAlertsContainer) {
-    dueBellToggle.addEventListener("click", () => {
-      dueAlertsContainer.classList.toggle("hidden");
-    });
-  }
-
-  // Recent Activity Show/Hide functionality (Hidden by default on app open)
-  const toggleRecentBtn = $("toggle-recent-btn");
-  const recentActivityContainer = $("recent-activity-container");
-  if (toggleRecentBtn && recentActivityContainer) {
-    toggleRecentBtn.addEventListener("click", () => {
-      const isHidden = recentActivityContainer.classList.toggle("hidden");
-      toggleRecentBtn.textContent = isHidden ? "Show" : "Hide";
-    });
   }
 
   function renderRecent(records) {
@@ -898,6 +873,18 @@ document.addEventListener("DOMContentLoaded", () => {
     listeners.push(() => reference.off("value", callback));
   }
 
+  function listenReminder() {
+    const reference = db.ref("users/" + uid + "/dashboardReminder");
+    const callback = snapshot => {
+      if (auth.currentUser?.uid !== uid) return;
+      const value = snapshot.val();
+      const reminder = $("reminder-text");
+      if (reminder && document.activeElement !== reminder) reminder.value = value?.text || "";
+    };
+    reference.on("value", callback, error => console.error("Reminder listener failed", error));
+    listeners.push(() => reference.off("value", callback));
+  }
+
   function listenProfile() {
     const reference = db.ref("users/" + uid + "/profile");
     const callback = snapshot => {
@@ -973,6 +960,7 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 
     ["incomes", "transactions", "notes", "savings", "house"].forEach(listen);
+    listenReminder();
     listenProfile();
     renderDashboard();
   }
@@ -1006,11 +994,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Logout confirmation from MPIN lock screen
   const doorLogout = $("door-logout");
   if (doorLogout) {
     doorLogout.addEventListener("click", async () => {
-      if (!confirm("के तपाईं बाहिरिन चाहनुहुन्छ?")) return;
       mpinUnlockedForPage = false;
       stopListeners();
       dashboardStartedUid = null;
@@ -1116,11 +1102,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Logout confirmation from Account Sidebar
   const logoutBtn = $("logout-button");
   if (logoutBtn) {
     logoutBtn.addEventListener("click", async () => {
-      if (!confirm("के तपाईं बाहिरिन चाहनुहुन्छ?")) return;
       mpinUnlockedForPage = false;
       stopListeners();
       dashboardStartedUid = null;
@@ -1232,6 +1216,47 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  const saveReminderBtn = $("save-reminder");
+  if (saveReminderBtn) {
+    saveReminderBtn.addEventListener("click", async () => {
+      if (!uid || !db || saveReminderBusy) return;
+      saveReminderBusy = true;
+      saveReminderBtn.disabled = true;
+
+      try {
+        await db.ref("users/" + uid + "/dashboardReminder").update({
+          text: $("reminder-text")?.value.trim() || "",
+          updatedAt: Date.now()
+        });
+      } catch (error) {
+        console.error("Reminder save failed:", error);
+        alert("Reminder save failed. Please try again.");
+      } finally {
+        saveReminderBusy = false;
+        saveReminderBtn.disabled = false;
+      }
+    });
+  }
+
+  const clearReminderBtn = $("clear-reminder");
+  if (clearReminderBtn) {
+    clearReminderBtn.addEventListener("click", async () => {
+      if (!uid || !db) return;
+      if (!confirm("Clear the shared dashboard reminder?")) return;
+
+      try {
+        await db.ref("users/" + uid + "/dashboardReminder").update({
+          text: "",
+          updatedAt: Date.now()
+        });
+        const reminder = $("reminder-text");
+        if (reminder) reminder.value = "";
+      } catch (error) {
+        console.error(error);
+      }
+    });
+  }
+
   async function backupData() {
     if (!uid || !db) return;
     if (!confirm("Merge this device's local records into the cloud? Existing cloud records will not be overwritten.")) return;
@@ -1281,7 +1306,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       const paths = Object.keys(LOCAL);
-      const snapshots = await Promise.all(paths.path = paths.map(path => {
+      const snapshots = await Promise.all(paths.map(path => {
         const firebasePath = path === "house" ? "house_expenses" : path;
         return db.ref("users/" + uid + "/" + firebasePath).once("value");
       }));
@@ -1318,6 +1343,7 @@ document.addEventListener("DOMContentLoaded", () => {
   loadLocalFallback();
   renderDashboard();
 });
+
 </script>
 
 <script>
