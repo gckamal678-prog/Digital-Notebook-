@@ -920,6 +920,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (backdrop) backdrop.classList.toggle("hidden", !open);
   }
 
+  // MPIN नभए पनि Dashboard नखोल्ने सुरक्षा जाँच
   function evaluateSecurityAccess(user) {
     const loginOverlay = $("login-overlay");
     const mpinOverlay = $("mpin-overlay");
@@ -935,17 +936,34 @@ document.addEventListener("DOMContentLoaded", () => {
     if (loginOverlay) loginOverlay.classList.add("hidden");
 
     const savedMpin = localStorage.getItem("app_mpin");
+    const field = $("door-mpin");
+    const errorEl = $("door-mpin-error");
 
-    if (savedMpin && !mpinUnlockedForPage) {
+    if (!savedMpin || !mpinUnlockedForPage) {
       if (appEl) appEl.classList.add("hidden");
       if (mpinOverlay) mpinOverlay.classList.remove("hidden");
 
-      const field = $("door-mpin");
       if (field) {
         field.value = "";
-        setTimeout(() => field.focus(), 0);
+        field.disabled = !savedMpin;
+        field.required = !!savedMpin;
+        field.placeholder = savedMpin
+          ? "Enter 4-digit MPIN"
+          : "Set a new MPIN using Reset MPIN";
+        if (savedMpin) setTimeout(() => field.focus(), 0);
       }
+
+      if (!savedMpin && errorEl) {
+        errorEl.textContent = "MPIN सेट गरिएको छैन। नयाँ MPIN राख्न Forgot MPIN? Reset MPIN थिच्नुहोस्।";
+      }
+
       return false;
+    }
+
+    if (field) {
+      field.disabled = false;
+      field.required = true;
+      field.placeholder = "Enter 4-digit MPIN";
     }
 
     if (mpinOverlay) mpinOverlay.classList.add("hidden");
@@ -974,6 +992,7 @@ document.addEventListener("DOMContentLoaded", () => {
     renderDashboard();
   }
 
+  // सही MPIN भए मात्र Dashboard खुल्ने
   const mpinForm = $("mpin-form");
   if (mpinForm) {
     mpinForm.addEventListener("submit", event => {
@@ -984,7 +1003,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const errorEl = $("door-mpin-error");
 
       if (!savedMpin) {
-        if (errorEl) errorEl.textContent = "MPIN is not set. Open Account & Recovery to set it.";
+        if (errorEl) {
+          errorEl.textContent = "MPIN सेट गरिएको छैन। Forgot MPIN? Reset MPIN थिच्नुहोस्।";
+        }
         return;
       }
 
@@ -1003,42 +1024,92 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Forgot MPIN: Firebase password प्रमाणित गरेपछि मात्र नयाँ MPIN राख्ने
   const resetMpinBtn = $("door-reset-mpin");
   if (resetMpinBtn) {
-    resetMpinBtn.addEventListener("click", () => {
-      const confirmed = confirm(
-        "MPIN बिर्सनुभयो?\n\n" +
-        "पुष्टि गरेपछि यस उपकरणको MPIN हट्नेछ। " +
-        "तपाईंको Firebase खाता र नोटहरू मेटिने छैनन्।\n\n" +
-        "के MPIN Reset गर्ने?"
+    resetMpinBtn.addEventListener("click", async () => {
+      const currentUser = auth?.currentUser;
+      const errorEl = $("door-mpin-error");
+
+      if (!currentUser || !currentUser.email) {
+        if (errorEl) {
+          errorEl.textContent = "पहिले आफ्नो Digital NoteBook खातामा Login गर्नुहोस्।";
+        }
+        return;
+      }
+
+      const password = prompt(
+        "MPIN Reset गर्न आफ्नो Digital NoteBook खाताको Password राख्नुहोस्:"
       );
 
-      if (!confirmed) return;
+      if (password === null) return;
+
+      if (!password) {
+        if (errorEl) errorEl.textContent = "Password राख्नुहोस्।";
+        return;
+      }
+
+      resetMpinBtn.disabled = true;
+      if (errorEl) errorEl.textContent = "खाता प्रमाणित हुँदैछ…";
 
       try {
-        localStorage.removeItem("app_mpin");
-        mpinUnlockedForPage = true;
+        const credential = firebase.auth.EmailAuthProvider.credential(
+          currentUser.email,
+          password
+        );
 
-        const pinField = $("door-mpin");
-        const errorField = $("door-mpin-error");
+        await currentUser.reauthenticateWithCredential(credential);
 
-        if (pinField) pinField.value = "";
-        if (errorField) {
-          errorField.textContent =
-            "MPIN Reset भयो। Account & Recovery मा गएर नयाँ MPIN राख्नुहोस्।";
+        const newMpin = prompt("नयाँ ४ अङ्कको MPIN राख्नुहोस्:");
+
+        if (newMpin === null) {
+          if (errorEl) errorEl.textContent = "";
+          return;
         }
 
-        if (evaluateSecurityAccess(auth?.currentUser)) {
-          startDashboard(auth?.currentUser);
+        if (!/^\d{4}$/.test(newMpin)) {
+          if (errorEl) errorEl.textContent = "MPIN ठ्याक्कै ४ अङ्कको हुनुपर्छ।";
+          return;
+        }
+
+        const confirmMpin = prompt("नयाँ MPIN फेरि राखेर पुष्टि गर्नुहोस्:");
+
+        if (confirmMpin === null) {
+          if (errorEl) errorEl.textContent = "";
+          return;
+        }
+
+        if (newMpin !== confirmMpin) {
+          if (errorEl) errorEl.textContent = "दुवै MPIN मिलेनन्। फेरि प्रयास गर्नुहोस्।";
+          return;
+        }
+
+        // नयाँ MPIN सफलतापूर्वक सेट भएपछि मात्र Dashboard खोल्ने
+        localStorage.setItem("app_mpin", newMpin);
+        mpinUnlockedForPage = true;
+
+        if ($("door-mpin")) $("door-mpin").value = "";
+        if (errorEl) errorEl.textContent = "";
+
+        if (evaluateSecurityAccess(currentUser)) {
+          startDashboard(currentUser);
         }
       } catch (error) {
         console.error("MPIN reset failed:", error);
 
-        const errorField = $("door-mpin-error");
-        if (errorField) {
-          errorField.textContent =
-            "MPIN Reset गर्न सकिएन। कृपया फेरि प्रयास गर्नुहोस्।";
+        const messages = {
+          "auth/wrong-password": "Password गलत छ। कृपया सही Password राख्नुहोस्।",
+          "auth/invalid-credential": "Password गलत छ। कृपया सही Password राख्नुहोस्।",
+          "auth/too-many-requests": "धेरै प्रयास भए। केही समयपछि फेरि प्रयास गर्नुहोस्।",
+          "auth/network-request-failed": "Internet जाँच गरेर फेरि प्रयास गर्नुहोस्।"
+        };
+
+        if (errorEl) {
+          errorEl.textContent =
+            messages[error.code] || "खाता प्रमाणित भएन। Password जाँच गरेर फेरि प्रयास गर्नुहोस्।";
         }
+      } finally {
+        resetMpinBtn.disabled = false;
       }
     });
   }
@@ -1294,7 +1365,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       const paths = Object.keys(LOCAL);
-      const snapshots = await Promise.all(paths.path = paths.map(path => {
+      const snapshots = await Promise.all(paths.map(path => {
         const firebasePath = path === "house" ? "house_expenses" : path;
         return db.ref("users/" + uid + "/" + firebasePath).once("value");
       }));
