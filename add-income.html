@@ -550,38 +550,189 @@ function renderTrash(){
  }).join("")||`<p class="muted">${esc(t("noTrash"))}</p>`;
 }
 
-async function moveToTrash(id){
- const record=items[id];
- if(!record){errorStatus("Record not found. Refresh and try again.");return}
- if(!await confirmApp(t("confirmDelete"),{danger:true,ok:t("delete")}))return;
+async function moveToTrash(id) {
+  if (!uid) {
+    errorStatus(t("login"));
+    return;
+  }
 
- const now=Date.now();
- const entry={
-  id,category:PATH,recordType:PATH,
-  originalPath:"users/"+uid+"/"+PATH+"/"+id,
-  data:{...record,id},deletedAt:now,
-  expiresAt:now+RETENTION,schemaVersion:1
- };
- try{
-  const result=await userRef("").transaction(root=>{
-   if(!root||typeof root!=="object"||Array.isArray(root))return;
-   const current=root[PATH]&&root[PATH][id];
-   if(!current)return;
-   const next={...root};
-   next[PATH]={...(root[PATH]||{})};
-   next.trash={...(root.trash||{})};
-   next.trash[PATH]={...(root.trash[PATH]||{}),[id]:entry};
-   delete next[PATH][id];
-   if(!Object.keys(next[PATH]).length)delete next[PATH];
-   return next;
-  },undefined,false);
-  if(!result.committed)throw new Error("Record changed or was already deleted. Refresh and retry.");
-  showStatus("Income moved to Trash.");
- }catch(e){
-  console.error("Income delete failed:",e);
-  errorStatus(t("deleteFail")+e.message);
- }
+  // ताजा Cloud डाटाबाट रेकर्ड पुष्टि गर्नुहोस्।
+  try {
+    const freshSnapshot = await userRef(PATH).once("value");
+    const freshValue = freshSnapshot.val();
+
+    items =
+      freshValue &&
+      typeof freshValue === "object" &&
+      !Array.isArray(freshValue)
+        ? freshValue
+        : {};
+
+    render();
+
+    const record = items[id];
+
+    if (!record) {
+      errorStatus(
+        "यो रेकर्ड Cloud मा भेटिएन। सूची ताजा गरिएको छ; कृपया फेरि जाँच्नुहोस्।"
+      );
+      return;
+    }
+
+    if (
+      !(await confirmApp(t("confirmDelete"), {
+        danger: true,
+        ok: t("delete")
+      }))
+    ) {
+      return;
+    }
+
+    const now = Date.now();
+
+    const entry = {
+      id: id,
+      category: PATH,
+      recordType: PATH,
+      originalPath: "users/" + uid + "/" + PATH + "/" + id,
+      data: { ...record, id: id },
+      deletedAt: now,
+      expiresAt: now + RETENTION,
+      schemaVersion: 1
+    };
+
+    // Income हटाउने र Trash मा राख्ने काम एउटै transaction मा।
+    const result = await userRef("").transaction(
+      function (root) {
+        if (
+          !root ||
+          typeof root !== "object" ||
+          Array.isArray(root)
+        ) {
+          return;
+        }
+
+        const currentIncome = root[PATH];
+
+        if (
+          !currentIncome ||
+          typeof currentIncome !== "object" ||
+          Array.isArray(currentIncome) ||
+          !Object.prototype.hasOwnProperty.call(currentIncome, id)
+        ) {
+          return;
+        }
+
+        const currentRecord = currentIncome[id];
+
+        if (
+          !currentRecord ||
+          typeof currentRecord !== "object"
+        ) {
+          return;
+        }
+
+        const next = { ...root };
+        const nextIncome = { ...currentIncome };
+        const nextTrash =
+          root.trash &&
+          typeof root.trash === "object" &&
+          !Array.isArray(root.trash)
+            ? { ...root.trash }
+            : {};
+
+        const incomeTrash =
+          nextTrash[PATH] &&
+          typeof nextTrash[PATH] === "object" &&
+          !Array.isArray(nextTrash[PATH])
+            ? { ...nextTrash[PATH] }
+            : {};
+
+        // यदि यही ID पहिले नै Trash मा छ भने overwrite नगर्नुहोस्।
+        if (
+          Object.prototype.hasOwnProperty.call(incomeTrash, id)
+        ) {
+          return;
+        }
+
+        incomeTrash[id] = {
+          ...entry,
+          data: { ...currentRecord, id: id }
+        };
+
+        delete nextIncome[id];
+
+        if (Object.keys(nextIncome).length) {
+          next[PATH] = nextIncome;
+        } else {
+          delete next[PATH];
+        }
+
+        nextTrash[PATH] = incomeTrash;
+        next.trash = nextTrash;
+
+        return next;
+      },
+      undefined,
+      false
+    );
+
+    if (!result.committed) {
+      throw new Error(
+        "Cloud ले परिवर्तन स्वीकार गरेन। रेकर्ड पहिले नै हटाइएको वा परिवर्तन भएको हुन सक्छ।"
+      );
+    }
+
+    // Transaction सफल भएपछि Cloud बाट दुवै सूची पुनः पढ्नुहोस्।
+    const [incomeSnapshot, trashSnapshot] = await Promise.all([
+      userRef(PATH).once("value"),
+      userRef("trash").once("value")
+    ]);
+
+    const latestIncome = incomeSnapshot.val();
+    const latestTrash = trashSnapshot.val();
+
+    items =
+      latestIncome &&
+      typeof latestIncome === "object" &&
+      !Array.isArray(latestIncome)
+        ? latestIncome
+        : {};
+
+    trashData =
+      latestTrash &&
+      typeof latestTrash === "object" &&
+      !Array.isArray(latestTrash)
+        ? latestTrash
+        : {};
+
+    // पुरानो रेकर्ड तुरुन्तै सूचीबाट हटाउनुहोस्।
+    render();
+    renderTrash();
+
+    // अझै सूचीमा छ भने सफलता भनेर नदेखाउनुहोस्।
+    if (
+      Object.prototype.hasOwnProperty.call(items, id)
+    ) {
+      throw new Error(
+        "Cloud अपडेट भए पनि रेकर्ड सूचीमा अझै छ। पेज पुनः लोड गरेर जाँच्नुहोस्।"
+      );
+    }
+
+    showStatus("आम्दानी सफलतापूर्वक Trash मा सारियो।");
+
+  } catch (error) {
+    console.error("Income delete failed:", error);
+
+    errorStatus(
+      t("deleteFail") +
+      (error && error.message
+        ? error.message
+        : "अज्ञात त्रुटि")
+    );
+  }
 }
+
 $("trash").addEventListener("click",async e=>{
  const b=e.target.closest("[data-restore]");
  if(!b)return;
