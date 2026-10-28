@@ -25,7 +25,11 @@ header strong{flex:1}
 main{width:min(1100px,100%);margin:auto;padding:14px;display:grid;gap:14px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px}
 h1{font-size:1.4em;margin:0 0 8px}
-h2{font-size:1.2em;margin:0 0 10px}
+h2{font-size:1.2em;margin:0}
+.card-title-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.currency-toggle{display:inline-flex;background:var(--field);border:1px solid var(--line);border-radius:8px;padding:2px}
+.currency-toggle button{background:transparent;border:none;color:var(--muted);padding:4px 10px;border-radius:6px;cursor:pointer;font-weight:600;font-size:.85em;width:auto;margin:0}
+.currency-toggle button.active{background:var(--accent);color:#062319}
 p{margin:6px 0}
 .muted{color:var(--muted)}
 .status{font-size:.9em;color:var(--muted);overflow-wrap:anywhere}
@@ -98,7 +102,13 @@ body[data-layout="compact"] .record{padding:8px}
 </form>
 </section>
 <section class="card">
+<div class="card-title-row">
 <h2 data-i18n="groupTitle">Group Ledger / समूहगत हिसाब</h2>
+<div class="currency-toggle" id="currencyToggle">
+<button type="button" data-curr="NPR" class="active">NPR</button>
+<button type="button" data-curr="INR">INR</button>
+</div>
+</div>
 <p class="muted" data-i18n="groupHelp">एउटै पार्टी नामका कारोबार एउटै समूहमा देखिन्छन्।</p>
 <input id="groupSearch" type="search" data-i18n-placeholder="searchGroup" placeholder="पार्टी वा कैफियत खोज्नुहोस्">
 <div class="stats">
@@ -135,7 +145,7 @@ appId:'1:218135618179:web:821b76920d3e5669ac31b6'
 };
 const SETTINGS_KEY='digital_notebook_settings',DAY=86400000,RATE_INR=1.6,PATH='transactions';
 const $=id=>document.getElementById(id);
-let auth,db,prefs={},currentUser=null,records={},trash={},profile={},expandedGroups=new Set(),dataRef=null,trashRef=null,dataHandler=null,trashHandler=null,profileRef=null,profileHandler=null,confirmResolver=null;
+let auth,db,prefs={},currentUser=null,records={},trash={},profile={},expandedGroups=new Set(),dataRef=null,trashRef=null,dataHandler=null,trashHandler=null,profileRef=null,profileHandler=null,confirmResolver=null,currentCurrency='NPR';
 
 const words={
 en:{
@@ -150,7 +160,12 @@ function t(k){return (words[prefs.lang==='en'?'en':'ne'][k]||words.en[k]||k)}
 function status(m,bad){$('statusMessage').textContent=m||'';$('statusMessage').classList.toggle('error',!!bad)}
 function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function num(v){if(v===''||v===null||typeof v==='undefined')return 0;const n=Number(v);return Number.isFinite(n)?n:0}
-function money(v){const n=num(v);return (n<0?'- ':'')+'NPR '+Math.abs(n).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function formatMoney(val){
+const n=num(val);
+let amount=n,currCode=currentCurrency;
+if(currCode==='INR'){amount=n/RATE_INR;}
+return (amount<0?'- ':'')+currCode+' '+Math.abs(amount).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
 function validKey(k){return typeof k==='string'&&k.length>0&&!/[.#$\/\[\]]/.test(k)}
 function norm(v){return String(v||'').trim().replace(/\s+/g,' ').toLocaleLowerCase()}
 function userRef(path){if(!currentUser)throw Error(t('authError'));return db.ref('users/'+currentUser.uid+(path?'/'+path:''))}
@@ -193,23 +208,23 @@ return [...map.values()].sort((a,b)=>a.name.localeCompare(b.name))
 function recordCard(r){
 const cls=r.type==='Receivable'?'net-pos':'net-neg',sign=r.type==='Receivable'?'+ ':'- ';
 const due=r.dueDate?'<p>'+esc(t('dueDate'))+': '+esc(r.dueDate)+dueCountdown(r.dueDate)+'</p>':'';
-return '<article class="record"><b>'+esc(r.party||'—')+'</b> · '+esc(r.date||'—')+'<p>'+esc(typeText(r.type))+' · <span class="amount '+cls+'">'+sign+money(r.total)+'</span></p><p class="muted">'+esc(r.note||'')+'</p><p class="muted">'+esc(t('rate'))+': '+num(r.rate)+'% · '+esc(t('period'))+': '+num(r.period)+'</p>'+due+'<div class="actions"><button type="button" data-edit="'+esc(r.id)+'">'+esc(t('edit'))+'</button><button type="button" class="danger" data-delete="'+esc(r.id)+'">'+esc(t('delete'))+'</button></div></article>'
+return '<article class="record"><b>'+esc(r.party||'—')+'</b> · '+esc(r.date||'—')+'<p>'+esc(typeText(r.type))+' · <span class="amount '+cls+'">'+sign+formatMoney(r.total)+'</span></p><p class="muted">'+esc(r.note||'')+'</p><p class="muted">'+esc(t('rate'))+': '+num(r.rate)+'% · '+esc(t('period'))+': '+num(r.period)+'</p>'+due+'<div class="actions"><button type="button" data-edit="'+esc(r.id)+'">'+esc(t('edit'))+'</button><button type="button" class="danger" data-delete="'+esc(r.id)+'">'+esc(t('delete'))+'</button></div></article>'
 }
 function render(){
 const all=values(),q=norm($('groupSearch').value),filtered=all.filter(r=>(norm(r.party)+' '+norm(r.note)).includes(q)),groups=grouped(filtered);
 let rec=0,pay=0,exp=0;
 filtered.forEach(r=>{const a=num(r.total);if(r.type==='Receivable')rec+=a;else if(r.type==='Payable')pay+=a;else if(r.type==='Expense')exp+=a});
 const net=rec-pay-exp;
-$('totalReceivable').textContent=money(rec);
-$('totalPayable').textContent=money(pay);
-$('totalExpense').textContent=money(exp);
-$('grandTotal').textContent=money(net);
+$('totalReceivable').textContent=formatMoney(rec);
+$('totalPayable').textContent=formatMoney(pay);
+$('totalExpense').textContent=formatMoney(exp);
+$('grandTotal').textContent=formatMoney(net);
 $('grandTotal').className='amount '+(net>=0?'net-pos':'net-neg');
 $('groupCount').textContent=String(groups.length);
 $('recordCount').textContent=String(filtered.length);
 $('groups').innerHTML=groups.map(g=>{
 const open=expandedGroups.has(g.key),sorted=g.items.slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
-return '<div class="group"><div class="group-head"><button class="group-button" type="button" data-group="'+esc(g.key)+'" aria-expanded="'+open+'"><span>'+(open?'▾':'▸')+'</span><span class="group-name"><b>'+esc(g.name)+'</b><br><small>'+g.items.length+' '+esc(t('recordCount'))+'</small></span><span class="amount '+(g.net>=0?'net-pos':'net-neg')+'">'+money(g.net)+'</span></button><button class="group-pdf primary" type="button" data-pdf-group="'+esc(g.key)+'">'+esc(t('pdfOne'))+'</button></div><div class="group-details '+(open?'':'hidden')+'">'+sorted.map(recordCard).join('')+'</div></div>'
+return '<div class="group"><div class="group-head"><button class="group-button" type="button" data-group="'+esc(g.key)+'" aria-expanded="'+open+'"><span>'+(open?'▾':'▸')+'</span><span class="group-name"><b>'+esc(g.name)+'</b><br><small>'+g.items.length+' '+esc(t('recordCount'))+'</small></span><span class="amount '+(g.net>=0?'net-pos':'net-neg')+'">'+formatMoney(g.net)+'</span></button><button class="group-pdf primary" type="button" data-pdf-group="'+esc(g.key)+'">'+esc(t('pdfOne'))+'</button></div><div class="group-details '+(open?'':'hidden')+'">'+sorted.map(recordCard).join('')+'</div></div>'
 }).join('')||'<p class="muted">'+esc(t('noGroups'))+'</p>'
 }
 function trashRows(){
@@ -224,7 +239,7 @@ function renderTrash(){
 const list=trashRows();
 $('trashList').innerHTML=list.map(v=>{
 const expired=!!v.expiresAt&&num(v.expiresAt)<=Date.now();
-return '<article class="record"><b>'+esc(v.data&&(v.data.party||v.data.title)||t('pageTitle'))+'</b><p>'+esc(v.data&&v.data.date||'—')+' · '+esc(typeText(v.data&&v.data.type))+' · '+money(v.data&&v.data.total)+'</p>'+(v.data&&v.data.dueDate?'<p>'+esc(t('dueDate'))+': '+esc(v.data.dueDate)+'</p>':'')+'<p class="muted">'+esc(t('reportDate'))+': '+(v.deletedAt?esc(new Date(v.deletedAt).toLocaleString()):'—')+'</p><button type="button" data-restore="'+esc(v.category)+'/'+esc(v.id)+'" '+(expired?'disabled':'')+'>'+esc(expired?t('expired'):t('restore'))+'</button></article>'
+return '<article class="record"><b>'+esc(v.data&&(v.data.party||v.data.title)||t('pageTitle'))+'</b><p>'+esc(v.data&&v.data.date||'—')+' · '+esc(typeText(v.data&&v.data.type))+' · '+formatMoney(v.data&&v.data.total)+'</p>'+(v.data&&v.data.dueDate?'<p>'+esc(t('dueDate'))+': '+esc(v.data.dueDate)+'</p>':'')+'<p class="muted">'+esc(t('reportDate'))+': '+(v.deletedAt?esc(new Date(v.deletedAt).toLocaleString()):'—')+'</p><button type="button" data-restore="'+esc(v.category)+'/'+esc(v.id)+'" '+(expired?'disabled':'')+'>'+esc(expired?t('expired'):t('restore'))+'</button></article>'
 }).join('')||'<p class="muted">'+esc(t('noTrash'))+'</p>'
 }
 function askConfirm(message){
@@ -338,7 +353,7 @@ const net=rec-pay-exp;
 const rows=list.map((r,i)=>'<tr><td class="c">'+(i+1)+'</td><td>'+esc(r.date||'')+'</td><td>'+esc(r.dueDate||'—')+'</td><td><b>'+esc(r.party||'')+'</b></td><td>'+esc(typeText(r.type))+'</td><td class="r">'+num(r.npr).toFixed(2)+'</td><td class="r">'+num(r.inr).toFixed(2)+'</td><td class="r">'+num(r.total).toFixed(2)+'</td><td>'+esc(r.note||'')+'</td></tr>').join('');
 const report=document.createElement('div');
 report.style.cssText='background:#fff;color:#111827;padding:12px;font-family:Arial,sans-serif;font-size:11px;width:100%;box-sizing:border-box';
-report.innerHTML='<div style="background:#0f172a;color:#fff;padding:12px;border-radius:6px;border-bottom:4px solid #10b981;margin-bottom:10px"><table style="width:100%;border:0;margin:0;background:transparent"><tr><td style="border:0;padding:0;color:#fff"><h1 style="font-size:16px;margin:0 0 4px;color:#fff">Digital NoteBook</h1><div style="font-size:11px;color:#34d399;font-weight:bold">TRANSACTION REPORT'+(subtitle?' — '+esc(subtitle):'')+'</div></td><td style="border:0;padding:0;text-align:right;color:#cbd5e1;font-size:9px;vertical-align:top"><b>Report Date:</b> '+esc(reportDate)+'</td></tr></table><div style="border-top:1px solid #334155;margin:8px 0"></div><table style="width:100%;border:0;margin:0;background:transparent;font-size:9.5px"><tr><td style="border:0;padding:2px;color:#e2e8f0"><b>Name:</b> '+esc(p.name||t('missing'))+'</td><td style="border:0;padding:2px;color:#e2e8f0;text-align:right"><b>Email:</b> '+esc(p.email||t('missing'))+'</td></tr><tr><td style="border:0;padding:2px;color:#e2e8f0"><b>Address:</b> '+esc(p.address||t('missing'))+'</td><td style="border:0;padding:2px;color:#e2e8f0;text-align:right"><b>Mobile:</b> '+esc(p.mobile||t('missing'))+'</td></tr></table></div><div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:6px;padding:8px 12px;margin-bottom:10px;font-size:10.5px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px"><div><b>Receivable:</b> <span style="color:#047857">'+money(rec)+'</span></div><div><b>Payable:</b> <span style="color:#b91c1c">'+money(pay)+'</span></div><div><b>Expense:</b> <span style="color:#b91c1c">'+money(exp)+'</span></div><div><b>Net Balance:</b> <span style="color:'+(net>=0?'#047857':'#b91c1c')+';font-weight:bold">'+money(net)+'</span></div></div><h2 style="font-size:12px;margin:8px 0 4px;color:#0f172a">Detailed Transaction Records</h2><table class="pdf-table"><thead><tr><th style="width:28px;text-align:center">No.</th><th style="width:58px">Date</th><th style="width:65px">Due date</th><th>Party Name</th><th style="width:58px">Type</th><th style="width:50px;text-align:right">NPR</th><th style="width:45px;text-align:right">INR</th><th style="width:65px;text-align:right">Total NPR</th><th>Note</th></tr></thead><tbody>'+(rows||'<tr><td colspan="9" class="c">No records.</td></tr>')+'</tbody><tfoot><tr><td colspan="7" class="r"><b>Net Balance</b></td><td class="r"><b>'+money(net)+'</b></td><td></td></tr></tfoot></table><div style="margin-top:10px;border-top:1px solid #cbd5e1;padding-top:4px;font-size:8px;color:#64748b;text-align:center">'+esc(t('reportFoot'))+'</div><style>.pdf-table{border-collapse:collapse;width:100%;margin-bottom:6px;table-layout:fixed}.pdf-table th,.pdf-table td{border:1px solid #94a3b8;padding:4px 5px;vertical-align:middle;overflow-wrap:anywhere;font-size:9px}.pdf-table th{background:#f1f5f9;color:#0f172a;font-weight:bold;text-align:left}.pdf-table tfoot td{background:#f8fafc;font-weight:bold}.r{text-align:right}.c{text-align:center}tr{page-break-inside:avoid}</style>';
+report.innerHTML='<div style="background:#0f172a;color:#fff;padding:12px;border-radius:6px;border-bottom:4px solid #10b981;margin-bottom:10px"><table style="width:100%;border:0;margin:0;background:transparent"><tr><td style="border:0;padding:0;color:#fff"><h1 style="font-size:16px;margin:0 0 4px;color:#fff">Digital NoteBook</h1><div style="font-size:11px;color:#34d399;font-weight:bold">TRANSACTION REPORT'+(subtitle?' — '+esc(subtitle):'')+'</div></td><td style="border:0;padding:0;text-align:right;color:#cbd5e1;font-size:9px;vertical-align:top"><b>Report Date:</b> '+esc(reportDate)+'</td></tr></table><div style="border-top:1px solid #334155;margin:8px 0"></div><table style="width:100%;border:0;margin:0;background:transparent;font-size:9.5px"><tr><td style="border:0;padding:2px;color:#e2e8f0"><b>Name:</b> '+esc(p.name||t('missing'))+'</td><td style="border:0;padding:2px;color:#e2e8f0;text-align:right"><b>Email:</b> '+esc(p.email||t('missing'))+'</td></tr><tr><td style="border:0;padding:2px;color:#e2e8f0"><b>Address:</b> '+esc(p.address||t('missing'))+'</td><td style="border:0;padding:2px;color:#e2e8f0;text-align:right"><b>Mobile:</b> '+esc(p.mobile||t('missing'))+'</td></tr></table></div><div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:6px;padding:8px 12px;margin-bottom:10px;font-size:10.5px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px"><div><b>Receivable:</b> <span style="color:#047857">'+formatMoney(rec)+'</span></div><div><b>Payable:</b> <span style="color:#b91c1c">'+formatMoney(pay)+'</span></div><div><b>Expense:</b> <span style="color:#b91c1c">'+formatMoney(exp)+'</span></div><div><b>Net Balance:</b> <span style="color:'+(net>=0?'#047857':'#b91c1c')+';font-weight:bold">'+formatMoney(net)+'</span></div></div><h2 style="font-size:12px;margin:8px 0 4px;color:#0f172a">Detailed Transaction Records</h2><table class="pdf-table"><thead><tr><th style="width:28px;text-align:center">No.</th><th style="width:58px">Date</th><th style="width:65px">Due date</th><th>Party Name</th><th style="width:58px">Type</th><th style="width:50px;text-align:right">NPR</th><th style="width:45px;text-align:right">INR</th><th style="width:65px;text-align:right">Total NPR</th><th>Note</th></tr></thead><tbody>'+(rows||'<tr><td colspan="9" class="c">No records.</td></tr>')+'</tbody><tfoot><tr><td colspan="7" class="r"><b>Net Balance</b></td><td class="r"><b>'+formatMoney(net)+'</b></td><td></td></tr></tfoot></table><div style="margin-top:10px;border-top:1px solid #cbd5e1;padding-top:4px;font-size:8px;color:#64748b;text-align:center">'+esc(t('reportFoot'))+'</div><style>.pdf-table{border-collapse:collapse;width:100%;margin-bottom:6px;table-layout:fixed}.pdf-table th,.pdf-table td{border:1px solid #94a3b8;padding:4px 5px;vertical-align:middle;overflow-wrap:anywhere;font-size:9px}.pdf-table th{background:#f1f5f9;color:#0f172a;font-weight:bold;text-align:left}.pdf-table tfoot td{background:#f8fafc;font-weight:bold}.r{text-align:right}.c{text-align:center}tr{page-break-inside:avoid}</style>';
 try{
 await window.html2pdf().set({margin:6,filename:(prefix||'Digital-Notebook-Transactions')+'-'+localDate()+'.pdf',image:{type:'jpeg',quality:.98},html2canvas:{scale:2,useCORS:true,scrollY:0},jsPDF:{unit:'mm',format:'a4',orientation:'landscape'}}).from(report).save();
 }catch(err){status(t('pdfError')+(err.message||err),true)}
@@ -431,6 +446,13 @@ $('cancelButton').addEventListener('click',()=>{resetForm();status('')});
 ['npr','inr','rate','type'].forEach(id=>$(id).addEventListener('input',()=>calc(false)));
 $('date').addEventListener('change',()=>calc(true));
 $('period').addEventListener('input',()=>calc(true));
+$('currencyToggle').addEventListener('click',e=>{
+const btn=e.target.closest('[data-curr]');
+if(!btn)return;
+currentCurrency=btn.dataset.curr;
+document.querySelectorAll('#currencyToggle [data-curr]').forEach(b=>b.classList.toggle('active',b===btn));
+render();
+});
 $('groups').addEventListener('click',async e=>{
 const pdf=e.target.closest('[data-pdf-group]');
 if(pdf){await exportGroup(pdf.dataset.pdfGroup);return}
