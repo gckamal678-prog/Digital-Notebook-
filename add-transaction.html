@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="ne">
 <head>
@@ -143,9 +144,17 @@ storageBucket:'digital-a2552.firebasestorage.app',
 messagingSenderId:'218135618179',
 appId:'1:218135618179:web:821b76920d3e5669ac31b6'
 };
-const SETTINGS_KEY='digital_notebook_settings',DAY=86400000,RATE_INR=1.6,PATH='transactions';
+const SETTINGS_KEY='digital_notebook_settings',CURRENCY_KEY='digital_notebook_transaction_currency',DAY=86400000,RATE_INR=1.6,PATH='transactions';
 const $=id=>document.getElementById(id);
-let auth,db,prefs={},currentUser=null,records={},trash={},profile={},expandedGroups=new Set(),dataRef=null,trashRef=null,dataHandler=null,trashHandler=null,profileRef=null,profileHandler=null,confirmResolver=null,currentCurrency='NPR';
+
+function getSavedCurrency(){
+try{
+const saved=localStorage.getItem(CURRENCY_KEY);
+return saved==='INR'?'INR':'NPR';
+}catch(e){return 'NPR'}
+}
+
+let auth,db,prefs={},currentUser=null,records={},trash={},profile={},expandedGroups=new Set(),dataRef=null,trashRef=null,dataHandler=null,trashHandler=null,profileRef=null,profileHandler=null,confirmResolver=null,currentCurrency=getSavedCurrency();
 
 const words={
 en:{
@@ -350,12 +359,19 @@ const p=pdfProfile(),reportDate=new Date().toLocaleDateString(prefs.lang==='ne'?
 let rec=0,pay=0,exp=0;
 list.forEach(r=>{const a=num(r.total);if(r.type==='Receivable')rec+=a;else if(r.type==='Payable')pay+=a;else if(r.type==='Expense')exp+=a});
 const net=rec-pay-exp;
-const rows=list.map((r,i)=>'<tr><td class="c">'+(i+1)+'</td><td>'+esc(r.date||'')+'</td><td>'+esc(r.dueDate||'—')+'</td><td><b>'+esc(r.party||'')+'</b></td><td>'+esc(typeText(r.type))+'</td><td class="r">'+num(r.npr).toFixed(2)+'</td><td class="r">'+num(r.inr).toFixed(2)+'</td><td class="r">'+num(r.total).toFixed(2)+'</td><td>'+esc(r.note||'')+'</td></tr>').join('');
+
+/* PDF मा चयन गरिएको मुद्राको रकम मात्र */
+const pdfAmount=value=>{
+const amount=num(value);
+return (currentCurrency==='INR'?amount/RATE_INR:amount).toFixed(2);
+};
+
+const rows=list.map((r,i)=>'<tr><td class="c">'+(i+1)+'</td><td>'+esc(r.date||'')+'</td><td>'+esc(r.dueDate||'—')+'</td><td><b>'+esc(r.party||'')+'</b></td><td>'+esc(typeText(r.type))+'</td><td class="r">'+pdfAmount(r.total)+'</td><td>'+esc(r.note||'')+'</td></tr>').join('');
 const report=document.createElement('div');
 report.style.cssText='background:#fff;color:#111827;padding:12px;font-family:Arial,sans-serif;font-size:11px;width:100%;box-sizing:border-box';
-report.innerHTML='<div style="background:#0f172a;color:#fff;padding:12px;border-radius:6px;border-bottom:4px solid #10b981;margin-bottom:10px"><table style="width:100%;border:0;margin:0;background:transparent"><tr><td style="border:0;padding:0;color:#fff"><h1 style="font-size:16px;margin:0 0 4px;color:#fff">Digital NoteBook</h1><div style="font-size:11px;color:#34d399;font-weight:bold">TRANSACTION REPORT'+(subtitle?' — '+esc(subtitle):'')+'</div></td><td style="border:0;padding:0;text-align:right;color:#cbd5e1;font-size:9px;vertical-align:top"><b>Report Date:</b> '+esc(reportDate)+'</td></tr></table><div style="border-top:1px solid #334155;margin:8px 0"></div><table style="width:100%;border:0;margin:0;background:transparent;font-size:9.5px"><tr><td style="border:0;padding:2px;color:#e2e8f0"><b>Name:</b> '+esc(p.name||t('missing'))+'</td><td style="border:0;padding:2px;color:#e2e8f0;text-align:right"><b>Email:</b> '+esc(p.email||t('missing'))+'</td></tr><tr><td style="border:0;padding:2px;color:#e2e8f0"><b>Address:</b> '+esc(p.address||t('missing'))+'</td><td style="border:0;padding:2px;color:#e2e8f0;text-align:right"><b>Mobile:</b> '+esc(p.mobile||t('missing'))+'</td></tr></table></div><div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:6px;padding:8px 12px;margin-bottom:10px;font-size:10.5px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px"><div><b>Receivable:</b> <span style="color:#047857">'+formatMoney(rec)+'</span></div><div><b>Payable:</b> <span style="color:#b91c1c">'+formatMoney(pay)+'</span></div><div><b>Expense:</b> <span style="color:#b91c1c">'+formatMoney(exp)+'</span></div><div><b>Net Balance:</b> <span style="color:'+(net>=0?'#047857':'#b91c1c')+';font-weight:bold">'+formatMoney(net)+'</span></div></div><h2 style="font-size:12px;margin:8px 0 4px;color:#0f172a">Detailed Transaction Records</h2><table class="pdf-table"><thead><tr><th style="width:28px;text-align:center">No.</th><th style="width:58px">Date</th><th style="width:65px">Due date</th><th>Party Name</th><th style="width:58px">Type</th><th style="width:50px;text-align:right">NPR</th><th style="width:45px;text-align:right">INR</th><th style="width:65px;text-align:right">Total NPR</th><th>Note</th></tr></thead><tbody>'+(rows||'<tr><td colspan="9" class="c">No records.</td></tr>')+'</tbody><tfoot><tr><td colspan="7" class="r"><b>Net Balance</b></td><td class="r"><b>'+formatMoney(net)+'</b></td><td></td></tr></tfoot></table><div style="margin-top:10px;border-top:1px solid #cbd5e1;padding-top:4px;font-size:8px;color:#64748b;text-align:center">'+esc(t('reportFoot'))+'</div><style>.pdf-table{border-collapse:collapse;width:100%;margin-bottom:6px;table-layout:fixed}.pdf-table th,.pdf-table td{border:1px solid #94a3b8;padding:4px 5px;vertical-align:middle;overflow-wrap:anywhere;font-size:9px}.pdf-table th{background:#f1f5f9;color:#0f172a;font-weight:bold;text-align:left}.pdf-table tfoot td{background:#f8fafc;font-weight:bold}.r{text-align:right}.c{text-align:center}tr{page-break-inside:avoid}</style>';
+report.innerHTML='<div style="background:#0f172a;color:#fff;padding:12px;border-radius:6px;border-bottom:4px solid #10b981;margin-bottom:10px"><table style="width:100%;border:0;margin:0;background:transparent"><tr><td style="border:0;padding:0;color:#fff"><h1 style="font-size:16px;margin:0 0 4px;color:#fff">Digital NoteBook</h1><div style="font-size:11px;color:#34d399;font-weight:bold">TRANSACTION REPORT'+(subtitle?' — '+esc(subtitle):'')+'</div></td><td style="border:0;padding:0;text-align:right;color:#cbd5e1;font-size:9px;vertical-align:top"><b>Report Date:</b> '+esc(reportDate)+'</td></tr></table><div style="border-top:1px solid #334155;margin:8px 0"></div><table style="width:100%;border:0;margin:0;background:transparent;font-size:9.5px"><tr><td style="border:0;padding:2px;color:#e2e8f0"><b>Name:</b> '+esc(p.name||t('missing'))+'</td><td style="border:0;padding:2px;color:#e2e8f0;text-align:right"><b>Email:</b> '+esc(p.email||t('missing'))+'</td></tr><tr><td style="border:0;padding:2px;color:#e2e8f0"><b>Address:</b> '+esc(p.address||t('missing'))+'</td><td style="border:0;padding:2px;color:#e2e8f0;text-align:right"><b>Mobile:</b> '+esc(p.mobile||t('missing'))+'</td></tr></table></div><div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:6px;padding:8px 12px;margin-bottom:10px;font-size:10.5px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px"><div><b>Receivable:</b> <span style="color:#047857">'+formatMoney(rec)+'</span></div><div><b>Payable:</b> <span style="color:#b91c1c">'+formatMoney(pay)+'</span></div><div><b>Expense:</b> <span style="color:#b91c1c">'+formatMoney(exp)+'</span></div><div><b>Net Balance:</b> <span style="color:'+(net>=0?'#047857':'#b91c1c')+';font-weight:bold">'+formatMoney(net)+'</span></div></div><h2 style="font-size:12px;margin:8px 0 4px;color:#0f172a">Detailed Transaction Records</h2><table class="pdf-table"><thead><tr><th style="width:28px;text-align:center">No.</th><th style="width:58px">Date</th><th style="width:65px">Due date</th><th>Party Name</th><th style="width:58px">Type</th><th style="width:75px;text-align:right">'+currentCurrency+'</th><th>Note</th></tr></thead><tbody>'+(rows||'<tr><td colspan="7" class="c">No records.</td></tr>')+'</tbody><tfoot><tr><td colspan="5" class="r"><b>Net Balance</b></td><td class="r"><b>'+formatMoney(net)+'</b></td><td></td></tr></tfoot></table><div style="margin-top:10px;border-top:1px solid #cbd5e1;padding-top:4px;font-size:8px;color:#64748b;text-align:center">'+esc(t('reportFoot'))+'</div><style>.pdf-table{border-collapse:collapse;width:100%;margin-bottom:6px;table-layout:fixed}.pdf-table th,.pdf-table td{border:1px solid #94a3b8;padding:4px 5px;vertical-align:middle;overflow-wrap:anywhere;font-size:9px}.pdf-table th{background:#f1f5f9;color:#0f172a;font-weight:bold;text-align:left}.pdf-table tfoot td{background:#f8fafc;font-weight:bold}.r{text-align:right}.c{text-align:center}tr{page-break-inside:avoid}</style>';
 try{
-await window.html2pdf().set({margin:6,filename:(prefix||'Digital-Notebook-Transactions')+'-'+localDate()+'.pdf',image:{type:'jpeg',quality:.98},html2canvas:{scale:2,useCORS:true,scrollY:0},jsPDF:{unit:'mm',format:'a4',orientation:'landscape'}}).from(report).save();
+await window.html2pdf().set({margin:6,filename:(prefix||'Digital-Notebook-Transactions')+'-'+currentCurrency+'-'+localDate()+'.pdf',image:{type:'jpeg',quality:.98},html2canvas:{scale:2,useCORS:true,scrollY:0},jsPDF:{unit:'mm',format:'a4',orientation:'landscape'}}).from(report).save();
 }catch(err){status(t('pdfError')+(err.message||err),true)}
 }
 async function exportGroup(key){
@@ -440,7 +456,14 @@ try{
 if(!window.firebase||!firebase.apps)throw Error('Firebase SDK could not load. Check internet connection and reload.');
 if(!firebase.apps.length)firebase.initializeApp(firebaseConfig);
 auth=firebase.auth();db=firebase.database();
-$('date').value=localDate();$('dueDate').value='';calc(false);applyPreferences();
+$('date').value=localDate();$('dueDate').value='';calc(false);
+
+/* पेज खुल्दा सुरक्षित गरिएको मुद्रा सक्रिय बनाउने */
+document.querySelectorAll('#currencyToggle [data-curr]').forEach(b=>{
+b.classList.toggle('active',b.dataset.curr===currentCurrency);
+});
+
+applyPreferences();
 $('transactionForm').addEventListener('submit',submitForm);
 $('cancelButton').addEventListener('click',()=>{resetForm();status('')});
 ['npr','inr','rate','type'].forEach(id=>$(id).addEventListener('input',()=>calc(false)));
@@ -449,8 +472,13 @@ $('period').addEventListener('input',()=>calc(true));
 $('currencyToggle').addEventListener('click',e=>{
 const btn=e.target.closest('[data-curr]');
 if(!btn)return;
+if(!['NPR','INR'].includes(btn.dataset.curr))return;
 currentCurrency=btn.dataset.curr;
-document.querySelectorAll('#currencyToggle [data-curr]').forEach(b=>b.classList.toggle('active',b===btn));
+
+/* मुद्रा चयन मोबाइल/ब्राउजरमा सुरक्षित राख्ने */
+try{localStorage.setItem(CURRENCY_KEY,currentCurrency)}catch(err){console.warn('Currency preference could not be saved:',err)}
+
+document.querySelectorAll('#currencyToggle [data-curr]').forEach(b=>b.classList.toggle('active',b.dataset.curr===currentCurrency));
 render();
 });
 $('groups').addEventListener('click',async e=>{
